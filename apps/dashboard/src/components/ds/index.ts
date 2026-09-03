@@ -9,6 +9,8 @@
  * Pages import from "@/components/ds", never from a file inside it.
  */
 export { Callout, type CalloutProps } from "./callout";
+export { ChartFrame, type ChartFrameProps } from "./chart-frame";
+export { DateRangeField, type DateRangeFieldProps } from "./date-range-field";
 export { FilterChip, type FilterChipProps } from "./filter-chip";
 export { LoadingState, type LoadingStateProps } from "./loading-state";
 export { KeyValueRow, type KeyValueRowProps } from "./key-value-row";

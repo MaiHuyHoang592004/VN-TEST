@@ -146,15 +146,15 @@ export function DataTable<T>({
       <div className="flex flex-col gap-3">
         {toolbar}
         {error ? (
-          <p className="py-10 text-center text-sm">{error}</p>
+          <p className="py-10 text-center font-sans text-(length:--fs-body) text-(--status-critical-fg)">{error}</p>
         ) : loading ? (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 4 }, (_, i) => (
-              <Skeleton key={`card-skeleton-${i}`} className="h-28 w-full rounded-lg" />
+              <Skeleton key={`card-skeleton-${i}`} className="h-28 w-full rounded-(--radius-card)" />
             ))}
           </div>
         ) : rows.length === 0 ? (
-          <p className="text-muted-foreground py-10 text-center text-sm">{empty}</p>
+          <p className="py-10 text-center font-sans text-(length:--fs-body) text-(--text-muted)">{empty}</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {rows.map((row) => {
@@ -163,8 +163,8 @@ export function DataTable<T>({
                 <li
                   key={id}
                   className={cn(
-                    "border-border bg-card rounded-lg border p-3 transition-colors",
-                    selectable && selected!.has(id) && "border-foreground/30 bg-accent/40",
+                    "rounded-(--radius-card) border border-(--border-hairline) bg-(--surface-data) p-3 transition-colors duration-(--dur-fast) motion-reduce:transition-none",
+                    selectable && selected!.has(id) && "border-(--action-200) bg-sky-50",
                   )}
                 >
                   <div className="flex gap-3">
@@ -197,7 +197,7 @@ export function DataTable<T>({
     <div className="flex flex-col gap-3">
       {toolbar}
 
-      <div className="border-border overflow-x-auto rounded-lg border">
+      <div className="overflow-x-auto rounded-(--radius-card) border border-(--border-hairline) bg-(--surface-data) shadow-(--shadow-xs)">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -228,7 +228,7 @@ export function DataTable<T>({
                       <button
                         type="button"
                         onClick={() => onSortChange(nextSortFor(col.id))}
-                        className="text-muted-foreground hover:text-foreground -mx-1 inline-flex items-center gap-1 rounded px-1 transition-colors"
+                        className="-mx-1 inline-flex items-center gap-1 rounded-(--radius-xs) px-1 text-(--text-label) transition-colors duration-(--dur-fast) hover:text-(--text-body) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
                       >
                         {col.header}
                         {isSorted ? (
@@ -281,7 +281,7 @@ export function DataTable<T>({
               <TableRow>
                 <TableCell
                   colSpan={colSpan}
-                  className="text-muted-foreground py-10 text-center text-sm"
+                  className="py-10 text-center font-sans text-(length:--fs-body) text-(--text-muted)"
                 >
                   {empty ?? "Nothing to show."}
                 </TableCell>

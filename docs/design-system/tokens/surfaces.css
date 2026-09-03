@@ -1,0 +1,77 @@
+/* ── SURFACE SYSTEM ─────────────────────────────────────────────────
+   SKY IS THE PAGE, not a panel. Temperature: COOL LEADS — from a distance an
+   operational screen reads cool sky blue first (~70%), with warm craft details
+   (~30%) supporting it. Qualitative balance, not a pixel quota.
+
+   Operational hierarchy:
+     BRIGHT SKY PAGE FIELD → SOFT NEUTRAL SHELL (occasional BRAND CREAM)
+     → WHITE NESTED DATA → RETURN TO SKY
+
+   Cream is a BRAND surface — the nav shell, marketing brand moments, the
+   blue/cream rhythm, product wells — NOT the default fill for every
+   operational card, panel, form area and documentation ground. That default
+   is --surface-shell. Navy is never a large background. Never beige, vintage
+   or visibly yellow. */
+:root{
+  --surface-canvas:var(--sky-300);        /* THE PAGE. Sky surrounds content.   */
+  --surface-canvas-soft:var(--sky-200);   /* quieter sky field                  */
+  --surface-canvas-wash:var(--sky-100);   /* faintest sky, long scrolls         */
+  --surface-shell:var(--neutral-50);      /* DEFAULT operational surface — card
+                                             shells, filter bars, utility panels,
+                                             documentation grounds              */
+  --surface-content:var(--cream-100);     /* BRAND warm surface — nav shell,
+                                             marketing moments, cream rhythm    */
+  --surface-content-alt:var(--neutral-100); /* zebra rows, quiet alternates     */
+  --surface-data:var(--gwp-white);        /* nested data / product zone         */
+  --surface-nav:var(--cream-100);         /* floating cream navigation shell —
+                                             a deliberate brand moment          */
+  --surface-raised:var(--gwp-white);      /* popovers, drawers, menus           */
+  --surface-inset:var(--sky-50);          /* inputs, wells, code blocks         */
+  --surface-brand-block:var(--sky-300);   /* brand moment inside content        */
+  --surface-hero-deep:var(--sky-600);     /* DISPLAY TYPE ONLY. Mid-luminance:
+                                             nothing in the palette clears 4.5:1
+                                             on it (best is navy-900 at 4.10).
+                                             Cream display = 3.65:1, fine at
+                                             large sizes (>=24px bold). Any small
+                                             text — labels, body, money, controls
+                                             — MUST sit on a nested light chip
+                                             (--surface-data / --cream-100), never
+                                             directly on this ground, and never
+                                             reduced with opacity. */
+  --surface-accent-block:var(--yellow-100);
+  --overlay-scrim:rgba(9,39,64,0.34);
+
+  /* ── SKY → WHITE DISSOLVE FIELD ───────────────────────────────────
+     The ONE sanctioned gradient in the system, and it exists for the ADMIN
+     shell. A flat sky field + white cards + hard 1px boxes reads as stacked
+     rectangles; a single soft vertical dissolve from Bright Sky at the top
+     edge to white further down turns the page back into one continuous field
+     that content sits ON. Delineation then comes from a hairline border and a
+     FADING SEAM, not from a filled box.
+
+     Rules: vertical only, top→bottom, sky→white, one per screen, admin
+     surfaces only (seller / marketing / catalog stay flat). Never diagonal,
+     radial, multi-hue, or under a photograph. Stops are absolute px, not %,
+     so the dissolve reads identically on an 800px screen and a 4000px scroll
+     — past the last stop the field is simply white.
+
+     Ink: the admin chrome title stays NAVY on the top band (7.8:1 on sky-300).
+     A wash that resolves to white is not a saturated brand block, so the
+     cream-display-on-sky rule does not reach it. PageHero / marketing heroes
+     are unchanged. */
+  --field-admin:linear-gradient(180deg,var(--sky-300) 0,var(--sky-200) 150px,var(--sky-50) 430px,var(--gwp-white) 700px);
+  --field-rail:linear-gradient(180deg,var(--sky-100) 0,var(--neutral-50) 280px,var(--gwp-white) 620px);
+  --field-sheet:linear-gradient(180deg,var(--gwp-white) 0,var(--sky-50) 100%);
+  --seam-v:linear-gradient(180deg,var(--border-soft) 0,var(--border-hairline) 42%,rgba(15,58,95,0) 88%);
+  --seam-h:linear-gradient(90deg,var(--border-soft) 0,var(--border-hairline) 45%,rgba(15,58,95,0) 92%);
+
+  /* ── BRAND GRADIENT — HERO + PRIMARY CTA ONLY ─────────────────────────
+     A barely-there sky→cyan lean across ONE large surface. Its whole job is to
+     keep a big pale-blue block from reading as flat printed card stock; if you
+     can name the second colour at a glance it is too strong.
+     Allowed on: the dashboard hero surface, the single primary CTA of a screen.
+     Never on: cards, tiles, tables, badges, nav, status, or more than one
+     surface per screen. */
+  --field-hero-sky:linear-gradient(118deg,var(--sky-200) 0%,var(--sky-300) 58%,#A6E4EF 100%);
+  --field-cta-blue:linear-gradient(118deg,var(--action-500) 0%,#0093C6 100%);
+}

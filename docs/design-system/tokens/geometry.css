@@ -1,0 +1,40 @@
+/* ── GEOMETRY: RADIUS, BORDERS, SHADOW ──────────────────────────────
+   Everything in GWP is rounded and soft. Shadows are blue-tinted, wide and
+   faint — they read as light, never as elevation drama. Borders are hairline
+   and used sparingly; a change of surface does most of the separating. */
+:root{
+  --radius-xs:8px;
+  --radius-sm:10px;
+  --radius-md:14px;
+  --radius-lg:18px;
+  --radius-xl:24px;
+  --radius-2xl:32px;
+  --radius-3xl:44px;
+  --radius-pill:999px;
+  --radius-control:var(--radius-sm);
+  --radius-card:var(--radius-md);
+  --radius-surface:var(--radius-md);
+  --radius-hero:var(--radius-md);
+
+  --border-width:1px;
+  --border-width-strong:1.5px;
+  --focus-ring-width:3px;
+
+  --shadow-none:none;
+  --shadow-xs:0 1px 2px rgba(15,58,95,0.05);
+  --shadow-sm:0 2px 8px rgba(15,58,95,0.06);
+  --shadow-md:0 8px 24px -10px rgba(15,58,95,0.14);
+  --shadow-lg:0 20px 48px -20px rgba(15,58,95,0.20);
+  --shadow-drawer:-24px 0 64px -32px rgba(9,39,64,0.28);
+  --shadow-focus:0 0 0 3px rgba(0,120,193,0.28);
+  --shadow-pressed:inset 0 1px 2px rgba(9,39,64,0.12);
+
+  /* Craft Cut — the organic router-cut boundary between color fields */
+  --craft-cut-radius:56% 44% 0 0 / 100% 100% 0 0; /* @kind radius */
+  --craft-cut-depth:72px;
+
+  /* Wood Rings — concentric tree-ring motif, drawn with gradients only */
+  --wood-ring-stroke:rgba(15,58,95,0.10);
+  --wood-ring-stroke-soft:rgba(15,58,95,0.06);
+  --wood-ring-gap:14px; /* @kind spacing */
+}

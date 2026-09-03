@@ -1,0 +1,55 @@
+{
+  "$note": "Valid sample props per component for AI import — render smoke-tests and visual verification. Every enum value is real (see types/domain.d.ts + DOMAIN_RESOLVED.md). Money is a preformatted string; components never do math. These are minimal-valid, not exhaustive — read <Name>.d.ts for the full prop contract.",
+  "StatusBadge": [
+    { "status": "In Production" },
+    { "status": "Fulfilled" },
+    { "status": "Design problems" },
+    { "status": "Cancel" }
+  ],
+  "Button": [
+    { "variant": "primary", "children": "Add order" },
+    { "variant": "secondary", "children": "Export" },
+    { "variant": "soft", "children": "Filters" }
+  ],
+  "IconButton": [{ "label": "Notifications", "children": "<Bell/>" }],
+  "MetricCard": [
+    { "variant": "wash", "tone": "sky", "label": "Total Orders", "value": "1,248", "delta": "↑ 18.2% vs last 7 days" },
+    { "variant": "card", "tone": "green", "label": "Balance", "value": "$2,485.50" }
+  ],
+  "DataTable": [{
+    "columns": [
+      { "key": "order_id", "header": "Order ID", "mono": true },
+      { "key": "warehouse_status", "header": "Status" },
+      { "key": "quantity", "header": "Qty" }
+    ],
+    "rows": [
+      { "order_id": "GWP-10245-1", "warehouse_status": "In Production", "quantity": 2 },
+      { "order_id": "GWP-10246-1", "warehouse_status": "Pending", "quantity": 1 }
+    ]
+  }],
+  "ProductCell": [{ "name": "Wood Ornament — Snowflake", "code": "HW-ORN-E-BK", "image": null }],
+  "StatusBadgeTicket": [{ "status": "open" }, { "status": "in_progress" }, { "status": "closed" }],
+  "TicketRow": [{
+    "$note": "Reason drives priority (read-only) — DOMAIN_RESOLVED §1",
+    "display_name": "Missing item in package",
+    "reason": "Khách trả hàng do chất lượng",
+    "priority": "critical",
+    "status": "open"
+  }],
+  "EmptyState": [{ "title": "No orders yet", "body": "Orders you create or import will show up here, with production and shipping status." }],
+  "Callout": [
+    { "tone": "critical", "title": "Couldn’t load orders", "body": "Something went wrong. Try again." },
+    { "tone": "info", "title": "Access Denied", "body": "You don’t have permission to view this page." }
+  ],
+  "Skeleton": [{ "w": 140, "h": 16 }, { "lines": 3, "h": 12, "gap": 8 }],
+  "MarketingHero": [{ "eyebrow": "For sellers", "title": "Good wood. Great products. Made personal.", "subtitle": "The all-in-one fulfillment platform for personalized products." }],
+  "ProductCard": [{
+    "$note": "rating/reviews/badge are DOMAIN-BOUND — off by default, never placeholder values",
+    "name": "Ceramic Mug — Custom Photo",
+    "price": "$14.90",
+    "image": null
+  }],
+  "WalletSummary": [{ "$note": "label exactly what the API returns; never derive", "label": "Balance", "value": "$2,485.50" }],
+  "NavUser": [{ "name": "Jane Cooper", "role": "Customer" }],
+  "SelectShippingType": [{ "options": [{ "value": "customer", "label": "Ship by Platform" }, { "value": "op", "label": "Ship by OP" }] }]
+}

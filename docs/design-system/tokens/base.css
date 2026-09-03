@@ -1,0 +1,22 @@
+/* ── BASE ───────────────────────────────────────────────────────────
+   Minimal element defaults so a bare page already looks like GWP. */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--surface-canvas);color:var(--text-body);font-family:var(--font-body);font-size:var(--fs-body);line-height:var(--lh-body);font-weight:var(--fw-regular);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:var(--fw-display);color:var(--text-strong);letter-spacing:var(--ls-display);line-height:var(--lh-heading);margin:0}
+h1{font-size:var(--fs-display-lg);line-height:var(--lh-display)}
+h2{font-size:var(--fs-display-md)}
+h3{font-size:var(--fs-display-sm)}
+h4{font-size:var(--fs-body-lg)}
+p{margin:0 0 var(--space-4)}
+a{color:var(--text-link);text-decoration:none;font-weight:var(--fw-semibold);transition:color var(--dur-fast) var(--ease-out)}
+a:hover{color:var(--text-link-hover);text-decoration:underline;text-underline-offset:3px}
+a:active{color:var(--action-700)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:var(--focus-ring-width) solid var(--border-focus);outline-offset:2px;border-radius:var(--radius-xs)}
+code,kbd,samp,pre{font-family:var(--font-mono);font-size:0.9em;letter-spacing:var(--ls-mono)}
+hr{border:0;border-top:var(--border-width) solid var(--border-hairline);margin:var(--space-8) 0}
+::selection{background:var(--sky-300);color:var(--navy-900)}
+::placeholder{color:var(--text-subtle)}
+table{border-collapse:collapse}
+img{max-width:100%;display:block}
+@media (prefers-reduced-motion:reduce){*{animation-duration:0.01ms !important;transition-duration:0.01ms !important}}

@@ -1,0 +1,45 @@
+/* ── SPACING & LAYOUT ───────────────────────────────────────────────
+   4px base. GWP composition needs generous, uneven whitespace — reach for
+   the larger steps at section boundaries, the smaller ones inside data. */
+:root{
+  --space-0:0;
+  --space-1:0.25rem;   /* 4  */
+  --space-2:0.5rem;    /* 8  */
+  --space-3:0.75rem;   /* 12 */
+  --space-4:1rem;      /* 16 */
+  --space-5:1.25rem;   /* 20 */
+  --space-6:1.5rem;    /* 24 */
+  --space-8:2rem;      /* 32 */
+  --space-10:2.5rem;   /* 40 */
+  --space-12:3rem;     /* 48 */
+  --space-16:4rem;     /* 64 */
+  --space-20:5rem;     /* 80 */
+  --space-24:6rem;     /* 96 */
+  --space-32:8rem;     /* 128 */
+
+  --gap-data:var(--space-3);
+  --gap-control:var(--space-2);
+  --gap-card:var(--space-5);
+  --gap-section:var(--space-12);
+  --gap-marketing-section:var(--space-24);
+
+  --pad-card:var(--space-5);
+  --pad-surface:var(--space-6);
+  --pad-hero:var(--space-10);
+  --pad-cell-x:var(--space-4);
+  --pad-cell-y:var(--space-3);
+
+  --content-max:1280px;
+  --content-max-marketing:1200px;
+  --content-max-prose:66ch;
+  --gutter:var(--space-8);
+  --gutter-mobile:var(--space-4);
+
+  --nav-height:64px;
+  --control-height-sm:32px;
+  --control-height:40px;
+  --control-height-lg:48px;
+  --touch-min:44px;
+  --row-height:56px;
+  --row-height-dense:48px;
+}

@@ -9,7 +9,7 @@ import { useTranslation } from "@/lib/i18n";
 import {
   deleteMaterialAction,
   getMaterialUsageAction,
-} from "@/modules/inventory/suppliers/actions";
+} from "@/modules/inventory/materials/actions";
 
 import type { MaterialRow } from "./material-dialog";
 

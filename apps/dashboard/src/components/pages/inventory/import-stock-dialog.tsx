@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { FormDialog, FormField, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
-import { searchMaterialsAction } from "@/modules/inventory/suppliers/actions";
+import { searchMaterialsAction } from "@/modules/inventory/materials/actions";
 import { quickImportAction } from "@/modules/inventory/stock/actions";
 
 import type { SiteOption } from "./stock-table";

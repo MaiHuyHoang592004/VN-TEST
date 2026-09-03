@@ -1,0 +1,1619 @@
+{
+  "$schema": "screen-manifest v1",
+  "generated": "2026-08-20",
+  "$updated": "2026-08-20 — nav consistency pass: 20 admin browsing screens converted AdminBar→white TopNav (6-pill module nav: Dashboard·Orders·Products·Inventory·Tickets·Wallet); ROUTES completed on Dashboard/Orders/Products; seller TtsConnect/TtsImport/WalletDrawer + Buyer* navs wired. AdminBar remains only on workstation screens (FulfillmentOps, LabelExtractor, warehouse-app) and state showcases (OrderDrawer/OrderModal/Shell-Sidebar).",
+  "namespace": "GoodWoodPrintFulfillmentDesignSystem_327690",
+  "note": "Route→screen→component contract for AI import. `components` are the design-system components each screen HTML actually mounts (window.<namespace>.<Name>). `source` cites the repo file(s) the screen was built from (see github.md for full paths). `domainBound` lists what must stay placeholder until the backend confirms it. RESOLVED items point to DOMAIN_RESOLVED.md.",
+  "roleVocabulary": [
+    "admin",
+    "customer",
+    "warehouse",
+    "warehouse_external",
+    "warehouse_admin",
+    "supporter",
+    "designer",
+    "public"
+  ],
+  "screens": {
+    "ui_kits/seller-app/SellerApiKeys.html": {
+      "route": "/api-keys",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/api-keys/AccountApiKeysPage.jsx + ApiKeysProvider.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "IconButton",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "SectionHeading",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/seller-app/SellerCatalog.html": {
+      "route": "/product-catalog",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/product_catalog/blocks/seller/SellerCatalog.jsx (configs.pricing + configs.specifications)",
+      "components": [
+        "Button",
+        "Callout",
+        "Drawer",
+        "EmptyState",
+        "FilterChip",
+        "IconButton",
+        "KeyValueRow",
+        "LoadingState",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "SegmentedControl",
+        "Surface",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "price-tier threshold rule",
+        "pricing rules"
+      ]
+    },
+    "ui_kits/seller-app/SellerCharts.html": {
+      "route": null,
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "KIT-ORIGINAL — data-feasibility workbench over Wallet + Catalog fields",
+      "components": [
+        "Button",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": [
+        "6 charts need new backend fields (listed on page)"
+      ]
+    },
+    "ui_kits/seller-app/SellerDashboard.html": {
+      "route": "/",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/dashboards/user/SellerDashboard.jsx → GET /api/reports/customer",
+      "components": [
+        "Button",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "FilterChip",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "LoadingState",
+        "MetricCard",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "Select",
+        "ShareBar",
+        "StatusBadge",
+        "Surface",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "recent_transactions (6 rows, no pagination)",
+        "balance model"
+      ]
+    },
+    "ui_kits/seller-app/SellerOrders.html": {
+      "route": "/orders",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/orders/* (SellerOrdersWorkbench, OrderTabShell, OrderToolbar); CUSTOMER_COLUMNS + CUSTOMER_ACTIONS",
+      "components": [
+        "Button",
+        "Drawer",
+        "EmptyState",
+        "FilterChip",
+        "GwpMark",
+        "IconButton",
+        "LoadingState",
+        "MetricCard",
+        "NavUser",
+        "PageHero",
+        "Pagination",
+        "ProductCell",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "TopNav"
+      ],
+      "domainBound": [
+        "tracking_status has no enum",
+        "asset readiness inferred from URL presence"
+      ]
+    },
+    "ui_kits/seller-app/SellerProductDetail.html": {
+      "route": null,
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "KIT-ORIGINAL — no source route; covers the list drawer information gap",
+      "components": [
+        "Button",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "ProductCard",
+        "SearchField",
+        "StatusBadge",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": [
+        "entire screen is kit-original"
+      ]
+    },
+    "ui_kits/seller-app/SellerProfile.html": {
+      "route": "/profile",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/account/ProfilePage.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "FilterChip",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "Modal",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "SectionHeading",
+        "StatusBadge",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": [
+        "info-card bodies not read"
+      ]
+    },
+    "ui_kits/seller-app/SellerTickets.html": {
+      "route": "/tickets",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/tickets/blocks/seller/SellerTickets.jsx + detail/TicketDetailPage.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "FilterChip",
+        "IconButton",
+        "Input",
+        "LoadingState",
+        "Modal",
+        "NavUser",
+        "PageHero",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "TopNav"
+      ],
+      "domainBound": [
+        "RESOLVED: TICKET_REASON — see DOMAIN_RESOLVED.md"
+      ]
+    },
+    "ui_kits/seller-app/SellerTtsConnect.html": {
+      "route": "/tts-shops (LinkModel)",
+      "roles": [
+        "customer"
+      ],
+      "shell": "Modal",
+      "source": "pages/shops/blocks/components/LinkModel.jsx — one-time TTS auth link",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/seller-app/SellerTtsImport.html": {
+      "route": "/tts-orders (ImportModal)",
+      "roles": [
+        "customer"
+      ],
+      "shell": "Modal",
+      "source": "pages/shops/blocks/components/ImportModal.jsx — per-line-item mapping",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "required Google-Drive mockup URL per line"
+      ]
+    },
+    "ui_kits/seller-app/SellerTtsOrders.html": {
+      "route": "/tts-orders",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/shops/TTSOrderPage.jsx → TTSOrderColumns.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "IconButton",
+        "KeyValueRow",
+        "Modal",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "StatusBadge",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/seller-app/SellerTtsShops.html": {
+      "route": "/tts-shops",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/shops/ShopsPage.jsx → ShopColumns.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "IconButton",
+        "Modal",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "StatusBadge",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/seller-app/SellerWallet.html": {
+      "route": "(no standalone route — reads dashboard payload)",
+      "roles": [
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "GET /api/reports/customer (currentUser.balance + recent_transactions)",
+      "components": [
+        "Button",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "FilterChip",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "LoadingState",
+        "NavUser",
+        "PageHero",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "paginated transactions endpoint missing",
+        "transaction-type enum",
+        "balance/debt model"
+      ]
+    },
+    "ui_kits/seller-app/SellerWalletDrawer.html": {
+      "route": "/ (Dashboard — Wallet drawer)",
+      "roles": [
+        "customer"
+      ],
+      "shell": "Drawer",
+      "source": "CONSOLIDATION REFERENCE — Wallet has no standalone route; opened as a right Drawer off the Dashboard balance tile (balance + runway + recent_transactions). Full ledger stays SellerWallet.html",
+      "components": [
+        "Button",
+        "Drawer",
+        "GwpMark",
+        "IconButton",
+        "MetricCard",
+        "NavUser",
+        "PageHero",
+        "SearchField",
+        "StatusBadge",
+        "Surface",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "runway is local arithmetic, not a backend field",
+        "transaction status set unconfirmed"
+      ]
+    },
+    "ui_kits/admin-app/AdminBomConfigs.html": {
+      "route": "/boms/configs",
+      "roles": [
+        "admin",
+        "supporter",
+        "warehouse_admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/boms/BomManagementPage.jsx + ProductVariantBomModal.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "wastage_rate = %/100",
+        "Activate saves first when no id"
+      ]
+    },
+    "ui_kits/admin-app/AdminBomStock.html": {
+      "route": "/boms/stock",
+      "roles": [
+        "admin",
+        "warehouse",
+        "supporter",
+        "warehouse_admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/boms/BomStockPage.jsx (always status:active)",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "MetricCard",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "needed→Shortage, unmapped→Not Assigned"
+      ]
+    },
+    "ui_kits/admin-app/AdminDashboard.html": {
+      "route": "/",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav surface=white",
+      "source": "pages/dashboards/DashboardContent.jsx → GET /api/reports/customer-orders",
+      "components": [
+        "Button",
+        "CommandPalette",
+        "CommandTrigger",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "SearchField",
+        "SegmentedControl",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "delta chips, series, on-time need new report keys — BACKEND_ASKS §1"
+      ]
+    },
+    "ui_kits/admin-app/AdminExpenses.html": {
+      "route": "/expenses",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/expenses/ExpensePageContent.jsx (entries + categories)",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "DateRangeField",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "ShareBar",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "amount>0, sign lives in type"
+      ]
+    },
+    "ui_kits/admin-app/AdminFulfillmentOps.html": {
+      "route": "/fulfillment + /qc-dong-goi",
+      "roles": [
+        "admin",
+        "warehouse",
+        "warehouse_admin"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/fulfillment_ops/FulfillmentOpsPage.jsx (mode=check|qc)",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "Modal",
+        "NavUser",
+        "SegmentedControl",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "Toast",
+        "ToastStack",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "basket_position set permission — BACKEND_ASKS §4",
+        "QC has no distinct backend state (UBR-022)"
+      ]
+    },
+    "ui_kits/admin-app/AdminLabelExtractor.html": {
+      "route": "/label-extractor",
+      "roles": [
+        "admin"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/label_extractor/* (extraction block NOT read)",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "SegmentedControl",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack"
+      ],
+      "domainBound": [
+        "admin-only gate",
+        "extraction workbench is a placeholder"
+      ]
+    },
+    "ui_kits/admin-app/AdminMaterialInventory.html": {
+      "route": "/material-inventory (+ /receipts /movements)",
+      "roles": [
+        "admin",
+        "warehouse",
+        "supporter",
+        "warehouse_admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/material_inventory/MaterialInventoryPage.jsx — 3 tabs",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "canAdjust = admin||warehouse_admin (no Action col otherwise)",
+        "movements append-only, 7 types"
+      ]
+    },
+    "ui_kits/admin-app/AdminMaterials.html": {
+      "route": "/materials",
+      "roles": [
+        "admin",
+        "supporter",
+        "warehouse_admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/material_inventory/MaterialItemsPage.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "MetricCard",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "default filter status:active",
+        "no price field on a material"
+      ]
+    },
+    "ui_kits/admin-app/AdminMockups.html": {
+      "route": "/mockups (HIDE_V3_PRODUCTS)",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav",
+      "source": "pages/mockups/* — Google-Drive pointers, Drive-pattern validated",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Popover",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "V3 route: enabled:!HIDE_V3_PRODUCTS"
+      ]
+    },
+    "ui_kits/admin-app/AdminNotifications.html": {
+      "route": "/customer-notifications (+ /recipients /history /settings)",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/customer_notifications/* — 4 routes, one layout, 4 tabs",
+      "components": [
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "UserCommunicationChannelsModal not read",
+        "no retry/cancel endpoint"
+      ]
+    },
+    "ui_kits/admin-app/AdminOrderDrawer.html": {
+      "route": "/orders (OrderDetailsDrawer)",
+      "roles": [
+        "admin",
+        "warehouse",
+        "supporter"
+      ],
+      "shell": "Drawer",
+      "source": "pages/orders/blocks/components/order-detail/OrderDetailsDrawer.jsx (read-only)",
+      "components": [
+        "AdminBar",
+        "Button",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "KeyValueRow",
+        "NavUser",
+        "Pagination",
+        "StatusBadge",
+        "Surface"
+      ],
+      "domainBound": [
+        "tracking_status stays unthemed (no enum)"
+      ]
+    },
+    "ui_kits/admin-app/AdminOrderModal.html": {
+      "route": "/orders (OrderModal)",
+      "roles": [
+        "admin",
+        "warehouse_admin",
+        "warehouse",
+        "designer",
+        "customer"
+      ],
+      "shell": "Modal",
+      "source": "pages/orders/blocks/components/modals/OrderModal.jsx; role field sets in constants.js",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "SegmentedControl",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack"
+      ],
+      "domainBound": [
+        "RESOLVED: per-role form fields — see DOMAIN_RESOLVED.md",
+        "V3 SKU {variant_sku}__{option_code}"
+      ]
+    },
+    "ui_kits/admin-app/AdminOrders-DataGrid.html": {
+      "route": "(deprecated — not in nav)",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav surface=white",
+      "source": "ARCHIVED / DEPRECATED — reference-only, no longer a @dsCard. Prior DataGrid build of /orders, superseded by AdminOrders.html",
+      "components": [
+        "Button",
+        "Callout",
+        "CommandPalette",
+        "CommandTrigger",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "FilterChip",
+        "GwpMark",
+        "IconButton",
+        "KeyValueRow",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "Skeleton",
+        "StatusBadge",
+        "Surface",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "deprecated"
+      ]
+    },
+    "ui_kits/admin-app/AdminOrders.html": {
+      "route": "/orders",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav surface=white",
+      "source": "pages/orders/OrderPage.jsx (admin branch); ADMIN_COLUMNS + ADMIN_ACTIONS",
+      "components": [
+        "Button",
+        "CommandPalette",
+        "CommandTrigger",
+        "DateRangeField",
+        "Drawer",
+        "EmptyState",
+        "FilterChip",
+        "GwpMark",
+        "IconButton",
+        "KeyValueRow",
+        "LoadingState",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Popover",
+        "ProductCell",
+        "STATUS_TONES",
+        "SearchField",
+        "SegmentedControl",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "RESOLVED: columns/actions — see DOMAIN_RESOLVED.md",
+        "admin order summary endpoint — BACKEND_ASKS §2"
+      ]
+    },
+    "ui_kits/admin-app/AdminPhysicalInventory.html": {
+      "route": "/physical-inventory (+ receipts /movements) (HIDE_V3_PRODUCTS)",
+      "roles": [
+        "admin",
+        "warehouse",
+        "supporter",
+        "warehouse_admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/physical_inventory/* — 3 tabs",
+      "components": [
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "V3 route hidden by flag"
+      ]
+    },
+    "ui_kits/admin-app/AdminPhysicalVariants.html": {
+      "route": "/physical-variants (+ /by-product/:id) (HIDE_V3_PRODUCTS)",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav",
+      "source": "pages/physical_variants/* — 2 views",
+      "components": [
+        "Breadcrumb",
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "SKU/base_code composition SERVER-SIDE"
+      ]
+    },
+    "ui_kits/admin-app/AdminProductVariants.html": {
+      "route": "/products/variants/:id",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav",
+      "source": "pages/products/blocks/components/product-variant/*",
+      "components": [
+        "Breadcrumb",
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "variant_id vs productVariantId not interchangeable",
+        "ProductVariantBomModal → AdminBomConfigs"
+      ]
+    },
+    "ui_kits/admin-app/AdminProductionOptions.html": {
+      "route": "/production-options (HIDE_V3_PRODUCTS)",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav",
+      "source": "pages/production_options/* — own technique/position enums",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Popover",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "V3 route hidden by flag"
+      ]
+    },
+    "ui_kits/admin-app/AdminProducts.html": {
+      "route": "/products",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav surface=white",
+      "source": "pages/products/ProductPage.jsx; ProductToolbar (search + status all/active/inactive)",
+      "components": [
+        "Button",
+        "Callout",
+        "CommandPalette",
+        "CommandTrigger",
+        "DataTable",
+        "Drawer",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "RESOLVED: product filter — see DOMAIN_RESOLVED.md",
+        "variants_count + v3 flag — BACKEND_ASKS §3"
+      ]
+    },
+    "ui_kits/admin-app/AdminShell-Sidebar.html": {
+      "route": "(IA reference — not a route)",
+      "roles": [
+        "admin"
+      ],
+      "shell": "Sidebar",
+      "source": "config/menu.config.jsx MENU_SIDEBAR — the whole IA",
+      "components": [
+        "AdminBar",
+        "Button",
+        "CommandPalette",
+        "CommandTrigger",
+        "DataTable",
+        "GwpMark",
+        "IconButton",
+        "MetricCard",
+        "NavUser",
+        "SearchField",
+        "Sidebar",
+        "StatusBadge",
+        "Surface",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "reference only; no current admin screen uses Sidebar"
+      ]
+    },
+    "ui_kits/admin-app/AdminTickets.html": {
+      "route": "/tickets (+ /tickets/:id)",
+      "roles": [
+        "admin",
+        "warehouse",
+        "supporter",
+        "warehouse_admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/tickets/* — admin DataGrid + shared detail thread",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Popover",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "RESOLVED: TICKET_REASON→priority — see DOMAIN_RESOLVED.md"
+      ]
+    },
+    "ui_kits/admin-app/AdminTransactions.html": {
+      "route": "/transactions",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav",
+      "source": "pages/transactions/blocks/components/*",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "DateRangeField",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "Approve/Reject only for topup/refund + pending"
+      ]
+    },
+    "ui_kits/admin-app/AdminUserChannels.html": {
+      "route": "/users (UserCommunicationChannelsModal)",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/users/blocks/components/UserCommunicationChannelsModal.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "Telegram picks synced group; Lark needs webhook"
+      ]
+    },
+    "ui_kits/admin-app/AdminUserPrice.html": {
+      "route": "/users/update-price/:id",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/users/UserUpdatePricePage.jsx; PUT /users/{id}/configs",
+      "components": [
+        "Breadcrumb",
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Modal",
+        "NavUser",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "TabBar",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "empty input = no override, not zero",
+        "no precedence/currency/rounding rule"
+      ]
+    },
+    "ui_kits/admin-app/AdminUserPriceDrawer.html": {
+      "route": "/users (per-seller price override drawer)",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav",
+      "source": "CONSOLIDATION REFERENCE — the common single-product override opened as a right Drawer off the Users list; the full two-column price_table matrix stays AdminUserPrice.html",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "Pagination",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "empty input = no override, not zero",
+        "one PUT merges standard + physical; no final-price rule"
+      ]
+    },
+    "ui_kits/admin-app/AdminUsers.html": {
+      "route": "/users",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav",
+      "source": "pages/users/UserPage.jsx + UserModal/UserTopUpModal/UserRefundModal",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Popover",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "Balance + Top up/Refund/Channels admin-only",
+        "UserCommunicationChannelsModal not read"
+      ]
+    },
+    "ui_kits/admin-app/AdminVariants.html": {
+      "route": "/variants",
+      "roles": [
+        "admin",
+        "supporter"
+      ],
+      "shell": "TopNav",
+      "source": "pages/variants/VariantPage.jsx (display_name · key · status)",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "Popover",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/admin-app/AdminVendors.html": {
+      "route": "/vendors",
+      "roles": [
+        "admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/vendors/VendorPageContent.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "code server-generated"
+      ]
+    },
+    "ui_kits/admin-app/AdminWarehouses.html": {
+      "route": "/warehouses",
+      "roles": [
+        "admin",
+        "supporter",
+        "warehouse_admin"
+      ],
+      "shell": "TopNav",
+      "source": "pages/warehouses/WarehousesPage.jsx",
+      "components": [
+        "Button",
+        "Callout",
+        "DataTable",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "MetricCard",
+        "Modal",
+        "NavUser",
+        "Pagination",
+        "SearchField",
+        "Select",
+        "StatusBadge",
+        "ToastStack",
+        "TopNav"
+      ],
+      "domainBound": [
+        "code locks once set"
+      ]
+    },
+    "ui_kits/warehouse-app/FulfillmentScan.html": {
+      "route": "/fulfillment-scan (+ /fulfillment-scan-by-id)",
+      "roles": [
+        "warehouse",
+        "warehouse_admin",
+        "admin"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/fulfillment_scan/FulfillmentScanPage.jsx (dual mode)",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "Modal",
+        "NavUser",
+        "SegmentedControl",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack"
+      ],
+      "domainBound": [
+        "GET lookup mutates; >20 orders hits confirm gate",
+        "Fulfillment.jsx 32KB layout not read"
+      ]
+    },
+    "ui_kits/warehouse-app/ProductionPipeline.html": {
+      "route": "/production-pipeline",
+      "roles": [
+        "warehouse",
+        "warehouse_admin"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/production_pipeline/ProductionPipelinePage.jsx — no data layer in source",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "StatusBadge",
+        "Surface"
+      ],
+      "domainBound": [
+        "route has 3 hard-coded HTML sandboxes only; design escalated not invented"
+      ]
+    },
+    "ui_kits/warehouse-app/QuickScan.html": {
+      "route": "/quick-scan",
+      "roles": [
+        "warehouse",
+        "warehouse_admin",
+        "admin"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/quick_scan/QuickScanPage.jsx",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "MetricCard",
+        "NavUser",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack"
+      ],
+      "domainBound": [
+        "status chosen BEFORE the scan (write-not-read)"
+      ]
+    },
+    "ui_kits/warehouse-app/WarehouseFulfillment2.html": {
+      "route": "/fulfillment-2",
+      "roles": [
+        "warehouse",
+        "warehouse_admin",
+        "admin"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/fulfillment_2/FulfillmentPage2.jsx + modals",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "KeyValueRow",
+        "Modal",
+        "NavUser",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/warehouse-app/WarehouseFulfillmentLegacy.html": {
+      "route": "/fulfillment (legacy)",
+      "roles": [
+        "warehouse",
+        "warehouse_admin",
+        "admin"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/fulfillment/FulfillmentPage.jsx (controller); 32KB layout NOT read",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "Input",
+        "Modal",
+        "NavUser",
+        "Select",
+        "StatusBadge",
+        "Surface",
+        "ToastStack"
+      ],
+      "domainBound": [
+        "22-char tail-clip scan",
+        "requires_confirmation threshold gate",
+        "Pending Dropoff/Fulfilled overwrite gate"
+      ]
+    },
+    "ui_kits/warehouse-app/WarehouseFulfillmentNew.html": {
+      "route": "/fulfillment-new",
+      "roles": [
+        "warehouse",
+        "warehouse_admin",
+        "warehouse_external"
+      ],
+      "shell": "AdminBar",
+      "source": "pages/fulfillment_new/FulfillmentNewPage.jsx",
+      "components": [
+        "AdminBar",
+        "Button",
+        "Callout",
+        "DataTable",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "Pagination",
+        "Skeleton",
+        "StatusBadge"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/marketing/BuyerCatalog.html": {
+      "route": "/product-catalog (buyer view)",
+      "roles": [
+        "public",
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/product_catalog/blocks/* (grid↔list, search, configs)",
+      "components": [
+        "Button",
+        "CatalogHero",
+        "Drawer",
+        "EmptyState",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "ProductCard",
+        "SearchField",
+        "SearchShell",
+        "SegmentedControl",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": [
+        "reviews/ratings off — no reviews entity",
+        "merchandising badges imply unverified rule"
+      ]
+    },
+    "ui_kits/marketing/BuyerProductDetail.html": {
+      "route": "/product-catalog/:id (buyer view)",
+      "roles": [
+        "public",
+        "customer"
+      ],
+      "shell": "TopNav",
+      "source": "pages/product_catalog/blocks/components/product-details/ProductDetails.jsx",
+      "components": [
+        "Breadcrumb",
+        "Button",
+        "GwpMark",
+        "IconButton",
+        "NavUser",
+        "StatusBadge",
+        "Surface",
+        "TopNav"
+      ],
+      "domainBound": [
+        "pricing string caller-supplied"
+      ]
+    },
+    "ui_kits/marketing/HowItWorks.html": {
+      "route": "(marketing — not an app route)",
+      "roles": [
+        "public"
+      ],
+      "shell": "TopNav",
+      "source": "NET-NEW — companion to Landing.html",
+      "components": [
+        "Button",
+        "Callout",
+        "FeatureCard",
+        "GwpMark",
+        "MarketingHero",
+        "Surface",
+        "TopNav",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "every marketing NUMBER left as \"cần điền\""
+      ]
+    },
+    "ui_kits/marketing/Landing.html": {
+      "route": "(marketing — not an app route)",
+      "roles": [
+        "public"
+      ],
+      "shell": "MarketingHero",
+      "source": "NET-NEW brand landing on the order-journey story",
+      "components": [
+        "Button",
+        "GwpMark",
+        "MarketingHero",
+        "Surface",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "every marketing NUMBER left as \"cần điền\""
+      ]
+    },
+    "ui_kits/system/SystemAuth.html": {
+      "route": "/auth/*",
+      "roles": [
+        "public"
+      ],
+      "shell": "centered brand",
+      "source": "auth/AuthPage.jsx + jwt/{Login,Signup,TwoFactorAuth,CheckEmail}; graphite theme superseded",
+      "components": [
+        "Button",
+        "Callout",
+        "GwpMark",
+        "SegmentedControl",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "Login \"Username\"-labelled but email-bound"
+      ]
+    },
+    "ui_kits/system/SystemAuthClassic.html": {
+      "route": "/classic/*",
+      "roles": [
+        "public"
+      ],
+      "shell": "centered card",
+      "source": "auth/AuthPage.jsx (/classic branch → AuthLayout)",
+      "components": [
+        "Button",
+        "Callout",
+        "GwpMark",
+        "SegmentedControl",
+        "Surface",
+        "WoodRings"
+      ],
+      "domainBound": []
+    },
+    "ui_kits/system/SystemErrors.html": {
+      "route": "/error/404, /error/500, /error/403",
+      "roles": [
+        "public"
+      ],
+      "shell": "centered brand",
+      "source": "errors/{Error404Page,Error500Page}; /error/403 kit-original",
+      "components": [
+        "Button",
+        "GwpMark",
+        "SegmentedControl",
+        "WoodRings"
+      ],
+      "domainBound": [
+        "403 copy mirrors LabelExtractor Access Denied"
+      ]
+    },
+    "ui_kits/system/SystemLoader.html": {
+      "route": "(ScreenLoader — no route)",
+      "roles": [
+        "public"
+      ],
+      "shell": "centered brand",
+      "source": "ScreenLoader (no source visual) → LoadingState variant=brand",
+      "components": [
+        "GwpMark",
+        "LoadingState",
+        "SegmentedControl",
+        "Surface",
+        "WoodRings"
+      ],
+      "domainBound": []
+    }
+  }
+}

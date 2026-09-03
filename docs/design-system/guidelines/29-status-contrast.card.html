@@ -1,0 +1,19 @@
+<!-- @dsCard group="08 Principles" viewport="700x219" name="Status contrast & operational rules" subtitle="Badge labels are small text — all seven tone pairs clear 4.5:1" -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;font-family:var(--font-body);color:var(--navy-700)}.p{padding:18px 20px}body{background:var(--surface-shell)}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 11px;border-radius:999px;font-family:var(--font-body);font-size:12px;font-weight:800;letter-spacing:.02em}
+.dot{width:6px;height:6px;border-radius:50%}
+.r{font-family:var(--font-mono);font-size:10px;font-weight:500;letter-spacing:.02em}
+.cap{font-family:var(--font-body);font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--navy-500);margin:0 0 8px}
+.note{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:16px;font-family:var(--font-body);font-size:10.5px;line-height:1.55;color:var(--navy-500)}
+.note b{color:var(--navy-700)}</style>
+</head><body>
+<div class="p">
+<p class="cap">Seven tone pairs · measured against their own background</p>
+<div class="pills"><span class="pill" style="background:var(--status-success-bg);color:var(--status-success-fg)"><span class="dot" style="background:var(--status-success-dot)"></span>Fulfilled<span class="r">4.8</span></span><span class="pill" style="background:var(--status-progress-bg);color:var(--status-progress-fg)"><span class="dot" style="background:var(--status-progress-dot)"></span>In Production<span class="r">5.0</span></span><span class="pill" style="background:var(--status-info-bg);color:var(--status-info-fg)"><span class="dot" style="background:var(--status-info-dot)"></span>Shipped<span class="r">5.6</span></span><span class="pill" style="background:var(--status-pending-bg);color:var(--status-pending-fg)"><span class="dot" style="background:var(--status-pending-dot)"></span>Pending<span class="r">5.0</span></span><span class="pill" style="background:var(--status-attention-bg);color:var(--status-attention-fg)"><span class="dot" style="background:var(--status-attention-dot)"></span>Design problems<span class="r">4.8</span></span><span class="pill" style="background:var(--status-critical-bg);color:var(--status-critical-fg)"><span class="dot" style="background:var(--status-critical-dot)"></span>Cancel<span class="r">5.6</span></span><span class="pill" style="background:var(--status-neutral-bg);color:var(--status-neutral-fg)"><span class="dot" style="background:var(--status-neutral-dot)"></span>Validating<span class="r">6.6</span></span></div>
+<div class="note">
+<div><b>Why 4.5 and not 3.</b> A badge label sets at 11–12px bold. Bold only counts as large text at ≥18.66px, so status labels are small text and the 4.5:1 threshold applies. <code>MetricCard</code>'s wash tiles reuse the same pairs, so a change to one <code>-fg</code> or <code>-bg</code> moves both — re-check the pair before touching either.</div>
+<div><b>Everything else.</b> Status is colour <i>plus</i> a label, never colour alone. Focus is a 3px Action Blue ring at 2px offset and is never removed on any surface. <code>prefers-reduced-motion</code> disables all animation. Touch targets ≥44px below 768px. Every <code>IconButton</code> requires a <code>label</code>.</div>
+</div></div></body></html>

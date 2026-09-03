@@ -19,7 +19,7 @@ import { useTranslation } from "@/lib/i18n";
 import {
   createMaterialAction,
   updateMaterialAction,
-} from "@/modules/inventory/suppliers/actions";
+} from "@/modules/inventory/materials/actions";
 
 export const MATERIAL_TYPES = [
   "RAW_MATERIAL",

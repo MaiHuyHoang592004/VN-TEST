@@ -4,7 +4,7 @@ import { catalogKeySchema } from "../products/schema.ts";
 
 /**
  * A product is a shared axis value ("Brown", "Large"), NOT variant-specific —
- * the sellable SKU is Product × Variant (see variant-variants/). So there is no
+ * the sellable SKU is Product × Variant (see product-variants/). So there is no
  * variant field here on purpose.
  */
 export const variantSchema = z.object({

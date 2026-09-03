@@ -1,0 +1,78 @@
+<!-- @dsCard group="02 Colors" viewport="700x382" name="Sky → white dissolve field" subtitle="The one sanctioned gradient — admin shell only. Borders and fading seams, not hard boxes" -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;font-family:var(--font-body);color:var(--navy-700);background:var(--surface-shell)}
+.tag{font-family:var(--font-body);font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.shell{height:214px;display:flex;border-radius:var(--radius-card);overflow:hidden;border:1px solid var(--border-hairline)}
+.rail{width:70px;flex-shrink:0;position:relative;padding:8px 7px;display:flex;flex-direction:column;gap:5px}
+.nav{height:11px;border-radius:4px;background:rgba(15,58,95,.07)}
+.nav.on{background:var(--sky-200)}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.hd{height:32px;display:flex;align-items:center;padding:0 10px;font-family:var(--font-display);font-weight:800;font-size:14px;color:var(--navy-900)}
+.body{flex:1;padding:8px 10px 10px}
+.row{height:13px;border-bottom:1px solid var(--border-hairline);display:flex;align-items:center;gap:6px;padding:0 8px}
+.bar{height:4px;border-radius:2px;background:rgba(15,58,95,.16)}
+.rule{font-family:var(--font-body);font-size:11px;line-height:1.42;color:var(--navy-700);margin:0}
+.mono{font-family:var(--font-mono);font-size:10px;color:var(--action-600)}</style>
+</head><body>
+<div style="padding:13px 18px 16px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px">
+<span class="tag" style="color:var(--navy-700)">Sky → white dissolve field · admin shell only</span>
+<span class="tag" style="color:var(--navy-500)">one per screen · vertical · sky → white</span></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+<div>
+<div class="tag" style="color:var(--status-success-fg);margin-bottom:5px">Do — one continuous field</div>
+<div class="shell">
+  <div class="rail" style="background:linear-gradient(180deg,var(--sky-100) 0,var(--neutral-50) 52%,var(--gwp-white) 92%)">
+    <div style="height:14px;border-radius:4px;background:var(--sky-400);margin-bottom:3px"></div>
+    <div class="nav on"></div><div class="nav"></div><div class="nav"></div><div class="nav"></div><div class="nav"></div>
+    <span style="position:absolute;top:0;bottom:0;right:0;width:1px;background:var(--seam-v)"></span>
+  </div>
+  <div class="main" style="background:linear-gradient(180deg,var(--sky-300) 0,var(--sky-200) 17%,var(--sky-50) 56%,var(--gwp-white) 94%)">
+    <div class="hd">Order Management</div>
+    <div class="body">
+      <div style="display:flex;gap:5px;margin-bottom:7px">
+        <span style="height:15px;padding:0 8px;border-radius:999px;background:var(--action-500);color:var(--gwp-white);font-size:8.5px;font-weight:800;display:inline-flex;align-items:center">Add order</span>
+        <span style="height:15px;padding:0 8px;border-radius:999px;background:var(--gwp-white);color:var(--action-600);font-size:8.5px;font-weight:800;display:inline-flex;align-items:center">Import</span>
+      </div>
+      <div style="background:var(--field-sheet);border:1px solid var(--border-soft);border-radius:var(--radius-md);box-shadow:var(--shadow-xs);overflow:hidden">
+        <div class="row"><span class="mono">#10429</span><span class="bar" style="flex:1"></span></div>
+        <div class="row"><span class="mono">#10428</span><span class="bar" style="flex:1"></span></div>
+        <div class="row" style="border-bottom:0"><span class="mono">#10426</span><span class="bar" style="flex:1"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div>
+<div class="tag" style="color:var(--status-critical-fg);margin-bottom:5px">Not this — stacked rectangles</div>
+<div class="shell">
+  <div class="rail" style="background:var(--surface-shell);border-right:1px solid var(--border-strong)">
+    <div style="height:14px;border-radius:4px;background:var(--sky-400);margin-bottom:3px"></div>
+    <div class="nav on"></div><div class="nav"></div><div class="nav"></div><div class="nav"></div><div class="nav"></div>
+  </div>
+  <div class="main">
+    <div class="hd" style="background:var(--gwp-white);border-bottom:1px solid var(--border-strong)">Order Management</div>
+    <div class="body" style="background:var(--sky-100)">
+      <div style="display:flex;gap:5px;margin-bottom:7px">
+        <span style="height:15px;padding:0 8px;border-radius:999px;background:var(--action-500);color:var(--gwp-white);font-size:8.5px;font-weight:800;display:inline-flex;align-items:center">Add order</span>
+        <span style="height:15px;padding:0 8px;border-radius:999px;background:var(--gwp-white);color:var(--action-600);font-size:8.5px;font-weight:800;display:inline-flex;align-items:center">Import</span>
+      </div>
+      <div style="background:var(--gwp-white);border:1px solid var(--border-strong);border-radius:var(--radius-md);overflow:hidden">
+        <div class="row"><span class="mono">#10429</span><span class="bar" style="flex:1"></span></div>
+        <div class="row"><span class="mono">#10428</span><span class="bar" style="flex:1"></span></div>
+        <div class="row" style="border-bottom:0"><span class="mono">#10426</span><span class="bar" style="flex:1"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:11px">
+<p class="rule"><b>Field</b> <span class="mono">--field-admin</span> on the shell column · <span class="mono">--field-rail</span> on the nav rail · <span class="mono">--field-sheet</span> + a 1px <span class="mono">--border-soft</span> on panels. Header carries no fill and no bottom border — it sits on the field.</p>
+<p class="rule"><b>Seams fade.</b> <span class="mono">--seam-v</span> / <span class="mono">--seam-h</span> replace hairline box edges. Stops are absolute px, so the dissolve reads the same at any scroll length (percentages above are for this miniature). Never diagonal, radial, multi-hue, or on seller / marketing / catalog surfaces.</p>
+</div>
+</div></body></html>

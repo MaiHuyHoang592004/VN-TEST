@@ -9,3 +9,7 @@ node_modules
 .env
 .env.*
 libs/db/src/generated
+
+# The vendored GoodWoodPrint design-system reference: read by humans and by
+# migration tasks, never imported by the app. Keeps deploy uploads small.
+docs/

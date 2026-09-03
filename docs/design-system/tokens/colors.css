@@ -1,0 +1,214 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   GWP COLOR SYSTEM
+
+   Two tiers, and the boundary is enforced by structure, not by convention:
+
+   1. CANONICAL — the seven values the brand owns. These are the only literal
+      brand hexes in the system. Never edit, never re-mix, never substitute.
+
+   2. DERIVED — tints and shades. Every derived ramp resolves back to its
+      canonical anchor at its key step (sky-300, cream-100, navy-700,
+      action-500, orange-500, yellow-500) via var(), so a ramp edit can never
+      silently redefine a canonical brand value.
+
+   A derived token may never take over a canonical colour duty. Duties are
+   RELATIONSHIPS, not area quotas:
+     SKY    = dominant open brand canvas — the page itself, not a panel
+     CREAM  = large warm counter-surface, floating on sky
+     WHITE  = nested clean data / product surface
+     NAVY   = informational ink only
+     ACTION = emphasized interaction only
+     ORANGE / YELLOW = tiny accents
+   Composition determines actual area usage.
+
+   Numeric derivation source: measured from the approved reference boards in
+   assets/reference/. No canonical tokens.json was supplied — see
+   guidelines/ALIGNMENT_AUDIT.md §B1 / §T3.
+   ══════════════════════════════════════════════════════════════════════════ */
+:root{
+  /* ── 1 · CANONICAL — LOCKED. The only literal brand hexes in the system. ── */
+  --gwp-bright-sky:#ABDAEF;
+  --gwp-warm-cream:#FFFDF0;
+  --gwp-information-navy:#0F3A5F;
+  --gwp-action-blue:#0078C1;
+  --gwp-orange-accent:#FF8041;
+  --gwp-yellow-accent:#FFE471;
+  --gwp-white:#FFFFFF;
+
+  /* ── 2 · DERIVED ─────────────────────────────────────────────────────────
+     Each ramp's key step is var(canonical), not a restated hex. */
+
+  /* Sky ramp — the brand canvas. Anchor: 300 */
+  --sky-50:#F4FBFE;
+  --sky-100:#E4F4FB;
+  --sky-200:#CDE9F7;
+  --sky-300:var(--gwp-bright-sky);
+  --sky-400:#84C6E5;
+  --sky-500:#5BAAD3;
+  --sky-600:#3C8CB8;
+
+  /* Cream ramp — the warm counter-surface. Anchor: 100.
+     DUTY NARROWED: cream is a BRAND surface — the logo on sky, marketing brand
+     moments, the floating nav shell, intentional blue/cream rhythm, and craft
+     details like product wells. It is NOT the default operational fill; that is
+     --neutral-50 below. GWP is a clear blue morning with warm craft details,
+     not a warm cream interface with some blue. */
+  --cream-50:#FFFEFA;
+  --cream-100:var(--gwp-warm-cream);
+  --cream-200:#FBF6E3;
+  --cream-300:#F2EAD2;
+
+  /* Operational neutral — near-white, clean, faintly warm, NOT visibly yellow.
+     The default shell for operational cards, filter surfaces, utility panels
+     and documentation grounds. */
+  --neutral-50:#FBFCFA;
+  --neutral-100:#F4F7F4;
+
+  /* KPI / metric washes — the operational KPI row reads
+     BLUE / LIGHT WARM / BLUE / GREEN / CORAL, never a run of yellows. */
+  --wash-sky:#E4F2FB;    /* totals, "All Orders" */
+  --wash-warm:#FFF7DF;   /* the one warm note — Pending */
+  --wash-blue:#EAF4FB;   /* in-flight work — In Production */
+  --wash-green:#E6F5EC;  /* completed — Shipped / Fulfilled */
+  --wash-coral:#FCE9E3;  /* failure / delay */
+
+  /* Navy ramp — information & operational type. Anchor: 700 */
+  --navy-900:#092740;
+  --navy-800:#0B3050;
+  --navy-700:var(--gwp-information-navy);
+  --navy-600:#1E5480;
+  --navy-500:#3A6E96;
+  --navy-400:#6690AF;
+  --navy-300:#95B2C8;
+  --navy-200:#C3D4E0;
+  --navy-100:#E2EBF1;
+
+  /* Action blue — emphasized interaction only. Anchor: 500 */
+  --action-700:#00558B;
+  --action-600:#0062A0;
+  --action-500:var(--gwp-action-blue);
+  --action-200:#B5DEF3;
+  --action-100:#E1F1FB;
+
+  /* Accents — very small doses. Anchors: orange-500, yellow-500 */
+  --orange-600:#B84318;   /* darkened from #C4491A so orange-600 on orange-100 clears AA 4.5:1 */
+  --orange-500:var(--gwp-orange-accent);
+  --orange-200:#FFD9C4;
+  --orange-100:#FFEEE4;
+  --yellow-600:#8A6516;
+  --yellow-500:var(--gwp-yellow-accent);
+  --yellow-200:#FFF3C4;
+  --yellow-100:#FFF9E3;
+
+  /* Support hues — status only, never decoration. No canonical anchor:
+     green and red exist because success and failure cannot be expressed in
+     four brand hues. They are confined to the status tokens below. */
+  --green-600:#1D7A4C;
+  --green-200:#BDE8CD;
+  --green-100:#E8F7EC;
+  --red-600:#B42318;
+  --red-200:#F7C9C4;
+  --red-100:#FFE8E5;
+
+  /* ── 3 · SEMANTIC ALIASES — what the UI actually references ───────────── */
+
+  /* DISPLAY INK — follows the surface relationship, NOT one universal colour.
+     This is the single most important typographic rule in the system:
+     display type on the saturated sky field is CREAM, so sky reads as the
+     brand's visual hero and the page feels light first, data second.
+     Navy display type on sky is what makes GWP look like generic SaaS. */
+  --display-on-sky:var(--cream-100);        /* hero + large brand type on sky-300+ */
+  --display-on-sky-bright:var(--gwp-white); /* when the moment needs more lift    */
+  --display-on-pale-sky:var(--navy-700);    /* sky-50/100/200 behave like cream    */
+  --display-on-cream:var(--navy-700);
+  --display-on-white:var(--navy-700);
+  --display-kpi:var(--navy-900);            /* KPI numbers are always navy         */
+  --display-accent:var(--action-500);       /* one accent word, on cream/pale sky   */
+
+  --text-strong:var(--navy-900);
+  --text-body:var(--navy-700);
+  /* TEXT INK FLOOR: on any light ground (cream, white, pale sky) text is never
+     lighter than navy-500. Measured on cream-100 / white: navy-500 = 5.3 / 5.5,
+     navy-400 = 3.3 / 3.4, navy-300 = 2.2 / 2.2. navy-400 and navy-300 are
+     therefore NON-TEXT tokens — icons (3:1 object threshold), borders, dots,
+     empty stars, disabled states. Never set a label, caption, timestamp or
+     count in them, and never de-emphasise small text with opacity: the blend
+     silently drops the pair below its measured ratio. */
+  --text-muted:var(--navy-500);
+  --text-label:var(--navy-500);   /* micro labels, captions, table headers */
+  --text-subtle:var(--navy-500);  /* placeholders — still real text */
+  --text-nontext:var(--navy-400); /* icons, dots, dividers. NOT for type. */
+  /* Functional text on sky stays NAVY — subtitles, eyebrows, labels, controls.
+     Only large display type goes cream. */
+  --text-on-sky:var(--navy-700);
+  --text-on-sky-secondary:var(--navy-600);
+  --text-on-navy:var(--cream-100);
+  --text-on-action:var(--gwp-white);
+  --text-brand-artwork:var(--cream-100);
+  --text-link:var(--action-500);
+  --text-link-hover:var(--action-700);
+
+  /* ── BRAND MARK INK ─────────────────────────────────────────────────────
+     The logo is BRAND LIGHT, not information ink. Navy is an information
+     colour and is no longer the default logo colour — a navy mark reads heavy,
+     corporate and administrative, which is exactly the drift the brand avoids.
+
+       logo on cream / white / floating nav → light sky family
+       logo on bright sky                   → cream (or white)
+       navy mark                            → rare technical / utility only
+
+     Ratios on cream-100: sky-500 2.5:1 · sky-600 3.7:1. Logotypes are exempt
+     from WCAG 1.4.3, so sky-500 is the default for its lightness; step up to
+     --logo-on-light-strong at small sizes or inside dense data zones. */
+  --logo-on-light:var(--sky-500);           /* DEFAULT brand mark */
+  --logo-on-light-strong:var(--sky-600);    /* small sizes, dense areas */
+  --logo-on-light-accent:var(--sky-600);    /* second tone inside the lockup */
+  --logo-on-sky:var(--cream-100);           /* inverse, on bright sky */
+  --logo-on-sky-bright:var(--gwp-white);
+  --logo-technical:var(--navy-700);         /* favicon, watermark, tech stamp */
+
+  --border-hairline:rgba(15,58,95,0.08);
+  --border-soft:rgba(15,58,95,0.12);
+  --border-strong:rgba(15,58,95,0.20);
+  --border-on-sky:rgba(15,58,95,0.10);
+  --border-focus:var(--action-500);
+
+  --icon-default:var(--navy-600);
+  --icon-muted:var(--navy-400);
+  --icon-action:var(--action-500);
+
+  /* ── 4 · STATUS TONES ─────────────────────────────────────────────────────
+     Seven tones covering the DOMAIN-VERIFIED vocabulary in
+     fulfillment-system-be-prod/src/constants/common.ts (ORDER_STATUS) and
+     src/ticket/ticket.enum.ts (TicketStatus). See components/core/StatusBadge.
+
+     CONTRAST CONTRACT: StatusBadge sets its label at 12px / 11px bold, which is
+     SMALL text (bold only counts as large at ≥18.66px), so every -fg must clear
+     4.5:1 against its own -bg. All seven pairs are verified; measured ratios are
+     noted inline. Never lighten an -fg or darken a -bg without re-checking the
+     pair — MetricCard's wash tiles consume these same values.
+
+     OPEN: metadata.ts ships a literal colour per status (pre-rebrand Metronic
+     palette). Those values are intentionally NOT used here — ALIGNMENT_AUDIT §T4. */
+  --status-success-bg:var(--green-100);
+  --status-success-fg:var(--green-600);    /* 4.8:1 */
+  --status-success-dot:#2FA76A;
+  --status-progress-bg:var(--yellow-100);
+  --status-progress-fg:var(--yellow-600);  /* 5.0:1 */
+  --status-progress-dot:#E0A82E;
+  --status-info-bg:var(--action-100);
+  --status-info-fg:var(--action-600);      /* 5.6:1 */
+  --status-info-dot:var(--action-500);
+  --status-pending-bg:var(--cream-200);
+  --status-pending-fg:#806634;             /* 5.0:1 — was #8A7038 at 4.35:1 (FAIL) */
+  --status-pending-dot:#A8863F;
+  --status-attention-bg:var(--orange-100);
+  --status-attention-fg:var(--orange-600); /* 4.8:1 — via darkened orange-600 */
+  --status-attention-dot:var(--orange-500);
+  --status-critical-bg:var(--red-100);
+  --status-critical-fg:var(--red-600);     /* 5.6:1 */
+  --status-critical-dot:#E0574B;
+  --status-neutral-bg:var(--navy-100);
+  --status-neutral-fg:var(--navy-600);     /* 6.6:1 */
+  --status-neutral-dot:var(--navy-400);
+}

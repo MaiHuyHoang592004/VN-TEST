@@ -1,0 +1,32 @@
+{
+  "_comment": "Language-neutral mirror of the canonical GWP status->tone map. Source of truth: components/core/status-tones.js. Tone -> colour resolves via --status-<tone>-{bg,fg,dot} in tokens/colors.css. RESOLVED (ALIGNMENT_AUDIT §T4): these seven semantic tones are canonical for all UI; do not read metadata.ts FULFILLED_STATUS literals for chrome. Keep this file in sync with status-tones.js.",
+  "tones": ["success", "progress", "info", "pending", "attention", "critical", "neutral"],
+  "map": {
+    "Fulfilled": "success",
+    "Completed": "success",
+    "Produced": "info",
+    "Shipped": "info",
+    "Delivered": "success",
+    "Active": "success",
+    "In Stock": "success",
+    "Refund": "info",
+    "In Production": "progress",
+    "Filled": "progress",
+    "Processing": "neutral",
+    "Validating": "neutral",
+    "Mockup Generating": "neutral",
+    "Pending": "pending",
+    "Production Ready": "pending",
+    "Return": "attention",
+    "Low Stock": "attention",
+    "Wrong Label": "attention",
+    "Design problems": "attention",
+    "Cancel": "critical",
+    "Delayed": "critical",
+    "Out Of Stock": "critical",
+    "Asset processing failed": "critical",
+    "open": "attention",
+    "in_progress": "progress",
+    "closed": "success"
+  }
+}

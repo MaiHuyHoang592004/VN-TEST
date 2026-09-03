@@ -1,0 +1,97 @@
+<!-- @dsCard group="07 Surface classes" viewport="700x382" name="Admin shell chrome" subtitle="Condensing bar · one chip only · frameless table · ⌘K — the admin surface's four moves" -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;font-family:var(--font-body);color:var(--navy-700);background:var(--surface-shell)}
+.tag{font-family:var(--font-body);font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.panel{border-radius:var(--radius-card);overflow:hidden;border:1px solid var(--border-hairline);height:126px;position:relative}
+.ttl{font-family:var(--font-display);font-weight:800;color:var(--navy-900)}
+.note{font-family:var(--font-body);font-size:10.5px;line-height:1.4;color:var(--navy-600);margin:5px 0 0}
+.mono{font-family:var(--font-mono);font-size:9.5px;color:var(--action-600)}
+.rowline{height:15px;border-bottom:1px solid var(--border-hairline);display:flex;align-items:center;gap:7px;padding:0 9px}
+.bar{height:4px;border-radius:2px;background:rgba(15,58,95,.16);flex:1}
+.kbd{font-family:var(--font-mono);font-size:9px;color:var(--text-label);background:var(--surface-inset);border:1px solid var(--border-hairline);border-radius:4px;padding:1px 4px}</style>
+</head><body>
+<div style="padding:13px 18px 16px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px">
+<span class="tag" style="color:var(--navy-700)">Admin shell chrome · one white bar on every admin screen</span>
+<span class="tag" style="color:var(--navy-500)">AdminBar · Sidebar · DataTable · CommandPalette</span></div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:13px 14px">
+
+<div>
+<div class="tag" style="color:var(--navy-500);margin-bottom:5px">1 · One bar, dashboard and rail alike</div>
+<div class="panel">
+  <div style="height:30px;display:flex;align-items:center;gap:7px;padding:0 11px;background:var(--gwp-white);border-bottom:1px solid var(--border-hairline)">
+    <span style="width:14px;height:14px;border-radius:4px;background:var(--sky-400)"></span>
+    <span class="ttl" style="font-size:12px">Dashboard</span><span style="flex:1"></span>
+    <span class="kbd">⌘K</span><span style="width:14px;height:14px;border-radius:50%;background:var(--sky-200)"></span></div>
+  <div style="display:flex;height:95px">
+    <div style="width:74px;background:var(--surface-shell);border-right:1px solid var(--border-hairline);padding:6px 5px">
+      <div style="height:15px;border-radius:5px;background:var(--sky-100);margin-bottom:3px"></div>
+      <div style="height:15px;margin-bottom:3px"></div><div style="height:15px"></div></div>
+    <div style="flex:1">
+      <div style="height:30px;display:flex;align-items:center;gap:7px;padding:0 11px;background:var(--gwp-white);border-bottom:1px solid var(--border-hairline)">
+        <span class="ttl" style="font-size:12px">Order Management</span><span style="flex:1"></span>
+        <span class="kbd">⌘K</span></div>
+      <div style="padding:8px 11px">
+        <div class="rowline"><span class="mono">#10429</span><span class="bar"></span></div>
+        <div class="rowline"><span class="mono">#10428</span><span class="bar"></span></div></div>
+    </div>
+  </div>
+</div>
+<p class="note">Same 64px opaque white + hairline, whether the mark sits in the bar or in the rail. The bar owns no page CTA; the title fades in only when the page's own display title scrolls off. The transparent condensing variant stays for a screen on the dissolve field.</p>
+</div>
+
+<div>
+<div class="tag" style="color:var(--navy-500);margin-bottom:5px">2 · One icon chip: the active row</div>
+<div class="panel" style="background:linear-gradient(180deg,var(--sky-100) 0,var(--neutral-50) 62%,var(--gwp-white) 100%);padding:9px 8px">
+  <div style="display:flex;align-items:center;gap:9px;height:24px;padding:0 8px;border-radius:var(--radius-sm)">
+    <span style="width:20px;height:20px;border-radius:5px;background:transparent;border:1.5px solid var(--icon-muted);opacity:.5"></span>
+    <span style="font-size:11px;font-weight:600;color:var(--navy-600)">Dashboard</span></div>
+  <div style="display:flex;align-items:center;gap:9px;height:24px;padding:0 8px;border-radius:var(--radius-sm);background:var(--sky-100)">
+    <span style="width:20px;height:20px;border-radius:5px;background:var(--sky-200);border:1.5px solid var(--sky-400)"></span>
+    <span style="font-size:11px;font-weight:800;color:var(--navy-900)">Order Management</span></div>
+  <div style="display:flex;align-items:center;gap:9px;height:24px;padding:0 8px;border-radius:var(--radius-sm)">
+    <span style="width:20px;height:20px;border-radius:5px;background:transparent;border:1.5px solid var(--icon-muted);opacity:.5"></span>
+    <span style="font-size:11px;font-weight:600;color:var(--navy-600)">Ticket Management</span></div>
+  <div style="display:flex;align-items:center;gap:9px;height:24px;padding:0 8px;border-radius:var(--radius-sm)">
+    <span style="width:20px;height:20px;border-radius:5px;background:transparent;border:1.5px solid var(--icon-muted);opacity:.5"></span>
+    <span style="font-size:11px;font-weight:600;color:var(--navy-600)">Product Management</span></div>
+  <span style="position:absolute;top:0;bottom:0;right:0;width:1px;background:var(--seam-v)"></span>
+</div>
+<p class="note">13 tinted chips read heavy and the tint meant nothing. Inactive = plain stroke icon in <span class="mono">--icon-muted</span>.</p>
+</div>
+
+<div>
+<div class="tag" style="color:var(--navy-500);margin-bottom:5px">3 · Frameless table on the field</div>
+<div class="panel" style="background:linear-gradient(180deg,var(--sky-50) 0,var(--gwp-white) 70%);padding:9px 0 0">
+  <div style="display:flex;gap:16px;padding:0 11px 6px;border-bottom:1px solid var(--border-soft);background:var(--gwp-white)">
+    <span class="tag" style="color:var(--navy-500)">Order ID</span><span class="tag" style="color:var(--navy-500)">Seller</span>
+    <span style="flex:1"></span><span class="tag" style="color:var(--navy-500)">Cost</span></div>
+  <div class="rowline" style="background:var(--sky-50)"><span class="mono">#10429</span><span class="bar"></span><span class="mono">$31.90</span><span style="width:11px;height:11px;border-radius:3px;background:var(--sky-200)"></span></div>
+  <div class="rowline"><span class="mono">#10428</span><span class="bar"></span><span class="mono">$27.75</span><span style="width:11px"></span></div>
+  <div class="rowline"><span class="mono">#10426</span><span class="bar"></span><span class="mono">$23.65</span><span style="width:11px"></span></div>
+  <div class="rowline" style="border-bottom:0"><span class="mono">#10421</span><span class="bar"></span><span class="mono">$16.70</span><span style="width:11px"></span></div>
+</div>
+<p class="note">No card, no outer border. Sticky white header pinned at the bar height (<span class="mono">--admin-bar-h</span>, 64px), <span class="mono">tabular-nums</span>, row actions only on hover.</p>
+</div>
+
+<div>
+<div class="tag" style="color:var(--navy-500);margin-bottom:5px">4 · ⌘K is the navigation</div>
+<div class="panel" style="background:var(--sky-200)">
+  <div style="position:absolute;inset:0;background:var(--overlay-scrim)"></div>
+  <div style="position:absolute;left:22px;right:22px;top:12px;background:var(--gwp-white);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);overflow:hidden">
+    <div style="height:26px;display:flex;align-items:center;gap:7px;padding:0 10px;border-bottom:1px solid var(--border-hairline)">
+      <span style="font-size:10px;color:var(--text-muted);white-space:nowrap">Đi tới màn hình…</span><span style="flex:1"></span><span class="kbd">esc</span></div>
+    <div style="padding:5px 6px 7px">
+      <div class="tag" style="color:var(--text-label);padding:3px 6px">Main Menu</div>
+      <div style="height:20px;display:flex;align-items:center;padding:0 6px;border-radius:6px;background:var(--sky-100);font-size:10.5px;font-weight:800;color:var(--navy-900)">Order Management</div>
+      <div style="height:20px;display:flex;align-items:center;gap:6px;padding:0 6px;font-size:10.5px;font-weight:600;color:var(--navy-700)">Kiểm tra đơn <span style="flex:1"></span><span class="mono" style="color:var(--text-label)">Fulfillment</span></div>
+      <div style="height:20px;display:flex;align-items:center;padding:0 6px;font-size:10.5px;font-weight:600;color:var(--navy-700)">QC đóng gói</div>
+    </div>
+  </div>
+</div>
+<p class="note">~30 routes across 13 groups: a bar can't show the map and a rail is a scroll. Selection is a sky fill, never an underline.</p>
+</div>
+
+</div></div></body></html>

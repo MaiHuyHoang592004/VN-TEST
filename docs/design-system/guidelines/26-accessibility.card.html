@@ -1,0 +1,27 @@
+<!-- @dsCard group="08 Principles" viewport="700x362" name="Text contrast" subtitle="Navy carries all functional text; cream hero display on sky is a declared exception" -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;font-family:var(--font-body);color:var(--navy-700)}.p{padding:18px 20px}body{background:var(--surface-shell)}
+.g{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.t{border-radius:var(--radius-md);padding:9px 10px;min-height:58px;display:flex;flex-direction:column;justify-content:space-between}
+.t .s{font-family:var(--font-body);font-size:12px;font-weight:700;line-height:1.3}
+.t .r{margin-top:6px;font-family:var(--font-mono);font-size:8.5px;line-height:1.3}
+.ok{color:var(--green-600)}.no{color:var(--red-600)}.warn{color:var(--orange-600)}
+.note{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:16px;font-family:var(--font-body);font-size:10.5px;line-height:1.5;color:var(--navy-500)}
+.note b{color:var(--navy-700)}</style>
+</head><body>
+<div class="p"><div class="g">
+<div class="t" style="background:var(--sky-300)"><div class="s" style="color:var(--navy-700)">Navy on Bright Sky</div><div class="r ok">7.8:1 · AAA · ALL functional text on sky</div></div>
+<div class="t" style="background:var(--sky-300)"><div class="s" style="color:var(--navy-600)">Navy-600 subtitle on sky</div><div class="r ok">5.3:1 · AA · subtitles, eyebrows</div></div>
+<div class="t" style="background:var(--surface-content)"><div class="s" style="color:var(--navy-700)">Navy on Warm Cream</div><div class="r ok">11.5:1 · AAA · body default</div></div>
+<div class="t" style="background:var(--sky-300)"><div class="s" style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--cream-100)">Cream display on sky</div><div class="r warn">1.5:1 · DECLARED EXCEPTION · display only</div></div>
+<div class="t" style="background:var(--surface-hero-deep)"><div class="s" style="font-family:var(--font-display);font-weight:800;font-size:18px;color:var(--cream-100)">Cream on deep sky</div><div class="r ok">3.6:1 · AA large · the conformant hero</div></div>
+<div class="t" style="background:var(--sky-300)"><div class="s" style="color:var(--navy-500)">Navy-300 on sky</div><div class="r no">1.9:1 · FAIL · no muted type on sky</div></div>
+<div class="t" style="background:#fff;border:1px solid var(--border-hairline)"><div class="s" style="color:var(--action-500)">Action Blue on White</div><div class="r ok">4.6:1 · AA · links, 14px+</div></div>
+<div class="t" style="background:var(--action-500)"><div class="s" style="color:#fff">White on Action Blue</div><div class="r" style="color:rgba(255,255,255,.85)">4.6:1 · AA · primary buttons</div></div>
+<div class="t" style="background:var(--sky-300)"><div class="s" style="color:var(--action-500)">Action Blue on sky</div><div class="r warn">3.1:1 · fails small text; OK large &amp; icons</div></div>
+</div>
+<div class="note">
+<div><b>The exception, stated plainly.</b> Cream display type on Bright Sky measures 1.5:1 and does not meet WCAG, even at the 3:1 large-text threshold. It is the approved brand direction for hero and large brand type, so it is permitted <i>there only</i> — never for labels, controls, body copy, data or anything a user must read to operate the product.</div>
+<div><b>Always recoverable.</b> Page identity is duplicated in accessible form: the active nav pill (navy on cream, 11.5:1) and the document title. Where a hero must carry cream type <i>and</i> pass, <code>PageHero tone="deep"</code> lifts it to 3.6:1 — AA at large sizes.</div>
+</div></div></body></html>

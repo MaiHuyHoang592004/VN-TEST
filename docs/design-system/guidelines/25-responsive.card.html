@@ -1,0 +1,26 @@
+<!-- @dsCard group="08 Principles" viewport="700x288" name="Responsive principles" subtitle="The colour rhythm survives every breakpoint; only the grid collapses" -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;font-family:var(--font-body);color:var(--navy-700)}.p{padding:18px 20px}body{background:var(--surface-shell)}
+.g{display:grid;grid-template-columns:1.5fr 1fr .7fr;gap:14px;align-items:start}
+.f{border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-hairline)}
+.cap{font-family:var(--font-body);font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--navy-500);margin:0 0 6px}
+.b{height:14px;background:var(--cream-100)}
+.s{height:26px;background:var(--sky-300)}
+.cut{position:relative;height:12px;background:var(--cream-100);overflow:hidden}
+.cut i{position:absolute;inset:0;background:var(--sky-300);border-radius:0 0 100% 0 / 0 0 100% 0}
+.cards{background:var(--cream-100);padding:6px;display:grid;gap:4px}
+.c{background:#fff;border-radius:5px;height:20px;border:1px solid var(--border-hairline)}
+.note{margin-top:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;font-family:var(--font-body);font-size:10.5px;line-height:1.55;color:var(--navy-500)}
+.note b{color:var(--navy-700)}</style>
+</head><body>
+<div class="p"><div class="g">
+<div><p class="cap">≥1280 · desktop</p><div class="f"><div class="b"></div><div class="s"></div><div class="cut"><i></i></div><div class="cards" style="grid-template-columns:repeat(4,1fr)"><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div></div></div></div>
+<div><p class="cap">768–1279 · tablet</p><div class="f"><div class="b"></div><div class="s"></div><div class="cut"><i></i></div><div class="cards" style="grid-template-columns:repeat(2,1fr)"><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div></div></div></div>
+<div><p class="cap">&lt;768 · mobile</p><div class="f"><div class="b"></div><div class="s" style="height:34px"></div><div class="cut"><i></i></div><div class="cards" style="grid-template-columns:1fr"><div class="c"></div><div class="c"></div><div class="c"></div></div></div></div>
+</div>
+<div class="note">
+<div><b>Content max 1280px</b>, gutters 32 → 16. Marketing caps at 1200 with 96px section gaps that halve on mobile.</div>
+<div><b>Grids collapse 4 → 2 → 1.</b> Metric rows become a horizontal scroll strip, never a 4-row stack. Tables scroll horizontally rather than reflow into cards.</div>
+<div><b>Touch targets ≥44px</b> below 768. Nav pills become a scrollable row; the cream bar and the Craft Cut both stay.</div>
+</div></div></body></html>

@@ -1,0 +1,72 @@
+<!-- @dsCard group="06 Motifs" viewport="700x352" name="Iconography" subtitle="Lucide, 2px stroke, rounded caps — shown doing its real jobs, not as a specimen wall" -->
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="stylesheet" href="../styles.css">
+<style>body{margin:0;font-family:var(--font-body);color:var(--navy-700);background:var(--surface-shell)}
+.p{padding:16px 20px 18px}
+.lbl{font-family:var(--font-body);font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--navy-500);margin:0 0 8px}
+.sky{position:relative;overflow:hidden;background:var(--sky-300);border-radius:var(--radius-lg);padding:16px 18px 14px}
+.rings{position:absolute;top:-60%;right:-8%;width:260px;height:260px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 13.5px,rgba(255,253,240,.36) 13.5px 15px);mask-image:radial-gradient(circle,#000 34%,transparent 100%);-webkit-mask-image:radial-gradient(circle,#000 34%,transparent 100%)}
+.fam{position:relative;display:flex;gap:10px;justify-content:space-between}
+.mod{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
+.mod:nth-child(even){transform:translateY(7px)}
+.chip{width:42px;height:42px;border-radius:13px;background:var(--cream-100);color:var(--navy-600);display:grid;place-items:center;box-shadow:var(--shadow-sm)}
+.mod span{font-family:var(--font-body);font-size:8.5px;font-weight:800;letter-spacing:.04em;color:var(--navy-700)}
+.work{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.pillbtn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 16px;border-radius:999px;background:var(--action-500);color:#fff;font-size:12px;font-weight:800;box-shadow:var(--shadow-sm)}
+.search{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:999px;background:var(--surface-data);box-shadow:var(--shadow-xs);color:var(--icon-muted);font-size:12px;min-width:150px}
+.bell{position:relative;width:36px;height:36px;border-radius:10px;background:var(--surface-data);box-shadow:var(--shadow-xs);display:grid;place-items:center;color:var(--icon-default)}
+.pip{position:absolute;top:5px;right:5px;width:13px;height:13px;border-radius:50%;background:var(--orange-500);color:#fff;font-size:8px;font-weight:800;display:grid;place-items:center;box-shadow:0 0 0 2px var(--surface-shell)}
+.metric{display:inline-flex;align-items:center;gap:9px;height:40px;padding:0 13px;border-radius:12px;background:var(--wash-blue);color:var(--action-600)}
+.metric b{font-family:var(--font-display);font-weight:800;font-size:17px;letter-spacing:-.02em}
+.rowact{display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--surface-data);box-shadow:var(--shadow-xs)}
+.rowact i{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--icon-muted)}
+.rowact i:hover{background:var(--sky-100)}
+.foot{display:grid;grid-template-columns:1.2fr 1fr;gap:18px;margin-top:14px;align-items:start}
+.ladder{display:flex;align-items:flex-end;gap:16px}
+.step{display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--action-500)}
+.step em{font-style:normal;font-family:var(--font-mono);font-size:9px;color:var(--navy-500)}
+.no{font-family:var(--font-body);font-size:10.5px;line-height:1.55;color:var(--navy-500)}
+.no b{color:var(--navy-700)}
+.strike{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 8px;border-radius:999px;background:var(--wash-coral);color:var(--red-600);font-size:9.5px;font-weight:800}
+</style>
+</head><body>
+<div class="p">
+<p class="lbl">The module family — one glyph per module, 2px stroke, rounded caps</p>
+<div class="sky"><i class="rings"></i>
+<div class="fam" id="fam"></div>
+</div>
+<div class="work" id="work">
+  <span class="pillbtn"><i data-i="Plus" data-s="15"></i>New Order</span>
+  <span class="search"><i data-i="Search" data-s="15"></i>Search anything…</span>
+  <span class="bell"><i data-i="Bell" data-s="17"></i><span class="pip">1</span></span>
+  <span class="metric"><i data-i="Settings" data-s="18"></i><b>315</b></span>
+  <span class="rowact"><i data-i="Printer" data-s="15"></i><i data-i="Upload" data-s="15"></i><i data-i="MoreHorizontal" data-s="15"></i></span>
+</div>
+<div class="foot">
+  <div><p class="lbl">One weight, four sizes</p>
+    <div class="ladder" id="ladder"></div>
+  </div>
+  <div><p class="lbl">Never</p>
+    <div class="no" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+      <span class="strike">emoji as icons</span><span class="strike">filled + outline mixed</span><span class="strike">duotone</span><span class="strike">unicode → arrows</span>
+    </div>
+    <div class="no" style="margin-top:7px"><b>Stroke stays 2px at every size — never scale the weight.</b> KeenIcons (Metronic-licensed) is not shipped; Lucide is the flagged substitute. See readme §Iconography.</div>
+  </div>
+</div>
+</div>
+<script src="https://unpkg.com/lucide@0.462.0/dist/umd/lucide.js"></script>
+<script>
+function put(el,name,size,stroke){const g=lucide.createElement(lucide[name]);g.setAttribute("width",size);g.setAttribute("height",size);g.setAttribute("stroke-width",stroke||2);el.appendChild(g);}
+const fam=document.getElementById("fam");
+[["LayoutDashboard","Dashboard"],["Package","Orders"],["Boxes","Products"],["Warehouse","Inventory"],["Ticket","Tickets"],["Wallet","Wallet"],["Truck","Tracking"],["BarChart3","Analytics"],["Settings","Settings"]].forEach(([n,l])=>{
+  const m=document.createElement("div");m.className="mod";
+  const c=document.createElement("div");c.className="chip";put(c,n,20);
+  const s=document.createElement("span");s.textContent=l;
+  m.appendChild(c);m.appendChild(s);fam.appendChild(m);});
+document.querySelectorAll("#work [data-i]").forEach(el=>{put(el,el.dataset.i,+el.dataset.s);el.style.display="inline-flex";});
+const lad=document.getElementById("ladder");
+[[16,"16 · inline"],[18,"18 · buttons"],[20,"20 · chips"],[24,"24 · features"]].forEach(([s,cap])=>{
+  const d=document.createElement("div");d.className="step";put(d,"Package",s);
+  const e=document.createElement("em");e.textContent=cap;d.appendChild(e);lad.appendChild(d);});
+</script>
+</body></html>

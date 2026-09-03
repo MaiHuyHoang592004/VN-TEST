@@ -13,7 +13,7 @@
 export { getProduct, listProducts } from "./products/service.ts";
 export { getVariant, listVariants } from "./variants/service.ts";
 export { getMockup, listMockups } from "./mockups/service.ts";
-export { listSkusForProduct, tierOf } from "./variant-variants/service.ts";
+export { listSkusForProduct, tierOf } from "./product-variants/service.ts";
 
 /**
  * What a seller pays for a SKU. Phase B's assignOrders charges through THIS
@@ -21,4 +21,4 @@ export { listSkusForProduct, tierOf } from "./variant-variants/service.ts";
  * reimplement a price, because two pricing rules eventually disagree and the
  * one that disagrees is the one billing people.
  */
-export { effectivePrice, BASE_TIER, type PricedSku } from "./variant-variants/pricing.ts";
+export { effectivePrice, BASE_TIER, type PricedSku } from "./product-variants/pricing.ts";

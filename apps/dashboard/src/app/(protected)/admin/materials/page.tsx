@@ -1,6 +1,6 @@
 import { requirePermission } from "@/modules/core/guard";
-import { listMaterials } from "@/modules/inventory/suppliers/queries";
-import { MaterialsTable } from "@/components/pages/admin/suppliers/suppliers-table";
+import { listMaterials } from "@/modules/inventory/materials/queries";
+import { MaterialsTable } from "@/components/pages/admin/materials/materials-table";
 
 /**
  * Material master data: what an item IS, never how many exist.

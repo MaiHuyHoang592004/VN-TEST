@@ -1,7 +1,7 @@
 import { requirePermission } from "@/modules/core/guard";
 import { listReceipts, shipmentsReport } from "@/modules/inventory/receipts/queries";
 import { listMySitesAction } from "@/modules/inventory/stock/actions";
-import { listMaterialOptions } from "@/modules/inventory/suppliers/queries";
+import { listMaterialOptions } from "@/modules/inventory/materials/queries";
 import { ReceiptsTable } from "@/components/pages/inventory/receipts-table";
 
 /**

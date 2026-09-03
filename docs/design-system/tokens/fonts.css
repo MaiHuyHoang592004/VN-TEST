@@ -1,0 +1,3 @@
+/* GWP typefaces. All three are Google Fonts; loaded from the Google CSS API.
+   Display = Baloo 2 (brand voice). Body/UI = Nunito Sans. Technical = IBM Plex Mono. */
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito+Sans:ital,opsz,wght@0,6..12,300..900;1,6..12,400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");

@@ -26,7 +26,7 @@ import {
   detachSkuAction,
   setPricesAction,
   updateSkuAction,
-} from "@/modules/catalog/variant-variants/actions";
+} from "@/modules/catalog/product-variants/actions";
 
 import { AttachVariantsDialog } from "./attach-variants-dialog";
 import { BulkPricesDialog } from "./bulk-prices-dialog";

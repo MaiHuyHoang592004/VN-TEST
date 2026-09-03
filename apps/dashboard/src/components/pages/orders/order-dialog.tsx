@@ -15,7 +15,7 @@ import {
 import { FormDialog, FormField, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { listProductOptionsAction } from "@/modules/catalog/products/actions";
-import { listSkuOptionsAction } from "@/modules/catalog/variant-variants/actions";
+import { listSkuOptionsAction } from "@/modules/catalog/product-variants/actions";
 import { createOrderAction, updateOrderAction } from "@/modules/fulfillment/orders/actions";
 
 import type { OrderRow } from "./orders-table";

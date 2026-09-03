@@ -32,8 +32,8 @@ import { Can } from "@/components/global/permission-gate";
 import { useTranslation } from "@/lib/i18n";
 import { setProductStatusAction } from "@/modules/catalog/products/actions";
 
-import { ProductDialog, type ProductRow } from "./variant-dialog";
-import { DeleteProductDialog } from "./delete-variant-dialog";
+import { ProductDialog, type ProductRow } from "./product-dialog";
+import { DeleteProductDialog } from "./delete-product-dialog";
 
 const STATUSES = ["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const;
 

@@ -7,7 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { FormDialog, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
-import { attachVariantsAction } from "@/modules/catalog/variant-variants/actions";
+import { attachVariantsAction } from "@/modules/catalog/product-variants/actions";
 
 /**
  * Multi-select of variants NOT yet attached to this variant. The list is

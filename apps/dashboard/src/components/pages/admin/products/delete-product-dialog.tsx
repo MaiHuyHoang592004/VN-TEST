@@ -12,7 +12,7 @@ import {
   setProductStatusAction,
 } from "@/modules/catalog/products/actions";
 
-import type { ProductRow } from "./variant-dialog";
+import type { ProductRow } from "./product-dialog";
 
 type Usage = { skus: number; orders: number; allowedUsers: number; canDelete: boolean };
 

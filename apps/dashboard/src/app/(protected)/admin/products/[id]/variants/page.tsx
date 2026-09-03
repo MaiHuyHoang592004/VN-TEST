@@ -7,7 +7,7 @@ import { getProduct } from "@/modules/catalog/products/queries";
 import {
   listAttachableVariants,
   listSkusForProduct,
-} from "@/modules/catalog/variant-variants/queries";
+} from "@/modules/catalog/product-variants/queries";
 import { Badge } from "@/components/ui/badge";
 import { SkuGrid } from "@/components/pages/admin/products/skus/sku-grid";
 

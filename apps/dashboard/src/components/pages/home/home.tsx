@@ -6,7 +6,7 @@ import { resolvePeriod } from "@/lib/time-period";
 import { AdminHome } from "./admin-home";
 import { HomeHeader } from "./home-header";
 import { SellerHome } from "./seller-home";
-import { WarehouseHome } from "./customer-home";
+import { WarehouseHome } from "./warehouse-home";
 
 /**
  * The signed-in home, switched by PERMISSION rather than role name — the rule

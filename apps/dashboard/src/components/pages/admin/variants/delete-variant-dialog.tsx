@@ -12,7 +12,7 @@ import {
   setVariantStatusAction,
 } from "@/modules/catalog/variants/actions";
 
-import type { VariantRow } from "./product-dialog";
+import type { VariantRow } from "./variant-dialog";
 
 type Usage = { skus: number; orders: number; canDelete: boolean };
 

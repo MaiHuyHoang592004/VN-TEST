@@ -12,7 +12,7 @@ import {
 } from "@/modules/inventory/warehouses/actions";
 import { getWarehouseUsageAction } from "@/modules/inventory/warehouses/actions";
 
-import type { WarehouseRow } from "./customer-dialog";
+import type { WarehouseRow } from "./warehouse-dialog";
 
 type Usage = {
   members: number;

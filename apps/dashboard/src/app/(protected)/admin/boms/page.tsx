@@ -2,7 +2,7 @@ import { requirePermission } from "@/modules/core/guard";
 import { bomCoverage, listBoms } from "@/modules/inventory/boms/queries";
 import { listMaterialOptions } from "@/modules/inventory/suppliers/queries";
 import { listMySitesAction } from "@/modules/inventory/stock/actions";
-import { listSkuOptions } from "@/modules/catalog/variant-variants/queries";
+import { listSkuOptions } from "@/modules/catalog/product-variants/queries";
 import { BomsTable } from "@/components/pages/admin/boms/boms-table";
 import { CoverageTable } from "@/components/pages/admin/boms/coverage-table";
 

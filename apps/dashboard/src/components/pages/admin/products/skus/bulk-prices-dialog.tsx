@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { FormDialog, FormField, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
-import { bulkSetPricesAction } from "@/modules/catalog/variant-variants/actions";
+import { bulkSetPricesAction } from "@/modules/catalog/product-variants/actions";
 
 import { TIERS } from "./sku-grid";
 

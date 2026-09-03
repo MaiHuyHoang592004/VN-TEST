@@ -22,7 +22,7 @@ import {
   listWarehouseStaffAction,
 } from "@/modules/inventory/warehouses/actions";
 
-import type { WarehouseRow } from "./customer-dialog";
+import type { WarehouseRow } from "./warehouse-dialog";
 
 type Member = { userId: string; name: string; email: string; isPrimary: boolean };
 type Candidate = { id: string; name: string | null; email: string };

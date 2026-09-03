@@ -1,5 +1,5 @@
 import { listProducts } from "@/modules/catalog/products/queries";
-import { listSkusWithMyPrice } from "@/modules/catalog/variant-variants/queries";
+import { listSkusWithMyPrice } from "@/modules/catalog/product-variants/queries";
 import { CatalogBrowser } from "@/components/pages/catalog/catalog-browser";
 
 /**

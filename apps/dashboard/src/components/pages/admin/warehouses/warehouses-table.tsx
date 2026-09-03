@@ -16,9 +16,9 @@ import { DataTable, DataTableToolbar, useTableParams, type Column } from "@/comp
 import { Can } from "@/components/global/permission-gate";
 import { useTranslation } from "@/lib/i18n";
 
-import { WarehouseDialog, type WarehouseRow } from "./customer-dialog";
-import { DeleteWarehouseDialog } from "./delete-customer-dialog";
-import { WarehouseMembersDialog } from "./customer-members-dialog";
+import { WarehouseDialog, type WarehouseRow } from "./warehouse-dialog";
+import { DeleteWarehouseDialog } from "./delete-warehouse-dialog";
+import { WarehouseMembersDialog } from "./warehouse-members-dialog";
 
 export function WarehousesTable({ rows }: { rows: WarehouseRow[] }) {
   const params = useTableParams();

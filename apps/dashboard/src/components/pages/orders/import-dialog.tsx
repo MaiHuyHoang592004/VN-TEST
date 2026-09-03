@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
-import { resolveSkusAction } from "@/modules/catalog/variant-variants/actions";
+import { resolveSkusAction } from "@/modules/catalog/product-variants/actions";
 import { createOrdersAction } from "@/modules/fulfillment/orders/actions";
 
 import { COLUMN_ALIASES, TEMPLATE_HEADERS, parseCsv } from "./import-columns";

@@ -42,7 +42,7 @@ export function SearchResultItem({
     return (
       <CommandItem
         onSelect={onSelect}
-        className={`cursor-pointer rounded-(--radius-xs) data-highlighted:bg-sky-100 data-highlighted:text-navy-700 ${isSelected ? "bg-sky-100 text-navy-700" : ""}`}
+        className={`cursor-pointer rounded-(--radius-xs) ${isSelected ? "bg-sky-100 text-navy-700" : ""}`}
       >
         <Icon className="mr-2 h-4 w-4 text-(--text-muted)" />
         <div className="flex flex-1 items-center justify-between">
@@ -62,7 +62,7 @@ export function SearchResultItem({
   return (
     <CommandItem
       onSelect={onSelect}
-      className={`cursor-pointer rounded-(--radius-xs) data-highlighted:bg-sky-100 data-highlighted:text-navy-700 ${isSelected ? "bg-sky-100 text-navy-700" : ""}`}
+      className={`cursor-pointer rounded-(--radius-xs) ${isSelected ? "bg-sky-100 text-navy-700" : ""}`}
     >
       <Icon className="mr-2 h-4 w-4 text-(--text-muted)" />
       <div className="flex flex-1 flex-col">

@@ -8,7 +8,9 @@
  *
  * Pages import from "@/components/ds", never from a file inside it.
  */
+export { Callout, type CalloutProps } from "./callout";
 export { FilterChip, type FilterChipProps } from "./filter-chip";
+export { LoadingState, type LoadingStateProps } from "./loading-state";
 export { KeyValueRow, type KeyValueRowProps } from "./key-value-row";
 export { MetricCard, type MetricCardProps } from "./metric-card";
 export { SearchField, type SearchFieldProps } from "./search-field";

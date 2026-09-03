@@ -35,9 +35,17 @@ export function AppProviders({
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="dark"
+      defaultTheme="light"
       enableSystem={false}
       disableTransitionOnChange
+      /* GWP ships no dark palette (globals.css: `.dark` is a no-op).
+         Forcing light here — not just defaulting to it — matters because a
+         returning user may already have `theme=dark` persisted in
+         localStorage from before this migration; next-themes would
+         otherwise re-apply it. The toggle is also removed from the shell
+         (navbar.tsx, app-sidebar.tsx) so there is no way back in. Task 17
+         is expected to remove next-themes/ThemeProvider entirely. */
+      forcedTheme="light"
     >
       <QueryClientProvider client={queryClient}>
         <I18nProvider

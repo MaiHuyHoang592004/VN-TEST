@@ -71,7 +71,7 @@ function StatTile({ label, value, display, tone }: Tile) {
         className={cn(
           "truncate text-lg leading-tight font-semibold tabular-nums sm:text-xl",
           alert && tone === "danger" && "text-red-600",
-          alert && tone === "warning" && "text-orange-500",
+          alert && tone === "warning" && "text-status-attention-fg",
         )}
       >
         {display ?? value.toLocaleString()}

@@ -174,7 +174,7 @@ function OrderCard({
         <div className="space-y-1 text-xs">
           {order.note && <p className="text-muted-foreground">{order.note}</p>}
           {order.internalNote && (
-            <p className="text-orange-500">{order.internalNote}</p>
+            <p className="text-status-attention-fg">{order.internalNote}</p>
           )}
         </div>
       )}

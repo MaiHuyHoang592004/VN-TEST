@@ -54,7 +54,6 @@ import { activeHref, sectionTabs } from "@/config/nav-tabs";
 import { usePermissions } from "@/hooks/use-permissions";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import { Search } from "@/components/global/search";
-import { ThemeToggle } from "@/components/global/theme";
 import {
   Sidebar,
   SidebarContent,
@@ -468,7 +467,8 @@ export function AppSidebar() {
             <TooltipContent side="top">{user.email}</TooltipContent>
           </Tooltip>
           <span className="flex shrink-0 items-center gap-0.5 group-data-[collapsible=icon]:hidden">
-            <ThemeToggle />
+            {/* Theme toggle removed: dark mode is forced off (GWP ships no
+                dark palette; see AppProviders' forcedTheme). */}
             {!isMobile && (
               <button
                 aria-label={t(hoverOpen ? "sidebar.pin" : "sidebar.collapse")}

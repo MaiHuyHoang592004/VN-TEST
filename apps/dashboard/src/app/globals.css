@@ -11,7 +11,7 @@
   --font-sans: var(--font-body-face), "Nunito Sans", system-ui, sans-serif;
   --font-display: var(--font-display-face), "Baloo 2", "Nunito Sans", system-ui, sans-serif;
   --font-mono: var(--font-mono-face), "IBM Plex Mono", ui-monospace, Consolas, monospace;
-  --font-heading: var(--font-display);
+  --font-heading: var(--font-display-face), "Baloo 2", "Nunito Sans", system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -102,14 +102,14 @@
    files without editing one of them.
 
    Surface ladder (DS surfaces.css): SKY is the page, --surface-shell
-   (#FBFCFA) is the default floating operational surface, WHITE nests
+   (--surface-shell) is the default floating operational surface, WHITE nests
    inside it for data. Cream is a BRAND surface — nav, marketing,
    product wells — never the default operational fill, so `--card` is
    shell, not cream. */
 :root {
-  --background: var(--surface-canvas);        /* #ABDAEF — sky IS the page */
+  --background: var(--surface-canvas);        /* --surface-canvas — sky IS the page */
   --foreground: var(--text-strong);           /* navy-900 */
-  --card: var(--surface-shell);               /* #FBFCFA, the default surface */
+  --card: var(--surface-shell);               /* --surface-shell, the default surface */
   --card-foreground: var(--text-body);        /* navy-700 */
   --popover: var(--surface-raised);           /* white — menus, drawers */
   --popover-foreground: var(--text-body);
@@ -123,16 +123,19 @@
   --secondary-foreground: var(--navy-700);
 
   --muted: var(--neutral-100);
-  /* Contrast floor (readme.md §7): navy-500 is the LIGHTEST permitted text
-     on a light ground. `text-muted-foreground` is the app's most-used
-     secondary text utility, so it sits exactly on the floor — never below. */
-  --muted-foreground: var(--text-muted);      /* navy-500 */
+  /* Contrast floor (readme.md §7): navy-500 only clears 4.5:1 on the shell
+     (--surface-shell, 5.30:1) — on sky (--background) it drops to 3.64:1 and fails
+     small text. `--muted-foreground` sits directly on `bg-background` in
+     374 call sites across 130 files, so it must clear the floor on BOTH
+     grounds. The DS's `--text-on-sky-secondary` (navy-600) is exactly the
+     token built for secondary text on sky: 5.32:1 on sky, 7.74:1 on shell. */
+  --muted-foreground: var(--text-on-sky-secondary); /* navy-600 */
   --accent: var(--sky-100);                   /* the hover step */
   --accent-foreground: var(--navy-700);
   --destructive: var(--red-600);
 
-  --border: var(--border-hairline);           /* rgba(15,58,95,0.08) */
-  --input: var(--border-soft);                /* rgba(15,58,95,0.12) */
+  --border: var(--border-hairline);           /* border-hairline: 8% navy */
+  --input: var(--border-soft);                /* border-soft: 12% navy */
   --ring: var(--border-focus);                /* action-500 */
 
   /* Charts: the DS gives no chart palette, so these are the brand accents in
@@ -181,7 +184,7 @@
   --hairline: var(--border-hairline);
   --hairline-strong: var(--border-strong);
   --body-text: var(--text-body);
-  --mute: var(--text-muted);                  /* navy-500, the floor */
+  --mute: var(--text-on-sky-secondary);       /* navy-600 — see --muted-foreground above */
 
   /* Elevation. GWP shadows are blue-tinted, wide and faint — they read as
      light, never as elevation drama. The Geist inset-ring trick is dropped:
@@ -202,7 +205,7 @@
     radial-gradient(60% 60% at 40% 0%, var(--action-500) 0%, transparent 60%),
     radial-gradient(55% 65% at 70% 25%, var(--orange-500) 0%, transparent 60%),
     radial-gradient(50% 60% at 90% 5%, var(--yellow-500) 0%, transparent 60%);
-  --grid-line: oklch(0 0 0 / 0.05);
+  --grid-line: var(--border-hairline);        /* same duty: a faint line over any surface */
 
   --selection-bg: var(--sky-200);
   --selection-fg: var(--navy-900);
@@ -338,8 +341,8 @@
 
   /* Fade the edges of the grid, radial from top */
   .radial-fade {
-    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, #000 35%, transparent 100%);
-    mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, #000 35%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, black 35%, transparent 100%);
+    mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, black 35%, transparent 100%);
   }
 
   /* Lift + colored glow on hover */
@@ -348,7 +351,7 @@
   }
   .hover-lift:hover {
     transform: translateY(-3px);
-    box-shadow: 0 14px 44px -14px oklch(0.62 0.2 253 / 0.4);
+    box-shadow: 0 14px 44px -14px oklch(from var(--action-500) l c h / 0.4);
   }
 }
 
@@ -363,9 +366,9 @@
   border-radius: inherit;
   padding: 1px;
   background: var(--brand-gradient);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
   -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
   mask-composite: exclude;
   opacity: 0.45;
   transition: opacity 0.3s ease;
@@ -387,7 +390,7 @@
   left: -160%;
   width: 60%;
   height: 100%;
-  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.35), transparent);
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, white 35%, transparent), transparent);
   transform: skewX(-20deg);
   transition: left 0.6s ease;
   pointer-events: none;
@@ -415,9 +418,9 @@
     var(--action-500),
     transparent 65%
   );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
   -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
   mask-composite: exclude;
   opacity: 0;
   transition: opacity 0.35s ease;

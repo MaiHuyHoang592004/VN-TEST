@@ -8,43 +8,42 @@ fail=0
 
 report() { printf '\n== %s ==\n' "$1"; }
 
-# Excluded files are REGEX false positives, not colour decisions:
-#   bubble.tsx   oklch(from var(--primary) ...) — a colour DERIVED from a token
-#   chart.tsx    [stroke='#ccc'] — recharts SELECTORS, not applied colours
-#   camera-panel canvas 2D fillStyle; print-labels-sheet print background
-#   order-qr     QR needs pure #000/#fff to scan
-#   google-icon, footer-social — third-party brand marks, not ours to recolour
-# The final filter drops comment lines (a hex mentioned in prose is not a style).
 report "hex / rgb / oklch literals in components (must be empty)"
-# Exclusions beyond .test./gwp.theme.css, each a category the token layer
-# cannot express, not a missed migration site:
-#   footer-social.tsx / google-icon.tsx — official third-party brand marks
-#     (Messenger blue, the Google "G", etc.) are fixed by the trademark
-#     owner, not by our design system.
-#   order-qr.tsx        — QR modules must render true #000/#fff to stay
+# Exclusions are REGEX false positives, not colour decisions — each is
+# anchored to a path segment (a leading "/" and trailing ":") so it cannot
+# also swallow an unrelated future file that merely shares a substring (e.g.
+# a future revenue-chart.tsx next to chart.tsx). Categories:
+#   footer-social.tsx / google-icon.tsx - official third-party brand marks
+#     (Messenger blue, the Google "G", etc.) fixed by the trademark owner,
+#     not by our design system.
+#   order-qr.tsx           - QR modules must render true #000/#fff to stay
 #     scannable regardless of theme.
-#   camera-panel.tsx    — <canvas> 2D context fillStyle, not themed UI.
-#   print-labels-sheet.tsx — an @media print stylesheet forcing a white
+#   camera-panel.tsx       - <canvas> 2D context fillStyle, not themed UI.
+#   print-labels-sheet.tsx - an @media print stylesheet forcing a white
 #     physical label background; paper has no theme.
-#   bubble.tsx          — oklch(from var(--primary) ...) computes off the
-#     --primary token via CSS relative-color syntax; it is not a literal.
-#   chart.tsx           — the bracketed selectors match literal stroke
+#   chart.tsx              - the bracketed selectors match literal stroke
 #     values recharts itself renders inline, to override the vendor
-#     library's own hardcoded SVG colours; they are not values we chose.
-#   sidebar.tsx:383     — a comment describing Tailwind's own default
-#     (transparent scrollbar track), not a colour in code.
+#     library's own hardcoded SVG colours; not values we chose.
+#   gwp.theme.css           - the vendored, generated token file itself.
+# The oklch(from ...) filter is by CONTENT, not filename: it is a colour
+# DERIVED from a token via CSS relative-colour syntax (bubble.tsx's Tailwind
+# arbitrary values use an underscore in place of the space; globals.css's
+# hover-lift glow uses a real space) - not a literal, wherever it appears.
+# The last filter drops whole-comment lines (a hex value mentioned in prose
+# documentation is not an applied style).
 if grep -rnE '#[0-9a-fA-F]{3,8}\b|rgba?\(|oklch\(' \
-     --include='*.tsx' --include='*.ts' src/components src/app \
+     --include='*.tsx' --include='*.ts' --include='*.css' src \
      | grep -v '\.test\.' \
-     | grep -v 'gwp.theme.css' \
-     | grep -v 'footer-social.tsx' \
-     | grep -v 'google-icon.tsx' \
-     | grep -v 'order-qr.tsx' \
-     | grep -v 'camera-panel.tsx' \
-     | grep -v 'print-labels-sheet.tsx' \
-     | grep -v 'bubble.tsx' \
-     | grep -v 'chart.tsx' \
-     | grep -vE '^[^:]+:[0-9]+: *(//|\*|/\*)'; then
+     | grep -E -v '/gwp\.theme\.css:' \
+     | grep -E -v '/footer-social\.tsx:' \
+     | grep -E -v '/google-icon\.tsx:' \
+     | grep -E -v '/order-qr\.tsx:' \
+     | grep -E -v '/camera-panel\.tsx:' \
+     | grep -E -v '/print-labels-sheet\.tsx:' \
+     | grep -E -v '/chart\.tsx:' \
+     | grep -F -v 'oklch(from_var(' \
+     | grep -F -v 'oklch(from var(' \
+     | grep -E -v '^[^:]+:[0-9]+: *(//|\*|/\*)'; then
   echo "FAIL: colour literal outside the token layer"; fail=1
 else echo "ok"; fi
 
@@ -56,10 +55,10 @@ else echo "ok"; fi
 
 report "Tailwind default palette next to GWP ramps (must be empty)"
 # NOTE: sky / navy / action / cream / wash / yellow / green / red / orange /
-# neutral are all GWP ramp names and must NOT appear in this list — GWP owns
+# neutral are all GWP ramp names and must NOT appear in this list - GWP owns
 # them. Only names GWP defines no ramp for are forbidden here.
 if grep -rnE '\b(bg|text|border|ring|fill|stroke|divide)-(slate|gray|zinc|stone|amber|lime|emerald|teal|cyan|indigo|violet|purple|fuchsia|rose|blue)-[0-9]{2,3}\b' \
-     --include='*.tsx' src; then
+     --include='*.tsx' --include='*.ts' src; then
   echo "FAIL: non-GWP palette utility"; fail=1
 else echo "ok"; fi
 
@@ -67,7 +66,7 @@ report "neutral steps GWP does not define (only 50 and 100 exist)"
 # -P (not -E) for the negative lookahead; combining -E and -P errors out on
 # some grep builds and would silently no-op this check.
 if grep -rnP '\b(bg|text|border|ring|fill|stroke|divide)-neutral-(?!50\b|100\b)[0-9]{2,3}\b' \
-     --include='*.tsx' src; then
+     --include='*.tsx' --include='*.ts' src; then
   echo "FAIL: neutral step outside GWP's 50/100"; fail=1
 else echo "ok"; fi
 

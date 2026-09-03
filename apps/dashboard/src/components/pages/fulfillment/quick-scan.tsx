@@ -248,8 +248,8 @@ function QuickLog({ log }: { log: LogEntry[] }) {
             // needs to see: it is an order that did NOT do what was asked.
             ...(entry.skipped.length
               ? [
-                  <tr key={`${entry.tracking}-skipped`} className="bg-yellow-600/5">
-                    <td colSpan={6} className="text-orange-500 px-3 py-2 text-xs">
+                  <tr key={`${entry.tracking}-skipped`} className="bg-(--status-attention-bg)">
+                    <td colSpan={6} className="text-status-attention-fg px-3 py-2 text-xs">
                       {t("fulfillment.quick.skipped").replace(
                         "{orders}",
                         entry.skipped

@@ -43,7 +43,7 @@ export function AlreadyScannedDialog({
             // Amber for anything already in flight; a PENDING column here is
             // merely unusual, the later ones are the ones to look at.
             className={`flex items-center justify-between gap-3 px-3 py-2 text-sm ${
-              o.status !== "PENDING" ? "bg-yellow-600/5" : ""
+              o.status !== "PENDING" ? "bg-(--status-attention-bg)" : ""
             }`}
           >
             <span className="truncate font-mono text-xs">{o.externalId ?? `#${o.id}`}</span>

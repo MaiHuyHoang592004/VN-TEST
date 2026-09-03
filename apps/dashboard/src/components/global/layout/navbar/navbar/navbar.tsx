@@ -10,7 +10,6 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Home, User, Package, Boxes, ScanLine } from "lucide-react";
 import { Search } from "@/components/global/search";
-import { ThemeToggle } from "@/components/global/theme";
 import { useAuth } from "@/components/global/providers";
 import { usePermissions } from "@/hooks/use-permissions";
 import { activeHref } from "@/config/nav-tabs";
@@ -160,11 +159,11 @@ export function Navbar() {
               )}
             </div>
 
-            {/* Language selector stays; theme toggle lives in the sidebar
-                footer once signed in */}
+            {/* Dark mode is forced off (GWP ships no dark palette; see
+                AppProviders' forcedTheme) — the toggle is removed here and
+                from the sidebar footer, not just hidden. */}
             {user && <NotificationBell />}
             <LanguageSelector />
-            {!user && <ThemeToggle />}
           </div>
         </div>
       </nav>

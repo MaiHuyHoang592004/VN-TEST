@@ -57,7 +57,30 @@ export const STATUS_TONES: Readonly<Record<string, StatusTone>> = Object.freeze(
   // Prisma FulfillmentStatus values with no prose twin in the DS map. Not new
   // vocabulary — they are the existing DB enum, tone-assigned by the same
   // rules the DS applies to its own list.
+  // ── App enum values whose DS twin exists under a different tense ──────
+  // The DS map was read from a DIFFERENT backend's ORDER_STATUS vocabulary
+  // ("Cancel", "Refund"), while this app's Prisma `FulfillmentStatus` is past
+  // participle ("CANCELLED", "REFUNDED"). normalise() lowercases and collapses
+  // separators but deliberately does not stem, so the twins never meet. These
+  // entries bridge that gap; they assign no new meaning, they restate the DS's
+  // own tone for the same concept. Without them a cancelled order renders a
+  // grey badge, which is the one status a reader must not miss.
+  CANCELLED: "critical", // DS: Cancel -> critical
+  // Kept distinct from CANCELLED on purpose: schema comment on the enum says
+  // the ~319 legacy "Refund" orders must stay reportable as refunds rather
+  // than plain cancellations, and the DS gives Refund its own tone.
+  REFUNDED: "info", // DS: Refund -> info
   ON_HOLD: "attention",
+  // TicketStatus.RESOLVED has no DS twin — the DS's ticket vocabulary is
+  // open/in_progress/closed. It is mapped to the same tone as `closed`
+  // because both are terminal positive outcomes; a grey "resolved" badge
+  // would read as "nothing happened".
+  RESOLVED: "success",
+  // NOT MAPPED, deliberately: FulfillmentStatus.ASSIGNED. The DS has no
+  // equivalent concept (assigned to a warehouse, not yet in production) and
+  // guessing between `pending`, `progress` and `neutral` would be inventing
+  // vocabulary. toneFor() returns "neutral", which is the correct default for
+  // a state the design system has not ruled on. Raised with the DS.
 });
 
 /** Normalise so SCREAMING_SNAKE, Title Case and spaced prose collapse to one key. */

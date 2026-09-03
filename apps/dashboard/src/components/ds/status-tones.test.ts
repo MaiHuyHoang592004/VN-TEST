@@ -36,6 +36,37 @@ test("matches statuses irrespective of case and separator", () => {
   assert.equal(toneFor("ON_HOLD"), "attention");
 });
 
+test("covers every FulfillmentStatus and TicketStatus the DB can emit", () => {
+  // The DS map came from a different backend's vocabulary, so the app's own
+  // Prisma enums are the real contract. Every value here must render a
+  // deliberate tone — a status that silently falls to neutral is a bug the
+  // reader sees as "nothing happened".
+  assert.equal(toneFor("PENDING"), "pending");
+  assert.equal(toneFor("IN_PRODUCTION"), "progress");
+  assert.equal(toneFor("FULFILLED"), "success");
+  assert.equal(toneFor("SHIPPED"), "info");
+  assert.equal(toneFor("DELIVERED"), "success");
+  assert.equal(toneFor("ON_HOLD"), "attention");
+  // Tense bridges: the DS spells these "Cancel" and "Refund".
+  assert.equal(toneFor("CANCELLED"), "critical");
+  assert.equal(toneFor("REFUNDED"), "info");
+  // Distinct tones, because the schema keeps the two states distinct.
+  assert.notEqual(toneFor("REFUNDED"), toneFor("CANCELLED"));
+
+  assert.equal(toneFor("OPEN"), "attention");
+  assert.equal(toneFor("IN_PROGRESS"), "progress");
+  assert.equal(toneFor("RESOLVED"), "success");
+  assert.equal(toneFor("CLOSED"), "success");
+});
+
+test("ASSIGNED is deliberately unmapped, not forgotten", () => {
+  // The DS has no concept for "assigned to a warehouse, not yet in
+  // production". Guessing a tone would be inventing vocabulary, so it takes
+  // the neutral default. This test exists so that a future change to neutral
+  // is a decision rather than an accident.
+  assert.equal(toneFor("ASSIGNED"), "neutral");
+});
+
 test("falls back to neutral for an unknown or empty status", () => {
   // Never throw and never invent a colour: an unrecognised status is grey.
   assert.equal(toneFor("Some Status The Backend Added Today"), "neutral");

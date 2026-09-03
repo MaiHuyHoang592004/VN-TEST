@@ -4493,7 +4493,11 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 - [ ] **Step 3: Status and priority both become `StatusBadge`**
 
-Ticket status (`open` / `in_progress` / `closed`) is already in `STATUS_TONES`. Priority is **not** a status: `DOMAIN_RESOLVED.md` gives the `TICKET_REASON` → priority mapping verbatim, so read priority from that mapping as the code already does and render it with an explicit `tone` — `critical` for the highest, `attention` for the middle, `neutral` for the lowest — rather than adding priority keys to `STATUS_TONES`. Do **not** invent a priority level that the mapping does not contain.
+Ticket status (`open` / `in_progress` / `closed` / `RESOLVED`) is already in
+`STATUS_TONES`. **Priority is not**, and must never be routed through
+`toneFor()` — it is not a status, and `URGENT` would come out grey. Task 4
+left it out deliberately and recorded why in `status-tones.ts`. Render it with
+`StatusBadge`'s explicit `tone` prop instead. Priority is **not** a status: `DOMAIN_RESOLVED.md` gives the `TICKET_REASON` → priority mapping verbatim, so read priority from that mapping as the code already does and render it with an explicit `tone` — `critical` for the highest, `attention` for the middle, `neutral` for the lowest — rather than adding priority keys to `STATUS_TONES`. Do **not** invent a priority level that the mapping does not contain.
 
 - [ ] **Step 4: `ticket-thread.tsx` becomes the `TicketConversation` look**
 

@@ -35,6 +35,31 @@
  * `*Status` enum lacks an explicit assertion, so a silent neutral cannot be
  * introduced by adding an enum value.
  *
+ * ONE FLAT MAP, KEYED BY STRING — a deliberate limit, not an oversight.
+ * The DS's own status-tones.json is flat and keyed by string, so this mirrors
+ * its shape. The consequence is that a key is SHARED by every enum that spells
+ * a value the same way: TransactionStatus.CANCELLED inherits the tone argued
+ * for FulfillmentStatus.CANCELLED, and ACTIVE / PENDING / DRAFT / RESERVED are
+ * each shared by three or more enums. No current collision is wrong, and each
+ * shared key is pinned by a test naming every enum that reaches it.
+ *
+ * If the design system ever wants one spelling to differ per domain, the fix
+ * is `toneFor(status, domain?)` with an OPTIONAL second argument — additive, so
+ * no existing call site breaks. That keeps it cheap to do later, which is why
+ * it is not being done pre-emptively now.
+ *
+ * NOT COVERED HERE, ON PURPOSE:
+ *   - `TicketPriority` (LOW/MEDIUM/HIGH/URGENT) is a priority, not a status.
+ *     Render it with StatusBadge's explicit `tone` prop, driven by the
+ *     TICKET_REASON -> priority mapping read verbatim from DOMAIN_RESOLVED.md.
+ *     Never route it through toneFor(): URGENT would silently come out grey.
+ *   - `InventoryMovementType.RETURN` is a movement TYPE that happens to collide
+ *     with the DS's `Return` status key. Do not pass it to toneFor().
+ *   - `Shipment.trackingStatus` is a free-form string with no enum
+ *     (BACKEND_GAPS.md). Everything in that column resolves to neutral, which
+ *     is correct-but-useless; it needs a backend vocabulary before it can be
+ *     coloured, and inventing one here is exactly what this file forbids.
+ *
  * DOMAIN-BOUND (per StatusBadge.d.ts): the transitions between statuses, the
  * production lifecycle, the shipping lifecycle, and the value set of the
  * separate `tracking_status` field are NOT modelled here. `tracking_status`

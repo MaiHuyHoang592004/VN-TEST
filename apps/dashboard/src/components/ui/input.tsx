@@ -9,7 +9,20 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
       type={type}
       data-slot="input"
       className={cn(
-        "h-10 w-full min-w-0 rounded-sm border border-input bg-transparent px-3 py-1 text-sm transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        // GWP fields are INSET wells: the faintest sky fill with a hairline,
+        // not a transparent box. 40px = --control-height; 10px =
+        // --radius-control. Placeholder ink sits on the navy-500 contrast
+        // floor and is never dimmed with opacity.
+        "h-(--control-height) w-full min-w-0 rounded-(--radius-control)",
+        "border border-(--border-soft) bg-(--surface-inset) px-3 py-1",
+        "font-sans text-(length:--fs-body) text-(--text-body)",
+        "transition-[background-color,border-color,box-shadow] duration-(--dur-fast) ease-(--ease-out) outline-none",
+        "placeholder:text-(--text-muted)",
+        "file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-(length:--fs-body-sm) file:font-semibold file:text-(--text-body)",
+        "hover:border-(--border-strong)",
+        "focus-visible:border-(--border-focus) focus-visible:shadow-(--shadow-focus)",
+        "disabled:cursor-not-allowed disabled:opacity-45",
+        "aria-invalid:border-(--status-critical-fg)",
         className
       )}
       {...props}

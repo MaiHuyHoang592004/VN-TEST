@@ -1,0 +1,104 @@
+{
+  "tickets": {
+    "title": "支持工单",
+    "subtitle": "咨询订单、面单或账户问题——并保留完整答复记录。",
+    "new": "新建工单",
+    "search": "搜索标题、描述或订单",
+    "empty": "暂无工单。",
+    "emptyFiltered": "没有符合筛选条件的工单。",
+    "allStatuses": "全部状态",
+    "allPriorities": "全部优先级",
+    "allReasons": "全部原因",
+    "open": "未结",
+    "col": {
+      "author": "客户",
+      "title": "标题",
+      "order": "订单",
+      "reason": "原因",
+      "status": "状态",
+      "priority": "优先级",
+      "created": "创建时间",
+      "replies": "回复数"
+    },
+    "status": {
+      "OPEN": "待处理",
+      "IN_PROGRESS": "处理中",
+      "RESOLVED": "已解决",
+      "CLOSED": "已关闭"
+    },
+    "priority": {
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高",
+      "URGENT": "紧急"
+    },
+    "reason": {
+      "wrong-item": "发错商品",
+      "quality-return": "质量问题或退货",
+      "bad-label": "面单问题",
+      "wrong-address": "地址错误",
+      "missing-item": "包裹缺件",
+      "other": "其他问题"
+    },
+    "form": {
+      "new": "创建工单",
+      "description": "请说明发生了什么。附上照片能让我们更快处理。",
+      "title": "标题",
+      "titlePlaceholder": "订单 #1042 的衬衫尺码错误",
+      "reason": "原因",
+      "priority": "优先级",
+      "priorityHint": "根据原因自动推荐——如有不同意见可自行修改。",
+      "order": "订单",
+      "orderNone": "与具体订单无关",
+      "body": "描述",
+      "bodyPlaceholder": "收到了什么、期望是什么，以及你已经尝试过的处理方式。",
+      "attach": "添加照片",
+      "attachHint": "PNG、JPG 或 WEBP · 最多 10 张 · 每张不超过 10MB",
+      "submit": "提交工单",
+      "created": "工单已创建",
+      "orderDropped": "所选订单不属于你的账户，工单已在不关联该订单的情况下创建。"
+    },
+    "edit": {
+      "title": "编辑工单",
+      "submit": "保存修改",
+      "saved": "工单已更新"
+    },
+    "delete": {
+      "title": "删除该工单？",
+      "body": "工单及其全部对话都会被删除，且无法恢复。",
+      "submit": "删除工单",
+      "deleted": "工单已删除"
+    },
+    "detail": {
+      "back": "全部工单",
+      "customer": "客户",
+      "order": "订单",
+      "created": "创建于",
+      "replies": "回复",
+      "status": "状态",
+      "reason": "原因",
+      "priority": "优先级",
+      "statusChanged": "状态已更新",
+      "reply": "回复",
+      "replyPlaceholder": "输入回复内容…",
+      "send": "发送",
+      "sendHint": "⌘/Ctrl + Enter 发送",
+      "sent": "回复已发送",
+      "closed": "该工单已关闭。",
+      "closedHint": "重新打开后即可继续对话。",
+      "reopen": "重新打开",
+      "staff": "客服",
+      "attachments": "附件",
+      "empty": "暂无回复。"
+    },
+    "errors": {
+      "not-found": "该工单已不存在。",
+      "ticket-closed": "工单已关闭——请重新打开后再回复。",
+      "not-yours": "你无法对该工单执行此操作。",
+      "file-too-large": "图片大小不能超过 10MB。",
+      "not-an-image": "请上传 PNG、JPG 或 WEBP 图片。",
+      "too-many-files": "一次最多上传 10 张图片。",
+      "storage-not-configured": "当前无法上传文件。"
+    }
+  }
+}

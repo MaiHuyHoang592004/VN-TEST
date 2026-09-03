@@ -1,0 +1,16 @@
+/// Per-tier pricing for a SKU. tier 0 = base/public price; tiers 1-4 match
+/// User.tier. Replaces the legacy price_tier_1..4 columns.
+model VariantPrice {
+  id               Int     @id @default(autoincrement())
+  productVariantId Int     @map("product_variant_id")
+  tier             Int
+  price            Decimal @db.Decimal(12, 2)
+
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([productVariantId, tier])
+  @@map("variant_prices")
+}

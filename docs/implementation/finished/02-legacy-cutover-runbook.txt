@@ -1,0 +1,184 @@
+================================================================================
+LEGACY DATA CUTOVER — RUNBOOK
+================================================================================
+Written: 2026-07-20
+Read this BEFORE moving any data from the old system into the new one.
+
+The cutover is a one-shot, all-or-nothing event over real customer balances,
+API integrations and staff permissions. `migrate-legacy.sql` is a single
+transaction: it either lands completely or not at all. That is the easy part.
+The hard part is everything below, which the script cannot check for you.
+
+Script:    libs/db/prisma/scripts/migrate-legacy.sql
+Rehearsal: cd libs/db && npm run db:test:cutover
+
+--------------------------------------------------------------------------------
+STATE AS OF 2026-07-20
+--------------------------------------------------------------------------------
+  • New schema is live on LOCAL and PROD (Neon). Zero drift on both.
+  • PROD currently holds 1 user, 0 warehouses, 0 products, 0 orders — i.e. the
+    cutover has NOT run yet. Nothing has been imported.
+  • The cutover script has been fixed for the phase 1 schema and passes the
+    rehearsal harness (all row counts match, ~45 assertions green).
+  • The harness is mutation-tested, so it genuinely fails when the script is
+    wrong.
+
+--------------------------------------------------------------------------------
+BLOCKER — RESOLVE BEFORE ANY CUTOVER
+--------------------------------------------------------------------------------
+B1. PRICE UNITS. Legacy variant prices are integers. Nobody has confirmed
+    whether they are DOLLARS or CENTS. The script divides by 1.0 in two places
+    marked PRICE_DIVISOR; if legacy stored cents, every price in the new system
+    lands 100× too high and every order cost, seller balance deduction and
+    invoice is wrong.
+
+    How to settle it: pull ~20 rows from legacy "ProductVariants" and compare
+    price / price_tier_1 against what the old UI displayed for the same SKU.
+      SELECT id, sku, price, price_tier_1 FROM "ProductVariants" LIMIT 20;
+    Then set the divisor to 1.0 (dollars) or 100.0 (cents) in BOTH marked
+    places, and add an assertion to cutover-assertions.sql pinning the expected
+    value so it can never silently regress.
+
+    Do not guess. This is the single most expensive thing to get wrong.
+
+--------------------------------------------------------------------------------
+KNOWN GAPS THE REHEARSAL DOES NOT COVER
+--------------------------------------------------------------------------------
+G1. SCHEMA SKEW. The rehearsal fixture mirrors the ARCHIVED legacy schema
+    (.archive/oldproject/fulfillment-system-be), which sits on its `dev` branch
+    and trails legacy production by roughly 10 months. The archived frontend
+    calls controllers that exist only on the backend's `prod` branch. So the
+    real legacy database very likely has columns and tables the fixture does
+    not. A green rehearsal proves the script is self-consistent — NOT that it
+    matches live prod data.
+
+G2. TABLES THE NEW SCHEMA HAS NO HOME FOR. The old system grew features after
+    the archived snapshot: BOMs, material inventory/receipts/movements,
+    physical (v3) products and inventory, vendors, expenses, warehouse master
+    data, TikTok shop links, ticket replies, uploaded files, API logs. None of
+    these are in the new schema yet and none are migrated. Decide per table:
+    port it later, or accept the data is left behind in the old database.
+
+G3. ENUM COVERAGE. Every CASE in the script falls back to a safe default for
+    unrecognised strings. Silent fallbacks hide surprises — run the pre-flight
+    audit (below) so you learn about them before the data does.
+
+--------------------------------------------------------------------------------
+STEP 1 — PRE-FLIGHT AUDIT (read-only, on the LEGACY database)
+--------------------------------------------------------------------------------
+These are listed at the top of migrate-legacy.sql. Run every one and compare
+the output against the CASE branches in the script; extend the CASEs for any
+value not already handled.
+
+  SELECT DISTINCT status            FROM "Users";
+  SELECT DISTINCT unnest(roles)     FROM "Users";
+  SELECT DISTINCT status            FROM "Products";
+  SELECT DISTINCT status            FROM "Variants";
+  SELECT DISTINCT warehouse_status  FROM "Orders";
+  SELECT DISTINCT status            FROM "Ticket";
+  SELECT DISTINCT priority          FROM "Ticket";
+  SELECT DISTINCT status, type      FROM "TopupTransaction";
+  SELECT DISTINCT status            FROM "BasketPosition";
+  SELECT DISTINCT movement_type     FROM "ImportMovement";
+
+Also check for schema skew (G1) before trusting anything:
+
+  -- Columns the script reads that may not exist in real legacy prod:
+  SELECT table_name, column_name FROM information_schema.columns
+  WHERE table_schema = 'public' AND table_name IN
+    ('Users','Orders','Warehouse','Products','Variants','ProductVariants',
+     'Mockups','BasketPosition','WarehouseInventory','StockImport',
+     'ImportMovement','Ticket','TopupTransaction','AppConfig')
+  ORDER BY table_name, column_name;
+
+And size the job so the maintenance window is realistic:
+
+  SELECT 'Users' t, count(*) FROM "Users"
+  UNION ALL SELECT 'Orders', count(*) FROM "Orders"
+  UNION ALL SELECT 'TopupTransaction', count(*) FROM "TopupTransaction";
+
+--------------------------------------------------------------------------------
+STEP 2 — REHEARSE ON A NEON BRANCH (never straight to prod)
+--------------------------------------------------------------------------------
+  1. cd libs/db && npm run db:test:cutover
+     Must pass before you go anywhere near real data.
+
+  2. Take a real dump of the legacy database:
+       pg_dump --no-owner --no-privileges "$OLD_DATABASE_URL" > /tmp/legacy.sql
+
+  3. Create a Neon BRANCH of the new prod database (Neon console or CLI). A
+     branch is a cheap copy-on-write clone — this is what it is for. Never
+     rehearse in the prod branch itself.
+
+  4. Against the branch: load the legacy dump, then run the cutover.
+       psql "$BRANCH_URL" -v ON_ERROR_STOP=1 -f /tmp/legacy.sql
+       psql "$BRANCH_URL" -v ON_ERROR_STOP=1 -f prisma/scripts/migrate-legacy.sql
+
+  5. Fix whatever breaks, commit the fix, add an assertion for it, re-run.
+     Repeat until clean. Expect several rounds — that is the point of a
+     rehearsal.
+
+  6. Note how long it takes. That is your maintenance window, plus margin.
+
+--------------------------------------------------------------------------------
+STEP 3 — THE REAL CUTOVER
+--------------------------------------------------------------------------------
+  1. Announce downtime. Stop writes to the OLD system — a row created after
+     the dump is a row that silently never arrives.
+  2. Snapshot the new prod DB first (Neon branch or pg_dump). This is the
+     rollback.
+  3. Fresh dump of legacy, taken AFTER writes stopped.
+  4. Apply schema (already done, but confirm):
+       cd libs/db && npm run db:migrate:prod
+  5. Load the legacy tables into the new prod DB. They are PascalCase and the
+     new ones snake_case, so nothing collides:
+       pg_dump --no-owner --no-privileges "$OLD_DATABASE_URL" | psql "$PROD_DATABASE_URL"
+  6. Run the cutover, all-or-nothing:
+       psql "$PROD_DATABASE_URL" -v ON_ERROR_STOP=1 -f prisma/scripts/migrate-legacy.sql
+  7. Read the count report it prints. Every legacy count must equal its
+     migrated count. If one does not, STOP and roll back — do not "fix it
+     later", the transaction already committed and you will be reconciling by
+     hand.
+
+--------------------------------------------------------------------------------
+STEP 4 — VERIFY BEFORE DECLARING SUCCESS
+--------------------------------------------------------------------------------
+  □ Count report: every row accounted for.
+  □ Sign in as a migrated user (password hashes carry over; bcrypt in both).
+  □ Spot-check money: pick 3 sellers, confirm balance and debt match the old
+    system exactly, and that their transaction history adds up to the balance.
+  □ Spot-check prices against the old UI — the B1 divisor decision, proven.
+  □ Roles: confirm an admin, a supporter, a warehouse manager and a designer
+    each land with the right role. (The old script flattened unknown roles to
+    SELLER; that is fixed, but verify on real data.)
+  □ Warehouse membership: staff appear in warehouse_members, not just
+    users.warehouse_id.
+  □ Orders: assigned_to_id points at a USER, warehouse_id at a SITE. Legacy
+    conflated these.
+  □ API keys: an existing integration still authenticates. Keys are stored as
+    SHA-256 hashes now — the API must hash the presented key and look it up by
+    key_hash. If integrations break, this is why.
+  □ Restricted partners: user_allowed_products populated for anyone who had
+    configs.products.
+  □ Sequences: create one new row in each of orders/users/products and confirm
+    no duplicate-key error (the script advances sequences past migrated ids).
+
+--------------------------------------------------------------------------------
+STEP 5 — AFTER
+--------------------------------------------------------------------------------
+  • Leave the legacy tables in place for a few days. The DROP block at the
+    bottom of migrate-legacy.sql is commented out on purpose — run it only
+    once you are confident, and take a dump first.
+  • Keep the old system readable (not writable) until the new one has carried
+    real traffic through a full billing cycle.
+  • Record the actual cutover date here when it happens.
+
+--------------------------------------------------------------------------------
+IF IT GOES WRONG
+--------------------------------------------------------------------------------
+The script is one transaction, so a failure mid-run leaves the new database
+untouched — fix and re-run. The dangerous case is a SUCCESSFUL run with wrong
+data (bad price divisor, unnoticed count mismatch). For that: restore the
+snapshot from step 3.2, or reset the Neon branch. This is why the snapshot is
+not optional.
+================================================================================

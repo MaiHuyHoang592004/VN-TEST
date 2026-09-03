@@ -1,0 +1,55 @@
+{
+  "title": "Tableau de bord",
+  "subtitle": "Où en est l'activité, maintenant.",
+  "from": "Du",
+  "to": "Au",
+  "periods": {
+    "today": "Aujourd'hui",
+    "week": "Cette semaine",
+    "month": "Ce mois-ci",
+    "year": "Cette année",
+    "all": "Tout"
+  },
+  "admin": {
+    "transactions": "Transactions",
+    "customers": "Clients",
+    "orders": "Commandes",
+    "quantity": "Quantité",
+    "baseCost": "Coût de base",
+    "topups": "Rechargements",
+    "search": "Rechercher un vendeur",
+    "empty": "Aucun vendeur pour l'instant.",
+    "colSeller": "Vendeur",
+    "colOrders": "Commandes",
+    "colQuantity": "Quantité",
+    "colBaseCost": "Coût",
+    "colTopups": "Rechargements",
+    "colBalance": "Solde",
+    "colDebt": "Dette"
+  },
+  "seller": {
+    "balance": "Solde",
+    "debt": "Dû",
+    "orders": "Commandes",
+    "quantity": "Quantité",
+    "statuses": "Où en sont vos commandes",
+    "ordersWord": "commandes",
+    "noOrders": "Aucune commande pour l'instant.",
+    "recent": "Transactions récentes",
+    "allTransactions": "Tout voir",
+    "noTransactions": "Aucune transaction pour l'instant.",
+    "openTickets": "Vous avez {count} ticket(s) ouvert(s).",
+    "viewTickets": "Voir les tickets"
+  },
+  "warehouse": {
+    "orders": "Commandes",
+    "quantity": "Unités",
+    "skus": "SKU",
+    "mockups": "Visuels",
+    "bySku": "Top SKU",
+    "byMockup": "Top visuels",
+    "ordersWord": "commandes",
+    "nothing": "Rien sur cette période.",
+    "monitor": "Ouvrir le moniteur d'atelier"
+  }
+}

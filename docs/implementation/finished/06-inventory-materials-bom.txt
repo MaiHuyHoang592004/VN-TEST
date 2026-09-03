@@ -1,0 +1,929 @@
+================================================================================
+IMPLEMENTATION 06 — INVENTORY, MATERIALS, BOM  (master-plan PHASE 5)
+================================================================================
+Written: 2026-07-22   Status: PHASES A-D BUILT (2026-07-22, branch
+                              phase-5-inventory, pushed to origin).
+                              A: migrations 1-7, permissions, XOR constraints
+                                 mutation-tested.
+                              B: materials master, stock core, /inventory
+                                 (Stock + Movements), /admin/materials.
+                              C: receipts — create/receive/evidence/reject,
+                                 delta-receive under a row lock.
+                              D: BOMs + coverage + the order-flow lifecycle,
+                                 SHIPPED WITH INVENTORY_ORDER_FLOW UNSET so it
+                                 is inert in production until the cutover.
+                              176/176 tests, tsc + lint + build green, nav +
+                              all 7 locales throughout.
+                              E: migrate-legacy-inventory.sql + rehearsal
+                                 green, 3 behaviours mutation-tested. The
+                                 CUTOVER HAS NOT RUN — it waits on legacy prod
+                                 credentials (expected ~2026-07-24).
+                              ALL PHASES BUILT. See A3 for the schema
+                              decisions, B5/D5/E4 for what each phase did
+                              differently.
+Prereq:  doc 04 (catalog + orders + finance) BUILT. doc 05 — only A1 (the
+         storage layer) is a HARD dependency here (receipt evidence uploads);
+         everything else in doc 06 can proceed in parallel with doc 05.
+         If doc 05 hasn't started, build its A1 first, exactly as written.
+Covers:  master-plan PHASE 5 — the last phase that needs schema design.
+Next:    doc 07 — TikTok, tickets, vendors(full)/expenses, dashboard home.
+
+This doc is written to be followed line by line, like doc 05: WHAT file, WHAT
+goes in it, WHY (one line), HOW to verify. It is longer because this phase
+DESIGNS SCHEMA — the models below are the deliverable as much as the pages.
+
+  PHASE A — SCHEMA + PERMISSIONS   all models, enums, counter semantics,
+                                   movement dictionary, migrations
+  PHASE B — MATERIALS + STOCK CORE materials master, adjustments, quick
+                                   import, movements ledger, /inventory
+  PHASE C — RECEIPTS               unified receipt→shipment→line workflow,
+                                   per-shipment receive, evidence, report
+  PHASE D — BOM                    versioned BOMs, coverage, preview,
+                                   reserve/consume/release + order-flow hooks
+  PHASE E — LEGACY DATA MIGRATION  the inventory cutover extension
+
+--------------------------------------------------------------------------------
+0. SOURCE OF TRUTH — BRANCH CORRECTION №2 (supersedes doc 05 §0's note)
+--------------------------------------------------------------------------------
+Doc 05 reported the legacy backend's production code as branch
+`origin/prod-20260617`. Digging for this doc found that branch is itself an
+ANCESTOR of **`origin/prod`** (tip 10117f7, 2026-07-14) — the true last
+production code. The ENTIRE materials/BOM/receipts system exists ONLY on
+origin/prod (merged via feature/stock-20260602 through June–July 2026):
+prod-20260617 has none of Bom, MaterialItem, receipts, movements,
+reservations, Vendor. Every cite below is `origin/prod` unless marked:
+
+    cd .archive/oldproject/fulfillment-system-be
+    git show 'origin/prod:prisma/schema.prisma'
+    git show 'origin/prod:src/bom/bom.service.ts'
+
+(A verbatim copy of the prod schema was extracted during the scan; if it has
+been cleaned from the scratchpad, re-extract with the commands above.)
+Doc 05's fulfillment findings remain valid — that branch is an ancestor —
+but anything doc 05 builds should double-check its cites against origin/prod.
+
+THE LEGACY SYSTEM IS REALLY *THREE* INVENTORY SYSTEMS, built in sequence:
+  A. WarehouseInventory + StockImport + ImportMovement — per ProductVariant.
+     DEAD on prod (module deleted 2026-06-18, commit 6fe2be0); tables remain.
+     Our schema ALREADY has all three models and the cutover ALREADY migrates
+     them (migrate-legacy.sql:294-308). They become read-only history.
+     ImportMovement was NEVER written by any branch — schema aspiration only.
+  B. PhysicalInventory + PhysicalStockReceipt trio + InventoryMovement +
+     PhysicalStockImport — finished goods, keyed by physical_variant_sku.
+  C. MaterialItem + MaterialInventory + MaterialStockReceipt trio +
+     MaterialInventoryMovement + MaterialInventoryReservation + Bom/BomLine
+     — raw materials with BOM-driven reservation/consumption.
+
+WE BUILD **ONE** SYSTEM THAT COVERS B AND C. The new app has no
+PhysicalVariant — doc 04's ProductVariant IS the SKU — so "finished goods"
+and "materials" differ only in what a stock row points at. One receipt
+workflow, one movements ledger, one reservation mechanism, an `itemType`
+discriminator. This halves the models, services, and pages, and it is the
+main design decision of this doc. Where legacy's two systems disagreed on a
+rule, we take the RICHER one and note it.
+
+LEGACY QUIRKS THIS DESIGN DELIBERATELY FIXES (each verified, cite attached):
+  · Two OPPOSITE counter conventions: material reserve kept `quantity`
+    unchanged (reserved+=q; available = q−r−n), physical reserve DECREMENTED
+    quantity. One convention below (§A2). (bom.service.ts:786-793 vs
+    order.service.ts:2060-2071)
+  · Warehouse for stock ops resolved from the WAREHOUSE USER's warehouse_id,
+    not the order (bom.service.ts:1043-1052) — ours uses Order.warehouseId.
+  · BomInventoryMovement: a dead table no code ever wrote. Not ported.
+  · PhysicalStockImport: a separate history table duplicating what the
+    movements ledger already records. Not ported — movements ARE the history.
+  · Zero enums — every status/type was a String ("Design problems" vs
+    "Design Problems" class of bug). Ours are Prisma enums, checked at compile.
+
+--------------------------------------------------------------------------------
+0b. DICTIONARIES (memorise; they resolve every mapping question)
+--------------------------------------------------------------------------------
+COUNTER SEMANTICS (one convention, the material one — standard warehouse
+math; matches the tooltip translations shipped to the floor):
+  onHand    = units physically present, INCLUDING reserved   (col: quantity)
+  reserved  = held for assigned orders, still on the shelf
+  needed    = shortage backlog recorded when a reservation failed
+  bad       = damaged/unusable units                      (col: badQuantity)
+  AVAILABLE = max(onHand − reserved − needed, 0)   ← COMPUTED, NEVER STORED
+  (WarehouseInventory.stock exists from the legacy-A migration; it is NOT
+  maintained by new code. Leave the column, stop reading it, note in selects.)
+
+MOVEMENT TYPES — new enum InventoryMovementType vs both legacy ledgers:
+  NEW               MATERIAL ledger wrote        PHYSICAL ledger wrote
+  RECEIPT           receipt                      receipt
+  MANUAL_IMPORT     —                            manual_import
+  MANUAL_ADJUSTMENT manual_adjustment            manual_adjustment
+  RESERVE           material_reserve             reserve
+  RESERVE_RELEASE   material_reserve_release     reserve_release
+  CONSUME           material_consume (qty<0)     assign (qty<0)
+  RETURN            material_return              return
+  NEEDED            material_needed              needed
+  NEEDED_RESOLVED   material_needed_resolved     needed_resolved
+  Sign convention (kept from legacy): movements that take stock away
+  (CONSUME) carry NEGATIVE quantity; the ledger renders red/green off sign.
+
+RECEIPT STATUSES — enum ReceiptStatus: PENDING, PARTIAL, COMPLETE, REJECTED
+  (material system's set; physical's unused `approved` is dropped).
+SHIPMENT STATUSES — enum ReceiptShipmentStatus: PENDING, PARTIAL_RECEIVED,
+  RECEIVED, REJECTED (material's set; physical lacked PARTIAL_RECEIVED —
+  we unify on the richer per-line delta-receive semantics for both).
+RESERVATION STATUSES — enum ReservationStatus: RESERVED, CONSUMED, RELEASED,
+  RETURNED (exactly the four values legacy ever wrote).
+BOM STATUSES — enum BomStatus: DRAFT, ACTIVE, INACTIVE.
+BOM STAGES — enum BomStage: PRODUCTION, PACKING, SHIPPING, OTHER (legacy
+  exact list, ProductVariantBomModal.jsx:22).
+MATERIAL TYPES — enum MaterialType: RAW_MATERIAL, PACKAGING, SEMI_FINISHED,
+  CONSUMABLE, OTHER (legacy exact list, MaterialItemsPage.jsx:23-29).
+  UOM stays a FREE-TEXT string, default "pcs" — legacy never constrained it
+  and the floor types real units ("m", "roll", "kg"); do not invent an enum.
+
+NAME COLLISION WARNING for the cutover: legacy table `Materials` is NOT
+materials — it is an attribute catalog (leather/canvas/wood) for the
+never-rebuilt SKU/addon system. Raw materials live in legacy `MaterialItems`.
+Phase E maps MaterialItems → our `materials`; legacy `Materials` is NOT
+migrated (its dependents — OrderAttribute, ProductAddonRule, techniques,
+positions — were commented out of the legacy menu and are not rebuilt).
+
+--------------------------------------------------------------------------------
+PHASE A — SCHEMA + PERMISSIONS
+--------------------------------------------------------------------------------
+
+A1. MODELS — one file per model under libs/db/prisma/schema/models/, enums
+    into enums/enums.prisma. Field-for-field, these are the deliverable;
+    deviations from legacy are flagged with ←.
+
+    material.prisma
+      model Material {
+        id             Int          @id @default(autoincrement())
+        sku            String       @unique
+        name           String
+        type           MaterialType @default(RAW_MATERIAL)   // ← was String
+        uom            String       @default("pcs")
+        description    String?
+        status         ProductStatus @default(ACTIVE)        // ← reuse enum
+        trackInventory Boolean      @default(true)  @map("track_inventory")
+        configs        Json?
+        stockRows    MaterialStock[]
+        bomLines     BomLine[]
+        receiptLines StockReceiptLine[]
+        reservations InventoryReservation[]
+        movements    InventoryMovement[]
+        createdAt/updatedAt/deletedAt (house pattern)
+        @@map("materials")
+      }
+
+    material-stock.prisma      (legacy MaterialInventory, renamed for truth)
+      model MaterialStock {
+        id          Int @id @default(autoincrement())
+        warehouseId Int @map("warehouse_id")
+        materialId  Int @map("material_id")
+        quantity    Int @default(0)        // onHand — see §0b
+        reserved    Int @default(0)
+        badQuantity Int @default(0) @map("bad_quantity")
+        needed      Int @default(0)
+        relations: warehouse, material
+        @@unique([warehouseId, materialId])
+        @@map("material_stock")
+      }
+      // ← legacy also had `stock`; dropped here (computed convention, §0b)
+
+    FINISHED GOODS reuse WarehouseInventory. One migration adds what the
+    unified flow needs:
+      WarehouseInventory + reserved Int @default(0) @map("reserved")
+    (legacy-A rows migrate with reserved=0 — the dead system never wrote it.)
+
+    stock-receipt.prisma       (UNIFIED — legacy Material+Physical trios)
+      model StockReceipt {
+        id          Int           @id @default(autoincrement())
+        code        String        @unique       // "SR-YYYYMMDD-XXXXX" ← one
+                                                // series replaces MSR-/PSR-
+        itemType    InventoryItemType           // MATERIAL | PRODUCT
+        warehouseId Int
+        status      ReceiptStatus @default(PENDING)
+        provider    String?
+        note        String?
+        rejectReason String?      @map("reject_reason")
+        createdById String?       @map("created_by_id")   // ← String cuid
+        approvedById String?      @map("approved_by_id")
+        approvedAt  DateTime?     @map("approved_at")
+        shipments   StockReceiptShipment[]
+        lines       StockReceiptLine[]
+        timestamps
+        @@index([warehouseId, status])
+        @@map("stock_receipts")
+      }
+      model StockReceiptShipment {
+        id, receiptId, vendorId Int?, shipmentCode String,
+        trackingNumber String?, carrier String?, trackingUrl String?,
+        expectedArrivalAt DateTime? @map("expected_arrival_at"),
+        shippedAt DateTime?, receivedAt DateTime?,
+        status ReceiptShipmentStatus @default(PENDING),
+        note String?, metadata Json?, evidence Json?
+        @@unique([receiptId, shipmentCode])
+        @@map("stock_receipt_shipments")
+      }
+      model StockReceiptLine {
+        id, receiptId, shipmentId Int?,
+        materialId Int? + productVariantId Int?   // XOR — CHECK constraint
+        requestedQuantity Int, receivedQuantity Int?,
+        rejectedQuantity Int @default(0),
+        unitPrice Decimal? @db.Decimal(10,2),  // informational only (legacy
+                                               // comment: "purchase cost
+                                               // stays informational")
+        note String?
+        @@map("stock_receipt_lines")
+      }
+      Hand-write into the migration SQL:
+        ALTER TABLE stock_receipt_lines ADD CONSTRAINT line_target_xor CHECK
+        ((material_id IS NULL) <> (product_variant_id IS NULL));
+
+    inventory-movement.prisma  (UNIFIED append-only ledger)
+      model InventoryMovement {
+        id BigInt @id @default(autoincrement())
+        itemType InventoryItemType
+        materialId Int? / productVariantId Int?      // same XOR CHECK
+        warehouseId Int
+        type InventoryMovementType
+        quantity Int                                  // sign per §0b
+        reservationId Int?, bomId Int?, bomLineId Int?, orderId Int?
+        referenceType String? / referenceId String?
+        createdById String?
+        note String?
+        createdAt only — NO updatedAt: the ledger is append-only; the
+        service layer exposes no update/delete for it, same as legacy.
+        @@index([itemType, materialId]) @@index([itemType, productVariantId])
+        @@index([warehouseId, createdAt]) @@map("inventory_movements")
+      }
+
+    inventory-reservation.prisma   (UNIFIED — legacy had rows for materials
+      only; physical relied on movement-existence checks. One mechanism ←)
+      model InventoryReservation {
+        id, itemType, materialId?/productVariantId? (XOR), warehouseId,
+        bomId Int?, bomLineId Int?, orderId Int,
+        quantity Int, consumedQuantity Int @default(0),
+        status ReservationStatus @default(RESERVED),
+        createdById String?, note String?, timestamps
+        @@index([orderId]) @@map("inventory_reservations")
+      }
+
+    bom.prisma
+      model Bom {
+        id, productVariantId Int, name String, version Int @default(1),
+        status BomStatus @default(DRAFT),
+        effectiveFrom/effectiveTo DateTime?,
+        note String?, createdById/updatedById String?,
+        timestamps + deletedAt
+        lines BomLine[]
+        @@unique([productVariantId, version]) @@map("boms")
+      }
+      model BomLine {
+        id, bomId,
+        materialId Int?             // null = UNMAPPED (incomplete) line
+        componentSku String @map("component_sku")   // survives unmapped
+        componentName String?
+        quantityPerUnit Decimal @db.Decimal(12,4) @map("quantity_per_unit")
+        unit String @default("pcs")
+        wastageRate Decimal @default(0) @db.Decimal(8,4) @map("wastage_rate")
+        stage BomStage @default(PRODUCTION)
+        required Boolean @default(true)
+        sortOrder Int @default(0), note String?, timestamps
+        @@map("bom_lines")
+      }
+      // ← legacy component_product_variant_id is NOT ported: prod already
+      // auto-converted such lines into MaterialItems on save
+      // (bom.service.ts:1316-1340); Phase E does that conversion once,
+      // during migration, and the column dies.
+
+    vendor.prisma   (receipts reference vendors — the model lands HERE;
+      the full vendors/expenses admin pages stay in doc 07)
+      model Vendor { id, code String @unique, name String, contactName?,
+        phone?, email?, address?, taxCode?, note?, status ProductStatus
+        @default(ACTIVE), deletedAt?, timestamps
+        shipments StockReceiptShipment[] @@map("vendors") }
+
+    New enums (enums.prisma): InventoryItemType { MATERIAL PRODUCT },
+    InventoryMovementType, ReceiptStatus, ReceiptShipmentStatus,
+    ReservationStatus, BomStatus, BomStage, MaterialType — values per §0b.
+    New AuditAction values: MATERIAL_CREATED, MATERIAL_UPDATED,
+    STOCK_ADJUSTED, RECEIPT_CREATED, RECEIPT_RECEIVED, RECEIPT_REJECTED,
+    BOM_CREATED, BOM_UPDATED, BOM_ACTIVATED, BOM_DELETED, VENDOR_CREATED,
+    VENDOR_UPDATED.
+
+    MIGRATION ORDER (one logical change each, from libs/db, NEVER db push):
+      1. inventory_enums                (all new enums + AuditAction adds)
+      2. materials                      (Material + MaterialStock)
+      3. warehouse_inventory_reserved   (the one-column ALTER)
+      4. vendors
+      5. stock_receipts                 (trio + XOR CHECK by hand)
+      6. inventory_movements_reservations
+      7. boms                           (Bom + BomLine)
+    VERIFY after each: npx prisma migrate status clean; schema + migration
+    in the SAME commit.
+
+A2. PERMISSIONS — libs/shared permissions.ts, one commit, role-matrix test
+    updated (legacy role mapping verified from controllers):
+      inventory.read             ADMIN, SUPPORT, WAREHOUSE, WAREHOUSE_ADMIN
+      inventory.adjust           ADMIN, WAREHOUSE_ADMIN
+      inventory.receipts.create  ADMIN
+      inventory.receipts.receive ADMIN, WAREHOUSE, WAREHOUSE_ADMIN
+      boms.manage                ADMIN, WAREHOUSE_ADMIN
+      vendors.manage             ADMIN
+    Warehouse-side scoping is NOT a permission: WAREHOUSE/WAREHOUSE_ADMIN
+    actors are limited to their WarehouseMember sites by a warehouseScope()
+    spread in every inventory query/mutation — same pattern as orders.
+    ADMIN receiving is allowed for any warehouse (legacy: admin passed
+    assertCanApproveReceipt for any site, others only their own,
+    material-stock-receipt.service.ts:825-835).
+
+A3. DECISIONS TAKEN DURING THE A1 BUILD — RECORDED, DO NOT RE-LITIGATE
+    A1 above specifies columns, not referential policy. Three questions came
+    up while writing the models; each is answered once, here, because the
+    answer generalises to every history table this system will ever grow.
+
+    1. THE LEDGER'S REFERENCE IDS CARRY NO FOREIGN KEYS.
+       InventoryMovement.{reservationId, bomId, bomLineId, orderId} are plain
+       Int? columns. Deliberate, not an omission:
+         · updateBom does a FULL LINE REPLACE (D1 — deleteMany + createMany).
+           An FK to bom_lines makes that either impossible (RESTRICT blocks
+           the edit) or destructive (CASCADE silently deletes the history of
+           what an order actually consumed). Both outcomes are worse than a
+           dangling id.
+         · A movement is a statement about the PAST. Nothing that happens
+           later — a BOM edit, an order purge, a reservation cleanup — may
+           block it, rewrite it, or take it with them. That is what
+           "append-only" has to mean to be worth anything, and it is also
+           what makes the reconcile-from-movements upgrade path (§DELIBERATELY
+           NOT PORTED) possible at all.
+       The cost is that a join may find nothing. That is correct: the ledger
+       renders "bom 41" as a plain reference when the BOM is gone, and the
+       row still tells you the quantity, the item and the date, which is the
+       part that matters. Generalises to: history/audit rows keep ids, never
+       foreign keys.
+
+    2. InventoryReservation.orderId IS A REAL FOREIGN KEY (and required).
+       The opposite call to (1), for the opposite reason: a reservation is
+       not a record of the past, it is a LIVE CLAIM on stock. An orphaned
+       reservation holds `reserved` units forever, and nothing self-heals it
+       — availableOf subtracts it on every page, every preview and every
+       future assignment, so the shelf silently shrinks. Integrity here is
+       worth the constraint. Item and warehouse are real FKs on both models
+       for the same reason plus the joins the pages need.
+       Rule of thumb: FK when the row makes a claim on something live; plain
+       id when the row states something that already happened.
+
+    3. USER LINKS ONLY WHERE A PAGE NAMES THE PERSON.
+       Relations added: InventoryMovement.createdBy (the Movements table has
+       a User column, B2), StockReceipt.createdBy/approvedBy (the receipt
+       detail shows both). Left as plain String columns: Bom.createdById/
+       updatedById, InventoryReservation.createdById — no screen in this doc
+       displays them, and AuditLog already holds the who-did-what trail with
+       actor, before/after and reason. Adding a relation "just in case" costs
+       a back-relation on User, which is a real edit to the most-referenced
+       model in the schema, for a join nobody performs.
+       If a later screen needs one of those names, adding the relation is a
+       pure-metadata migration (the column and its values already exist).
+
+--------------------------------------------------------------------------------
+PHASE B — MATERIALS + STOCK CORE  (modules/inventory/…)
+--------------------------------------------------------------------------------
+Domain folder modules/inventory/ (reserved since phase 2; warehouses/ already
+lives there). Features: materials/, stock/, receipts/ (C), boms/ (D). House
+per-feature files: schema.ts · service.ts (explicit actor) · queries.ts ·
+actions.ts · tests. Cross-domain: catalog imports ONLY via catalog/index.ts.
+
+B1. modules/inventory/materials/  (the master data)
+    service: createMaterial / updateMaterial (sku unique w/ friendly error,
+      trimmed; fields exactly the modal's: sku, name, type, uom, status,
+      trackInventory, description) · deleteMaterial — SOFT, and REFUSED while
+      any ACTIVE BOM line references it (legacy rule,
+      material-item.service.ts:97-109; usage-count pattern like warehouses).
+    queries: paginated list {search on sku|name|description, type?, status?}
+      + per-row totals (see B2 formula) + _count.bomLines.
+    PAGE /admin/materials (nav "Administration", gate inventory.read; write
+      actions behind inventory.adjust… no — MATERIAL master writes are
+      boms.manage? NEITHER: master-data writes ride inventory.adjust is
+      wrong too. Use ADMIN+WAREHOUSE_ADMIN = the legacy write set, which is
+      exactly boms.manage's grant — but that name lies. ADD ONE MORE
+      permission instead: materials.manage → ADMIN, WAREHOUSE_ADMIN. Small
+      price, honest name.)
+      Table: Material (name + mono sku), Type, UOM, Status badge, Available
+      (right-aligned), BOM Lines count, Edit. Toolbar: search, status filter
+      (default ACTIVE — legacy defaulted this), Apply. FormDialog fields as
+      listed, type select from the enum, UOM free text default "pcs",
+      trackInventory checkbox default true.
+
+B2. modules/inventory/stock/  (levels + adjustments + quick import + ledger)
+    service:
+      adjustStock(actor, {itemType, materialId|productVariantId, warehouseId,
+                  quantityDelta ≠ 0, reason REQUIRED, note?})
+        Legacy modal is ONE signed number — the sign IS the direction
+        (StockAdjustmentModal, no +/- toggle); keep that UX contract.
+        Guard inventory.adjust + warehouseScope. In one $transaction:
+        negative delta refused unless onHand ≥ |delta| ("Cannot reduce
+        inventory below zero", material-item.service.ts:200-216); update the
+        stock row (upsert), write movement MANUAL_ADJUSTMENT
+        {referenceType:"manual_adjustment", note: reason}, audit
+        STOCK_ADJUSTED with before/after quantities.
+      quickImport(actor, {itemType, …itemId, warehouseId, quantity ≥ 1,
+                  note REQUIRED, provider?})
+        The legacy "ImportStockModal" — a FORM, not a CSV (verified; no file
+        import exists anywhere in the legacy stock domain). onHand += q,
+        movement MANUAL_IMPORT. Legacy required note on every manual change
+        (import-stock.dto.ts:4-13) — keep. NO separate import-history table:
+        the history modal reads movements WHERE type=MANUAL_IMPORT.
+      resolveNeeded(tx, itemRef, warehouseId)  (internal helper)
+        When stock arrives (receipt approve, quick import): if needed > 0
+        and available now covers it, decrement needed and write
+        NEEDED_RESOLVED — port of the legacy bookkeeping so shortage tiles
+        self-heal (bom.service.ts:752-783).
+    queries:
+      listStock(actor, {itemType, search, warehouseId?, page…}) — per item:
+        rows per warehouse + totals {onHand, reserved, needed, bad,
+        available = max(onHand−reserved−needed,0)}. The FORMULA LIVES IN ONE
+        exported function availableOf(row) — every tile, table, and the
+        reservation guard call it; nobody re-derives it.
+      listMovements(actor, {itemType?, search, type?, warehouseId?, cursor})
+        — ledger rows joined to item + warehouse + creator.
+    PAGE /inventory  (gate inventory.read; nav section "Inventory")
+      Tabs (URL-mapped like legacy): Stock `/inventory` · Receipts
+      `/inventory/receipts` (Phase C) · Movements `/inventory/movements`.
+      STOCK tab: item-type toggle [Materials | Products] (one page replaces
+        legacy's two parallel pages). Tiles: Items (server total), On Hand,
+        Reserved, Shortage — red when shortage > 0. NOTE: compute tile sums
+        SERVER-SIDE over the whole filter, not the current page — the legacy
+        page summed only the visible rows, which made the tiles lie whenever
+        there was a second page. Table: Item (name+sku), [Type], On Hand,
+        Reserved (tooltip "Allocated to orders in production"), Shortage
+        (tooltip "Must receive more to cover current orders"), Available
+        (tooltip "On hand − reserved"), Warehouses (chips "name: qty"),
+        Adjust (inventory.adjust only). Filters: search, warehouse, Apply.
+        Adjust dialog: warehouse select (prefilled), "Adjust by" signed
+        number, Reason (required), Note. Quick-import dialog: item picker
+        (searchable, active only), warehouse, qty ≥1, provider, note
+        (required).
+      MOVEMENTS tab: table Created · Type badge (per §0b dictionary, red
+        negative/green positive amounts) · Item (name+sku) · Warehouse ·
+        Quantity · Reference (mono "type id") · User. Filters: item-type
+        toggle, search, type select, warehouse. Cursor pagination ("Load
+        more") — the ledger grows forever; no offset.
+
+B3. TESTS — inventory.stock.test.ts (node --test, real DB):
+      adjust below zero rejects · adjust writes row+movement+audit
+      atomically (kill one, all roll back) · quickImport without note
+      rejects · needed self-heals after quickImport covers it ·
+      warehouse-scoped actor cannot adjust another site (asserted through
+      the action path) · availableOf never returns negative.
+    GREEN BEFORE B's PAGES ARE WIRED.
+
+B5. WHAT PHASE B ACTUALLY DID DIFFERENTLY (built 2026-07-22 — read before
+    phases C/D, both of which call into this code)
+
+    1. resolveNeeded settles PARTIALLY, and against UNRESERVED units.
+       B2 above says "if needed > 0 and available now covers it". Built as
+       settled = min(needed, unreservedOf(row)), which differs twice:
+         · Partially. Three units arriving against a backlog of five clears
+           three. Waiting for full coverage leaves a shortage that real stock
+           already covers, and `needed` only ever suppresses availability —
+           so under-resolving makes the shelf read emptier than it is.
+         · Against UNRESERVED units (quantity − reserved), not availableOf.
+           availableOf subtracts `needed` itself, so using it here would
+           subtract the backlog from the very number deciding how much of the
+           backlog to clear — three units would settle one, then the next
+           call one more. Settling against units already promised to another
+           order would be worse still: one order's stock paying off another
+           order's shortage.
+       This is why counters.ts exports TWO named functions. Neither is bare
+       arithmetic anywhere else; the doc's grep check covers both.
+
+    2. Receipts is not in the /inventory tab strip yet. It arrives with its
+       route in phase C. A tab that lands on the coming-soon catch-all is
+       worse than a tab that isn't there.
+
+    Also worth knowing:
+    · B3's site-scope test asserts through the SERVICE, not the action. The
+      scope guard lives in assertSite(); the action adds only
+      requirePermission, which needs a session the node --test harness has no
+      way to mint. Same choice the stations suite already made.
+    · B4's nav + i18n (build-order step 10) was done HERE rather than saved
+      for a sweep: every string went through t() as it was written, so there
+      was nothing left to sweep. ~150 keys × 7 locales are in place;
+      phases C/D extend the same `inventory` namespace.
+    · t() takes a key and nothing else — there is no interpolation in this
+      i18n. Counts and names compose in JSX (see delete-material-dialog).
+      Do not write t("…", { count }); it silently renders the raw key.
+    · Material status labels reuse `catalog.statuses.*` — the same four
+      ProductStatus values, already translated. `admin.statuses.*` is the
+      USER status set (ACTIVE/INACTIVE/BANNED) and does not fit.
+
+--------------------------------------------------------------------------------
+PHASE C — RECEIPTS  (modules/inventory/receipts/)  [needs doc 05 A1 storage]
+--------------------------------------------------------------------------------
+The workflow, exactly as legacy ran it (the parts users saw), minus its dead
+endpoints: an ADMIN creates a receipt (one warehouse; 1..n shipments; each
+shipment 1..n lines); the WAREHOUSE receives per shipment, entering received
++ rejected per line, possibly across several sessions (partial); evidence
+photos attach per shipment; a report powers the ETA/variance tiles.
+Receipt-level approve/reject/edit service methods existed in legacy but the
+UI never called approve; we port ONLY what was used: create · edit-while-
+pending (admin) · per-shipment receive · reject · evidence · report.
+
+C1. service.ts
+    createReceipt(actor, input)   guard inventory.receipts.create.
+      Input mirrors the legacy modal: {itemType, warehouseId, provider?,
+      note?, shipments: [{vendorId?, shipmentCode? (default "S"+n),
+      trackingNumber?, carrier?, expectedArrivalAt?, lines: [{materialId|
+      productVariantId, requestedQuantity ≥1, unitPrice?, note?}]}]}.
+      Code = "SR-" + yyyymmdd + "-" + 5 random upper alnum (legacy format,
+      one series). Validate warehouse/vendor/item existence up front.
+    updateReceipt(actor, id, input)  admin, PENDING only; wipe-and-recreate
+      shipments+lines (legacy repository semantics — simplest correct thing
+      while nothing is received yet).
+    receiveShipment(actor, receiptId, shipmentId,
+                    lines: [{lineId, receivedQuantity, rejectedQuantity?}])
+      guard inventory.receipts.receive + warehouseScope (admin any site).
+      THE CORE RULES (all legacy-verified, material-stock-receipt.service.ts
+      :555-694):
+      · allowed only while shipment ∈ {PENDING, PARTIAL_RECEIVED} and
+        receipt ∈ {PENDING, PARTIAL}
+      · caller supplies received for EVERY line of the shipment
+      · per line, inside ONE $transaction with SELECT … FOR UPDATE on the
+        line row: newReceived ≥ currentReceived (MONOTONIC — a re-receive
+        can only grow); stockDelta = newReceived − currentReceived;
+        stock row onHand += stockDelta; movement RECEIPT with the delta
+        {referenceType:"stock_receipt_shipment", referenceId}; then
+        resolveNeeded(). Delta-only math is what makes partial receiving
+        re-approvable without double-counting — THE invariant of this phase.
+      · recompute shipment status: RECEIVED when every line
+        received+rejected ≥ requested; else PARTIAL_RECEIVED. Roll up
+        receipt: all shipments RECEIVED → COMPLETE (+approvedBy/At);
+        any progress → PARTIAL.
+    rejectReceipt(actor, id, reason?)   any non-COMPLETE receipt: status
+      REJECTED, rejectReason, pending/partial shipments → REJECTED. NO stock
+      effect (legacy rule — rejected goods never entered stock).
+    addEvidence(actor, receiptId, shipmentId, files[])   ≤10 files/call;
+      assertImageUpload each (doc 05 A1); putObject key
+      `receipts/receipt-{id}-shipment-{sid}-{ts}-{i}.{ext}`; append
+      {url, filename, originalFilename, mimeType, size, uploadedAt,
+      uploadedById} into shipment.evidence Json. Guard = receive roles.
+    shipmentsReport(actor, {upcomingDays = 14 ≤ 90, warehouseId?})
+      → {upcomingEta, overdueEta, partialReceipts, quantityVariances}
+      where variance = received + rejected − requested per line, non-zero
+      listed (computed, never stored — legacy rule).
+    audits: RECEIPT_CREATED / RECEIPT_RECEIVED (per receive call, with the
+      deltas) / RECEIPT_REJECTED.
+
+C2. PAGE — the Receipts tab of /inventory:
+    Tiles from shipmentsReport: Upcoming ETA (14d) · Overdue ETA (red>0) ·
+    Partial (amber>0) · Variance (red>0).
+    Table: Code (mono) · [Item type] · Warehouse · Status badge · Vendor/
+    Provider (distinct vendor names across shipments, else provider) ·
+    Shipments count · Created · View. Filters: keyword (code, tracking),
+    status, warehouse, Apply. "Create receipt" (inventory.receipts.create).
+    Create dialog = the legacy multi-shipment form verbatim (header
+    warehouse/provider/note; per shipment vendor/code/tracking/carrier/ETA
+    date; per line item-picker/qty/unit-price/line-total/note; Add
+    Shipment / Add Material; remove buttons disabled at 1).
+    Detail dialog: per shipment — meta line (vendor · tracking · carrier ·
+    ETA), status badge, lines table Expected / Unit price / Line total /
+    Received / Rejected / Note where Received+Rejected become inputs only
+    when receivable (prefill received = current ?? requested, rejected =
+    current ?? 0 — legacy prefill); Receive button gated as C1; evidence
+    strip (thumbnails/links) + multi-file Upload; Reject with reason.
+    Edit (admin, PENDING only) reopens the create form prefilled.
+
+C3. TESTS — inventory.receipts.test.ts:
+      receive is monotonic (lower value than current rejects) · re-receive
+      applies DELTA only (receive 5 then 8 → stock +5 then +3, never +13) ·
+      CONCURRENT double-receive of one shipment applies once (Promise.all —
+      the FOR UPDATE guard is only exercised concurrently; doc 04 C1's
+      lesson) · partial keeps shipment PARTIAL_RECEIVED and receipt PARTIAL;
+      completing the last line flips both · reject never moves stock ·
+      warehouse user cannot receive another site's receipt · evidence append
+      keeps prior entries.
+
+--------------------------------------------------------------------------------
+PHASE D — BOM  (modules/inventory/boms/)
+--------------------------------------------------------------------------------
+
+D1. service.ts — configuration side:
+    listBoms / getBom — every list row carries summary {lineCount,
+      mappedLineCount, requiredLineCount, unmappedLineCount} (the
+      "Incomplete lines" concept = lines with materialId null).
+    createBom(actor, productVariantId, input) / updateBom(actor, id, input)
+      guard boms.manage. Input: {name (default "<variant name> BOM"),
+      version? (server assigns next when blank), status, note?, lines:
+      [{materialId? , componentSku, componentName?, quantityPerUnit > 0,
+      unit, wastageRate (UI sends percent/100), stage, required, sortOrder,
+      note?}]}. Update = full line replace (deleteMany + createMany —
+      legacy semantics, simplest correct). RULE: exactly ONE ACTIVE Bom per
+      variant — activating (create-as-active, update-to-active, activate())
+      deactivates siblings in the same transaction (bom.service.ts:390-489).
+    activateBom(actor, id)   REFUSES a BOM with zero lines (legacy :476-478).
+    duplicateBom(actor, id)  next version, DRAFT.
+    deleteBom(actor, id)     soft: INACTIVE + deletedAt.
+    previewConsumption(actor, {bomId? | productVariantId? | lines?,
+      quantity, warehouseId?})  → per line requiredQuantity = qty ×
+      quantityPerUnit × (1 + wastageRate), joined to availableOf per
+      warehouse, shortage = max(required − available, 0), mappingStatus.
+    audits: BOM_CREATED/UPDATED/ACTIVATED/DELETED.
+
+D2. service.ts — the ORDER-FLOW LIFECYCLE (the reason BOMs exist).
+    Three functions, called from the fulfillment domain through
+    inventory/index.ts. ALL are no-ops unless env INVENTORY_ORDER_FLOW=1 —
+    port of legacy's ORDER_INVENTORY_ENABLED master switch
+    (order.service.ts:6412-6422): stock enforcement stays OFF until the
+    counts are trusted post-cutover, and flipping it needs no deploy.
+    Warehouse for all three = Order.warehouseId (← the fix; legacy used the
+    scanning user's home warehouse).
+
+    reserveForOrder(tx, order)       call site: assignOrders (doc 04 B2),
+                                     inside its existing transaction
+      1. Variant has an ACTIVE Bom → explode required lines: per material
+         quantity = ceil(orderQty × quantityPerUnit × (1 + wastageRate)),
+         aggregated per material. Any required line unmapped → error
+         "bom-line-unmapped" (refuse, legacy :1068-1071).
+         No active Bom → single line: the order's productVariantId itself
+         (the finished-goods path), quantity = orderQty.
+      2. Idempotent: an existing RESERVED/CONSUMED reservation for
+         (orderId) is a no-op success.
+      3. Shortage path: if any item's availableOf < required → write NEEDED
+         movement + needed += shortage (once per order per item) and FAIL
+         the assignment with "insufficient-stock" listing the items —
+         matches legacy, which threw and blocked assignment (:836-844).
+      4. Success path: first resolveNeeded for any prior shortage rows of
+         this order, then per item an ATOMIC GUARDED update —
+           UPDATE … SET reserved = reserved + q
+           WHERE warehouse_id=… AND …item… AND
+                 (quantity − reserved − needed) >= q
+         (raw SQL like legacy :786-793; rowcount 0 → concurrent race →
+         fail "insufficient-stock") — then a Reservation row + RESERVE
+         movement per item.
+      NOTE the counter convention: reserve does NOT touch onHand (§0b).
+    consumeForOrder(tx, order)       call site: doc 05's recordScan flip
+                                     ASSIGNED→IN_PRODUCTION (and any other
+                                     path entering IN_PRODUCTION)
+      Idempotent via existing CONSUME movement for the order. Per
+      reservation: q = quantity − consumedQuantity; guarded
+      onHand −= q AND reserved −= q (both must stay ≥0); reservation →
+      {consumedQuantity = quantity, status CONSUMED}; movement CONSUME with
+      NEGATIVE quantity.
+    releaseForOrder(tx, order)       call site: updateStatus → CANCELLED
+      CONSUMED → add back (onHand += q), status RETURNED, movement RETURN.
+      RESERVED → reserved −= q, status RELEASED, movement RESERVE_RELEASE.
+      Idempotent; orders past SHIPPED never release (terminal guard already
+      in the status map).
+
+D3. PAGE /admin/boms  (gate inventory.read; writes boms.manage)
+    Two tabs:
+    CONFIGS: tiles BOMs · Active · Draft · Incomplete lines (Σ
+      unmappedLineCount, red>0 — server-side sums, not page sums). Table:
+      Product Variant (product+variant, sku sub-line) · BOM (name +
+      "v{version}") · Status badge · Lines ("n required / m total") ·
+      Components ("k linked" + red "u incomplete") · Manage. Variant picker
+      (searchable, from catalog) + "New BOM". The BOM DIALOG (one component,
+      opened from both): left sidebar of versions (v1, v2… + status, "+"
+      for new draft); header name/version(placeholder "Auto")/status;
+      lines grid Material-select (choosing autofills sku/name/unit) ·
+      SKU (read-only mono) · Qty/Unit (step 0.0001) · Unit · Wastage %
+      (UI percent ↔ stored rate ÷100) · Stage select · Req checkbox ·
+      delete; Add Line; validation name + ≥1 line + every line material +
+      qty>0; footer Duplicate · Delete · Save · Activate (disabled when
+      active); PREVIEW panel: qty + warehouse SELECT (← legacy made users
+      type a raw warehouse id; give them the picker) → table Component ·
+      Required · Available · Shortage(red) · Map badge.
+    COVERAGE (legacy BomStock): tiles Components · Linked · Shortage(red) ·
+      No stock(amber). Table: Material (name/sku/type·uom) · Coverage badge
+      (AVAILABLE ok / NEEDED danger "Shortage" / NO_STOCK warning /
+      UNMAPPED secondary "Not assigned") · Qty · Reserved · Shortage ·
+      Available · Used in BOMs ("n BOMs" + "required/unit: x") · Warehouses
+      (4 chips + "+n"). Filters search + warehouse. Ranking: needed →
+      no_stock → unmapped → available (legacy sort :345-351).
+
+D4. TESTS — boms.test.ts + inventory.orderflow.test.ts:
+      one-active-per-variant enforced on all three activation paths ·
+      activate refuses empty BOM · preview math (wastage, ceil) matches
+      hand-computed fixtures · reserve is idempotent · CONCURRENT
+      double-reserve on 1-unit stock: exactly one wins (Promise.all) ·
+      shortage writes NEEDED once and fails assignment · consume moves
+      onHand+reserved together and is idempotent · cancel after consume
+      RETURNs, after reserve RELEASEs · flag off → all three no-op ·
+      finished-goods path (no BOM) reserves the variant itself.
+    The orderflow file extends orders.money.test.ts's harness — assignment
+    now moves money AND stock in one transaction; assert BOTH roll back
+    together when either guard fails.
+
+D5. WHAT PHASE D ACTUALLY DID DIFFERENTLY (built 2026-07-22)
+
+    1. THE LIFECYCLE HOOKS LIVE IN applyStatusChange, NOT AT THE CALL SITES
+       D2 names recordScan (ASSIGNED→IN_PRODUCTION) and updateStatus→CANCELLED.
+       Both funnel through orders/service/status-change.ts, and so does every
+       other path that moves an order — the row menu, quick scan, the handoff,
+       the public API. Hooking the two named callers would have left the others
+       silently building orders out of stock nobody took. One hook in the
+       shared function covers "any other path entering IN_PRODUCTION" the way
+       D2 asks for, and cannot be forgotten by a future caller.
+       reserveForOrder stays in assignOrders, which is correct: it is the only
+       thing that assigns, and the reservation must share the money's
+       transaction.
+
+    2. THE SHORTAGE BACKLOG IS WRITTEN AFTER THE FAILURE, NOT DURING IT
+       D2 step 3 says to write NEEDED and fail. Both cannot happen in one
+       transaction — the failure rolls the write back. So reserveForOrder
+       THROWS with the item refs attached, and assign's catch calls
+       recordShortage() on a fresh transaction. Same outcome the doc wants
+       (shortage visible, assignment refused), and it actually persists.
+       recordShortage is idempotent per order per item, so a retried
+       assignment does not stack the same shortage twice.
+
+    3. THE FUNCTIONS TAKE AN ORDER ID, NOT A SHAPED ORDER
+       StatusSubject carries only what the status machine needs; widening it
+       would have forced every caller to select warehouseId/productVariantId
+       for a feature that is off. The hooks load the order themselves inside
+       the caller's transaction, and cost nothing when the flag is unset.
+
+    4. Preview surfaces an unmapped REQUIRED component as a LINE with
+       mappingStatus UNMAPPED plus `blocked: true`, rather than throwing. The
+       preview panel is exactly where someone should discover it.
+
+    5. /admin/boms Configs and Coverage share ONE route via ?tab=, not two
+       navbar tabs. The Administration row already carries eight sections;
+       "BOMs" and "Coverage" sitting there as peers of Users and Warehouses
+       would say they are unrelated, which is the opposite of true.
+
+    Not built, deliberately: an "activate" confirmation, BOM import/export, and
+    per-stage previews. None is in the doc; ask before adding.
+
+--------------------------------------------------------------------------------
+PHASE E — LEGACY DATA MIGRATION  (the inventory cutover extension)
+--------------------------------------------------------------------------------
+The existing cutover (finished/02 + migrate-legacy.sql) covers system A only
+(warehouse_inventory, stock_imports, import_movements — verified at lines
+294-308). Systems B and C have NO migration. Phase E writes
+`prisma/scripts/migrate-legacy-inventory.sql`, run AFTER the main script in
+the same rehearsal harness (extend run-cutover-test.sh + assertions).
+
+E1. MAPPINGS (in dependency order; every step reports orphans to a
+    `migration_report` temp table instead of failing silently):
+    1. Vendors            → vendors (verbatim; status strings → enum).
+    2. MaterialItems      → materials (type strings → MaterialType enum,
+                            unknown → OTHER + report; NOT legacy `Materials`
+                            — see §0b collision warning).
+    3. MaterialInventories→ material_stock (drop legacy `stock` col; carry
+                            quantity/reserved/bad/needed as-is).
+    4. PhysicalInventory  → warehouse_inventory: map physical_variant_sku →
+                            product_variants.sku (doc 04's SKUs). Matched:
+                            upsert quantities + reserved. Unmatched skus →
+                            report (decide port-or-drop per sku with real
+                            counts in front of you, not in the abstract).
+    5. Material+Physical StockReceipt trios → unified stock_receipts
+                            (itemType per source; MSR-/PSR- codes kept —
+                            uniqueness holds across both series; statuses →
+                            enums; physical lines get rejectedQuantity 0).
+                            Shipment evidence Json carried VERBATIM — the
+                            urls point at the legacy host. DECISION RECORDED
+                            HERE: evidence files are NOT copied to new
+                            storage during cutover (they die with the legacy
+                            server). If the team wants them, a one-off
+                            download-and-rewrite script runs BEFORE the
+                            legacy box is switched off. Ask once.
+    6. Both movement ledgers → inventory_movements with the §0b type map;
+                            created_by Int → users cuid via the id-mapping
+                            technique the main script already uses.
+    7. MaterialInventoryReservations → inventory_reservations (statuses →
+                            enum; physical had no rows — nothing to do).
+    8. Boms + BomLines    → boms/bom_lines. Lines with
+                            component_product_variant_id: resolve that
+                            legacy variant's sku → our materials by sku,
+                            CREATE the material if missing (type
+                            RAW_MATERIAL, uom pcs — the legacy auto-convert,
+                            done once here); still unresolvable → line lands
+                            UNMAPPED (materialId null) and the Configs page
+                            shows it in "incomplete" — the floor fixes it in
+                            the UI, not in SQL.
+    9. Sequence resets + count assertions for every table (pattern from the
+       main script's lines 377-398).
+E2. REHEARSAL: extend legacy-fixture.sql with awkward rows — duplicate skus
+    across MSR/PSR, an unmapped BOM line, a physical sku missing from
+    product_variants, a reservation with consumed_quantity > 0, unknown
+    movement type string ("mystery_type" → report, not crash). Suite must
+    fail loudly on each when the handling is deleted (mutation-test it once,
+    like the original cutover suite was).
+E3. POST-CUTOVER: run the pre-existing deciding query for the ProductVariant
+    @@unique constraint (doc 04 A4 deferral) in the same session — inventory
+    rows joining product_variants make duplicates VISIBLE now.
+
+E4. WHAT PHASE E ACTUALLY DID DIFFERENTLY (built 2026-07-22)
+
+    0. THE TABLE NAMES ARE NOT WHAT THIS DOC ASSUMED — READ BEFORE EDITING.
+       Checked against origin/prod:prisma/schema.prisma (tip 10117f7). Legacy
+       is INCONSISTENT and the script matches it exactly:
+         · every MATERIAL table is PLURAL via @@map — "MaterialItems",
+           "MaterialInventories", "MaterialStockReceipts", "Boms", "Vendors" …
+         · the four PHYSICAL tables have NO @@map, so Prisma named them after
+           the model and they are SINGULAR — "PhysicalStockReceipt",
+           "PhysicalStockReceiptShipment", "PhysicalStockReceiptLine",
+           "InventoryMovement". "PhysicalInventories" IS plural.
+         · column names differ the same way: PhysicalInventories keys on
+           `variant_sku`; PhysicalStockReceiptLine and InventoryMovement use
+           `physical_variant_sku`.
+       Get one wrong and the cutover aborts on table-not-found. The fixture
+       encodes all of it, which is what proves the script spelled them right.
+
+    1. migration_report IS A REAL TABLE, not the TEMP table §E1 specifies.
+       A temp table dies with the psql session — exactly when someone wants to
+       read the orphan list. Dropped alongside the legacy tables afterwards.
+
+    2. SYSTEM B OVERWRITES SYSTEM A on shared shelves. warehouse_inventory
+       already holds rows from the main cutover (system A, deleted from legacy
+       prod 2026-06-18). PhysicalInventories is the live finished-goods data,
+       so the upsert is DO UPDATE, not DO NOTHING — otherwise the cutover
+       preserves counts that stopped being maintained ten months ago.
+       Mutation-tested.
+
+    3. UNKNOWN MOVEMENT TYPES ARE SKIPPED, NOT COERCED. §E2 asks for "report,
+       not crash"; the third option — bucket it as MANUAL_ADJUSTMENT — is
+       worse than both, because the ledger is what a wrong count gets explained
+       with and a mislabelled row explains nothing. Reported with its legacy id
+       and type, and skipped. Mutation-tested.
+
+    4. THE ONE-ACTIVE-BOM RULE IS ENFORCED DURING MIGRATION. §E1.8 does not
+       mention it, but our services assume exactly one ACTIVE BOM per variant
+       and legacy had no such constraint — two would leave reserveForOrder
+       picking arbitrarily. Newest version wins, the rest go INACTIVE, and the
+       variant is reported. Mutation-tested.
+
+    5. RECEIPT IDS ARE RE-ISSUED, CODES ARE KEPT. Both legacy series start at
+       id 1 and would collide in one table. MSR-/PSR- codes stay unique
+       alongside the new SR- series, which is what lets the floor find an old
+       receipt by its paperwork. Temp id maps carry shipments and lines to the
+       right parent — the place a cutover most easily attaches a parcel to
+       somebody else's receipt, so the assertions check it explicitly.
+
+    6. Legacy `Materials` (the leather/canvas/wood attribute catalog) is in
+       the fixture PURELY so an assertion can prove none of it leaked into
+       `materials`. §0b warns about the collision; this makes the warning
+       executable.
+
+--------------------------------------------------------------------------------
+BUILD ORDER (each step's verify gate is its exit)
+--------------------------------------------------------------------------------
+   1. A1 migrations 1-7 + A2 permissions (+ role-matrix test)     (~half day)
+   2. B1 materials master (service+page)                          (~half day)
+   3. B2 stock core + B3 tests GREEN                              (~1 day)
+   4. /inventory Stock + Movements tabs                           (~1 day)
+   5. C1 receipts service + C3 tests GREEN (incl. concurrency)    (~1 day)
+   6. C2 receipts tab (create + detail + evidence + tiles)        (~1 day)
+   7. D1 BOM config service + D3 Configs tab + dialog             (~1-1.5 days)
+   8. D2 order-flow lifecycle + D4 tests GREEN (flag OFF in prod) (~1 day)
+   9. D3 Coverage tab                                             (~half day)
+  10. B4 nav ("Inventory" section: Stock, Receipts, Movements,
+      BOMs, Materials) + i18n sweep, all 7 locales (~120 keys —
+      this phase is the wordiest; budget the tedium)              (~half day)
+  11. E1-E3 migration script + rehearsal green                    (~1 day)
+
+--------------------------------------------------------------------------------
+THE CHECK THAT MAKES DOC 06 "DONE"
+--------------------------------------------------------------------------------
+  · All four test files green INCLUDING every concurrency case (double-
+    receive, double-reserve, double-consume) — sequential-only versions are
+    vacuous.
+  · availableOf is the ONLY place the availability formula exists (grep
+    proves it), and no page computes tile sums from the visible page.
+  · With INVENTORY_ORDER_FLOW unset, assignment/scan/cancel behave exactly
+    as doc 04/05 built them (regression: orders.money.test.ts still green).
+    With it set, an assignment against empty stock fails with the item list
+    and writes NEEDED exactly once.
+  · A receipt received in two sessions (5 then 8 of 10) shows stock +8, one
+    PARTIAL_RECEIVED shipment, movements of +5 and +3 — never +13.
+  · An unmapped BOM line: visible in Configs ("incomplete"), blocks
+    activation-time reservation with "bom-line-unmapped", fixable in the
+    dialog, and the Coverage page ranks it "Not assigned".
+  · The cutover rehearsal passes with the inventory fixture, and every
+    orphan lands in migration_report with a count — zero silent drops.
+  · A WAREHOUSE user sees and touches ONLY their sites' stock, receipts,
+    movements — asserted in tests through the action path.
+
+--------------------------------------------------------------------------------
+DELIBERATELY NOT PORTED (each verified dead or superseded; ask before reviving)
+--------------------------------------------------------------------------------
+  · PhysicalVariant, ProductionOption, order-pricing-v3 — superseded by
+    doc 04's ProductVariant + VariantPrice. The HIDE_V3_PRODUCTS flag was
+    frontend-only (no backend meaning on any branch).
+  · BomInventoryMovement — schema-only on prod, no writer. Dead.
+  · PhysicalStockImport table + import-history endpoint — movements ledger
+    IS the history (MANUAL_IMPORT filter).
+  · ImportMovement (system A) — never written by ANY branch; rows migrated
+    as read-only history only.
+  · Receipt-level approve endpoint — existed server-side, no UI ever called
+    it; per-shipment receive covers the flow.
+  · Legacy `Materials` attribute catalog + OrderAttribute + ProductAddonRule
+    + techniques/positions (the commented-out "SKU Management" menu) — not
+    part of this system; decide with the catalog roadmap if ever.
+  · physical-inventory PUT /adjust with ABSOLUTE quantity — our adjust is
+    delta-based with a required reason; absolute set = read current, send
+    the difference.
+  · Cron/reconciliation jobs — legacy had none; the needed/needed_resolved
+    bookkeeping is the only self-healing, ported as-is. If counts drift in
+    production, a reconcile-from-movements script is the upgrade path (the
+    append-only ledger makes it possible).
+================================================================================

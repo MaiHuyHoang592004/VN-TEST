@@ -1,0 +1,161 @@
+{
+  "nav": {
+    "section": "フルフィルメント",
+    "station": "スキャン台",
+    "quick": "クイックスキャン",
+    "monitor": "モニター"
+  },
+  "station": {
+    "title": "スキャン台",
+    "subtitle": "荷物をスキャンして、生産開始・数量登録・撮影・引き渡しまで行います。",
+    "idle": "追跡番号または注文バーコードをスキャンしてください。",
+    "handoffDone": "荷物を引き渡しました。"
+  },
+  "scan": {
+    "mode": {
+      "tracking": "追跡番号",
+      "order": "注文 ID"
+    },
+    "placeholder": {
+      "tracking": "追跡番号をスキャンまたは入力",
+      "order": "注文 ID をスキャンまたは入力"
+    },
+    "submit": "検索",
+    "clear": "クリア",
+    "hintTracking": "長いコードは末尾 {n} 文字だけを使用します。",
+    "hintOrder": "注文の QR コードの下に印字された番号です。",
+    "tooShort": "追跡番号は 10 文字以上必要です。",
+    "notAnId": "注文 ID は数字です。",
+    "cancelled": "スキャンを中止しました。ステータスは変更されていません。",
+    "confirmTitle": "対象が多すぎます",
+    "confirmDesc": "このスキャンは {count} 件の注文を「生産中」に移します（しきい値は {threshold} 件）。",
+    "confirmBody": "まだ何も変更されていません。件数がおかしい場合は中止してください。多くは入力ミスです。",
+    "confirmSubmit": "すべて移動する"
+  },
+  "scanned": {
+    "title": "この荷物は作業済みです",
+    "desc": "このスキャンの前に {count} 件の注文が着手済みでした。",
+    "continue": "続行する"
+  },
+  "group": {
+    "tracking": "追跡番号",
+    "copy": "追跡番号をコピー",
+    "copied": "コピーしました。",
+    "noCustomer": "販売者の記録なし",
+    "openLabel": "ラベルを開く",
+    "viewProof": "証拠写真を見る",
+    "multiUnit": "複数点の荷物です。封をする前に必ず点数を確認してください。"
+  },
+  "card": {
+    "qty": "注文数",
+    "filled": "完了",
+    "progress": "作成済み",
+    "fill": "登録",
+    "fillAmount": "追加する数量"
+  },
+  "fill": {
+    "basket": "棚位置 {name} に置きました。"
+  },
+  "actions": {
+    "summary": "{orders} 件の注文 · {units} 点",
+    "updateAll": "すべて更新",
+    "proof": "証拠写真",
+    "handoff": "引き渡し完了",
+    "linkLabel": "ラベルを紐付け"
+  },
+  "proof": {
+    "saved": "証拠写真を保存しました。荷物は完了です。",
+    "overwriteTitle": "証拠写真を差し替えますか？",
+    "overwriteDesc": "この荷物にはすでに写真があるか、すでに完了しています。",
+    "overwriteBody": "既存の写真はこの荷物に関する申し立ての証拠です。最初の写真が誤っていた場合のみ差し替えてください。",
+    "overwriteSubmit": "差し替える"
+  },
+  "handoff": {
+    "title": "引き渡し完了",
+    "desc": "梱包が終わり出荷することを確認するため completed と入力してください。",
+    "typeIt": "「completed」と入力",
+    "tracking": "追跡番号",
+    "trackingPlaceholder": "箱に記載された番号",
+    "submit": "引き渡す",
+    "done": "荷物を出荷しました。"
+  },
+  "label": {
+    "title": "配送ラベルを紐付け",
+    "desc": "このラベルと追跡番号を荷物内の {count} 件すべての注文に紐付けます。",
+    "tracking": "追跡番号",
+    "url": "ラベル URL",
+    "provider": "配送業者",
+    "method": "サービス",
+    "submit": "紐付ける",
+    "linked": "{count} 件の注文にラベルを紐付けました。"
+  },
+  "camera": {
+    "title": "カメラ",
+    "capture": "写真を撮る",
+    "retry": "再試行",
+    "denied": "カメラを利用できません。上のスキャン欄は引き続き使えます。",
+    "duplicate": "このバーコードは読み取り済みです。",
+    "photoFirst": "先に注文の写真を撮ってください。",
+    "tooMany": "このコードは該当件数が多すぎます。スキャン欄で確認してください。",
+    "spaceHint": "スペースキーで証拠写真を撮影します。",
+    "scanHint": "カメラをバーコードに向けると荷物を読み込みます。",
+    "mirrored": "プレビューは鏡像です。保存される写真は反転しません。"
+  },
+  "quick": {
+    "title": "クイックスキャン",
+    "subtitle": "荷物をスキャンし、その中の全注文に同じステータスを設定します。",
+    "status": "新しいステータス",
+    "note": "メモ（任意）",
+    "submit": "適用",
+    "lastScanned": "最後のスキャン",
+    "parcels": "荷物数",
+    "updated": "更新した注文",
+    "empty": "スキャンした荷物がここに表示されます。",
+    "colCustomer": "販売者",
+    "colTracking": "追跡番号",
+    "colStatus": "ステータス",
+    "colQty": "数量",
+    "colProduct": "商品",
+    "colNote": "メモ",
+    "skipped": "スキップ: {orders}",
+    "applied": "{count} 件の注文を更新しました。"
+  },
+  "monitor": {
+    "title": "モニター",
+    "subtitle": "進行中のすべての荷物。閲覧専用です。",
+    "tabs": {
+      "open": "進行中",
+      "ready": "出荷可",
+      "all": "すべて"
+    },
+    "colTracking": "追跡番号",
+    "colCustomer": "販売者",
+    "colOrders": "注文数",
+    "colProgress": "進捗",
+    "colStatus": "ステータス",
+    "colBasket": "棚位置",
+    "colLabel": "ラベル",
+    "colOldest": "最古",
+    "label": "開く",
+    "empty": "表示する荷物はありません。",
+    "loadMore": "さらに読み込む"
+  },
+  "errors": {
+    "group-not-found": "そのコードに一致するものはありません。",
+    "no-available-basket": "空いている棚位置がありません。先に一つ空けてください。",
+    "check-failed": "確認に失敗しました。もう一度入力してください。",
+    "not-ready": "荷物内のすべての注文を先に完了させてください。",
+    "not-ready-detail": "未完了: {orders}",
+    "not-in-production": "登録の前に荷物をスキャンしてください。",
+    "amount-exceeds-remaining": "残りの作成数を超えています。",
+    "invalid-transition": "ここからそのステータスへは変更できません。",
+    "file-too-large": "画像は 10MB 以下にしてください。",
+    "not-an-image": "PNG、JPG、WEBP の画像をアップロードしてください。",
+    "invalid-key": "そのファイルは保存できませんでした。",
+    "storage-not-configured": "ファイルストレージが未設定です。管理者に連絡してください。",
+    "validation": "入力内容を確認して、もう一度お試しください。",
+    "provider-rejected": "配送業者が購入を拒否しました。",
+    "provider-unreachable": "配送業者から応答がありません。購入は行われていません — もう一度お試しください。",
+    "not-configured": "ラベルの提供事業者が設定されていません。"
+  }
+}

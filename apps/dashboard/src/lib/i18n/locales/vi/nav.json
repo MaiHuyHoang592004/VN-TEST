@@ -1,0 +1,23 @@
+{
+  "home": "Trang chủ",
+  "orders": "Đơn hàng",
+  "products": "Sản phẩm",
+  "wallet": "Ví",
+  "search": "Tìm kiếm",
+  "analytics": "Phân tích",
+  "login": "Đăng nhập",
+  "signup": "Đăng ký",
+  "profile": "Hồ sơ",
+  "settings": "Cài đặt",
+  "billing": "Thanh toán",
+  "helpSupport": "Trợ giúp & hỗ trợ",
+  "logout": "Đăng xuất",
+  "tools": {
+    "label": "Công cụ",
+    "analytics": "Phân tích",
+    "analyticsDescription": "Hiệu suất & thông tin cửa hàng",
+    "wallet": "Ví",
+    "walletDescription": "Số dư & nạp tiền"
+  },
+  "tickets": "Hỗ trợ"
+}

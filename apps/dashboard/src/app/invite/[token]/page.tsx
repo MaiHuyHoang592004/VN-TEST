@@ -1,0 +1,76 @@
+import Link from "next/link";
+
+import { peekInvite } from "@/modules/identity/users/service";
+import { getSessionUser } from "@/modules/core/session";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { AcceptInvite } from "@/components/pages/invite/accept-invite";
+
+/**
+ * The page the emailed invitation link opens.
+ *
+ * Deliberately OUTSIDE the (protected) group: the recipient usually has no
+ * account yet, so requiring a session first would bounce them to login with no
+ * explanation of why they're there. Instead the invitation is shown, then they
+ * sign in, then they accept.
+ */
+export default async function InvitePage({
+  params,
+}: {
+  params: Promise<{ token: string }>;
+}) {
+  const { token } = await params;
+  const [result, viewer] = await Promise.all([peekInvite(token), getSessionUser()]);
+
+  const shell = (children: React.ReactNode) => (
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-5 px-6 py-24">
+      {children}
+    </main>
+  );
+
+  if (!result.ok) {
+    const copy = {
+      "not-found": "This invitation link isn't valid.",
+      "already-used": "This invitation has already been used.",
+      expired: "This invitation has expired.",
+    }[result.error];
+    return shell(
+      <>
+        <h1 className="text-2xl font-medium">Invitation unavailable</h1>
+        <p className="text-muted-foreground text-sm">
+          {copy} Ask whoever invited you to send a new one.
+        </p>
+        <Button render={<Link href="/" />} className="self-start">
+          Go to OpCreative
+        </Button>
+      </>,
+    );
+  }
+
+  const { invite } = result;
+
+  return shell(
+    <>
+      <div>
+        <h1 className="text-2xl font-medium">You&apos;ve been invited</h1>
+        <p className="text-muted-foreground mt-1.5 text-sm">
+          to join OpCreative as <strong>{invite.email}</strong>
+        </p>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        {invite.roles.map((r) => (
+          <Badge key={r} product="secondary">
+            {r.toLowerCase().replace("_", " ")}
+          </Badge>
+        ))}
+      </div>
+
+      <AcceptInvite
+        token={token}
+        invitedEmail={invite.email}
+        signedInAs={viewer?.email ?? null}
+      />
+    </>,
+  );
+}

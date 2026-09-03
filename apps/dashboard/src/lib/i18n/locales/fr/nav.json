@@ -1,0 +1,23 @@
+{
+  "home": "Accueil",
+  "orders": "Commandes",
+  "products": "Produits",
+  "wallet": "Portefeuille",
+  "search": "Recherche",
+  "analytics": "Analyses",
+  "login": "Connexion",
+  "signup": "Inscription",
+  "profile": "Profil",
+  "settings": "Paramètres",
+  "billing": "Facturation",
+  "helpSupport": "Aide & support",
+  "logout": "Déconnexion",
+  "tools": {
+    "label": "Outils",
+    "analytics": "Analyses",
+    "analyticsDescription": "Performances et statistiques",
+    "wallet": "Portefeuille",
+    "walletDescription": "Solde et recharges"
+  },
+  "tickets": "Assistance"
+}

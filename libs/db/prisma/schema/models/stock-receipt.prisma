@@ -1,0 +1,116 @@
+/// Goods arriving at a warehouse: one receipt, one or more shipments, each
+/// with its own lines. ONE model covers materials and finished goods — the
+/// `itemType` discriminator is the whole difference, where legacy maintained
+/// two parallel trios of tables, services and pages that had already drifted
+/// apart on which statuses existed.
+model StockReceipt {
+  id Int @id @default(autoincrement())
+  /// "SR-YYYYMMDD-XXXXX". One series for both item types; the legacy MSR-/PSR-
+  /// codes survive the cutover unchanged and stay unique alongside these.
+  code String @unique
+
+  itemType    InventoryItemType @map("item_type")
+  warehouseId Int               @map("warehouse_id")
+  status      ReceiptStatus     @default(PENDING)
+
+  /// Who it came from when no Vendor row exists — the floor types a name.
+  provider     String?
+  note         String?
+  rejectReason String? @map("reject_reason")
+
+  createdById  String?   @map("created_by_id")
+  createdBy    User?     @relation("ReceiptCreator", fields: [createdById], references: [id])
+  /// Set when the last shipment lands, i.e. when the receipt goes COMPLETE.
+  approvedById String?   @map("approved_by_id")
+  approvedBy   User?     @relation("ReceiptApprover", fields: [approvedById], references: [id])
+  approvedAt   DateTime? @map("approved_at")
+
+  warehouse Warehouse             @relation(fields: [warehouseId], references: [id])
+  shipments StockReceiptShipment[]
+  lines     StockReceiptLine[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([warehouseId, status])
+  @@map("stock_receipts")
+}
+
+/// One parcel/pallet within a receipt. Receiving happens HERE, not on the
+/// receipt: an order of ten boxes arriving in three deliveries is the normal
+/// case, and each is received on the day it lands.
+model StockReceiptShipment {
+  id        Int @id @default(autoincrement())
+  receiptId Int @map("receipt_id")
+
+  vendorId     Int?    @map("vendor_id")
+  /// Unique within the receipt only ("S1", "S2", …) — vendors reuse their own
+  /// numbering across customers, so a global unique would reject real data.
+  shipmentCode String  @map("shipment_code")
+
+  trackingNumber    String?   @map("tracking_number")
+  carrier           String?
+  trackingUrl       String?   @map("tracking_url")
+  expectedArrivalAt DateTime? @map("expected_arrival_at")
+  shippedAt         DateTime? @map("shipped_at")
+  receivedAt        DateTime? @map("received_at")
+
+  status ReceiptShipmentStatus @default(PENDING)
+  note   String?
+
+  metadata Json?
+  /// Photos taken at the dock, appended as {url, filename, mimeType, size,
+  /// uploadedAt, uploadedById}. Json rather than a table because nothing ever
+  /// queries across evidence — it is only ever read back with its shipment.
+  evidence Json?
+
+  receipt StockReceipt       @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  vendor  Vendor?            @relation(fields: [vendorId], references: [id])
+  lines   StockReceiptLine[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([receiptId, shipmentCode])
+  @@index([vendorId])
+  @@index([status, expectedArrivalAt])
+  @@map("stock_receipt_shipments")
+}
+
+/// One item on a shipment. `materialId` XOR `productVariantId` — enforced by a
+/// CHECK constraint in the migration, because a line that points at both or
+/// neither would silently move the wrong stock.
+model StockReceiptLine {
+  id         Int  @id @default(autoincrement())
+  receiptId  Int  @map("receipt_id")
+  shipmentId Int? @map("shipment_id")
+
+  materialId       Int? @map("material_id")
+  productVariantId Int? @map("product_variant_id")
+
+  requestedQuantity Int  @map("requested_quantity")
+  /// Null until someone receives. Monotonic thereafter: a re-receive may only
+  /// raise it, and stock moves by the DELTA — that is what makes receiving in
+  /// several sessions safe to repeat.
+  receivedQuantity  Int? @map("received_quantity")
+  rejectedQuantity  Int  @default(0) @map("rejected_quantity")
+
+  /// Informational only. Purchase cost never becomes an inventory valuation
+  /// here — the finance domain owns money.
+  unitPrice Decimal? @db.Decimal(10, 2) @map("unit_price")
+  note      String?
+
+  receipt        StockReceipt          @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  shipment       StockReceiptShipment? @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+  material       Material?             @relation(fields: [materialId], references: [id])
+  productVariant ProductVariant?       @relation(fields: [productVariantId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([receiptId])
+  @@index([shipmentId])
+  @@index([materialId])
+  @@index([productVariantId])
+  @@map("stock_receipt_lines")
+}

@@ -1,0 +1,23 @@
+{
+  "home": "الرئيسية",
+  "orders": "الطلبات",
+  "products": "المنتجات",
+  "wallet": "المحفظة",
+  "search": "بحث",
+  "analytics": "التحليلات",
+  "login": "تسجيل الدخول",
+  "signup": "إنشاء حساب",
+  "profile": "الملف الشخصي",
+  "settings": "الإعدادات",
+  "billing": "الفواتير",
+  "helpSupport": "المساعدة والدعم",
+  "logout": "تسجيل الخروج",
+  "tools": {
+    "label": "الأدوات",
+    "analytics": "التحليلات",
+    "analyticsDescription": "أداء المتجر والتحليلات",
+    "wallet": "المحفظة",
+    "walletDescription": "الرصيد والشحن"
+  },
+  "tickets": "الدعم"
+}

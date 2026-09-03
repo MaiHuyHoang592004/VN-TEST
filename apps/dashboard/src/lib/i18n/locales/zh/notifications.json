@@ -1,0 +1,102 @@
+{
+  "title": "通知",
+  "back": "返回",
+  "unread": "未读",
+  "unreadOnly": "仅未读",
+  "markAllRead": "全部标为已读",
+  "delete": "删除",
+  "deleted": "通知已删除。",
+  "loadMore": "加载更多",
+  "empty": "暂无新通知。",
+  "viewAll": "查看全部通知",
+  "tabs": {
+    "all": "全部",
+    "orders": "订单",
+    "warehouse": "仓库",
+    "payments": "付款",
+    "system": "系统"
+  },
+  "time": {
+    "m": "分钟前",
+    "h": "小时前",
+    "d": "天前"
+  },
+  "items": {
+    "inviteReceived": {
+      "title": "您收到一份邀请",
+      "body": "{from} 邀请您担任 {roles}。点击接受。"
+    },
+    "inviteAccepted": {
+      "title": "邀请已被接受",
+      "body": "{email} 已接受您的邀请。"
+    },
+    "roleChanged": {
+      "title": "您的权限已变更",
+      "body": "您的角色现在是 {roles}。"
+    },
+    "toppedUp": {
+      "title": "余额已充值",
+      "body": "已入账 {amount}。新余额 {balance}。"
+    },
+    "refunded": {
+      "title": "已收到退款",
+      "body": "已退款 {amount}。新余额 {balance}。"
+    },
+    "transactionApproved": {
+      "title": "充值已批准",
+      "body": "已添加 {amount}。新余额 {balance}。"
+    },
+    "transactionRejected": {
+      "title": "充值未获批准",
+      "body": "您的 {amount} 申请被拒绝：{reason}"
+    },
+    "ordersAssigned": {
+      "title": "{count} 个订单已送交生产",
+      "body": "已扣除 {amount}。新余额 {balance}。"
+    },
+    "orderCreated": {
+      "title": "有订单以您的名义创建",
+      "body": "订单 {externalId} 已创建到您的账户。"
+    },
+    "orderStatusChanged": {
+      "title": "订单 {externalId} 现为{status}",
+      "body": "打开“订单”查看详情。"
+    },
+    "workAssigned": {
+      "title": "{warehouse} 收到 {count} 个订单",
+      "body": "可以开始生产了。"
+    },
+    "orderOnHold": {
+      "title": "订单 {externalId} 已暂停",
+      "body": "{reason}"
+    },
+    "shippingLabelReady": {
+      "title": "订单 {externalId} 的面单已就绪",
+      "body": "运单号 {tracking} · {provider}"
+    },
+    "trackingUpdated": {
+      "title": "订单 {externalId} 现为 {status}",
+      "body": "运单 {tracking} 的承运商更新。"
+    },
+    "fulfillmentBlocked": {
+      "title": "{warehouse} 的产线已阻塞",
+      "body": "{reason}——在此问题解决前无法放置包裹。"
+    },
+    "labelPurchaseFailed": {
+      "title": "面单购买失败",
+      "body": "有 {count} 个包裹无法购买：{reason}"
+    },
+    "ticketReplied": {
+      "title": "工单“{title}”有新回复",
+      "body": "{from} 回复了你的工单。"
+    },
+    "ticketStatusChanged": {
+      "title": "工单“{title}”现在是 {status}",
+      "body": "打开工单查看完整对话。"
+    },
+    "transactionRequested": {
+      "title": "{from} 提交了一笔{kind}申请",
+      "body": "{amount} 正在等待审批。"
+    }
+  }
+}

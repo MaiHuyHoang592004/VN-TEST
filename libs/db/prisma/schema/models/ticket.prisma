@@ -1,0 +1,27 @@
+/// A support ticket, optionally attached to an order.
+model Ticket {
+  id          Int            @id @default(autoincrement())
+  title       String
+  description String?
+  reason      String?
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(LOW)
+
+  /// Attachments on the OPENING post, same shape as TicketReply.attachments.
+  attachments Json?
+
+  authorId String @map("author_id")
+  author   User   @relation(fields: [authorId], references: [id])
+  orderId  Int?   @map("order_id")
+  order    Order? @relation(fields: [orderId], references: [id])
+
+  replies TicketReply[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([authorId])
+  @@index([orderId])
+  @@index([status])
+  @@map("tickets")
+}

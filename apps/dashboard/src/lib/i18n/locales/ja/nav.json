@@ -1,0 +1,23 @@
+{
+  "home": "ホーム",
+  "orders": "注文",
+  "products": "商品",
+  "wallet": "ウォレット",
+  "search": "検索",
+  "analytics": "分析",
+  "login": "ログイン",
+  "signup": "新規登録",
+  "profile": "プロフィール",
+  "settings": "設定",
+  "billing": "請求",
+  "helpSupport": "ヘルプとサポート",
+  "logout": "ログアウト",
+  "tools": {
+    "label": "ツール",
+    "analytics": "分析",
+    "analyticsDescription": "ストアのパフォーマンスと分析",
+    "wallet": "ウォレット",
+    "walletDescription": "残高とチャージ"
+  },
+  "tickets": "サポート"
+}

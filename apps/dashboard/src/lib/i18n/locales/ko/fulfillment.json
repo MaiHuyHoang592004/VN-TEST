@@ -1,0 +1,161 @@
+{
+  "nav": {
+    "section": "풀필먼트",
+    "station": "스캔 스테이션",
+    "quick": "빠른 스캔",
+    "monitor": "모니터"
+  },
+  "station": {
+    "title": "스캔 스테이션",
+    "subtitle": "소포를 스캔해 생산을 시작하고, 수량을 세고, 사진을 찍고, 인계합니다.",
+    "idle": "운송장 번호나 주문 바코드를 스캔하세요.",
+    "handoffDone": "소포를 인계했습니다."
+  },
+  "scan": {
+    "mode": {
+      "tracking": "운송장 번호",
+      "order": "주문 ID"
+    },
+    "placeholder": {
+      "tracking": "운송장 번호를 스캔하거나 입력",
+      "order": "주문 ID를 스캔하거나 입력"
+    },
+    "submit": "찾기",
+    "clear": "지우기",
+    "hintTracking": "긴 코드는 마지막 {n}자만 사용합니다.",
+    "hintOrder": "주문 QR 코드 아래에 인쇄된 숫자입니다.",
+    "tooShort": "운송장 번호는 최소 10자입니다.",
+    "notAnId": "주문 ID는 숫자입니다.",
+    "cancelled": "스캔을 취소했습니다. 상태는 변경되지 않았습니다.",
+    "confirmTitle": "주문 수가 너무 많습니다",
+    "confirmDesc": "이 스캔은 주문 {count}건을 생산 중으로 옮깁니다(기준값 {threshold}건).",
+    "confirmBody": "아직 아무것도 변경되지 않았습니다. 건수가 이상하면 취소하세요. 대부분 코드 입력 실수입니다.",
+    "confirmSubmit": "모두 옮기기"
+  },
+  "scanned": {
+    "title": "이미 작업된 소포입니다",
+    "desc": "이번 스캔 전에 주문 {count}건이 이미 시작되었습니다.",
+    "continue": "계속 진행"
+  },
+  "group": {
+    "tracking": "운송장",
+    "copy": "운송장 번호 복사",
+    "copied": "복사했습니다.",
+    "noCustomer": "판매자 정보 없음",
+    "openLabel": "라벨 열기",
+    "viewProof": "증빙 사진 보기",
+    "multiUnit": "여러 개가 든 소포입니다. 봉하기 전에 모두 세어 보세요."
+  },
+  "card": {
+    "qty": "주문",
+    "filled": "완료",
+    "progress": "제작됨",
+    "fill": "등록",
+    "fillAmount": "추가할 수량"
+  },
+  "fill": {
+    "basket": "선반 {name}에 두었습니다."
+  },
+  "actions": {
+    "summary": "주문 {orders}건 · {units}개",
+    "updateAll": "전체 변경",
+    "proof": "증빙 사진",
+    "handoff": "인계 완료",
+    "linkLabel": "라벨 연결"
+  },
+  "proof": {
+    "saved": "증빙 사진을 저장했습니다. 소포가 완료되었습니다.",
+    "overwriteTitle": "증빙 사진을 교체할까요?",
+    "overwriteDesc": "이 소포에는 이미 사진이 있거나 이미 완료되었습니다.",
+    "overwriteBody": "기존 사진은 이 소포에 대한 분쟁의 증거입니다. 첫 사진이 잘못된 경우에만 교체하세요.",
+    "overwriteSubmit": "교체하기"
+  },
+  "handoff": {
+    "title": "인계 완료",
+    "desc": "포장이 끝나 출고됨을 확인하려면 completed 라고 입력하세요.",
+    "typeIt": "\"completed\" 입력",
+    "tracking": "운송장 번호",
+    "trackingPlaceholder": "상자에 적힌 번호",
+    "submit": "인계하기",
+    "done": "소포를 출고했습니다."
+  },
+  "label": {
+    "title": "배송 라벨 연결",
+    "desc": "이 라벨과 운송장 번호를 소포의 주문 {count}건 전체에 연결합니다.",
+    "tracking": "운송장 번호",
+    "url": "라벨 URL",
+    "provider": "택배사",
+    "method": "서비스",
+    "submit": "라벨 연결",
+    "linked": "주문 {count}건에 라벨을 연결했습니다."
+  },
+  "camera": {
+    "title": "카메라",
+    "capture": "사진 촬영",
+    "retry": "다시 시도",
+    "denied": "사용할 수 있는 카메라가 없습니다. 위의 스캔 입력창은 계속 사용할 수 있습니다.",
+    "duplicate": "이미 인식한 바코드입니다.",
+    "photoFirst": "주문 사진을 먼저 촬영하세요.",
+    "tooMany": "이 코드는 너무 많은 주문과 일치합니다. 스캔 입력창에서 확인하세요.",
+    "spaceHint": "스페이스바를 눌러 증빙 사진을 촬영합니다.",
+    "scanHint": "카메라를 바코드에 향하면 소포를 불러옵니다.",
+    "mirrored": "미리보기는 거울처럼 좌우가 바뀝니다. 저장되는 사진은 그대로입니다."
+  },
+  "quick": {
+    "title": "빠른 스캔",
+    "subtitle": "소포를 스캔해 그 안의 모든 주문에 같은 상태를 적용합니다.",
+    "status": "새 상태",
+    "note": "메모(선택)",
+    "submit": "적용",
+    "lastScanned": "마지막 스캔",
+    "parcels": "소포 수",
+    "updated": "변경된 주문",
+    "empty": "스캔한 소포가 여기에 표시됩니다.",
+    "colCustomer": "판매자",
+    "colTracking": "운송장",
+    "colStatus": "상태",
+    "colQty": "수량",
+    "colProduct": "상품",
+    "colNote": "메모",
+    "skipped": "건너뜀: {orders}",
+    "applied": "주문 {count}건을 변경했습니다."
+  },
+  "monitor": {
+    "title": "모니터",
+    "subtitle": "진행 중인 모든 소포. 읽기 전용입니다.",
+    "tabs": {
+      "open": "진행 중",
+      "ready": "출고 대기",
+      "all": "전체"
+    },
+    "colTracking": "운송장",
+    "colCustomer": "판매자",
+    "colOrders": "주문",
+    "colProgress": "진행률",
+    "colStatus": "상태",
+    "colBasket": "선반",
+    "colLabel": "라벨",
+    "colOldest": "가장 오래됨",
+    "label": "열기",
+    "empty": "표시할 소포가 없습니다.",
+    "loadMore": "더 보기"
+  },
+  "errors": {
+    "group-not-found": "그 코드와 일치하는 항목이 없습니다.",
+    "no-available-basket": "비어 있는 선반이 없습니다. 먼저 하나를 비우세요.",
+    "check-failed": "확인에 실패했습니다. 단어를 다시 입력하세요.",
+    "not-ready": "소포의 모든 주문이 먼저 완료되어야 합니다.",
+    "not-ready-detail": "아직 완료되지 않음: {orders}",
+    "not-in-production": "등록하기 전에 소포를 스캔하세요.",
+    "amount-exceeds-remaining": "남은 제작 수량을 초과했습니다.",
+    "invalid-transition": "여기서는 그 상태로 변경할 수 없습니다.",
+    "file-too-large": "이미지는 10MB 이하여야 합니다.",
+    "not-an-image": "PNG, JPG 또는 WEBP 이미지를 올려주세요.",
+    "invalid-key": "그 파일은 저장할 수 없습니다.",
+    "storage-not-configured": "파일 저장소가 설정되지 않았습니다. 관리자에게 알리세요.",
+    "validation": "입력값을 확인한 뒤 다시 시도하세요.",
+    "provider-rejected": "택배사가 구매를 거부했습니다.",
+    "provider-unreachable": "택배사가 응답하지 않았습니다. 구매되지 않았으니 다시 시도하세요.",
+    "not-configured": "라벨 공급자가 설정되지 않았습니다."
+  }
+}

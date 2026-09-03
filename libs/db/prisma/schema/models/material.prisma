@@ -1,0 +1,39 @@
+/// A raw material, packaging item or consumable — the master record. What it
+/// COSTS and where it SITS are not here: quantities live in MaterialStock (one
+/// row per warehouse) and purchase price is per receipt line, because the same
+/// material bought twice rarely costs the same twice.
+model Material {
+  id   Int    @id @default(autoincrement())
+  /// The floor's handle for this item. Unique across materials only — a
+  /// material and a product SKU may share a code without colliding.
+  sku  String @unique
+  name String
+
+  type MaterialType @default(RAW_MATERIAL)
+  /// Free text on purpose: "pcs", "m", "roll", "kg" are all real answers and
+  /// legacy never constrained it.
+  uom  String       @default("pcs")
+
+  description String?
+  status      ProductStatus @default(ACTIVE)
+  /// False for items counted by eye (tape, glue) — they appear on BOMs but
+  /// never reserve, consume or report a shortage.
+  trackInventory Boolean @default(true) @map("track_inventory")
+  configs        Json?
+
+  stockRows    MaterialStock[]
+  bomLines     BomLine[]
+  receiptLines StockReceiptLine[]
+  reservations InventoryReservation[]
+  movements    InventoryMovement[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  /// Soft delete: a material referenced by a BOM line or a movement keeps its
+  /// row so history stays readable. Deletion is refused outright while any
+  /// ACTIVE BOM still needs it.
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([status, deletedAt])
+  @@map("materials")
+}

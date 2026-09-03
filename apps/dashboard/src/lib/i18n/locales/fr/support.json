@@ -1,0 +1,104 @@
+{
+  "tickets": {
+    "title": "Tickets d'assistance",
+    "subtitle": "Posez vos questions sur une commande, une étiquette ou votre compte — et gardez la réponse.",
+    "new": "Nouveau ticket",
+    "search": "Rechercher un titre, une description ou une commande",
+    "empty": "Aucun ticket pour l'instant.",
+    "emptyFiltered": "Aucun ticket ne correspond à ces filtres.",
+    "allStatuses": "Tous les statuts",
+    "allPriorities": "Toutes les priorités",
+    "allReasons": "Tous les motifs",
+    "open": "ouverts",
+    "col": {
+      "author": "Client",
+      "title": "Titre",
+      "order": "Commande",
+      "reason": "Motif",
+      "status": "Statut",
+      "priority": "Priorité",
+      "created": "Créé le",
+      "replies": "Réponses"
+    },
+    "status": {
+      "OPEN": "Ouvert",
+      "IN_PROGRESS": "En cours",
+      "RESOLVED": "Résolu",
+      "CLOSED": "Clôturé"
+    },
+    "priority": {
+      "LOW": "Basse",
+      "MEDIUM": "Moyenne",
+      "HIGH": "Haute",
+      "URGENT": "Urgente"
+    },
+    "reason": {
+      "wrong-item": "Mauvais article expédié",
+      "quality-return": "Problème de qualité ou retour",
+      "bad-label": "Problème d'étiquette",
+      "wrong-address": "Adresse erronée",
+      "missing-item": "Article manquant dans le colis",
+      "other": "Autre chose"
+    },
+    "form": {
+      "new": "Ouvrir un ticket",
+      "description": "Expliquez ce qui s'est passé. Des photos permettent de trancher plus vite.",
+      "title": "Titre",
+      "titlePlaceholder": "Mauvaise taille de t-shirt dans la commande #1042",
+      "reason": "Motif",
+      "priority": "Priorité",
+      "priorityHint": "Suggérée d'après le motif — modifiez-la si besoin.",
+      "order": "Commande",
+      "orderNone": "Sans rapport avec une commande précise",
+      "body": "Description",
+      "bodyPlaceholder": "Ce que vous avez reçu, ce que vous attendiez et ce que vous avez déjà tenté.",
+      "attach": "Joindre des photos",
+      "attachHint": "PNG, JPG ou WEBP · 10 images maximum · 10 Mo chacune",
+      "submit": "Ouvrir le ticket",
+      "created": "Ticket ouvert",
+      "orderDropped": "La commande choisie n'appartient pas à votre compte : le ticket a été créé sans elle."
+    },
+    "edit": {
+      "title": "Modifier le ticket",
+      "submit": "Enregistrer",
+      "saved": "Ticket mis à jour"
+    },
+    "delete": {
+      "title": "Supprimer ce ticket ?",
+      "body": "Le ticket et tout son fil de discussion sont supprimés. Action irréversible.",
+      "submit": "Supprimer le ticket",
+      "deleted": "Ticket supprimé"
+    },
+    "detail": {
+      "back": "Tous les tickets",
+      "customer": "Client",
+      "order": "Commande",
+      "created": "Ouvert le",
+      "replies": "Réponses",
+      "status": "Statut",
+      "reason": "Motif",
+      "priority": "Priorité",
+      "statusChanged": "Statut mis à jour",
+      "reply": "Répondre",
+      "replyPlaceholder": "Écrire une réponse…",
+      "send": "Envoyer",
+      "sendHint": "⌘/Ctrl + Entrée pour envoyer",
+      "sent": "Réponse envoyée",
+      "closed": "Ce ticket est clôturé.",
+      "closedHint": "Rouvrez-le pour poursuivre la conversation.",
+      "reopen": "Rouvrir le ticket",
+      "staff": "Assistance",
+      "attachments": "Pièces jointes",
+      "empty": "Aucune réponse pour l'instant."
+    },
+    "errors": {
+      "not-found": "Ce ticket n'existe plus.",
+      "ticket-closed": "Ce ticket est clôturé — rouvrez-le pour répondre.",
+      "not-yours": "Vous ne pouvez pas faire cela sur ce ticket.",
+      "file-too-large": "Les images doivent faire 10 Mo maximum.",
+      "not-an-image": "Joignez une image PNG, JPG ou WEBP.",
+      "too-many-files": "Joignez 10 images au maximum.",
+      "storage-not-configured": "Les envois de fichiers sont indisponibles pour le moment."
+    }
+  }
+}

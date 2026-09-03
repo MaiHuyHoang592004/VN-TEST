@@ -1,0 +1,16 @@
+/// A print/design mockup file attached to orders.
+model Mockup {
+  id        Int     @id @default(autoincrement())
+  name      String
+  thumbnail String?
+  url       String
+  folderId  String? @map("folder_id")
+  status    String  @default("active")
+
+  orders Order[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("mockups")
+}

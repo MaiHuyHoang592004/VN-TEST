@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "section": "库存",
+    "stock": "库存",
+    "movements": "库存流水",
+    "materials": "物料",
+    "boms": "BOM"
+  },
+  "tabs": {
+    "stock": "库存",
+    "movements": "库存流水",
+    "receipts": "收货"
+  },
+  "stock": {
+    "title": "库存",
+    "subtitle": "货架上有多少、为订单预留了多少、还缺多少。",
+    "search": "按名称或 SKU 搜索",
+    "empty": "暂无库存。",
+    "emptyFiltered": "没有符合筛选条件的物品。",
+    "adjust": "调整",
+    "import": "入库",
+    "allWarehouses": "全部仓库",
+    "types": {
+      "MATERIAL": "物料",
+      "PRODUCT": "成品"
+    },
+    "tiles": {
+      "items": "物品数",
+      "onHand": "现有库存",
+      "reserved": "已预留",
+      "shortage": "缺料"
+    },
+    "col": {
+      "item": "物品",
+      "kind": "类型",
+      "onHand": "现有库存",
+      "reserved": "已预留",
+      "shortage": "缺料",
+      "available": "可用",
+      "warehouses": "仓库"
+    },
+    "tip": {
+      "reserved": "已分配给生产中的订单",
+      "shortage": "需再入库才能满足当前订单",
+      "available": "现有库存 − 已预留"
+    }
+  },
+  "adjust": {
+    "title": "调整库存",
+    "description": "更正某一仓库中某一物品的数量。系统会连同您填写的原因一起记录。",
+    "warehouse": "仓库",
+    "delta": "调整数量",
+    "deltaHint": "填负数表示减少。",
+    "reason": "原因",
+    "reasonPlaceholder": "盘点更正",
+    "note": "备注",
+    "submit": "应用调整",
+    "done": "库存已调整。"
+  },
+  "import": {
+    "title": "入库",
+    "description": "登记无收货单直接到货的库存。",
+    "item": "物品",
+    "itemPlaceholder": "按名称或 SKU 搜索物料",
+    "warehouse": "仓库",
+    "quantity": "数量",
+    "provider": "供应商",
+    "note": "备注",
+    "submit": "入库",
+    "done": "已入库。",
+    "noItem": "请先选择物品。"
+  },
+  "movements": {
+    "title": "库存流水",
+    "subtitle": "所有数量变动，按发生顺序排列。",
+    "search": "按物品名称或 SKU 搜索",
+    "empty": "暂无流水记录。",
+    "emptyFiltered": "没有符合筛选条件的记录。",
+    "loadMore": "加载更多",
+    "allTypes": "全部类型",
+    "col": {
+      "created": "时间",
+      "type": "类型",
+      "item": "物品",
+      "warehouse": "仓库",
+      "quantity": "数量",
+      "reference": "关联单据",
+      "user": "操作人"
+    },
+    "types": {
+      "RECEIPT": "收货",
+      "MANUAL_IMPORT": "手工入库",
+      "MANUAL_ADJUSTMENT": "手工调整",
+      "RESERVE": "预留",
+      "RESERVE_RELEASE": "取消预留",
+      "CONSUME": "消耗",
+      "RETURN": "退回",
+      "NEEDED": "缺料",
+      "NEEDED_RESOLVED": "缺料已补齐"
+    },
+    "allItems": "全部物品"
+  },
+  "materials": {
+    "title": "物料",
+    "subtitle": "原材料、包装与耗材——记录它们是什么，而非有多少。",
+    "search": "按名称、SKU 或说明搜索",
+    "empty": "暂无物料。",
+    "emptyFiltered": "没有符合筛选条件的物料。",
+    "new": "新建物料",
+    "created": "物料已创建。",
+    "updated": "物料已更新。",
+    "deleted": "物料已删除。",
+    "dialogNewTitle": "新建物料",
+    "dialogEditTitle": "编辑物料",
+    "dialogDesc": "仅为主数据。数量请在库存页面调整。",
+    "col": {
+      "name": "物料",
+      "type": "类型",
+      "uom": "单位",
+      "status": "状态",
+      "available": "可用",
+      "bomLines": "BOM 行"
+    },
+    "field": {
+      "sku": "SKU",
+      "name": "名称",
+      "type": "类型",
+      "uom": "计量单位",
+      "uomHint": "自由填写：pcs、m、卷、kg……",
+      "description": "说明",
+      "status": "状态",
+      "trackInventory": "跟踪库存",
+      "trackInventoryHint": "对于目测计数的物品可关闭——它们仍会出现在 BOM 中，但不会预留或报缺料。"
+    },
+    "types": {
+      "RAW_MATERIAL": "原材料",
+      "PACKAGING": "包装材料",
+      "SEMI_FINISHED": "半成品",
+      "CONSUMABLE": "耗材",
+      "OTHER": "其他"
+    },
+    "allTypes": "全部类型",
+    "delete": {
+      "action": "删除",
+      "title": "删除物料",
+      "confirm": "它仍会保留在过往流水和收货记录中，以便历史可读。",
+      "blocked": "仍有启用中的 BOM 行需要该物料。请先将其从这些 BOM 中移除。",
+      "submit": "删除",
+      "pillBomLines": "条启用中的 BOM 行"
+    },
+    "errSkuTaken": "该 SKU 已被其他物料使用。"
+  },
+  "errors": {
+    "warehouse-not-allowed": "您不是该仓库的成员。",
+    "item-not-found": "该物品已不存在。",
+    "below-zero": "库存不能减到负数。",
+    "insufficient-stock": "库存不足以满足该操作。"
+  },
+  "receipts": {
+    "title": "收货",
+    "subtitle": "到货情况：下单多少、实到多少、哪些延误。",
+    "search": "按单号、物流单号或供应商搜索",
+    "empty": "暂无收货单。",
+    "emptyFiltered": "没有符合筛选条件的收货单。",
+    "new": "新建收货单",
+    "created": "收货单已创建。",
+    "updated": "收货单已更新。",
+    "received": "已收货。",
+    "rejected": "收货单已拒绝。",
+    "allStatuses": "全部状态",
+    "uploaded": "照片已上传。",
+    "tiles": {
+      "upcoming": "即将到货",
+      "overdue": "已逾期",
+      "partial": "部分收货",
+      "variance": "数量差异"
+    },
+    "col": {
+      "code": "单号",
+      "itemType": "类别",
+      "warehouse": "仓库",
+      "status": "状态",
+      "supplier": "供应商",
+      "shipments": "批次",
+      "created": "创建时间"
+    },
+    "status": {
+      "PENDING": "待收",
+      "PARTIAL": "部分收货",
+      "COMPLETE": "已完成",
+      "REJECTED": "已拒绝"
+    },
+    "shipStatus": {
+      "PENDING": "待收",
+      "PARTIAL_RECEIVED": "部分收货",
+      "RECEIVED": "已收货",
+      "REJECTED": "已拒绝"
+    },
+    "detail": {
+      "title": "收货单",
+      "expected": "应收",
+      "unitPrice": "单价",
+      "lineTotal": "小计",
+      "receivedQty": "实收",
+      "rejectedQty": "拒收",
+      "note": "备注",
+      "receive": "确认收货",
+      "eta": "预计到货",
+      "tracking": "物流单号",
+      "carrier": "承运商",
+      "vendor": "供应商",
+      "evidence": "凭证照片",
+      "upload": "上传照片",
+      "reject": "拒绝收货单",
+      "rejectReason": "原因",
+      "edit": "编辑",
+      "noEvidence": "暂无照片。"
+    },
+    "form": {
+      "title": "新建收货单",
+      "editTitle": "编辑收货单",
+      "desc": "一个仓库，一个或多个批次，每批各自的明细行。",
+      "warehouse": "仓库",
+      "itemType": "类别",
+      "provider": "供应商",
+      "note": "备注",
+      "shipment": "批次",
+      "addShipment": "添加批次",
+      "addLine": "添加明细",
+      "remove": "删除",
+      "item": "物品",
+      "quantity": "数量",
+      "shipmentCode": "批次号",
+      "submit": "创建",
+      "save": "保存"
+    },
+    "errors": {
+      "not-found": "该收货单已不存在。",
+      "not-receivable": "该收货单或批次已结束。",
+      "not-editable": "该收货单已有收货记录，无法再编辑。",
+      "received-below-current": "实收数量不能调低——已入库的货就在货架上。",
+      "too-many-files": "一次最多上传 10 张图片。",
+      "not-an-image": "请上传 PNG、JPG 或 WEBP 图片。",
+      "file-too-large": "图片不能超过 10MB。"
+    }
+  },
+  "boms": {
+    "section": "BOM",
+    "title": "物料清单",
+    "subtitle": "每个 SKU 由什么组成，以及这些组件是否有货。",
+    "tabs": {
+      "configs": "配置",
+      "coverage": "覆盖情况"
+    },
+    "search": "按 SKU、产品或 BOM 名称搜索",
+    "empty": "暂无 BOM。",
+    "emptyFiltered": "没有符合筛选条件的 BOM。",
+    "new": "新建 BOM",
+    "created": "BOM 已创建。",
+    "updated": "BOM 已保存。",
+    "activated": "BOM 已启用。",
+    "duplicated": "已创建新的草稿版本。",
+    "deleted": "BOM 已删除。",
+    "tiles": {
+      "total": "BOM 数",
+      "active": "启用",
+      "draft": "草稿",
+      "incomplete": "未完成明细"
+    },
+    "col": {
+      "variant": "产品变体",
+      "bom": "BOM",
+      "status": "状态",
+      "lines": "明细",
+      "components": "组件",
+      "manage": "管理"
+    },
+    "status": {
+      "DRAFT": "草稿",
+      "ACTIVE": "启用",
+      "INACTIVE": "停用"
+    },
+    "linesOf": "必需 / 共",
+    "linked": "已关联",
+    "incomplete": "未完成",
+    "manage": "管理",
+    "dialog": {
+      "title": "物料清单",
+      "versions": "版本",
+      "newDraft": "新建草稿",
+      "name": "名称",
+      "version": "版本",
+      "versionAuto": "自动",
+      "status": "状态",
+      "material": "物料",
+      "sku": "SKU",
+      "qtyPerUnit": "单件用量",
+      "unit": "单位",
+      "wastage": "损耗 %",
+      "stage": "阶段",
+      "required": "必需",
+      "addLine": "添加明细",
+      "save": "保存",
+      "activate": "启用",
+      "duplicate": "复制",
+      "delete": "删除",
+      "preview": "预览",
+      "previewQty": "数量",
+      "previewWarehouse": "仓库",
+      "component": "组件",
+      "requiredQty": "需求量",
+      "available": "可用",
+      "shortage": "缺口",
+      "mapping": "关联",
+      "unmapped": "未分配",
+      "noLines": "暂无明细。"
+    },
+    "stage": {
+      "PRODUCTION": "生产",
+      "PACKING": "包装",
+      "SHIPPING": "发货",
+      "OTHER": "其他"
+    },
+    "coverage": {
+      "search": "搜索组件",
+      "empty": "暂无组件。",
+      "tiles": {
+        "components": "组件数",
+        "linked": "已关联",
+        "shortage": "缺料",
+        "noStock": "无库存"
+      },
+      "col": {
+        "material": "物料",
+        "coverage": "覆盖",
+        "qty": "数量",
+        "reserved": "已预留",
+        "shortage": "缺口",
+        "available": "可用",
+        "usedIn": "使用的 BOM",
+        "warehouses": "仓库"
+      },
+      "badge": {
+        "AVAILABLE": "可用",
+        "NEEDED": "缺料",
+        "NO_STOCK": "无库存",
+        "UNMAPPED": "未分配"
+      },
+      "boms": "个 BOM",
+      "perUnit": "单件用量"
+    },
+    "errors": {
+      "not-found": "该 BOM 已不存在。",
+      "not-editable": "没有明细的 BOM 无法启用。",
+      "item-not-found": "该 SKU 已不存在。",
+      "bom-line-unmapped": "有必需组件尚未分配物料。"
+    }
+  }
+}

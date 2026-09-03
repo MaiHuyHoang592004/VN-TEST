@@ -1,0 +1,21 @@
+/// A batch of stock arriving at a warehouse.
+model StockImport {
+  id               Int      @id @default(autoincrement())
+  productVariantId Int      @map("product_variant_id")
+  warehouseId      Int      @map("warehouse_id")
+  quantity         Int
+  importedAt       DateTime @default(now()) @map("imported_at")
+  note             String?
+  provider         String?
+
+  productVariant ProductVariant   @relation(fields: [productVariantId], references: [id])
+  warehouse      Warehouse        @relation(fields: [warehouseId], references: [id])
+  movements      ImportMovement[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([productVariantId])
+  @@index([warehouseId])
+  @@map("stock_imports")
+}

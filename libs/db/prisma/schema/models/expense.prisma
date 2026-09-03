@@ -1,0 +1,60 @@
+/// A bucket the company's own money falls into: "Ink", "Rent", "Salaries",
+/// "Scrap sales". Kept as a table rather than an enum because finance invents
+/// new ones without a deploy — which is exactly what legacy's admin-only
+/// expense module was for.
+model ExpenseCategory {
+  id   Int         @id @default(autoincrement())
+  name String
+  /// What entries in this bucket normally are. The entry may still disagree
+  /// (a refund from a supplier is income filed under an expense category), so
+  /// this is a default, not a constraint.
+  type ExpenseType @default(EXPENSE)
+  note String?
+
+  entries ExpenseEntry[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("expense_categories")
+}
+
+/// One line of the company's own books. NOT the seller ledger: nothing here
+/// touches a User balance, which is why it can be a plain table with no
+/// idempotency key and no compare-and-set.
+model ExpenseEntry {
+  id         Int             @id @default(autoincrement())
+  categoryId Int             @map("category_id")
+  category   ExpenseCategory @relation(fields: [categoryId], references: [id])
+
+  /// EXPENSE or INCOME. Stored per entry rather than read off the category so
+  /// a mis-filed line can be corrected without moving it.
+  type ExpenseType @default(EXPENSE)
+  /// Always positive; `type` carries the direction. A signed amount plus a
+  /// type is two sources of truth for one fact, and they drift.
+  amount Decimal @db.Decimal(12, 2)
+
+  /// When the money actually moved, which is rarely when the row was typed.
+  occurredAt    DateTime @map("occurred_at")
+  paymentMethod String?  @map("payment_method")
+
+  vendorId Int?    @map("vendor_id")
+  vendor   Vendor? @relation(fields: [vendorId], references: [id])
+
+  description String?
+  /// Receipt photos, same evidence-Json shape as stock receipts and tickets.
+  attachments Json?
+
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation(fields: [createdById], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  /// The page's only sort, and the range every report filters on.
+  @@index([occurredAt])
+  @@index([categoryId])
+  @@map("expense_entries")
+}

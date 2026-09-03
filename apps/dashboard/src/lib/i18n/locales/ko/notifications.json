@@ -1,0 +1,102 @@
+{
+  "title": "알림",
+  "back": "뒤로",
+  "unread": "읽지 않음",
+  "unreadOnly": "안 읽음만",
+  "markAllRead": "모두 읽음 표시",
+  "delete": "삭제",
+  "deleted": "알림이 삭제되었습니다.",
+  "loadMore": "더 보기",
+  "empty": "새 알림이 없습니다.",
+  "viewAll": "모든 알림 보기",
+  "tabs": {
+    "all": "전체",
+    "orders": "주문",
+    "warehouse": "창고",
+    "payments": "결제",
+    "system": "시스템"
+  },
+  "time": {
+    "m": "분 전",
+    "h": "시간 전",
+    "d": "일 전"
+  },
+  "items": {
+    "inviteReceived": {
+      "title": "초대를 받았습니다",
+      "body": "{from} 님이 {roles}(으)로 초대했습니다. 열어서 수락하세요."
+    },
+    "inviteAccepted": {
+      "title": "초대가 수락되었습니다",
+      "body": "{email} 님이 초대를 수락했습니다."
+    },
+    "roleChanged": {
+      "title": "권한이 변경되었습니다",
+      "body": "현재 역할은 {roles} 입니다."
+    },
+    "toppedUp": {
+      "title": "잔액이 충전되었습니다",
+      "body": "{amount} 이(가) 추가되었습니다. 새 잔액 {balance}."
+    },
+    "refunded": {
+      "title": "환불을 받았습니다",
+      "body": "{amount} 이(가) 환불되었습니다. 새 잔액 {balance}."
+    },
+    "transactionApproved": {
+      "title": "충전이 승인되었습니다",
+      "body": "{amount}이(가) 추가되었습니다. 새 잔액 {balance}."
+    },
+    "transactionRejected": {
+      "title": "충전이 승인되지 않았습니다",
+      "body": "{amount} 요청이 거절되었습니다: {reason}"
+    },
+    "ordersAssigned": {
+      "title": "주문 {count}건이 생산으로 전달되었습니다",
+      "body": "{amount}이(가) 청구되었습니다. 새 잔액 {balance}."
+    },
+    "orderCreated": {
+      "title": "회원님 앞으로 주문이 등록되었습니다",
+      "body": "주문 {externalId}이(가) 계정에 생성되었습니다."
+    },
+    "orderStatusChanged": {
+      "title": "주문 {externalId}이(가) {status} 상태입니다",
+      "body": "자세한 내용은 주문에서 확인하세요."
+    },
+    "workAssigned": {
+      "title": "{warehouse}에 주문 {count}건이 도착했습니다",
+      "body": "생산을 시작할 수 있습니다."
+    },
+    "orderOnHold": {
+      "title": "주문 {externalId}이(가) 보류되었습니다",
+      "body": "{reason}"
+    },
+    "shippingLabelReady": {
+      "title": "주문 {externalId}의 라벨이 준비되었습니다",
+      "body": "운송장 {tracking} · {provider}"
+    },
+    "trackingUpdated": {
+      "title": "주문 {externalId}이(가) {status} 상태입니다",
+      "body": "운송장 {tracking}에 대한 택배사 업데이트입니다."
+    },
+    "fulfillmentBlocked": {
+      "title": "{warehouse} 작업이 막혔습니다",
+      "body": "{reason} — 해결될 때까지 소포를 둘 곳이 없습니다."
+    },
+    "labelPurchaseFailed": {
+      "title": "라벨 구매 실패",
+      "body": "소포 {count}건을 구매하지 못했습니다: {reason}"
+    },
+    "ticketReplied": {
+      "title": "“{title}” 티켓에 새 답변",
+      "body": "{from} 님이 답변했습니다."
+    },
+    "ticketStatusChanged": {
+      "title": "티켓 “{title}” 상태가 {status}(으)로 변경됨",
+      "body": "티켓을 열어 대화를 확인하세요."
+    },
+    "transactionRequested": {
+      "title": "{from} 님이 {kind} 요청을 보냈습니다",
+      "body": "{amount} 승인 대기 중입니다."
+    }
+  }
+}

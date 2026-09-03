@@ -1,0 +1,142 @@
+# CI — lint, build, migration integrity, and the portability guarantee.
+#
+# The Docker job is the point of this file. "We can move off Vercel later" is
+# only true if something keeps proving it; an untested Dockerfile rots within a
+# month and you find out on the day you actually need it.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run db:generate -w @opcreative/db
+      # The authorization gate — pure, no DB. Must pass before anything ships.
+      - run: node --test libs/shared/src/access/permissions.test.ts
+      - run: npx turbo run lint --filter=@opcreative/dashboard
+      - run: npx turbo run build --filter=@opcreative/dashboard
+        env:
+          # Build-time only: `prisma generate` never connects, and no page is
+          # statically rendered against real data.
+          DATABASE_URL: postgresql://placeholder@localhost:5432/placeholder
+          AUTH_SECRET: ci-build-only
+
+  migrations:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: opcreative_ci
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+        ports: ["5432:5432"]
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/opcreative_ci?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      # Migrations must apply cleanly from scratch, and the result must match
+      # the schema exactly. Catches a hand-written migration drifting from the
+      # models it is supposed to produce.
+      - name: Apply migrations from scratch
+        run: npx prisma migrate deploy --config prisma/config/prisma.config.ts
+        working-directory: libs/db
+
+      - name: Fail on schema drift
+        working-directory: libs/db
+        run: |
+          DIFF=$(npx prisma migrate diff --config prisma/config/prisma.config.ts \
+                   --from-config-datasource --to-schema prisma/schema --script \
+                 | grep -v "Loaded Prisma config" | grep -v "^$")
+          echo "$DIFF"
+          if [ "$DIFF" != "-- This is an empty migration." ]; then
+            echo "::error::Schema and migrations disagree — regenerate the migration."
+            exit 1
+          fi
+
+      # The legacy cutover is one irreversible shot at real money and
+      # permissions. Rehearse it on every PR that touches it.
+      - name: Rehearse the legacy cutover
+        working-directory: libs/db
+        run: ./prisma/scripts/test/run-cutover-test.sh
+        env:
+          CUTOVER_TEST_DB: opcreative_cutover_ci
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+
+      # Money invariants (atomic ledger, idempotency, cross-seller isolation)
+      # against the real service and a real database.
+      - name: Money invariants
+        working-directory: apps/dashboard
+        run: ./scripts/run-money-test.sh
+        env:
+          MONEY_TEST_DB: opcreative_money_ci
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+
+      # Rate limiting: the guarantee is that CONCURRENT attempts can't exceed
+      # the limit, which only a real database can demonstrate.
+      - name: Rate-limit invariants
+        working-directory: libs/db
+        run: ./prisma/scripts/test/run-rate-limit-test.sh
+        env:
+          RATELIMIT_TEST_DB: opcreative_ratelimit_ci
+          PGHOST: localhost
+          PGUSER: postgres
+          PGPASSWORD: postgres
+
+  docker:
+    name: Portability (builds and boots outside Vercel)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/dashboard/Dockerfile
+          push: false
+          load: true
+          tags: opcreative-dashboard:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Building is not proof. Boot it and require a real response, so a
+      # missing static-asset copy or a localhost bind is caught here.
+      - name: Boot the container and probe it
+        run: |
+          docker run -d --name dash -p 3000:3000 \
+            -e DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder \
+            -e AUTH_SECRET=ci-smoke-test \
+            -e AUTH_TRUST_HOST=1 \
+            opcreative-dashboard:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
+              echo "healthy after ${i}s"; curl -s http://localhost:3000/api/health; exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::container never became healthy"; docker logs dash; exit 1
+      - if: always()
+        run: docker rm -f dash 2>/dev/null || true

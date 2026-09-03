@@ -1,0 +1,102 @@
+{
+  "title": "通知",
+  "back": "戻る",
+  "unread": "未読",
+  "unreadOnly": "未読のみ",
+  "markAllRead": "すべて既読にする",
+  "delete": "削除",
+  "deleted": "通知を削除しました。",
+  "loadMore": "さらに読み込む",
+  "empty": "新しい通知はありません。",
+  "viewAll": "すべての通知を見る",
+  "tabs": {
+    "all": "すべて",
+    "orders": "注文",
+    "warehouse": "倉庫",
+    "payments": "支払い",
+    "system": "システム"
+  },
+  "time": {
+    "m": "分前",
+    "h": "時間前",
+    "d": "日前"
+  },
+  "items": {
+    "inviteReceived": {
+      "title": "招待が届きました",
+      "body": "{from} があなたを {roles} として招待しました。開いて承認してください。"
+    },
+    "inviteAccepted": {
+      "title": "招待が承認されました",
+      "body": "{email} が招待を承認しました。"
+    },
+    "roleChanged": {
+      "title": "権限が変更されました",
+      "body": "現在の役割は {roles} です。"
+    },
+    "toppedUp": {
+      "title": "残高をチャージしました",
+      "body": "{amount} が入金されました。新しい残高は {balance} です。"
+    },
+    "refunded": {
+      "title": "返金がありました",
+      "body": "{amount} が返金されました。新しい残高は {balance} です。"
+    },
+    "transactionApproved": {
+      "title": "入金が承認されました",
+      "body": "{amount} が追加されました。新しい残高 {balance}。"
+    },
+    "transactionRejected": {
+      "title": "入金が承認されませんでした",
+      "body": "{amount} の申請が却下されました：{reason}"
+    },
+    "ordersAssigned": {
+      "title": "{count} 件の注文を生産に送りました",
+      "body": "{amount} が請求されました。新しい残高 {balance}。"
+    },
+    "orderCreated": {
+      "title": "あなた宛に注文が登録されました",
+      "body": "注文 {externalId} があなたのアカウントに作成されました。"
+    },
+    "orderStatusChanged": {
+      "title": "注文 {externalId} は現在「{status}」です",
+      "body": "詳細は注文画面をご覧ください。"
+    },
+    "workAssigned": {
+      "title": "{warehouse} に {count} 件の注文が届きました",
+      "body": "生産に入れます。"
+    },
+    "orderOnHold": {
+      "title": "注文 {externalId} は一時停止中です",
+      "body": "{reason}"
+    },
+    "shippingLabelReady": {
+      "title": "注文 {externalId} のラベルが用意できました",
+      "body": "追跡番号 {tracking} · {provider}"
+    },
+    "trackingUpdated": {
+      "title": "注文 {externalId} は {status} です",
+      "body": "追跡番号 {tracking} の配送業者からの更新です。"
+    },
+    "fulfillmentBlocked": {
+      "title": "{warehouse} の作業が止まっています",
+      "body": "{reason} — 解消するまで荷物を置く場所がありません。"
+    },
+    "labelPurchaseFailed": {
+      "title": "ラベルの購入に失敗しました",
+      "body": "{count} 件の荷物を購入できませんでした: {reason}"
+    },
+    "ticketReplied": {
+      "title": "「{title}」に新しい返信",
+      "body": "{from} がチケットに回答しました。"
+    },
+    "ticketStatusChanged": {
+      "title": "チケット「{title}」は {status} になりました",
+      "body": "チケットを開いてやり取りを確認してください。"
+    },
+    "transactionRequested": {
+      "title": "{from} が {kind} を申請しました",
+      "body": "{amount} が承認待ちです。"
+    }
+  }
+}

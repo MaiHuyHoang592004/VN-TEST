@@ -1,0 +1,20 @@
+/// Consumption of an import batch by an order (FIFO costing trail).
+model ImportMovement {
+  id            Int    @id @default(autoincrement())
+  stockImportId Int    @map("stock_import_id")
+  /// External order reference (legacy stored marketplace ids here, not FK ids).
+  orderRef      String @map("order_ref")
+  quantity      Int
+  // ponytail: movementType stays String until legacy values are audited;
+  // convert to an enum after migration.
+  movementType  String @map("movement_type")
+  note          String?
+
+  stockImport StockImport @relation(fields: [stockImportId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([stockImportId])
+  @@map("import_movements")
+}

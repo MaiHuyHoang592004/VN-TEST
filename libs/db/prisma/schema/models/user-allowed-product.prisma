@@ -1,0 +1,18 @@
+/// Optional product allow-list for restricted partners — the legacy
+/// "warehouse_external" case, which used an untyped `configs.products` JSON
+/// array that nothing could validate or join against.
+///
+/// NO rows for a user means NO restriction. Absence is the permissive
+/// default, so adding the table can't silently lock anyone out.
+model UserAllowedProduct {
+  userId    String   @map("user_id")
+  productId Int      @map("product_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+  @@index([productId])
+  @@map("user_allowed_products")
+}

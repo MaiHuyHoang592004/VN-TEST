@@ -1,0 +1,19 @@
+/// Fixed-window rate-limit counters.
+///
+/// In Postgres rather than memory because the app runs on multiple serverless
+/// instances: an in-process counter would let an attacker get N attempts per
+/// instance, which is no limit at all. Postgres is also the portable choice —
+/// it works unchanged on Vercel, ECS or a bare box, with no new dependency.
+///
+/// One row per subject+action ("otp:send:foo@bar.com"). Rows are consumed
+/// through an atomic INSERT … ON CONFLICT so concurrent requests cannot both
+/// read a stale count and slip past the limit.
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  /// When the current window closes. A hit after this resets the counter.
+  expiresAt DateTime @map("expires_at")
+
+  @@index([expiresAt])
+  @@map("rate_limits")
+}

@@ -1,0 +1,104 @@
+{
+  "tickets": {
+    "title": "Support tickets",
+    "subtitle": "Ask about an order, a label or your account — and keep the answer.",
+    "new": "New ticket",
+    "search": "Search title, description or order",
+    "empty": "No tickets yet.",
+    "emptyFiltered": "No tickets match those filters.",
+    "allStatuses": "All statuses",
+    "allPriorities": "All priorities",
+    "allReasons": "All reasons",
+    "open": "open",
+    "col": {
+      "author": "Customer",
+      "title": "Title",
+      "order": "Order",
+      "reason": "Reason",
+      "status": "Status",
+      "priority": "Priority",
+      "created": "Created",
+      "replies": "Replies"
+    },
+    "status": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In progress",
+      "RESOLVED": "Resolved",
+      "CLOSED": "Closed"
+    },
+    "priority": {
+      "LOW": "Low",
+      "MEDIUM": "Medium",
+      "HIGH": "High",
+      "URGENT": "Urgent"
+    },
+    "reason": {
+      "wrong-item": "Wrong item shipped",
+      "quality-return": "Quality problem or return",
+      "bad-label": "Label problem",
+      "wrong-address": "Wrong address",
+      "missing-item": "Item missing from the parcel",
+      "other": "Something else"
+    },
+    "form": {
+      "new": "Open a ticket",
+      "description": "Tell us what happened. Photos help us settle it faster.",
+      "title": "Title",
+      "titlePlaceholder": "Wrong size shirt in order #1042",
+      "reason": "Reason",
+      "priority": "Priority",
+      "priorityHint": "Suggested from the reason — change it if you disagree.",
+      "order": "Order",
+      "orderNone": "Not about a specific order",
+      "body": "Description",
+      "bodyPlaceholder": "What arrived, what you expected, and anything you have already tried.",
+      "attach": "Attach photos",
+      "attachHint": "PNG, JPG or WEBP · up to 10 images · 10MB each",
+      "submit": "Open ticket",
+      "created": "Ticket opened",
+      "orderDropped": "The order you picked is not on your account, so the ticket was filed without it."
+    },
+    "edit": {
+      "title": "Edit ticket",
+      "submit": "Save changes",
+      "saved": "Ticket updated"
+    },
+    "delete": {
+      "title": "Delete this ticket?",
+      "body": "The ticket and its whole thread are removed. This cannot be undone.",
+      "submit": "Delete ticket",
+      "deleted": "Ticket deleted"
+    },
+    "detail": {
+      "back": "All tickets",
+      "customer": "Customer",
+      "order": "Order",
+      "created": "Opened",
+      "replies": "Replies",
+      "status": "Status",
+      "reason": "Reason",
+      "priority": "Priority",
+      "statusChanged": "Status updated",
+      "reply": "Reply",
+      "replyPlaceholder": "Write a reply…",
+      "send": "Send",
+      "sendHint": "⌘/Ctrl + Enter to send",
+      "sent": "Reply sent",
+      "closed": "This ticket is closed.",
+      "closedHint": "Reopen it to carry on the conversation.",
+      "reopen": "Reopen ticket",
+      "staff": "Support",
+      "attachments": "Attachments",
+      "empty": "No replies yet."
+    },
+    "errors": {
+      "not-found": "That ticket no longer exists.",
+      "ticket-closed": "This ticket is closed — reopen it to reply.",
+      "not-yours": "You cannot do that on this ticket.",
+      "file-too-large": "Images must be 10MB or smaller.",
+      "not-an-image": "Attach a PNG, JPG or WEBP image.",
+      "too-many-files": "Attach 10 images at most.",
+      "storage-not-configured": "Uploads are not available right now."
+    }
+  }
+}

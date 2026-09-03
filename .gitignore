@@ -1,0 +1,53 @@
+# See https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+node_modules
+
+# builds
+dist
+out
+build
+.next/
+next-env.d.ts
+
+# turborepo
+.turbo
+
+# vercel
+.vercel
+
+# testing / coverage
+coverage
+
+# logs
+npm-debug.log*
+yarn-error.log
+
+# IDE / editors
+.idea
+.settings/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# local Claude state
+.claude/worktrees
+.claude/settings.local.json
+
+# local gstack tooling state (not project source)
+.gstack
+
+# archived legacy projects — kept locally as reference, each its own git repo; not part of the workspace
+.archive/
+
+# env files (DB credentials etc.) — never commit
+.env
+.env.*
+!.env.example
+
+# generated prisma client
+libs/db/src/generated/

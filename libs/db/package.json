@@ -1,0 +1,27 @@
+{
+  "name": "@opcreative/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "postinstall": "prisma generate --config prisma/config/prisma.config.ts",
+    "db:generate": "prisma generate --config prisma/config/prisma.config.ts",
+    "db:migrate": "prisma migrate dev --config prisma/config/prisma.config.ts",
+    "db:migrate:prod": "ENV_FILE=.env.prod prisma migrate deploy --config prisma/config/prisma.config.ts",
+    "db:validate": "prisma validate --config prisma/config/prisma.config.ts",
+    "db:test:cutover": "./prisma/scripts/test/run-cutover-test.sh",
+    "db:studio": "prisma studio --config prisma/config/prisma.config.ts",
+    "db:promote": "node --env-file-if-exists=${ENV_FILE:-.env.local} prisma/scripts/promote-admin.ts",
+    "db:seed:demo": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types prisma/scripts/seed-demo.ts",
+    "db:seed:demo:prod": "ENV_FILE=.env.prod node --env-file-if-exists=.env.prod --experimental-strip-types prisma/scripts/seed-demo.ts"
+  },
+  "dependencies": {
+    "@opcreative/shared": "*",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0"
+  },
+  "devDependencies": {
+    "prisma": "^7.8.0"
+  }
+}

@@ -1,0 +1,29 @@
+/// Stock level of one SKU in one warehouse — the finished-goods half of the
+/// inventory system. Counters mean exactly what they mean on MaterialStock;
+/// that file documents the convention, and availableOf() owns the formula.
+model WarehouseInventory {
+  id               Int @id @default(autoincrement())
+  warehouseId      Int @map("warehouse_id")
+  productVariantId Int @map("product_variant_id")
+  /// Units physically present (including reserved).
+  quantity         Int
+  /// DEAD COLUMN. Kept because the legacy-A cutover fills it, but no new code
+  /// reads or writes it: availability is computed, never stored. Do not select
+  /// it — it is the drifted second source of truth we replaced.
+  stock            Int @default(0)
+  /// Held for assigned orders, still on the shelf.
+  reserved         Int @default(0)
+  /// Damaged/unsellable units.
+  badQuantity      Int @default(0) @map("bad_quantity")
+  needed           Int @default(0)
+
+  warehouse      Warehouse      @relation(fields: [warehouseId], references: [id])
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([warehouseId, productVariantId])
+  @@index([productVariantId])
+  @@map("warehouse_inventory")
+}

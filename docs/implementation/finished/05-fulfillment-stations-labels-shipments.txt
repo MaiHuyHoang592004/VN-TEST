@@ -1,0 +1,983 @@
+================================================================================
+IMPLEMENTATION 05 — FULFILLMENT STATIONS, PROOF PHOTOS, LABELS, SHIPMENTS
+================================================================================
+Written: 2026-07-22   Status: SHIPPED 2026-07-22 as PR #4 (26 commits, merged
+                      to main). All three phases built — A, B and C — plus the
+                      notification wiring this doc never specified.
+
+                      FILED HERE WITH WORK STILL OPEN, deliberately. The build
+                      order is complete and every automated check is green, but
+                      ten V-items remain unproven: no carrier has ever been
+                      called, no outbound webhook has ever been delivered, and
+                      the hardware smoke ritual has not been run. They did NOT
+                      move to finished/ with this file — they live in the
+                      master plan §3c, in the ACTIVE folder, because a pending
+                      item filed under finished/ is a pending item nobody reads
+                      again. Read them there; the detail is still below.
+Prereq:  doc 04 Phases A+B+C — catalog, orders (service, status map, table,
+         all five B4 slices, /api/v1/orders), finance ledger. All BUILT and
+         committed (verified in-repo 2026-07-22, HEAD 4e0cf63).
+Covers:  master-plan PHASE 4. Inventory/materials/BOM (master-plan Phase 5)
+         moves to doc 06 — it needs its own schema design and this phase
+         proves which stock numbers the floor actually uses first.
+Next:    doc 06 — inventory & materials.
+
+This doc is written to be followed line by line. Every section says WHAT file
+to create, WHAT goes in it, WHY (one line), and HOW to verify it before moving
+on. Numbers that look arbitrary (22, 20, 400ms, 1920×1080) are legacy-verified
+floor behaviour — keep them unless the floor says otherwise.
+
+  PHASE A — FOUNDATIONS   storage layer, schema additions, station services
+                          (scan / fill / basket / proof / handoff), shipments,
+                          permissions, outbound seller webhooks, tests
+  PHASE B — THE STATIONS  /fulfillment (scan station), /fulfillment/quick,
+                          /fulfillment/monitor
+  PHASE C — LABEL OPS     QR cell + print sheet on /orders, proof upload row
+                          action, bulk label download, label purchase behind a
+                          provider interface (KiloShips), DRX tracking webhook
+
+--------------------------------------------------------------------------------
+0. SOURCE OF TRUTH — AND TWO CORRECTIONS TO WHAT WE THOUGHT
+--------------------------------------------------------------------------------
+Everything below was verified 2026-07-22 by reading BOTH legacy repos AND the
+current app. Cites like `order.service.ts:981` are the legacy backend
+(.archive/oldproject/fulfillment-system-be), `FulfillmentPage.jsx:74` the
+legacy frontend (fulfillment-fe-new).
+
+⚠ THE ARCHIVE'S CHECKED-OUT BACKEND IS A STALE `dev` BRANCH (Sept 2025). The
+production code lives on git branches INSIDE the same repo. CORRECTED while
+writing doc 06: the true tip is **`origin/prod`** (10117f7, 2026-07-14);
+`origin/prod-20260617` — which this doc's cites reference — is an ANCESTOR
+of it. The fulfillment rules cited here exist on both, so the cites stand,
+but when implementing, double-check any cited file against origin/prod:
+    cd .archive/oldproject/fulfillment-system-be
+    git show 'origin/prod:src/order/order.service.ts'
+KiloShips label purchase, DRX tracking webhooks, is_scanned, the >20 scan
+confirmation gate and the Processing status exist ONLY on these prod
+branches, not on dev. When this doc cites "prod", read origin/prod.
+
+CORRECTIONS this uncovers to doc 04 §0c (they change nothing built, but the
+record should be straight):
+  1. "The one webhook module is OUTBOUND; nothing flows in" — true on dev,
+     FALSE on prod: an inbound DRX tracking webhook (HMAC-verified) updates
+     tracking status. Ported here as Phase C6, env-gated.
+  2. Labels were not only PirateShip share links: prod purchases labels
+     through the KiloShips API (kiloships.com) with idempotent reference ids.
+     Ported here as Phase C5 behind a provider interface.
+
+WHAT THE CURRENT APP ALREADY GIVES US (do not rebuild any of this):
+  · status map + InvalidTransitionError + PROCESSING, exported from
+    modules/fulfillment/index.ts explicitly "for doc 05's scan stations";
+    ON_HOLD's return point lives in Order.configs.resumeTo
+  · updateStatus(actor, id, to, ctx, note?) — transition-checked, scope-
+    checked, notifies seller on SHIPPED/DELIVERED/CANCELLED/ON_HOLD, fans
+    ORDER_ON_HOLD to orders.read.all holders, sets fulfilledAt on FULFILLED
+  · listOrders search already matches shipments.some.trackingNumber
+  · notify(tx, …)/notifyMany inside transactions; NOTIFICATION_META is
+    Record<NotificationType, Meta> so a new enum value FAILS THE BUILD until
+    the bell panel is wired — keep that property
+  · Order.filled (default 0) and Order.assignedToId exist and are written by
+    NOTHING yet — they are this doc's slots. Shipment table exists and is
+    READ-ONLY today; no code creates rows. Shipment.labelUrl/labelPath wait.
+  · xlsx-js-style is installed. NOT installed (this doc adds): qrcode,
+    pdf-lib, @vercel/blob. Nothing camera/print related is needed as a dep.
+  · NO file/upload storage exists anywhere — avatars and mockups are
+    external-URL strings. Phase A1 builds the first real storage.
+
+LEGACY → NEW STATUS DICTIONARY (memorise this; it resolves every "what maps
+to what" question in the build):
+  Pending            → PENDING
+  Production Ready   → ASSIGNED          (assignOrders already does this)
+  In Production      → IN_PRODUCTION     (the SCAN sets it — A4)
+  Filled             → not a status: filled >= quantity, derived from the
+                       counter (legacy flag dropped on purpose)
+  Produced           → dropped (was a manual sub-state; revisit if the floor
+                       asks — it is one enum value + one map edit)
+  Fulfilled          → FULFILLED         (the PROOF PHOTO sets it — A6)
+  Completed          → SHIPPED           (the HANDOFF sets it — A7)
+  Pending Dropoff, Design Sorted → already dead in legacy prod; not ported
+  Cancel             → CANCELLED
+  Wrong Label / Design problems / Out Of Stock / Return
+                     → ON_HOLD + note (the note carries which reason)
+  Refund             → not a status; money action (orders.refund, reserved)
+  tracking_status    → Shipment.trackingStatus (separate carrier axis;
+                       raw string, never an enum)
+
+--------------------------------------------------------------------------------
+PHASE A — FOUNDATIONS  (backend only; nothing user-visible until B)
+--------------------------------------------------------------------------------
+
+A1. STORAGE — modules/core/storage.ts  (the app's first file upload)
+    WHY: proof photos must live somewhere; doc 03 R2/R3 requires platform
+    services behind a tiny interface (no @vercel/* in business logic).
+
+    1. `npm i @vercel/blob -w @opcreative/dashboard`.
+    2. Create modules/core/storage.ts exporting exactly:
+         export type StoredFile = { url: string; pathname: string };
+         export async function putObject(input: {
+           key: string;            // e.g. "proofs/1Z999AA10123456784-1721650000.png"
+           body: ArrayBuffer | Buffer;
+           contentType: string;
+         }): Promise<StoredFile>;
+       Implementation selects by env:
+         · BLOB_READ_WRITE_TOKEN set → @vercel/blob `put(key, body,
+           {access: "public", contentType})`. Public-unguessable URLs are
+           acceptable for proof photos today.
+           // ponytail: public blob URLs; ceiling = photos are link-shareable.
+           // Upgrade path: access "private" + signed GET route when needed.
+         · else → local disk: write to `${UPLOAD_DIR ?? ".uploads"}/${key}`,
+           return url `/api/files/${key}`. Dev + self-host path ONLY — a
+           Vercel function's filesystem is read-only outside /tmp, so a
+           deploy with no BLOB_READ_WRITE_TOKEN and no S3 env must fail loud
+           at startup of the first upload ("storage not configured"), never
+           fall back to a disk that silently disappears between invocations.
+    3. Local-disk serving route app/api/(global)/files/[...path]/route.ts:
+       resolve against UPLOAD_DIR, `path.normalize` and REFUSE anything
+       escaping the root (`..`), infer content type from extension, stream it.
+       // ponytail: single-box local storage violates R4 statelessness on
+       // multi-instance; the ECS exit is an S3 impl of putObject, one file.
+    4. Upload validation helper in the same file:
+         assertImageUpload(file: File): size ≤ 10MB, type startsWith
+         "image/", extension in [png, jpg, jpeg, webp]. Throw typed errors
+         ("file-too-large" | "not-an-image") — actions surface the code.
+    5. VERIFY: node --test a storage.test.ts that round-trips a 1-byte png
+       through the local impl and rejects an 11MB buffer and a .pdf.
+
+A1b. STORAGE PORTABILITY — the Vercel Blob → S3 exit (decided 2026-07-22)
+    Blob is the day-1 driver because it is zero-config on Vercel. The whole
+    point of A1 is that leaving it later is a CONFIG change, not a refactor.
+    Honest scope of that swap: one new file (~40 lines) + one env var. It is
+    not literally one line — anyone who promises that is hiding the driver
+    file — but ZERO business-logic files change. To keep it that way, four
+    rules, all cheap, all enforced now:
+
+    R1. ONE IMPORT SITE. `@vercel/blob` (and later `@aws-sdk/client-s3`) may
+        be imported by storage drivers ONLY. Enforce mechanically, not by
+        discipline: storage.test.ts greps the source tree and FAILS if
+        "@vercel/blob" appears outside modules/core/storage*.ts. Same test
+        catches the s3 client later for free. This is the rule that actually
+        makes the swap safe; the other three are consequences.
+    R2. DRIVER PICKED BY ENV, NOT BY IMPORT.
+          STORAGE_DRIVER = "blob" | "s3" | "local"   (default: blob when
+          BLOB_READ_WRITE_TOKEN is set, else local)
+        The driver module is loaded with a dynamic import inside putObject so
+        an unused SDK is never bundled. Adding S3 = create storage.s3.ts
+        exporting the same putObject, add one case to the switch, set
+        STORAGE_DRIVER=s3 + AWS_* / S3_BUCKET / S3_PUBLIC_BASE_URL in Vercel.
+        That is the entire migration for new uploads.
+    R3. STORE THE KEY, NOT ONLY THE URL. putObject already returns
+        {url, pathname}. Persist BOTH wherever a file is recorded:
+          · Order.proofImageUrl  = url        (what the UI renders)
+          · Order.configs.proofKey = pathname (what a provider migration
+            needs to rewrite the URL later)
+          · label/zip artefacts: keep {url, key} inside Shipment.configs
+        Without the key, moving providers means re-deriving paths from URL
+        strings — the one thing that turns a config swap back into a project.
+        No new column: configs is already Json? on both models.
+        NEVER parse a stored URL for meaning, and never assume the host.
+    R4. THE INTERFACE STAYS ONE FUNCTION. putObject is all doc 05 needs
+        (proof photos, label zips). Do NOT pre-build getObject / deleteObject
+        / signed URLs / multipart — S3 supports them, Blob supports them,
+        neither is used, and speculative surface is the thing that makes a
+        driver swap hard. Add a function to the interface the day a caller
+        needs it, and add it to every driver in the same commit.
+        // ponytail: public-URL-only storage. Ceiling = anyone with the link
+        // can view a proof photo. Upgrade path (either driver): a
+        // getSignedUrl(key, ttl) added to the interface + a /api/files auth
+        // check; the DB already holds the key thanks to R3, so no backfill.
+    ONE-TIME COST OF SWITCHING LATER (write it down so nobody is surprised):
+    old Blob URLs keep resolving as long as the Blob store exists, so the
+    swap needs no downtime; copying historic objects into S3 and rewriting
+    the stored URLs is an optional cleanup script that reads configs.proofKey
+    (R3) — an hour of work, not a migration project.
+    VERIFY A1b: storage.test.ts contains the R1 grep assertion and passes with
+    BLOB_READ_WRITE_TOKEN unset (local driver) — the same assertion the
+    "self-host exit stays real" check at the end of this doc relies on.
+
+A2. SCHEMA — two migrations, run from libs/db (`npm run db:migrate -- --name
+    <name>`; NEVER db push):
+    1. `order_proof_image`
+         Order.proofImageUrl  String?  @map("proof_image_url")
+       WHY its own column: Order.imageUrl is the design ARTWORK; the proof
+       photo is evidence of the packed parcel. Legacy conflated them into
+       order_image; keep them separate.
+    2. `shipment_configs_and_audit`
+         Shipment.configs Json?        // provider raw response, parcels used
+         + AuditAction enum values: SHIPMENT_CREATED, ORDER_PROOF_UPLOADED,
+           LABEL_PURCHASED
+       WHY configs: it replaces legacy prod's whole OrderLabel log table
+       (prod schema:167-196) — a Shipment row IS the purchase log; the raw
+       provider response goes in configs for dispute debugging.
+    VERIFY: `npx prisma migrate status` clean; commit schema + migration
+    together.
+
+A3. PERMISSIONS — one addition, one commit, tests updated:
+      "orders.labels.manage"   grant: ADMIN, WAREHOUSE_ADMIN, WAREHOUSE
+    Covers purchase/link/download/print of labels. Stations themselves need
+    only the EXISTING orders.status.update. Do not add an "orders.scan"
+    permission — scanning IS a status update.
+
+A4. STATION SERVICE — modules/fulfillment/stations/service.ts
+    New feature folder (stations/), because orders/service.ts is already the
+    biggest file in the app and these functions share station-only helpers.
+    Import the status map and orders queries through the domain barrel.
+    Every function: explicit actor, orderScope() spread into every read,
+    scope re-checked on every write (never authorise on a client id).
+
+    recordScan(actor, input: {mode: "tracking"|"order"; value: string;
+               confirmed?: boolean})
+      → { group: TrackingGroup; requiresConfirmation?: {count: number} }
+      1. Resolve the order set:
+         · tracking mode: orders whose latest Shipment.trackingNumber matches
+           value (≥22 chars: contains; shorter: case-insensitive contains —
+           legacy prod repo:136-148), inside orderScope(actor).
+         · order mode: value is a numeric order id → that order, then EXPAND
+           to its group: all orders sharing its tracking number; if no
+           shipment, all orders sharing its externalId prefix (externalId
+           minus the final "-suffix" — legacy prod:2123-2130).
+      2. THE CONFIRMATION GATE (legacy prod:2427-2456): if the set has >20
+         rows and !confirmed → return {requiresConfirmation:{count}} and
+         MUTATE NOTHING. The client re-calls with confirmed:true.
+      3. Compute per-row wasScanned = status !== "ASSIGNED"  ← BEFORE step 4.
+         (legacy is_scanned, prod:2268-2291 — not a column, computed.)
+      4. Flip every ASSIGNED row → IN_PRODUCTION via the transition map, in
+         one transaction; stamp assignedToId = actor.id where null (the
+         "who worked this" slot, unwritten until now). This mutation IS the
+         scan event — same rule as legacy `function=fulfillment`
+         (prod:2268-2291).
+      5. Return the group: {trackingNumber?, externalIdPrefix?, orders:[{id,
+         externalId, status, wasScanned, quantity, filled, product, variant,
+         sku, mockupThumb, designUrl, proofImageUrl, note, internalNote,
+         basket: {name} | null, labelUrl?}], customer:{name}, isMultiUnit:
+         any quantity>1}.
+
+    fillOrder(actor, orderId, amount)
+      → { order; basket?: {name} }
+      1. Guard: order in scope, status IN_PRODUCTION, amount int ≥1 and
+         ≤ (quantity - filled). No legacy "correction path" (it silently
+         reduced counters on Filled/Completed rows, dev:1700-1706) — a
+         mis-fill is fixed by an admin edit, audited.
+      2. filled += amount. Do NOT change status when filled reaches quantity
+         — "Filled" is derived (progress bar), the enum stays IN_PRODUCTION.
+      3. BASKET ASSIGNMENT (port of legacy dev:1736-1766, race-proofed):
+         if the order's tracking group has >1 rows AND none carries a
+         basketPositionId:
+           SELECT id FROM basket_positions WHERE status='AVAILABLE'
+             ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED
+         inside the same transaction; claim it (status OCCUPIED,
+         trackingNumber = group's tracking) and set basketPositionId on ALL
+         rows of the group. None available → error "no-available-basket"
+         (the station shows it loudly; legacy threw the same).
+      4. Return the refreshed group so the UI re-renders progress.
+
+    attachProof(actor, input: {trackingNumber?|orderId?, file: File,
+                overwrite?: boolean})
+      1. Resolve group (same rules as recordScan). Guard scope +
+         orders.status.update.
+      2. OVERWRITE GATE: if any row is FULFILLED or SHIPPED and !overwrite →
+         return {requiresOverwrite:true} (legacy OverWriteModal fired on
+         'Pending Dropoff'|'Fulfilled', FulfillmentPage.jsx:122-139; ours
+         keys on the enum).
+      3. assertImageUpload → putObject key
+         `proofs/<tracking|order>-<epoch>.png`.
+      4. One transaction: every row gets proofImageUrl; every row NOT already
+         past FULFILLED transitions to FULFILLED (fulfilledAt = now — the
+         existing updateStatus semantics); basket freed: the group's
+         BasketPosition → status AVAILABLE, trackingNumber null (keep
+         basketPositionId on orders — it is history, legacy kept the display
+         string too, dev:987-1002); audit ORDER_PROOF_UPLOADED once per
+         group; notify nothing extra (FULFILLED is not a seller-notify
+         status — matches the built updateStatus list).
+      5. Return the group.
+
+    completeHandoff(actor, input: {trackingNumber, confirmText: string})
+      The legacy "type completed" ritual (FulfillmentPage2.jsx:268-315) —
+      the point is a deliberate human check before the parcel leaves.
+      1. confirmText.toLowerCase() !== "completed" → error "check-failed"
+         (the UI shows "Test check failed", worker retypes).
+      2. Group must exist, all rows FULFILLED (else "not-ready", listing
+         offending ids).
+      3. One transaction: every row → SHIPPED via updateStatus semantics
+         (seller notification fires — the built code already notifies on
+         SHIPPED); the group's Shipment rows get shippedAt = now; if a row
+         has NO shipment yet, create one {trackingNumber, shippedAt} so
+         SHIPPED never exists without a Shipment (audit SHIPMENT_CREATED);
+         basket freed if still held.
+      4. AFTER COMMIT: outbound seller webhook order_status (A6).
+      5. Return {labelUrl} (latest shipment's) so the station can open/print.
+
+    linkLabel(actor, input: {orderIds: number[], trackingNumber: string,
+              labelUrl: string (https), provider?: string, method?: string,
+              cost?: string})
+      Guard orders.labels.manage. For each order in scope: create a Shipment
+      {trackingNumber, labelUrl, provider, method, cost} (one per order —
+      the schema is one shipment row per order; a group shares the tracking
+      number, not the row). Audit SHIPMENT_CREATED per order. AFTER COMMIT:
+      shipping_added webhook to each distinct seller (A6). This is the
+      manual path that replaces legacy "PUT /orders/:id with label_url"
+      (prod:2677-2696) — in the new schema tracking/label NEVER sit on
+      Order, only on Shipment.
+
+    quickUpdate(actor, input: {keyword, to: FulfillmentStatus, note?})
+      → {updated: n, skipped: [{id, reason}], rows}
+      Port of PATCH update-by-keyword, prod behaviour NOT dev: match by
+      tracking number only (contains, truncate-22) — dev matched 15 ILIKE
+      fields including note text and once updated whatever it hit with ZERO
+      validation (dev:906-918). Ours: rows in scope, canTransition applied
+      per row; legal ones updated (through the same updateStatus core so
+      notifications/resumeTo hold), illegal ones reported skipped with the
+      transition error code. This function is the entire quick-scan backend.
+
+    schema.ts: zod for every input above (scanSchema value: min 10, max 40,
+    truncated server-side to last 22 for tracking mode — mirror what the UI
+    does so a raw API caller gets identical behaviour; legacy FE truncated at
+    22, FulfillmentPage.jsx:19,71-73; min-length note: legacy had 11 on one
+    station and 10 on another — standardise on 10).
+    actions.ts: one "use server" wrapper per function, each: guard →
+    withValidation(schema) → service → revalidatePath("/fulfillment") (and
+    "/orders" where rows changed).
+
+A5. QUERIES — modules/fulfillment/stations/queries.ts
+    listTrackingGroups(actor, {filter?: "open"|"ready"|"all", cursor?})
+      for the monitor page: orders joined to latest shipment, grouped by
+      trackingNumber (null tracking → grouped by externalId prefix), per
+      group: {trackingNumber, customer, orderCount, totalQuantity,
+      totalFilled, statuses:[…], labelUrl?, basket?, oldest placedAt}.
+      Grouping happens in SQL (groupBy on the joined tracking), not in JS —
+      legacy grouped in app code and its pagination counted rows not groups
+      (dev repo:176-238, meta.total wrong); paginate BY GROUP with a cursor.
+
+A6. OUTBOUND SELLER WEBHOOKS — modules/platform/webhooks/service.ts
+    User.webhookUrl + webhookSecret already exist (profile manages them).
+      dispatchWebhook(userId, event: "order_status"|"shipping_added"|
+                      "tracking_status", data)
+    · POST JSON {type: event, data}, headers: User-Agent
+      "OPCreative-Webhook/1.0", X-Signature: hex HMAC-SHA256 of the raw body
+      with webhookSecret (legacy sent the secret ITSELF as x-api-key,
+      dev webhook.service.ts:57-72 — sending the secret over the wire on
+      every call is the bug, signing is the fix; document the header in the
+      profile webhook tab).
+    · 10s timeout, fire-and-forget, try/catch swallow + console.warn.
+      CALLED AFTER COMMIT, NEVER INSIDE A TRANSACTION — an external HTTP
+      call inside $transaction holds row locks for up to 10s.
+      // ponytail: no retry, no delivery log (doc 03 deferral stands).
+      // Ceiling: a seller outage loses events. Upgrade: queue + log table.
+    · Event triggers (matching legacy prod NOTIFIABLE_ORDER_STATUSES,
+      prod:2777-2801, translated by the dictionary):
+        order_status   → on transition to IN_PRODUCTION, FULFILLED, ON_HOLD
+        shipping_added → on any Shipment created with a labelUrl (linkLabel,
+                         label purchase)
+        tracking_status→ Phase C6 (DRX) only
+      Payloads mirror legacy field names ({order_id: externalId, id,
+      status, note, updated_at, …}) so sellers' existing receivers keep
+      working after cutover.
+
+A7. TESTS — stations.test.ts (node --test, real DB, same harness as
+    orders.money.test.ts). Minimum set, in this order:
+      · recordScan flips ONLY ASSIGNED rows; wasScanned reflects pre-flip
+        state; >20 rows without confirmed mutates NOTHING and reports count
+      · recordScan stamps assignedToId once, never overwrites
+      · fillOrder rejects amount > remaining; two concurrent fillOrder calls
+        on one group claim exactly ONE basket (Promise.all — the SKIP LOCKED
+        guard is only exercised concurrently; a sequential test stays green
+        even if the guard is deleted, same lesson doc 04 C1 recorded)
+      · attachProof without overwrite on a FULFILLED group returns
+        requiresOverwrite and changes nothing; with overwrite replaces the
+        photo; basket freed exactly once
+      · completeHandoff refuses when any row is not FULFILLED; on success
+        every row is SHIPPED, every row has a Shipment with shippedAt, the
+        basket is AVAILABLE
+      · quickUpdate applies legal transitions, skips illegal with codes,
+        never touches rows outside the actor's warehouse scope
+      · linkLabel by a WAREHOUSE user outside their warehouse scope → 403
+    GREEN BEFORE PHASE B STARTS. These tests are the phase.
+
+--------------------------------------------------------------------------------
+PHASE B — THE STATIONS  (three pages; the legacy app had five — two were
+iterations of the same station, one was dead. Three covers everything.)
+--------------------------------------------------------------------------------
+
+B1. /fulfillment — THE SCAN STATION  (merges legacy fulfillment/,
+    fulfillment_2/, fulfillment_scan/ + scan-by-id)
+    Route: app/(protected)/fulfillment/page.tsx (thin server shell: guard
+    orders.status.update, render client component).
+    Components in components/pages/fulfillment/ (client):
+
+    station.tsx — state machine, holds the current group + mode.
+    scan-input.tsx
+      · autofocus text input, refocuses on blur (barcode guns type + Enter —
+        the keyboard wedge is the PRIMARY input; the camera is optional).
+      · mode toggle "Tracking # / Order ID" (two search behaviours of
+        recordScan). Tracking: length <10 → inline error; >22 → keep LAST 22
+        (silently, like legacy). Order ID: positive integer only.
+      · Enter → recordScanAction. On {requiresConfirmation} → ConfirmDialog
+        "This scan will move N orders to In Production (threshold 20).
+        Continue?" Cancel → toast "Scan cancelled. No status was changed."
+        Continue → re-call confirmed:true. (legacy modal copy,
+        FulfillmentSearchConfirmModal.jsx:35-57)
+    camera-panel.tsx  (progressive enhancement — render ONLY when
+      "BarcodeDetector" in window; Safari/Firefox lack it and lose nothing,
+      the wedge input still works)
+      · getUserMedia constraints: try {video: {width:{ideal:1920},
+        height:{ideal:1080}, frameRate:{ideal:30,min:15},
+        facingMode:"environment"}}, on OverconstrainedError retry
+        {video:true} (legacy chain, FulfillmentScanPage.jsx:118-181).
+        Permission/absence errors → CameraPermissionAlert card with a
+        Try-Again (reload) button — never a blank panel.
+      · new BarcodeDetector({formats:["qr_code","code_128","ean_13",
+        "code_39"]}), setInterval 400ms while video.readyState >= 2.
+      · duplicate guard: same value as last detection → toast "Already
+        detected this barcode" at most every 3s until the code leaves frame.
+      · detection feeds the SAME submit path as the input.
+      · photo-first rule (legacy :110-126): if the current group has no
+        proofImageUrl yet, a NEW barcode detection warns "Capture the order
+        photo first" instead of searching away.
+      · CAPTURE: Space key (when a group is loaded) or a Capture button →
+        draw video onto a 1920×1080 canvas, letterboxed (aspect-fit, black
+        fill), toBlob PNG → attachProofAction. (Legacy captured PNG at these
+        exact dims, :213-284.)
+    group-summary.tsx
+      · tracking number (copyable), customer name, basket badge (MapPin +
+        name — only when set), proof-photo thumbnail (click = lightbox),
+        label chip (Open → window.open(labelUrl)).
+      · RED banner when any quantity > 1 ("multi-unit parcel — count
+        pieces") — the legacy red-highlight rule.
+      · wasScanned warning dialog on load when any row wasScanned: table of
+        externalId + status badge; amber row when status !== PENDING.
+        Continue closes; Cancel clears the search (no page reload — legacy
+        reloaded the whole window, do not copy that).
+    order-card-grid.tsx — one card per order row:
+      · product / variant / SKU, mockup thumb + design image (hover
+        preview), quantity big, filled progress (n/m bar; full = green
+        "Filled" chip — the derived state), status badge, note +
+        internalNote, per-card status menu (allowedTransitions(status) only
+        — the map decides what the menu offers, same as /orders).
+      · FILL control: stepper (default remaining) + Fill button →
+        fillOrderAction; on "no-available-basket" show a red persistent
+        banner (the floor must resolve it, not dismiss it).
+    station-actions.tsx (sticky footer bar)
+      · Update All → status+note dialog (options = intersection of
+        allowedTransitions across rows; empty intersection = disabled with
+        tooltip)
+      · Capture/Upload proof → file input accept="image/*" capture=
+        "environment" (phone/tablet rear camera) or the camera panel's
+        Capture; on {requiresOverwrite} → confirm dialog "A proof photo
+        already exists / group is Fulfilled+ — overwrite?"
+      · Complete handoff → dialog: type the word ("completed", case-
+        insensitive) in a bare autofocus input — Enter submits; failure
+        toast "Check failed", success → SHIPPED + window.open(labelUrl)
+        for printing + green toast. (Print = the browser's PDF viewer;
+        print-js is not needed, do not add it.)
+      · Link label → dialog {trackingNumber, labelUrl, provider?, method?}
+        → linkLabelAction (visible under <Can permission=
+        "orders.labels.manage">).
+    VERIFY B1 manually before moving on (the station smoke ritual):
+      seed two ASSIGNED orders sharing a tracking number → scan it → both
+      cards show IN_PRODUCTION, wasScanned dialog did NOT fire → fill each
+      to full → basket badge appeared → upload a photo → status FULFILLED,
+      basket freed → Complete with "completed" → SHIPPED, label opened,
+      seller got the notification (bell) — and re-scanning now fires the
+      wasScanned dialog.
+
+B2. /fulfillment/quick — QUICK SCAN
+    One screen, port of legacy quick_scan/ with the prod matching rule:
+      · scan input (same truncate-22 + refocus behaviour), status select
+        (ALL enum values — quickUpdate skips illegal per-row), optional note
+        textarea, Enter submits quickUpdateAction.
+      · three stat tiles for the SESSION (client state, reset on unload):
+        Last Scanned · distinct tracking numbers · orders updated. Re-
+        scanning a tracking replaces its log rows, does not bump counters
+        (legacy rule).
+      · log table (no pagination): customer, tracking, new status badge,
+        qty, product, variant, note — PLUS a "skipped" sub-row listing
+        {externalId: reason} when quickUpdate skipped rows. Legacy silently
+        "updated" everything it matched; surfacing skips is the fix.
+
+B3. /fulfillment/monitor — READ-ONLY MONITOR
+    Server component over listTrackingGroups. Table: tracking number,
+    customer, orders (n), progress (Σfilled/Σqty bar), per-group status
+    chips, basket, label chip, oldest placedAt. Filter tabs: Open (any row
+    < FULFILLED) / Ready (all FULFILLED) / All. Cursor "Load more". No
+    mutations on this page at all.
+
+B4. NAV + i18n
+    Sidebar section "Fulfillment" (visible with orders.status.update):
+    Station · Quick Scan · Monitor. New namespace fulfillment.json in ALL 7
+    locales (~70 keys: station copy, warnings, dialog scripts, tile labels,
+    error codes incl. no-available-basket / check-failed / not-ready).
+    The catch-all comingSoon page stops covering these routes automatically.
+
+--------------------------------------------------------------------------------
+PHASE C — LABEL OPS ON /orders  (+ the two integrations, both env-gated)
+--------------------------------------------------------------------------------
+
+C1. CODE CELL on the orders table (the doc 04 B3 leftover, confirmed unbuilt).
+    `npm i qrcode jsbarcode -w @opcreative/dashboard`. New column cell
+    (warehouse-visible roles): small QR of String(order.id) rendered
+    client-side to canvas; click → a MODAL with the large code and the facts.
+
+    CORRECTED WHILE BUILDING (2026-07-22): this doc originally said the QR
+    REPLACES legacy's CODE128. It does not — it joins it. Checking the archive
+    showed legacy's final cell was a CODE128 preview opening a detail modal,
+    and a warehouse's laser scanners read CODE128, not QR. Both formats now
+    carry the SAME value (the order id), toggled in the modal and printed
+    together on the sheet; the station's detector already accepts qr_code and
+    code_128, so picking one would have stranded a set of hardware for nothing.
+    A popover became a modal for the same reason: it is what the floor already
+    knows, and it holds the facts a packer checks before trusting a scan.
+
+C2. PRINT SHEET — components/pages/orders/print-labels-sheet.tsx
+    "Print QR" toolbar action on selected rows: opens /orders/print?ids=…
+    (a minimal server page, guard orders.status.update): one block per
+    order — QR (id), externalId, tracking, product, variant, quantity,
+    ship-to name — print CSS (@page margin 14mm, block max-width 460px,
+    page-break-inside avoid), auto window.print() on load. This replaces
+    BOTH legacy JsBarcode popovers and the server-side download-barcode
+    endpoint (a client page needs no endpoint). The QR replaces the legacy
+    10-char batch CODE128; the station's order-id mode reads the same value.
+
+C3. PROOF UPLOAD row action on /orders (admin/warehouse): reuses
+    attachProofAction with the row's tracking number — same overwrite gate.
+    Shows proofImageUrl as a thumbnail in the (existing) image hover cell.
+
+C4. BULK LABEL DOWNLOAD — action downloadLabels(actor, filter)
+    Port of POST /orders/utils/download-label (dev:1482-1640), simplified:
+      · guard orders.labels.manage; input = the current table filter (same
+        query object as listOrders) + explicit date range defaulting to
+        TODAY; hard cap 200 labels (legacy MAXIMUM_DOWNLOAD_LABELS).
+      · collect distinct labelUrls from the groups' shipments; resolve
+        special sources exactly like legacy common.utils.ts:53-126:
+        PirateShip share links via their GraphQL
+        DownloadLabelsByShareTokenQuery → raw PDF; Google Drive links via
+        uc?export=download.
+      · fetch PDFs with concurrency 5 and NO sleep (legacy slept 5s between
+        downloads — 200 labels = 16 minutes inside one request; if
+        PirateShip rate-limits, add a delay for pirateship URLs only),
+        merge per box-type with pdf-lib (LABEL_CONFIG in AppConfig:
+        product.key → {min, single, multiple} — port the lookup, dev
+        repo:724-730), zip (use `archiver`), putObject
+        `labels/labels-<date>.zip`, return {url}.
+      · `npm i pdf-lib archiver -w @opcreative/dashboard`.
+      · NOTE the ceiling: ~200 fetches + merge inside one 300s function is
+        tight but fits; if it ever times out, halve the cap before
+        reaching for a queue.
+
+C5. LABEL PURCHASE — modules/fulfillment/labels/{provider.ts,kiloships.ts,
+    service.ts}   (env-gated: no KILOSHIPS_API_KEY → feature hidden)
+    provider.ts — the interface (R3 discipline; KiloShips is impl #1):
+      type LabelProvider = {
+        purchase(group: LabelGroup): Promise<PurchasedLabel>;  // idempotent
+      }
+      type LabelGroup = {referenceId, orders:[…], from: Address, to: Address,
+        parcels:[{length,width,height,distanceUnit,weight,massUnit}],
+        serviceLevel: string}
+      type PurchasedLabel = {labelUrl, trackingNumber, provider, method,
+        cost?, raw: unknown}
+    kiloships.ts — port of prod kiloships-label.service.ts:
+      POST {KILOSHIPS_API_BASE_URL|https://kiloships.com/api}
+        /shipping-labels/domestic, Authorization: Bearer KILOSHIPS_API_KEY,
+      servicelevelToken default "usps_ground_advantage";
+      IDEMPOTENCY: uniqueReferenceId per group; on a duplicate-reference
+      error, recover the existing label via GET /shipping-labels/reference/
+      :id (prod:1049-1103) — a retry must return the SAME label, never buy
+      twice.
+    service.ts — the grouping + skip rules (port of getGroupSkipReason,
+    prod:577-645) and the two entry points:
+      previewLabels(actor, orderIds, allowMultiple=false) → groups with
+        will_purchase | skip_reason. Skip when: any row's order already has
+        a shipment with labelUrl (unless allowMultiple) · rows do not share
+        one destination address · no parcel dims resolvable from the
+        product's configs (the legacy parcel rules read product configs —
+        port the SKU/option match + quantity multiplier lookup,
+        prod:1232-1627, and when configs are missing report
+        "missing-dimensions", never guess).
+      purchaseLabels(actor, orderIds, allowMultiple=false) → for each
+        purchasable group: provider.purchase → ONE Shipment per order
+        {trackingNumber, labelUrl, provider, method, cost,
+        configs:{parcels, raw}} + trackingStatus "CREATED" + audit
+        LABEL_PURCHASED + (C6) DRX subscribe + shipping_added webhook after
+        commit. Returns {purchased, skipped, failed} per group.
+    UI: /orders toolbar "Buy labels" (selection-based, <Can
+    orders.labels.manage>, hidden when env absent) → preview dialog — tiles
+    Selected/Groups/Will purchase/Skipped, per-group card with parcels,
+    from/to, skip reason, per-order rows (mirror the legacy preview modal
+    fields; it showed NO prices — KiloShips quotes on purchase) → Confirm →
+    result toast "X purchased, Y skipped, Z failed".
+    // ponytail: auto-purchase-on-create (legacy fired it on every create
+    // path) is NOT ported — a human previews and confirms. Ceiling: manual
+    // step per batch. Upgrade: a flag on the importer once trust is earned.
+
+C6. DRX TRACKING WEBHOOK (env-gated: DRX_API_KEY + DRX_WEBHOOK_SECRET)
+    modules/fulfillment/tracking/service.ts:
+      subscribeTracking(trackingNumbers[]) → POST api.drxtracking.com
+        /v2/track/register-tracking (called after purchase/linkLabel).
+      applyTrackingUpdate(payload) → set Shipment.trackingStatus for every
+        shipment with that trackingNumber; fan out tracking_status webhook
+        to each distinct seller.
+    Route app/api/(global)/webhooks/drx/route.ts (the slot doc 03 §1
+    reserved): verify x-drx-signature = HMAC-SHA256(raw body,
+    DRX_WEBHOOK_SECRET) with timingSafeEqual; REJECT when the secret is
+    unset (legacy skipped verification silently when unconfigured,
+    webhook.controller.ts:37-96 — and exposed unauthenticated admin
+    maintenance endpoints; port NEITHER hole). Idempotent by design
+    (same-status update is a no-op).
+
+C7. DELIBERATELY NOT PORTED from the legacy label/station machinery — each
+    needs a team decision, none blocks anything above:
+      · mockup sync (single+bulk) — depends on an external Google-Drive
+        helper microservice; new mockups are plain URLs. Decide with the
+        Drive strategy (doc 06+).
+      · /label-extractor page (Google Apps Script trigger) — C5 makes it
+        obsolete unless the Sheets flow is still alive; ASK before porting.
+      · OCR label extraction endpoints, "Produced" sub-state, seller
+        self-serve resolve-label, auto-purchase on create, legacy
+        label_downloaded_path (vestigial even in prod — written nowhere).
+
+--------------------------------------------------------------------------------
+BUILD ORDER (follow exactly; each step's verify gate is its exit)
+--------------------------------------------------------------------------------
+   1. A1 storage + storage.test.ts green                          (~half day)
+   2. A2 migrations + A3 permission (+ role-matrix test update)   (~1 hour)
+   3. A4 station service + A5 queries + A6 webhooks               (~1 day)
+   4. A7 stations.test.ts GREEN — the concurrency cases too       (~half day)
+   5. B1 scan station, built in the component order listed        (~1-1.5 days)
+   6. B1 smoke ritual on real hardware: a barcode gun AND a phone
+      camera against the dev server — this is the step that finds
+      the constraint/focus quirks code review cannot               (~half day)
+   7. B2 quick scan + B3 monitor + B4 nav/i18n                    (~1 day)
+   8. C1 QR cell + C2 print sheet + C3 proof row action           (~half day)
+   9. C4 bulk download                                            (~half day)
+  10. C5 KiloShips behind the interface (skip if no API key yet —
+      everything else works without it)                           (~1 day)
+  11. C6 DRX (same: skip until creds)                             (~half day)
+
+--------------------------------------------------------------------------------
+THE CHECK THAT MAKES DOC 05 "DONE"
+--------------------------------------------------------------------------------
+  · stations.test.ts green INCLUDING the two concurrency cases (basket
+    claim, double-scan) — sequential-only versions of those tests are
+    vacuous, see A7.
+  · The B1 smoke ritual passes on a real barcode gun and a real phone.
+  · A seller's bell shows the SHIPPED notification the moment a handoff
+    completes, and their webhook receiver (test with the profile tab's
+    "send test event") got order_status + shipping_added with an
+    X-Signature that verifies.
+  · /orders QR prints, and scanning that printed QR at the station loads
+    the same order (the loop closes).
+  · A warehouse user from site A cannot scan, fill, proof, complete, link
+    or quick-update ANY order of site B — asserted in tests, not clicked.
+  · With BLOB_READ_WRITE_TOKEN unset the whole flow still works on local
+    disk (the self-host exit stays real).
+
+--------------------------------------------------------------------------------
+WHAT SHIPPED 2026-07-22 — AND HOW IT WAS PROVEN
+--------------------------------------------------------------------------------
+Branch doc-05-fulfillment-stations, not merged to main. PHASES A, B AND C ARE
+ALL BUILT:
+  A1 storage · A2 two migrations · A3 permission · A4/A5/A6 station service,
+  monitor query, seller webhooks · A7 the 20-test suite · B1 scan station ·
+  B2 quick scan · B3 monitor · B4 nav + fulfillment.json in all 7 locales ·
+  C1 QR cell · C2 print sheet · C3 proof row action · C4 bulk label download ·
+  C5 label purchase behind a provider interface (KiloShips) · C6 DRX inbound
+  tracking webhook · plus the notification wiring the doc never specified
+  (below) and a real bug the verification found (§FOUND WHILE VERIFYING).
+
+Automated: 95/95 module tests green, tsc clean, lint clean, next build
+succeeds. The basket-claim concurrency test was mutation-checked — deleting
+its FOR UPDATE makes it FAIL, so it is not vacuous.
+
+NOTIFICATIONS (not in the original doc; added because the bell was the one
+surface this phase never spoke to). Four new types, each with a panel row and
+strings in all 7 locales; NOTIFICATION_META being Record<NotificationType,Meta>
+meant each one failed the build until it was wired, which is why none of them
+could land half-done:
+  SHIPPING_LABEL_READY   seller, when a parcel gets a label — raised by BOTH
+                         linkLabel and purchaseLabels through one helper, so a
+                         seller cannot tell from their bell how it was bought
+  TRACKING_UPDATED       seller, on carrier OUTCOMES only (delivered,
+                         exception, returned). Their webhook still receives
+                         every scan; only humans get the restraint
+  FULFILLMENT_BLOCKED    warehouse staff + admins, when the floor stops for
+                         want of a basket. Raised AFTER the transaction rolls
+                         back — inside it, the notification would roll back too
+  LABEL_PURCHASE_FAILED  whoever can retry it. Money-adjacent, never silent
+
+Manually driven end to end in a real browser against the dev server, with a
+temporary WAREHOUSE_ADMIN user and a seeded two-order parcel (all fixtures
+deleted afterwards; local DB back to 3 users / 0 orders / 0 warehouses):
+  scan → both ASSIGNED rows became IN_PRODUCTION and assignedToId was stamped ·
+  the multi-unit red banner fired · filling each piece claimed exactly ONE
+  basket for the GROUP · the proof photo set both rows FULFILLED, stored
+  configs.proofKey beside the URL, freed the basket, and served back 200
+  image/png from /api/files · the handoff refused the wrong word ("Check
+  failed") and refused a not-ready parcel BY NAME ("Not fulfilled yet:
+  SMOKE-9001-1, SMOKE-9001-2") · "COMPLETED" shipped it, stamped shippedAt and
+  wrote the seller's notification · re-scanning fired the already-worked
+  dialog · a SELLER hitting /fulfillment got 403.
+
+PHASE C, driven the same way on 2026-07-22 (fixtures deleted afterwards):
+  the QR cell and the proof-camera button render per row for a warehouse admin
+  and are absent for a seller · /orders/print?ids=… drew both blocks and their
+  QR codes · THE LOOP CLOSED: the value printed on order 9's QR, typed into the
+  station's Order ID mode, loaded the whole parcel and started it · "Buy
+  labels" is correctly ABSENT with no KILOSHIPS_API_KEY, while "Print QR" and
+  "Download labels" appear · the download action fetched a label URL that
+  404s, named the failure in FAILED.txt inside the zip, stored it through the
+  local driver and returned a link — the "never silently short" rule, working.
+
+--------------------------------------------------------------------------------
+BUILT BEYOND THE DOC — decisions taken while looking at the real screens
+--------------------------------------------------------------------------------
+None of this was specified here. All of it came from opening the app, which is
+the argument for doing that before calling a phase finished.
+
+X1. NOTIFICATIONS. The doc never said what the bell should show for any of
+    this. Four types, each with a panel row and strings in 7 locales:
+    SHIPPING_LABEL_READY (seller, raised by BOTH linking and buying through one
+    helper), TRACKING_UPDATED (seller, carrier OUTCOMES only — their webhook
+    still gets every scan), FULFILLMENT_BLOCKED (warehouse + admins, raised
+    AFTER the failing transaction rolls back), LABEL_PURCHASE_FAILED.
+
+X2. BOTH CODE FORMATS, not QR alone — see the correction in C1.
+
+X3. A DEMO SEED: libs/db/prisma/scripts/seed-demo.ts, `npm run db:seed:demo`.
+    12 parcels / 15 orders across every status the UI renders, multi-piece
+    parcels sharing a tracking number, and product parcel dimensions so label
+    buying has box rules to read. Idempotent (DEMO- prefix), and it refuses any
+    DATABASE_URL that is not localhost. The orders table was empty, which is
+    the one condition where a list screen tells you nothing.
+
+X4. MOBILE IS A CARD LIST, not a scrolling table. DataTable gained an opt-in
+    `mobileCard` renderer; below sm, orders render as compact cards with the
+    code and the proof action behind a collapsible. `hideOnMobile` had been
+    quietly removing the QR, tracking and site columns on a phone — which is
+    the surface this app is about to be wrapped in Capacitor for.
+
+X5. THE CAMERA PREVIEW MIRRORS on a front-facing camera and does NOT on a rear
+    one. A laptop webcam points at you and people expect a mirror; a rear
+    camera points at the world and must match it. CSS only — drawImage copies
+    the raw frame, so the captured proof photo is never mirrored either way,
+    which is the property that matters because that photo is dispute evidence.
+
+X6. THE BELL NOW POLLS. The master plan parked live notification delivery (P1)
+    with "pick it up when doc 05's fulfillment stations start" — they started,
+    so it was picked up: 60s interval on the query that already existed, paused
+    while the tab is hidden, refreshed on return. A packer at a bench sees work
+    arrive without navigating, which was the whole condition P1 named. Not a
+    socket, and not a realtime vendor: that is the next step if a floor ever
+    asks for faster, not a shorter interval.
+
+X7. "TODAY'S LABELS" IS REACHABLE AGAIN. C4's date-range default existed in the
+    service but the button only rendered with rows selected, so the question a
+    floor actually asks ("give me today's labels") had no control. The button
+    now sits outside the selection block and means today when nothing is
+    selected.
+
+--------------------------------------------------------------------------------
+FOUND WHILE VERIFYING — a real bug this phase did not create
+--------------------------------------------------------------------------------
+/orders answered 403 to warehouse and support staff. The page guarded on
+orders.read.own, which only SELLER and ADMIN hold; every other role reads
+through .warehouse or .all. It had been that way since doc 04, and the file's
+own comment ("one query for every role") had quietly disagreed with the guard
+underneath it the whole time.
+
+It was found by OPENING THE PAGE as a warehouse admin, not by reading the code
+— which is the argument for the browser passes in this doc, and the reason the
+V-items below that need real hardware are worth the trouble.
+
+Fixed with requireAnyPermission in core/guard.ts: the scoped families all have
+this shape (three grants, one capability), and "may open the page" stays a
+separate question from "may see this row".
+
+--------------------------------------------------------------------------------
+PENDING VERIFICATION — SHIPPED BUT NOT PROVEN (revisit before calling 05 DONE)
+--------------------------------------------------------------------------------
+Everything here is CODE THAT EXISTS and has never met the thing it was written
+for. None of it is a known defect; all of it is an untested assumption, which
+is the more expensive kind of unknown because it looks finished.
+
+V1. THE HARDWARE HALF OF THE B1 SMOKE RITUAL.  Build-order step 6, not run.
+    A headless browser has no camera and no barcode gun, so what was proven is
+    that the camera panel renders its permission-denied card rather than a
+    blank box. STILL UNPROVEN, and each is a floor-stopping quirk if wrong:
+      · the gun's keyboard-wedge behaviour — does it type + Enter into the
+        scan box, and does refocus-on-blur actually keep it there between
+        parcels, or does it fight the operator?
+      · a phone/tablet rear camera via capture="environment" on the proof
+        upload button;
+      · the live BarcodeDetector path on a real webcam: 400ms sampling, the
+        3s duplicate guard, the photo-first rule, Space as the shutter, and
+        whether the 1920x1080 letterboxed capture reads back a real shipping
+        label legibly (that resolution is legacy's, chosen for exactly this);
+      · the getUserMedia constraint chain against hardware that does NOT do
+        1080p — the OverconstrainedError retry is written but never taken.
+    DO IT: a bench, a gun, a phone, and the seeded-parcel ritual above.
+
+V2. THE VERCEL BLOB DRIVER HAS NEVER RUN.  Only the local-disk driver has.
+    putObject's blob branch is exercised by no test and no manual run, because
+    BLOB_READ_WRITE_TOKEN is unset everywhere it has been used so far. The
+    self-host exit is the half that is proven; the DEFAULT production path is
+    the half that is not.
+    DO IT: set the token on a preview deploy, upload one proof photo, confirm
+    the URL resolves and that configs.proofKey holds the key we asked for
+    (addRandomSuffix:false is the line that makes that true).
+
+V3. NO OUTBOUND WEBHOOK HAS EVER BEEN DELIVERED.  dispatchWebhook returns
+    early when a seller has no webhookUrl, and no seller in any database used
+    so far has one, so the HMAC signing path has executed exactly zero times.
+    DO IT: point a seller's webhook at a receiver (webhook.site or a local
+    listener), run a handoff, and verify X-Signature against the raw body with
+    the stored secret. This is also the doc's own "done" check.
+
+V4. ✅ CLEARED 2026-07-22 — the QR loop closes. Printed order 9's sheet, typed
+    its QR value into the station's Order ID mode, and the whole parcel loaded
+    and started. Kept as a line rather than deleted because it is the check the
+    "done" list names; delete it when 05 moves to finished/.
+
+V5. THE CARRIER HAS NEVER BEEN CALLED.  C5 is built and its rules are tested,
+    but purchaseLabels has never reached KiloShips because there is no API key.
+    Everything up to the HTTP call is proven — grouping by destination, the
+    skip reasons, the box-size lookup, preview writing nothing — and everything
+    after it is not:
+      · does their response actually carry label_url + tracking_number in the
+        shape kiloships.ts reads, or is the envelope different?
+      · THE IDEMPOTENCY RECOVERY IS THE ONE THAT MATTERS. Our duplicate
+        detection matches on /duplicate|already exists|reference/i in their
+        error text. If their wording differs, a retry BUYS A SECOND LABEL
+        instead of recovering the first — real money, silently.
+      · is uniqueReferenceId accepted at the length we send (opc-<ids joined>)?
+    DO IT, IN A SANDBOX FIRST: buy one label, then deliberately repeat the same
+    request and confirm the SAME tracking number comes back and no second
+    charge appears on the carrier account. Do not test this in production.
+
+V5b. THE PARCEL CONFIGS ARE EMPTY.  parcelsFor reads product.configs.parcel
+    ({single, multiple, distanceUnit, massUnit}) and no product in any database
+    has one, so today every group would skip with "missing-dimensions". That is
+    the SAFE failure — it refuses rather than guessing — but it means C5 does
+    nothing at all until the box rules are entered.
+    DO IT: port the legacy LABEL_CONFIG table into each product's configs, then
+    re-run the preview and confirm the boxes match what the floor actually uses.
+
+V5c. THE SHIP-FROM ADDRESS IS ENV, NOT PER-WAREHOUSE.  purchase.ts reads
+    SHIP_FROM_* and every label therefore leaves from one address. Fine for one
+    site; wrong the day a second site ships its own parcels.
+    Marked in code with a ponytail comment naming the upgrade (columns on
+    Warehouse, looked up by order.warehouseId — the group already knows its
+    site).
+
+V6. SIX LOCALES HAVE NEVER BEEN LOOKED AT.  zh/vi/ja/ko/fr/ar are translated
+    and key-for-key identical to English (asserted before commit), but only
+    English has been rendered on a screen. Arabic matters most: the station is
+    a two-column grid with a sticky footer bar, and nothing has been seen
+    under dir="rtl".
+    DO IT: switch the locale picker through all seven on /fulfillment and look
+    for clipped tiles, a mirrored progress bar, and the scan box's font-mono
+    input under RTL.
+
+V7. THE "NO AVAILABLE BASKET" PATH IS UNTESTED END TO END.  The service throws
+    the code and the station is written to show it as a persistent red banner
+    rather than a toast, but that has never happened for real: it needs every
+    basket position OCCUPIED at the moment of a fill.
+    DO IT: occupy every slot, fill a multi-order parcel, confirm the banner
+    stays put and does not clear on the next render.
+
+V8. TWO REAL STATIONS AT ONCE.  The basket-claim race is proven by a test that
+    overlaps two calls in one process. Two browsers, two people, one parcel is
+    the same code path — but the assumption that they behave identically is
+    the assumption, and the floor is where it gets tested for free.
+
+V9. VOLUME.  The monitor's cursor was walked one group at a time in tests and
+    seen empty in a browser; nobody has looked at it with hundreds of parcels,
+    where the GROUP BY over orders+shipments is the query that would show
+    strain first. The >20-order confirmation gate has likewise only been met
+    with exactly 21 seeded rows. C4's 200-label cap is the other volume
+    unknown: ~200 fetches plus a pdf-lib merge inside one 300s function is
+    tight but should fit, and nobody has run it with more than one label.
+
+V10. THE DRX WEBHOOK HAS NEVER RECEIVED A REAL DELIVERY.  The signature rule,
+    the idempotence and the notify-on-outcome restraint are all covered by
+    tests, so what is unproven is the SHAPE of what DRX actually sends:
+      · is the header really x-drx-signature, and is the digest hex of the raw
+        body — or base64, or over a timestamp+body pair?
+      · does their payload use trackingNumber or tracking_number (we accept
+        both), and do they batch several events per POST (we accept that too)?
+      · what does their status vocabulary look like? NOTIFIABLE matches
+        /delivered|exception|returned|failure|undeliverable|damaged/i, and a
+        carrier that says "DELIVERY_ATTEMPT_FAILED" would notify while one
+        saying "NOT_DELIVERED" would not.
+    DO IT when creds exist: register one tracking number, have them deliver a
+    real event, and confirm a 200 plus one shipment row updated. Then send the
+    same event twice and confirm the second is a no-op.
+
+--------------------------------------------------------------------------------
+BEFORE THIS GOES TO PRODUCTION — the environment checklist
+--------------------------------------------------------------------------------
+None of this is code. All of it is a way for the deploy to be wrong while
+every test is green.
+
+P1. STORAGE. Set BLOB_READ_WRITE_TOKEN in Vercel (or STORAGE_DRIVER=s3 with an
+    S3 driver written — see §A1b). With neither, the FIRST proof photo fails
+    loudly with "storage not configured", which is the designed behaviour and
+    still a broken station. Verify by uploading one photo after deploy.
+
+P2. LABEL CARRIER (optional, feature hides itself). KILOSHIPS_API_KEY, plus
+    KILOSHIPS_API_BASE_URL if not the default, plus KILOSHIPS_SERVICE_LEVEL if
+    not usps_ground_advantage. Also SHIP_FROM_NAME / LINE1 / CITY / STATE /
+    ZIP / COUNTRY — a label bought with an empty return address is a wasted
+    label. Test the idempotency recovery in a sandbox first (V5).
+
+P3. TRACKING (optional, feature hides itself). DRX_API_KEY and
+    DRX_WEBHOOK_SECRET. THE SECRET IS NOT OPTIONAL IF THE ROUTE IS REACHABLE:
+    without it every delivery is rejected, which is safe but silent — check
+    the logs for 401s rather than assuming quiet means working. Point DRX at
+    https://<host>/api/webhooks/drx.
+
+P4. PRODUCT PARCEL CONFIGS. Until product.configs.parcel is filled in, label
+    purchase skips everything (V5b). Do this before announcing the feature.
+
+P5. WEBHOOK DOCUMENTATION FOR SELLERS. The profile webhook tab must tell them
+    the header is X-Signature and the digest is HMAC-SHA256 of the raw body.
+    Legacy sent the SECRET ITSELF as x-api-key, so every existing receiver is
+    checking the wrong thing and will need this note before cutover.
+
+P6. THE PRE-PRODUCTION CHECKLIST FROM EARLIER PHASES still stands and is not
+    repeated here: Resend's test sender only mails the account owner,
+    AUTH_OTP_CONSOLE must be off, the legacy price-unit decision (O1 in doc
+    04), prod admin bootstrap, and rotating any leaked keys.
+
+--------------------------------------------------------------------------------
+OPEN QUESTIONS THIS PHASE RAISED — decide, don't drift
+--------------------------------------------------------------------------------
+O1. SHOULD A CARRIER "DELIVERED" MOVE THE ORDER TO DELIVERED?  Today it does
+    not: tracking is its own axis (the status dictionary at the top says so),
+    so an order sits at SHIPPED forever while its shipment reads "delivered".
+    Nothing else ever sets DELIVERED, which means the status exists and is
+    unreachable in practice.
+    Not decided in code on purpose — it is a business rule about when an order
+    is finished, and the carrier is only one opinion about that. Cheapest
+    version if the answer is yes: applyTrackingUpdate calls applyStatusChange
+    for rows still at SHIPPED, which already notifies the seller.
+
+O2. WHO PAYS FOR A LABEL?  purchaseLabels writes the cost onto the Shipment and
+    charges nobody. Doc 04's money path bills sellers at ASSIGNMENT for the
+    product; shipping is currently absorbed. If labels should be billed, that
+    is a ledger move and belongs with the own-shipping price question already
+    parked in doc 04 (D1), not bolted on here.
+
+O3. AUTO-PURCHASE ON IMPORT.  Deliberately not ported (legacy bought on every
+    create path). Revisit only once the grouping and skip rules have been
+    trusted on real orders for a while — the ponytail comment in purchase.ts
+    names it as the upgrade path.
+
+--------------------------------------------------------------------------------
+DOC 06 PREVIEW (so cross-phase seams land here correctly)
+--------------------------------------------------------------------------------
+  · Inventory & materials (master-plan Phase 5): stock decrement on
+    assignment (legacy did WarehouseInventory.quantity-- / needed++ at
+    assign time, dev:299-319 — assignOrders deliberately does NOT touch
+    stock until inventory is designed), receipts, movements, BOM.
+  · The floor data this phase starts producing (filled counters, scan
+    times, basket churn) is exactly the evidence doc 06 needs to decide
+    which stock numbers are real.
+================================================================================

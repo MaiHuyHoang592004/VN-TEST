@@ -1,0 +1,104 @@
+{
+  "tickets": {
+    "title": "Yêu cầu hỗ trợ",
+    "subtitle": "Hỏi về đơn hàng, nhãn vận chuyển hay tài khoản — và giữ lại câu trả lời.",
+    "new": "Tạo yêu cầu",
+    "search": "Tìm theo tiêu đề, mô tả hoặc đơn hàng",
+    "empty": "Chưa có yêu cầu nào.",
+    "emptyFiltered": "Không có yêu cầu nào khớp bộ lọc.",
+    "allStatuses": "Tất cả trạng thái",
+    "allPriorities": "Tất cả mức ưu tiên",
+    "allReasons": "Tất cả lý do",
+    "open": "đang mở",
+    "col": {
+      "author": "Khách hàng",
+      "title": "Tiêu đề",
+      "order": "Đơn hàng",
+      "reason": "Lý do",
+      "status": "Trạng thái",
+      "priority": "Ưu tiên",
+      "created": "Ngày tạo",
+      "replies": "Phản hồi"
+    },
+    "status": {
+      "OPEN": "Đang mở",
+      "IN_PROGRESS": "Đang xử lý",
+      "RESOLVED": "Đã giải quyết",
+      "CLOSED": "Đã đóng"
+    },
+    "priority": {
+      "LOW": "Thấp",
+      "MEDIUM": "Trung bình",
+      "HIGH": "Cao",
+      "URGENT": "Khẩn cấp"
+    },
+    "reason": {
+      "wrong-item": "Giao sai sản phẩm",
+      "quality-return": "Lỗi chất lượng hoặc trả hàng",
+      "bad-label": "Lỗi nhãn vận chuyển",
+      "wrong-address": "Sai địa chỉ",
+      "missing-item": "Thiếu hàng trong kiện",
+      "other": "Vấn đề khác"
+    },
+    "form": {
+      "new": "Mở yêu cầu hỗ trợ",
+      "description": "Hãy mô tả sự việc. Hình ảnh giúp chúng tôi xử lý nhanh hơn.",
+      "title": "Tiêu đề",
+      "titlePlaceholder": "Sai size áo trong đơn #1042",
+      "reason": "Lý do",
+      "priority": "Ưu tiên",
+      "priorityHint": "Gợi ý theo lý do — bạn có thể đổi nếu thấy chưa đúng.",
+      "order": "Đơn hàng",
+      "orderNone": "Không thuộc đơn hàng cụ thể",
+      "body": "Mô tả",
+      "bodyPlaceholder": "Bạn nhận được gì, mong đợi điều gì và đã thử cách nào.",
+      "attach": "Đính kèm ảnh",
+      "attachHint": "PNG, JPG hoặc WEBP · tối đa 10 ảnh · mỗi ảnh 10MB",
+      "submit": "Gửi yêu cầu",
+      "created": "Đã tạo yêu cầu",
+      "orderDropped": "Đơn hàng bạn chọn không thuộc tài khoản này nên yêu cầu được tạo mà không gắn đơn."
+    },
+    "edit": {
+      "title": "Sửa yêu cầu",
+      "submit": "Lưu thay đổi",
+      "saved": "Đã cập nhật yêu cầu"
+    },
+    "delete": {
+      "title": "Xóa yêu cầu này?",
+      "body": "Yêu cầu và toàn bộ cuộc trao đổi sẽ bị xóa. Không thể hoàn tác.",
+      "submit": "Xóa yêu cầu",
+      "deleted": "Đã xóa yêu cầu"
+    },
+    "detail": {
+      "back": "Tất cả yêu cầu",
+      "customer": "Khách hàng",
+      "order": "Đơn hàng",
+      "created": "Tạo lúc",
+      "replies": "Phản hồi",
+      "status": "Trạng thái",
+      "reason": "Lý do",
+      "priority": "Ưu tiên",
+      "statusChanged": "Đã cập nhật trạng thái",
+      "reply": "Trả lời",
+      "replyPlaceholder": "Nhập nội dung trả lời…",
+      "send": "Gửi",
+      "sendHint": "⌘/Ctrl + Enter để gửi",
+      "sent": "Đã gửi phản hồi",
+      "closed": "Yêu cầu này đã đóng.",
+      "closedHint": "Mở lại để tiếp tục trao đổi.",
+      "reopen": "Mở lại yêu cầu",
+      "staff": "Hỗ trợ",
+      "attachments": "Tệp đính kèm",
+      "empty": "Chưa có phản hồi nào."
+    },
+    "errors": {
+      "not-found": "Yêu cầu này không còn tồn tại.",
+      "ticket-closed": "Yêu cầu đã đóng — mở lại để trả lời.",
+      "not-yours": "Bạn không thể thực hiện thao tác này.",
+      "file-too-large": "Ảnh phải nhỏ hơn hoặc bằng 10MB.",
+      "not-an-image": "Hãy đính kèm ảnh PNG, JPG hoặc WEBP.",
+      "too-many-files": "Tối đa 10 ảnh mỗi lần.",
+      "storage-not-configured": "Hiện chưa thể tải tệp lên."
+    }
+  }
+}

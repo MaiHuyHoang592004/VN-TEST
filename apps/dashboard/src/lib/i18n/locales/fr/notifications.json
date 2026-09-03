@@ -1,0 +1,102 @@
+{
+  "title": "Notifications",
+  "back": "Retour",
+  "unread": "non lues",
+  "unreadOnly": "Non lues",
+  "markAllRead": "Tout marquer comme lu",
+  "delete": "Supprimer",
+  "deleted": "Notification supprimée.",
+  "loadMore": "Charger plus",
+  "empty": "Vous êtes à jour.",
+  "viewAll": "Voir toutes les notifications",
+  "tabs": {
+    "all": "Toutes",
+    "orders": "Commandes",
+    "warehouse": "Entrepôt",
+    "payments": "Paiements",
+    "system": "Système"
+  },
+  "time": {
+    "m": " min",
+    "h": " h",
+    "d": " j"
+  },
+  "items": {
+    "inviteReceived": {
+      "title": "Vous avez été invité",
+      "body": "{from} vous a invité en tant que {roles}. Ouvrez pour accepter."
+    },
+    "inviteAccepted": {
+      "title": "Invitation acceptée",
+      "body": "{email} a accepté votre invitation."
+    },
+    "roleChanged": {
+      "title": "Vos accès ont changé",
+      "body": "Vos rôles sont désormais {roles}."
+    },
+    "toppedUp": {
+      "title": "Solde rechargé",
+      "body": "{amount} ajouté. Nouveau solde {balance}."
+    },
+    "refunded": {
+      "title": "Remboursement reçu",
+      "body": "{amount} remboursé. Nouveau solde {balance}."
+    },
+    "transactionApproved": {
+      "title": "Rechargement approuvé",
+      "body": "{amount} a été ajouté. Nouveau solde {balance}."
+    },
+    "transactionRejected": {
+      "title": "Rechargement refusé",
+      "body": "Votre demande de {amount} a été refusée : {reason}"
+    },
+    "ordersAssigned": {
+      "title": "{count} commandes envoyées en production",
+      "body": "{amount} a été débité. Nouveau solde {balance}."
+    },
+    "orderCreated": {
+      "title": "Une commande a été créée pour vous",
+      "body": "La commande {externalId} a été créée sur votre compte."
+    },
+    "orderStatusChanged": {
+      "title": "La commande {externalId} est maintenant {status}",
+      "body": "Ouvrez Commandes pour les détails."
+    },
+    "workAssigned": {
+      "title": "{count} commandes sont arrivées à {warehouse}",
+      "body": "Elles peuvent partir en production."
+    },
+    "orderOnHold": {
+      "title": "La commande {externalId} est en pause",
+      "body": "{reason}"
+    },
+    "shippingLabelReady": {
+      "title": "Étiquette prête pour la commande {externalId}",
+      "body": "Suivi {tracking} · {provider}"
+    },
+    "trackingUpdated": {
+      "title": "La commande {externalId} est {status}",
+      "body": "Mise à jour du transporteur pour le suivi {tracking}."
+    },
+    "fulfillmentBlocked": {
+      "title": "L'atelier est bloqué à {warehouse}",
+      "body": "{reason} — aucun colis ne peut être rangé tant que ce n'est pas réglé."
+    },
+    "labelPurchaseFailed": {
+      "title": "Achat d'étiquette échoué",
+      "body": "{count} colis n'ont pas pu être achetés : {reason}"
+    },
+    "ticketReplied": {
+      "title": "Nouvelle réponse sur « {title} »",
+      "body": "{from} a répondu à votre ticket."
+    },
+    "ticketStatusChanged": {
+      "title": "Le ticket « {title} » est maintenant {status}",
+      "body": "Ouvrez le ticket pour voir le fil."
+    },
+    "transactionRequested": {
+      "title": "{from} a demandé un {kind}",
+      "body": "{amount} en attente de validation."
+    }
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "title": "Thông báo",
+  "back": "Quay lại",
+  "unread": "chưa đọc",
+  "unreadOnly": "Chỉ chưa đọc",
+  "markAllRead": "Đánh dấu đã đọc tất cả",
+  "delete": "Xóa",
+  "deleted": "Đã xóa thông báo.",
+  "loadMore": "Tải thêm",
+  "empty": "Bạn đã xem hết thông báo.",
+  "viewAll": "Xem tất cả thông báo",
+  "tabs": {
+    "all": "Tất cả",
+    "orders": "Đơn hàng",
+    "warehouse": "Kho",
+    "payments": "Thanh toán",
+    "system": "Hệ thống"
+  },
+  "time": {
+    "m": " phút",
+    "h": " giờ",
+    "d": " ngày"
+  },
+  "items": {
+    "inviteReceived": {
+      "title": "Bạn đã được mời",
+      "body": "{from} đã mời bạn với vai trò {roles}. Mở để chấp nhận."
+    },
+    "inviteAccepted": {
+      "title": "Lời mời đã được chấp nhận",
+      "body": "{email} đã chấp nhận lời mời của bạn."
+    },
+    "roleChanged": {
+      "title": "Quyền của bạn đã thay đổi",
+      "body": "Vai trò của bạn hiện là {roles}."
+    },
+    "toppedUp": {
+      "title": "Đã nạp tiền",
+      "body": "Đã cộng {amount}. Số dư mới {balance}."
+    },
+    "refunded": {
+      "title": "Đã nhận hoàn tiền",
+      "body": "Đã hoàn {amount}. Số dư mới {balance}."
+    },
+    "transactionApproved": {
+      "title": "Nạp tiền đã được duyệt",
+      "body": "Đã cộng {amount}. Số dư mới {balance}."
+    },
+    "transactionRejected": {
+      "title": "Nạp tiền không được duyệt",
+      "body": "Yêu cầu {amount} bị từ chối: {reason}"
+    },
+    "ordersAssigned": {
+      "title": "{count} đơn hàng đã chuyển sản xuất",
+      "body": "Đã trừ {amount}. Số dư mới {balance}."
+    },
+    "orderCreated": {
+      "title": "Có đơn hàng được tạo cho bạn",
+      "body": "Đơn {externalId} đã được tạo trên tài khoản của bạn."
+    },
+    "orderStatusChanged": {
+      "title": "Đơn {externalId} hiện là {status}",
+      "body": "Mở Đơn hàng để xem chi tiết."
+    },
+    "workAssigned": {
+      "title": "{count} đơn đã đến {warehouse}",
+      "body": "Sẵn sàng đưa vào sản xuất."
+    },
+    "orderOnHold": {
+      "title": "Đơn {externalId} đang tạm giữ",
+      "body": "{reason}"
+    },
+    "shippingLabelReady": {
+      "title": "Nhãn đã sẵn sàng cho đơn {externalId}",
+      "body": "Mã vận đơn {tracking} · {provider}"
+    },
+    "trackingUpdated": {
+      "title": "Đơn {externalId} đang {status}",
+      "body": "Cập nhật từ nhà vận chuyển cho mã {tracking}."
+    },
+    "fulfillmentBlocked": {
+      "title": "Xưởng bị tắc tại {warehouse}",
+      "body": "{reason} — không thể xếp kiện cho tới khi xử lý xong."
+    },
+    "labelPurchaseFailed": {
+      "title": "Mua nhãn thất bại",
+      "body": "{count} kiện không mua được nhãn: {reason}"
+    },
+    "ticketReplied": {
+      "title": "Phản hồi mới cho “{title}”",
+      "body": "{from} đã trả lời yêu cầu của bạn."
+    },
+    "ticketStatusChanged": {
+      "title": "Yêu cầu “{title}” hiện là {status}",
+      "body": "Mở yêu cầu để xem toàn bộ trao đổi."
+    },
+    "transactionRequested": {
+      "title": "{from} đã gửi yêu cầu {kind}",
+      "body": "{amount} đang chờ duyệt."
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "home": "首页",
+  "orders": "订单",
+  "products": "产品",
+  "wallet": "钱包",
+  "search": "搜索",
+  "analytics": "分析",
+  "login": "登录",
+  "signup": "注册",
+  "profile": "个人资料",
+  "settings": "设置",
+  "billing": "账单",
+  "helpSupport": "帮助与支持",
+  "logout": "退出登录",
+  "tools": {
+    "label": "工具",
+    "analytics": "分析",
+    "analyticsDescription": "店铺表现与洞察",
+    "wallet": "钱包",
+    "walletDescription": "余额与充值"
+  },
+  "tickets": "支持"
+}

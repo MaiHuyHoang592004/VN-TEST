@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "section": "Inventory",
+    "stock": "Stock",
+    "movements": "Movements",
+    "materials": "Materials",
+    "boms": "BOMs"
+  },
+  "tabs": {
+    "stock": "Stock",
+    "movements": "Movements",
+    "receipts": "Receipts"
+  },
+  "stock": {
+    "title": "Stock",
+    "subtitle": "What is on the shelves, what is held for orders, and what is short.",
+    "search": "Search by name or SKU",
+    "empty": "No stock yet.",
+    "emptyFiltered": "No items match those filters.",
+    "adjust": "Adjust",
+    "import": "Import stock",
+    "allWarehouses": "All warehouses",
+    "types": {
+      "MATERIAL": "Materials",
+      "PRODUCT": "Products"
+    },
+    "tiles": {
+      "items": "Items",
+      "onHand": "On hand",
+      "reserved": "Reserved",
+      "shortage": "Shortage"
+    },
+    "col": {
+      "item": "Item",
+      "kind": "Type",
+      "onHand": "On hand",
+      "reserved": "Reserved",
+      "shortage": "Shortage",
+      "available": "Available",
+      "warehouses": "Warehouses"
+    },
+    "tip": {
+      "reserved": "Allocated to orders in production",
+      "shortage": "Must receive more to cover current orders",
+      "available": "On hand − reserved"
+    }
+  },
+  "adjust": {
+    "title": "Adjust stock",
+    "description": "Correct the count for one item at one warehouse. The change is recorded with your reason.",
+    "warehouse": "Warehouse",
+    "delta": "Adjust by",
+    "deltaHint": "Use a negative number to reduce.",
+    "reason": "Reason",
+    "reasonPlaceholder": "Stock count correction",
+    "note": "Note",
+    "submit": "Apply adjustment",
+    "done": "Stock adjusted."
+  },
+  "import": {
+    "title": "Import stock",
+    "description": "Book in stock that arrived without a receipt.",
+    "item": "Item",
+    "itemPlaceholder": "Search materials by name or SKU",
+    "warehouse": "Warehouse",
+    "quantity": "Quantity",
+    "provider": "Supplier",
+    "note": "Note",
+    "submit": "Import",
+    "done": "Stock imported.",
+    "noItem": "Pick an item first."
+  },
+  "movements": {
+    "title": "Movements",
+    "subtitle": "Every change to every count, in the order it happened.",
+    "search": "Search by item name or SKU",
+    "empty": "No movements yet.",
+    "emptyFiltered": "No movements match those filters.",
+    "loadMore": "Load more",
+    "allTypes": "All types",
+    "col": {
+      "created": "Created",
+      "type": "Type",
+      "item": "Item",
+      "warehouse": "Warehouse",
+      "quantity": "Quantity",
+      "reference": "Reference",
+      "user": "User"
+    },
+    "types": {
+      "RECEIPT": "Receipt",
+      "MANUAL_IMPORT": "Import",
+      "MANUAL_ADJUSTMENT": "Adjustment",
+      "RESERVE": "Reserved",
+      "RESERVE_RELEASE": "Released",
+      "CONSUME": "Consumed",
+      "RETURN": "Returned",
+      "NEEDED": "Shortage",
+      "NEEDED_RESOLVED": "Shortage cleared"
+    },
+    "allItems": "All items"
+  },
+  "materials": {
+    "title": "Materials",
+    "subtitle": "Raw materials, packaging and consumables — what they are, not how many.",
+    "search": "Search by name, SKU or description",
+    "empty": "No materials yet.",
+    "emptyFiltered": "No materials match those filters.",
+    "new": "New material",
+    "created": "Material created.",
+    "updated": "Material updated.",
+    "deleted": "Material deleted.",
+    "dialogNewTitle": "New material",
+    "dialogEditTitle": "Edit material",
+    "dialogDesc": "Master data only. Counts are changed on the stock page.",
+    "col": {
+      "name": "Material",
+      "type": "Type",
+      "uom": "Unit",
+      "status": "Status",
+      "available": "Available",
+      "bomLines": "BOM lines"
+    },
+    "field": {
+      "sku": "SKU",
+      "name": "Name",
+      "type": "Type",
+      "uom": "Unit of measure",
+      "uomHint": "Free text: pcs, m, roll, kg…",
+      "description": "Description",
+      "status": "Status",
+      "trackInventory": "Track inventory",
+      "trackInventoryHint": "Off for items counted by eye — they appear on BOMs but never reserve or report a shortage."
+    },
+    "types": {
+      "RAW_MATERIAL": "Raw material",
+      "PACKAGING": "Packaging",
+      "SEMI_FINISHED": "Semi-finished",
+      "CONSUMABLE": "Consumable",
+      "OTHER": "Other"
+    },
+    "allTypes": "All types",
+    "delete": {
+      "action": "Delete",
+      "title": "Delete material",
+      "confirm": "It stays on past movements and receipts, so history still reads.",
+      "blocked": "Still needed by active BOM lines. Remove it from those BOMs first.",
+      "submit": "Delete",
+      "pillBomLines": "active BOM lines"
+    },
+    "errSkuTaken": "That SKU is already used by another material."
+  },
+  "errors": {
+    "warehouse-not-allowed": "You are not a member of that warehouse.",
+    "item-not-found": "That item no longer exists.",
+    "below-zero": "Cannot reduce inventory below zero.",
+    "insufficient-stock": "Not enough stock to cover that."
+  },
+  "receipts": {
+    "title": "Receipts",
+    "subtitle": "Goods arriving: what was ordered, what turned up, and what is late.",
+    "search": "Search by code, tracking or supplier",
+    "empty": "No receipts yet.",
+    "emptyFiltered": "No receipts match those filters.",
+    "new": "Create receipt",
+    "created": "Receipt created.",
+    "updated": "Receipt updated.",
+    "received": "Shipment received.",
+    "rejected": "Receipt rejected.",
+    "allStatuses": "All statuses",
+    "uploaded": "Photos uploaded.",
+    "tiles": {
+      "upcoming": "Upcoming ETA",
+      "overdue": "Overdue ETA",
+      "partial": "Partial",
+      "variance": "Variance"
+    },
+    "col": {
+      "code": "Code",
+      "itemType": "Items",
+      "warehouse": "Warehouse",
+      "status": "Status",
+      "supplier": "Supplier",
+      "shipments": "Shipments",
+      "created": "Created"
+    },
+    "status": {
+      "PENDING": "Pending",
+      "PARTIAL": "Partial",
+      "COMPLETE": "Complete",
+      "REJECTED": "Rejected"
+    },
+    "shipStatus": {
+      "PENDING": "Pending",
+      "PARTIAL_RECEIVED": "Partially received",
+      "RECEIVED": "Received",
+      "REJECTED": "Rejected"
+    },
+    "detail": {
+      "title": "Receipt",
+      "expected": "Expected",
+      "unitPrice": "Unit price",
+      "lineTotal": "Line total",
+      "receivedQty": "Received",
+      "rejectedQty": "Rejected",
+      "note": "Note",
+      "receive": "Receive",
+      "eta": "ETA",
+      "tracking": "Tracking",
+      "carrier": "Carrier",
+      "vendor": "Vendor",
+      "evidence": "Evidence",
+      "upload": "Upload photos",
+      "reject": "Reject receipt",
+      "rejectReason": "Reason",
+      "edit": "Edit",
+      "noEvidence": "No photos yet."
+    },
+    "form": {
+      "title": "Create receipt",
+      "editTitle": "Edit receipt",
+      "desc": "One warehouse, one or more shipments, each with its own lines.",
+      "warehouse": "Warehouse",
+      "itemType": "Item type",
+      "provider": "Supplier",
+      "note": "Note",
+      "shipment": "Shipment",
+      "addShipment": "Add shipment",
+      "addLine": "Add line",
+      "remove": "Remove",
+      "item": "Item",
+      "quantity": "Quantity",
+      "shipmentCode": "Shipment code",
+      "submit": "Create receipt",
+      "save": "Save changes"
+    },
+    "errors": {
+      "not-found": "That receipt no longer exists.",
+      "not-receivable": "This receipt or shipment is already settled.",
+      "not-editable": "This receipt has already been received against and can no longer be edited.",
+      "received-below-current": "Received quantity cannot go down — goods already booked in are on the shelf.",
+      "too-many-files": "Upload 10 images at most.",
+      "not-an-image": "Upload a PNG, JPG or WEBP image.",
+      "file-too-large": "Images must be 10MB or smaller."
+    }
+  },
+  "boms": {
+    "section": "BOMs",
+    "title": "Bills of materials",
+    "subtitle": "What each SKU is made of, and whether the components are on the shelf.",
+    "tabs": {
+      "configs": "Configs",
+      "coverage": "Coverage"
+    },
+    "search": "Search by SKU, product or BOM name",
+    "empty": "No BOMs yet.",
+    "emptyFiltered": "No BOMs match those filters.",
+    "new": "New BOM",
+    "created": "BOM created.",
+    "updated": "BOM saved.",
+    "activated": "BOM activated.",
+    "duplicated": "New draft version created.",
+    "deleted": "BOM deleted.",
+    "tiles": {
+      "total": "BOMs",
+      "active": "Active",
+      "draft": "Draft",
+      "incomplete": "Incomplete lines"
+    },
+    "col": {
+      "variant": "Product variant",
+      "bom": "BOM",
+      "status": "Status",
+      "lines": "Lines",
+      "components": "Components",
+      "manage": "Manage"
+    },
+    "status": {
+      "DRAFT": "Draft",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "linesOf": "required of",
+    "linked": "linked",
+    "incomplete": "incomplete",
+    "manage": "Manage",
+    "dialog": {
+      "title": "Bill of materials",
+      "versions": "Versions",
+      "newDraft": "New draft",
+      "name": "Name",
+      "version": "Version",
+      "versionAuto": "Auto",
+      "status": "Status",
+      "material": "Material",
+      "sku": "SKU",
+      "qtyPerUnit": "Qty / unit",
+      "unit": "Unit",
+      "wastage": "Wastage %",
+      "stage": "Stage",
+      "required": "Req",
+      "addLine": "Add line",
+      "save": "Save",
+      "activate": "Activate",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "preview": "Preview",
+      "previewQty": "Quantity",
+      "previewWarehouse": "Warehouse",
+      "component": "Component",
+      "requiredQty": "Required",
+      "available": "Available",
+      "shortage": "Shortage",
+      "mapping": "Map",
+      "unmapped": "Not assigned",
+      "noLines": "No lines yet."
+    },
+    "stage": {
+      "PRODUCTION": "Production",
+      "PACKING": "Packing",
+      "SHIPPING": "Shipping",
+      "OTHER": "Other"
+    },
+    "coverage": {
+      "search": "Search components",
+      "empty": "No components yet.",
+      "tiles": {
+        "components": "Components",
+        "linked": "Linked",
+        "shortage": "Shortage",
+        "noStock": "No stock"
+      },
+      "col": {
+        "material": "Material",
+        "coverage": "Coverage",
+        "qty": "Qty",
+        "reserved": "Reserved",
+        "shortage": "Shortage",
+        "available": "Available",
+        "usedIn": "Used in BOMs",
+        "warehouses": "Warehouses"
+      },
+      "badge": {
+        "AVAILABLE": "Available",
+        "NEEDED": "Shortage",
+        "NO_STOCK": "No stock",
+        "UNMAPPED": "Not assigned"
+      },
+      "boms": "BOMs",
+      "perUnit": "required/unit"
+    },
+    "errors": {
+      "not-found": "That BOM no longer exists.",
+      "not-editable": "A BOM with no lines cannot be activated.",
+      "item-not-found": "That SKU no longer exists.",
+      "bom-line-unmapped": "A required component has no material assigned."
+    }
+  }
+}

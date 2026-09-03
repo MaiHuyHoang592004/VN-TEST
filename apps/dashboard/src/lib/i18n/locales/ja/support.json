@@ -1,0 +1,104 @@
+{
+  "tickets": {
+    "title": "サポートチケット",
+    "subtitle": "注文・ラベル・アカウントについて質問し、そのやり取りを残せます。",
+    "new": "新規チケット",
+    "search": "タイトル・説明・注文番号で検索",
+    "empty": "チケットはまだありません。",
+    "emptyFiltered": "条件に一致するチケットはありません。",
+    "allStatuses": "すべてのステータス",
+    "allPriorities": "すべての優先度",
+    "allReasons": "すべての理由",
+    "open": "未解決",
+    "col": {
+      "author": "顧客",
+      "title": "タイトル",
+      "order": "注文",
+      "reason": "理由",
+      "status": "ステータス",
+      "priority": "優先度",
+      "created": "作成日",
+      "replies": "返信数"
+    },
+    "status": {
+      "OPEN": "未対応",
+      "IN_PROGRESS": "対応中",
+      "RESOLVED": "解決済み",
+      "CLOSED": "クローズ"
+    },
+    "priority": {
+      "LOW": "低",
+      "MEDIUM": "中",
+      "HIGH": "高",
+      "URGENT": "緊急"
+    },
+    "reason": {
+      "wrong-item": "誤った商品の発送",
+      "quality-return": "品質不良・返品",
+      "bad-label": "ラベルの問題",
+      "wrong-address": "住所の誤り",
+      "missing-item": "同梱漏れ",
+      "other": "その他"
+    },
+    "form": {
+      "new": "チケットを作成",
+      "description": "状況をお知らせください。写真があるとより早く解決できます。",
+      "title": "タイトル",
+      "titlePlaceholder": "注文 #1042 のシャツのサイズ違い",
+      "reason": "理由",
+      "priority": "優先度",
+      "priorityHint": "理由から自動で提案されます。必要に応じて変更できます。",
+      "order": "注文",
+      "orderNone": "特定の注文に関するものではない",
+      "body": "説明",
+      "bodyPlaceholder": "届いたもの、期待していたもの、すでに試したことをご記入ください。",
+      "attach": "写真を添付",
+      "attachHint": "PNG・JPG・WEBP / 最大 10 枚 / 1 枚 10MB まで",
+      "submit": "チケットを送信",
+      "created": "チケットを作成しました",
+      "orderDropped": "選択した注文はこのアカウントのものではないため、注文を紐付けずに作成しました。"
+    },
+    "edit": {
+      "title": "チケットを編集",
+      "submit": "変更を保存",
+      "saved": "チケットを更新しました"
+    },
+    "delete": {
+      "title": "このチケットを削除しますか？",
+      "body": "チケットとすべてのやり取りが削除されます。元に戻せません。",
+      "submit": "チケットを削除",
+      "deleted": "チケットを削除しました"
+    },
+    "detail": {
+      "back": "チケット一覧",
+      "customer": "顧客",
+      "order": "注文",
+      "created": "作成日時",
+      "replies": "返信",
+      "status": "ステータス",
+      "reason": "理由",
+      "priority": "優先度",
+      "statusChanged": "ステータスを更新しました",
+      "reply": "返信",
+      "replyPlaceholder": "返信を入力…",
+      "send": "送信",
+      "sendHint": "⌘/Ctrl + Enter で送信",
+      "sent": "返信を送信しました",
+      "closed": "このチケットはクローズされています。",
+      "closedHint": "再開すると会話を続けられます。",
+      "reopen": "チケットを再開",
+      "staff": "サポート",
+      "attachments": "添付ファイル",
+      "empty": "まだ返信はありません。"
+    },
+    "errors": {
+      "not-found": "このチケットは存在しません。",
+      "ticket-closed": "チケットはクローズ済みです。再開してから返信してください。",
+      "not-yours": "この操作は行えません。",
+      "file-too-large": "画像は 10MB 以下にしてください。",
+      "not-an-image": "PNG・JPG・WEBP の画像を添付してください。",
+      "too-many-files": "一度に添付できる画像は 10 枚までです。",
+      "storage-not-configured": "現在アップロードを利用できません。"
+    }
+  }
+}

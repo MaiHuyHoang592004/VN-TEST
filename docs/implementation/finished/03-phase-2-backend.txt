@@ -1,0 +1,546 @@
+================================================================================
+PHASE 2 — BACKEND: PERMISSIONS, GUARDS, SERVER ACTIONS
+================================================================================
+Written: 2026-07-20   Status: ✅ COMPLETE 2026-07-21/22 (branch phase-2-backend)
+Prereq:  Phase 1 (schema) — DONE, merged in PR #1.
+Next:    Phase 3 (frontend) — see finished/01-profile-and-user-admin, section 3.
+
+DONE so far:
+  • Authorization kernel (libs/db/permissions.ts) + guard/session, deny by
+    default. 9 gate tests green (node --test, wired into CI).
+  • Session fixes F3 (revocation via sessionsValidFrom, 60s revalidation) and
+    F4 (status gate for every provider) in libs/auth.
+  • selects/scopes/audit in libs/db. Transaction.idempotencyKey migration
+    (local + prod, in sync).
+  • Service+action+query layers for PROFILE, USERS (incl. money + invites),
+    WAREHOUSES (incl. members), and AUDIT reads. Services are transport-
+    agnostic (explicit actor) so the mobile /api/v1 reuses them unchanged.
+  • Money invariants proven by an integration test against a real DB (atomic
+    ledger, idempotency, cross-seller isolation) — 6 tests, wired into CI.
+
+STILL TO DO in phase 2 (not yet built):
+  • DONE 2026-07-21: rate limiting (Postgres-backed, atomic; wired into OTP
+    send, password login, password/email change, API key creation).
+  • Mobile token auth (5.1) + RefreshToken/DeviceToken models (5.2) + FCM
+    (5.3) — build when Capacitor work starts.
+  • Public /api/v1 routes + webhook handler — build per feature (section 8A).
+  • invite ACCEPT flow (a phase-3 page consumes the emailed token).
+
+PORTABILITY NOTE found while building (Next Server Actions docs): when self-
+hosting multiple instances (ECS/EC2), set NEXT_SERVER_ACTIONS_ENCRYPTION_KEY to
+a stable value shared across instances, or action references fail to decrypt
+across boxes. Vercel handles this automatically. Add it to the ECS env when we
+get there (belongs with R1-R7 in section 7).
+
+This document is the file-by-file map: what gets created, where, and what each
+piece is responsible for. Read finished/01 for the reasoning behind the design; this one
+is the build sheet.
+
+--------------------------------------------------------------------------------
+0. THE ARCHITECTURE DECISION  (REVISED 2026-07-20 — mobile changes this)
+--------------------------------------------------------------------------------
+There is still NO SEPARATE BACKEND SERVICE. One Next.js app on Vercel serves
+the web dashboard AND the HTTP API that the mobile app will call. But the
+original "almost no API" plan was written before Capacitor was on the table,
+and it does not survive that requirement. Revised:
+
+  BUSINESS LOGIC lives in transport-agnostic service functions.
+  TRANSPORTS are thin adapters over them:
+    • Server Actions      → web dashboard mutations
+    • Route Handlers /api/v1 → mobile app, seller integrations, anything else
+    • Server components   → reads, calling queries directly
+
+WHY SERVER ACTIONS ALONE ARE NOT ENOUGH.
+Server Actions are a Next.js-internal RPC, not an API. The action is addressed
+by a build-specific hash, the wire format is undocumented and version-coupled,
+and it authenticates with a same-origin cookie. That is fine for a browser
+loading pages from our own deployment. It is not something a native client can
+call, and it is not something we should ask anyone to integrate against.
+
+Whether Capacitor can use them at all depends on how the shell is configured:
+  (a) Remote URL mode (webview points at https://dashboard.opcreative.com):
+      it is literally our website in a webview, so actions work — but the app
+      is then a thin wrapper, which risks App Store rejection under the
+      "minimum functionality" guideline, and it is useless offline.
+  (b) Bundled-assets mode (the normal, store-friendly setup): the webview
+      serves from capacitor://localhost. Different origin, no Next.js server
+      at that origin — Server Actions cannot work, and the session cookie is
+      not sent. This needs a real HTTP API with token auth.
+
+Assume (b). Plan for it now, build the endpoints when mobile work actually
+starts.
+
+WHAT THIS COSTS US TODAY: nothing. "Service layer" only means putting the
+logic in `service.ts` instead of inside the action. The action becomes four
+lines. When mobile arrives, the route handler is another four lines over the
+same function — instead of a rewrite, or worse, a second copy of the money
+rules that drifts from the first.
+
+  modules/identity/users/service.ts ← all logic, no framework imports, takes an
+                                explicit actor argument
+  modules/identity/users/actions.ts ← "use server"; guard → service → revalidate
+  app/api/v1/users/route.ts   ← token auth → service → JSON
+
+RULE: a service function never reads cookies, headers or the session. It takes
+`actor: SessionUser` as a parameter. That is what makes it callable from both
+transports — and trivially testable, with no HTTP and no mocking.
+
+--------------------------------------------------------------------------------
+1. FOLDER LAYOUT (what gets created)
+--------------------------------------------------------------------------------
+Following the conventions already in the repo: `app/` stays thin, UI lives in
+`components/pages/<page>/`, API routes sit in a route group under `app/api/`.
+
+libs/auth/src/
+  permissions.ts            NEW  Permission list + role→permission map + can()
+  index.ts                  EDIT Fix F3 (session revocation) and F4 (status
+                                 check at login) in the Auth.js callbacks
+
+libs/db/src/
+  selects.ts                NEW  Field allow-lists per model, so we never ship
+                                 a whole row to the browser
+  scopes.ts                 NEW  Prisma `where` fragments per role scope
+                                 ("own" / "warehouse" / "all")
+  audit.ts                  NEW  writeAudit() — always called inside the same
+                                 $transaction as the change it records
+  index.ts                  EDIT re-export the three new modules
+
+apps/dashboard/src/modules/     Feature modules, grouped into bounded contexts.
+                                RESTRUCTURED 2026-07-21 — see
+                                src/modules/README.md for the rules. Built to
+                                stay navigable at 200+ endpoints: co-location
+                                (a feature owns one folder, schema included)
+                                plus domains with an ESLint-enforced import
+                                boundary.
+
+  core/                     cross-cutting infrastructure; anyone may import,
+                            and it must never import a domain
+    guard.ts                requireUser(), requirePermission(), ForbiddenError
+    session.ts              getSessionUser() — typed session accessor
+    context.ts              auditContext() — actor + ip + user agent
+    schema.ts               shared zod primitives (money, phone, reason, …)
+    tokens.ts               TODO mobile access/refresh tokens
+    (rate limiting lives in libs/db/rate-limit.ts — libs/auth needs it too)
+
+  identity/                 profiles, user admin, invites, API keys
+    index.ts                the domain's PUBLIC surface (cross-domain imports
+                            go through here, never deeper)
+    profile/                service · queries · actions · schema
+    users/                  service (money rules live here) · queries ·
+                            actions · schema · money.test.ts
+    api-keys/               service.ts — generate/hash/verify
+
+  inventory/                sites and what sits in them
+    index.ts
+    warehouses/             service · queries · actions · schema
+
+  platform/                 cross-domain product surfaces
+    index.ts
+    audit/                  queries.ts
+
+  catalog/ fulfillment/ finance/ support/     domains reserved for phase 3+
+
+Per-feature file convention (same names everywhere, so nothing is ever hunted
+for): service.ts (logic, explicit actor) · queries.ts (guarded reads) ·
+actions.ts ("use server" adapters) · routes.ts (/api/v1, added with Hono) ·
+schema.ts (zod, isomorphic — the form imports the SAME schema) ·
+<feature>.test.ts.
+
+apps/dashboard/src/app/api/(public)/v1/     NEW  outward-facing, ApiKey auth
+  orders/route.ts           GET list, POST create   (seller integrations)
+  orders/[id]/route.ts      GET one
+  _lib/with-api-key.ts      auth wrapper + rate limit + error shape
+  ...once Hono lands this collapses to [[...route]]/route.ts mounting each
+  domain's routes.ts, so 200 endpoints never become 200 folders.
+
+apps/dashboard/src/app/api/(global)/
+  webhooks/[provider]/route.ts  NEW  inbound webhooks; signature verified
+
+Tests (plain node:test, no new framework):
+libs/db/src/access/permissions.test.ts                            the authorization gate
+apps/dashboard/src/modules/identity/users/money.test.ts    money invariants
+
+--------------------------------------------------------------------------------
+2. FILE BY FILE
+--------------------------------------------------------------------------------
+
+2.1  libs/auth/src/permissions.ts
+     Why in libs/auth: the storefront app will need the same map later, and it
+     sits next to the session that carries the roles.
+
+       export const PERMISSIONS = [...] as const
+       export type Permission = typeof PERMISSIONS[number]
+       export const ROLE_PERMISSIONS: Record<UserRole, Permission[]>
+       export function permissionsFor(roles: UserRole[]): Set<Permission>
+       export function can(roles: UserRole[], p: Permission): boolean
+
+     Permission names carry their scope as a suffix:
+       orders.read.own | orders.read.warehouse | orders.read.all
+     The scope suffix is what scopes.ts reads, so "customers only see their own
+     orders" is written once rather than re-derived per page.
+
+     Roles → rough shape (full map in the file):
+       ADMIN            everything
+       WAREHOUSE_ADMIN  warehouse + members + orders.read.warehouse + assign
+       WAREHOUSE        orders.read.warehouse, warehouses.read
+       SUPPORT          users.read, orders.read.all, tickets.manage
+       DESIGNER         orders.read.all, products.read
+       SELLER           *.own only
+
+     Permissions live in CODE, not the database. A DB-backed permission editor
+     is worth it when non-engineers must change rules at runtime; with 6 roles
+     and one engineer it is a table, a UI and a cache-invalidation bug for no
+     gain. Revisit if that changes.
+
+2.2  libs/auth/src/index.ts  (EDIT — the two open findings from Phase 1)
+
+     F3 — session revocation. Sessions are JWTs, so today a deactivated user
+     keeps working until their token expires. `User.sessionsValidFrom` exists
+     but nothing reads it. In the jwt callback:
+
+       if (user.sessionsValidFrom && token.iat * 1000 < +user.sessionsValidFrom)
+         return null                      // token predates the cutoff → dead
+
+     Bumped by: deactivate, password change, email change, signOutEverywhere.
+     Cost: one indexed lookup on token refresh, not on every request.
+
+     F4 — status check at login. Today only the Credentials provider checks,
+     and only for BANNED, so an INACTIVE user can still sign in and Google
+     sign-in checks nothing. Move it into the signIn callback so it covers
+     every provider:
+
+       if (dbUser.status !== "ACTIVE" || dbUser.deletedAt) return false
+
+2.3  libs/db/src/selects.ts
+     One constant per audience. The legacy API returned the whole user row —
+     balance, debt, tier, configs, API key — to the browser on every page load.
+
+       USER_PUBLIC_SELECT   id, name, image, avatarUrl
+       USER_SELF_SELECT     + email, phone, locale, timezone, company, tax id,
+                              webhook url, balance, createdAt
+       USER_ADMIN_SELECT    + roles, status, tier, debt, adminNote, lastLoginAt
+       WAREHOUSE_SELECT / AUDIT_SELECT likewise
+
+     Never `select: undefined` on a user query. Ever.
+
+2.4  libs/db/src/scopes.ts
+       export function orderScope(u: SessionUser): Prisma.OrderWhereInput
+       export function userScope(u: SessionUser): Prisma.UserWhereInput
+       export function warehouseScope(u: SessionUser): Prisma.WarehouseWhereInput
+
+     Each reads the `.own/.warehouse/.all` permission suffix and returns the
+     matching filter — warehouse scope resolves through WarehouseMember, so a
+     manager covering two sites works without special-casing. Every list query
+     spreads the scope first, then its own filters. The legacy service had ~15
+     hand-written role checks in one file and one of them was commented out;
+     this is the structural fix for that.
+
+     Also honours UserAllowedProduct: if a user has allow-list rows, product
+     filters are intersected with them.
+
+2.5  libs/db/src/audit.ts
+       export async function writeAudit(tx, {action, actor, targetType,
+         targetId, before, after, reason, ip, userAgent})
+
+     Takes a transaction client, NOT the global prisma — so it is impossible to
+     write the change and lose the log. Never records secrets (no password
+     hashes, no key material, no tokens) and diffs changed fields only.
+
+2.6  apps/dashboard/src/modules/core/guard.ts
+       export class ForbiddenError extends Error
+       export async function requireUser(): Promise<SessionUser>
+       export async function requirePermission(p): Promise<SessionUser>
+
+     Deny by default: every server action's FIRST line is one of these. Two
+     rules that make this structural rather than a habit:
+       • An action that never calls a guard is a bug, caught in review.
+       • Never authorise on an id from the client — "update user X" must
+         re-check that the actor may manage X, because the client can send any
+         id it likes.
+
+2.7  apps/dashboard/src/modules/identity/profile/actions.ts        (self-service)
+       updateProfile(input)            name, phone, locale, timezone, company,
+                                       tax id, avatar
+       requestEmailChange(email)       → pendingEmail + OTP to the NEW address
+       confirmEmailChange(code)        swap in, bump sessionsValidFrom, audit
+       changePassword(current, next)   verify, bcrypt, bump, audit
+       updateWebhook(url, secret)      https-only
+       testWebhook()                   signed ping, returns status + body
+       createApiKey(name)              → "opc_live_<32 bytes base62>";
+                                       store SHA-256 hash + prefix;
+                                       RETURN THE RAW KEY EXACTLY ONCE
+       revokeApiKey(id)                ownership re-checked, sets revokedAt
+       signOutEverywhere()             bumps sessionsValidFrom
+
+2.8  apps/dashboard/src/modules/identity/users/actions.ts          (admin)
+       inviteUser / resendInvite / revokeInvite
+       updateUser(id, input)     roles require the SEPARATE users.roles.manage
+       setUserStatus(id, status) deactivating bumps THAT user's
+                                 sessionsValidFrom → kicked out immediately
+       deleteUser(id)            soft delete only
+       topUpBalance / refundBalance / adjustBalance
+
+     MONEY RULES (non-negotiable):
+       • Balance is never written outside a $transaction that also writes the
+         Transaction row and the audit row. If they can disagree, the ledger is
+         fiction.
+       • Decimal end to end. No float arithmetic anywhere.
+       • Reason is REQUIRED and lands in the audit row.
+       • Idempotency key per request so a double-click cannot double-credit.
+         The legacy version deducted balances inside an unawaited forEach and
+         could double-charge already-assigned orders.
+
+2.9  apps/dashboard/src/modules/inventory/warehouses/actions.ts
+       createWarehouse / updateWarehouse    code uppercased, uniqueness checked
+                                            with a friendly error, not a raw
+                                            Prisma constraint dump
+       setWarehouseStatus                   deactivate rather than delete
+       getWarehouseUsage(id)                counts referencing rows → drives
+                                            can_delete and the "used by" pills
+       deleteWarehouse(id)                  only when usage is zero; soft
+       addWarehouseMember / removeWarehouseMember
+                                            isPrimary also updates
+                                            User.warehouseId in the same
+                                            transaction (the two-source-of-
+                                            truth note in the schema)
+
+2.10 apps/dashboard/src/app/api/(public)/v1/…           (the only real "API")
+     For seller integrations that today call the legacy backend. Auth is
+     `x-api-key`; the wrapper hashes the presented key and looks it up by
+     keyHash where revokedAt IS NULL AND (expiresAt IS NULL OR expiresAt > now).
+
+       GET  /api/v1/orders        list (scoped to the key's owner)
+       POST /api/v1/orders        create
+       GET  /api/v1/orders/:id    fetch one
+
+     _lib/with-api-key.ts wraps every handler: auth, rate limit, consistent
+     error envelope, and it stamps lastUsedAt. Legacy keys were imported as
+     hashes, so existing integrations keep working unchanged.
+
+2.11 Validation — each feature's schema.ts
+     Add zod (`npm i zod -w @opcreative/dashboard`); it is not currently a
+     dependency and hand-rolling validation across ~20 forms is the wrong kind
+     of lazy. One schema per concern, imported by BOTH the action and the form.
+     Parsing happens on the SERVER inside every action — client-side validation
+     is UX, server-side is the boundary.
+
+--------------------------------------------------------------------------------
+3. BUILD ORDER
+--------------------------------------------------------------------------------
+  1. permissions.ts + guard.ts + session.ts                    (foundation)
+  2. libs/auth F3 + F4 fixes                                   (security holes)
+  3. selects.ts + scopes.ts + audit.ts
+  4. permissions.test.ts — GREEN BEFORE ANY ACTION IS WRITTEN
+  5. profile/ queries + actions
+  6. users/ queries + actions (money last, with money.test.ts)
+  7. warehouses/ queries + actions
+  8. audit/ queries
+  9. rate-limit.ts
+ 10. public v1 API + webhook handler
+
+Steps 1-4 are half a day and everything else leans on them. Do not reorder.
+
+--------------------------------------------------------------------------------
+4. THE CHECK THAT MAKES PHASE 2 "DONE"
+--------------------------------------------------------------------------------
+permissions.test.ts asserts, at minimum:
+  • SELLER cannot list users, read another seller's order, or top up a balance
+  • DESIGNER cannot touch money or products
+  • WAREHOUSE sees only their warehouse's orders (via WarehouseMember)
+  • a user with allow-list rows cannot see products outside it
+  • ADMIN can do all of the above
+  • a revoked / expired API key fails verification
+  • a JWT issued before sessionsValidFrom is rejected
+
+money.test.ts asserts:
+  • topUp twice with the same idempotency key credits once
+  • balance and Transaction row always move together (failure rolls back both)
+  • a money action without a reason is rejected
+
+Run with `node --test`. No framework, no fixtures.
+
+--------------------------------------------------------------------------------
+5. MOBILE (CAPACITOR) — WHAT IT NEEDS AND WHEN
+--------------------------------------------------------------------------------
+Plan the seams now; build the surface when mobile work starts. Nothing here is
+phase 2 work except the service layer, which is free.
+
+5.1  AUTH. The webview runs on capacitor://localhost, so the Auth.js session
+     cookie is not sent — cookie auth is out. Mobile needs bearer tokens:
+
+       POST /api/v1/auth/google    native Google Sign-In → send the ID token →
+                                   we verify it with Google, find/create the
+                                   user, return our own tokens
+       POST /api/v1/auth/password  email + password → tokens
+       POST /api/v1/auth/otp       request / verify the same 6-digit OTP
+       POST /api/v1/auth/refresh   rotate; refresh tokens are single-use
+       POST /api/v1/auth/logout    revoke
+
+     Access token: short (15 min), signed, carries userId + roles.
+     Refresh token: long (30 days), stored HASHED in the DB so it can be
+     revoked, rotated on every use, reuse-detection kills the family.
+     Store both in native secure storage, never localStorage.
+
+     `sessionsValidFrom` (already in the schema) revokes web and mobile
+     together — deactivating a user kills both.
+
+5.2  SCHEMA ADDITIONS still needed (small migration, do it with phase 2):
+
+       model RefreshToken { id, userId, tokenHash @unique, family,
+                            expiresAt, revokedAt, replacedById, createdAt }
+       model DeviceToken  { id, userId, token @unique, platform (IOS|ANDROID|
+                            WEB), appVersion, lastSeenAt, createdAt }
+
+     DeviceToken is what FCM sends to. One row per install, not per user —
+     a user with a phone and a tablet gets two.
+
+5.3  PUSH (FCM). Server side is small: `sendPush(userId, payload)` looks up
+     that user's DeviceToken rows and posts to FCM. Register the token on app
+     start via POST /api/v1/devices; delete on logout. Prune tokens FCM
+     reports as unregistered, or you accumulate dead rows forever.
+
+5.4  API SURFACE. Build endpoints as the mobile app needs them, not upfront.
+     Realistic v1 for a warehouse-worker app: auth (5.1), /me, orders list +
+     detail + status update, scan lookup by tracking number, devices. That is
+     ~10 endpoints over service functions that already exist by then.
+
+5.5  APP STORE. Apple rejects thin website wrappers (guideline 4.2). Native
+     push, native Google Sign-In, camera/barcode scanning via Capacitor
+     plugins and offline handling are what make it an app rather than a
+     bookmark. The barcode scanning the warehouse flows already need is the
+     strongest argument for a real app.
+
+--------------------------------------------------------------------------------
+6. DATA ISOLATION — WHAT ACTUALLY ENFORCES IT
+--------------------------------------------------------------------------------
+Worth being precise, because the intuition "roles are on the user, so the
+database keeps users apart" is NOT how this works.
+
+Prisma connects as ONE database user with full rights to every table. Postgres
+does not know which app user a query is for. So a seller is prevented from
+reading another seller's orders by exactly one thing: our code putting the
+right WHERE clause on the query. Miss it once and rows leak with no error.
+
+That is why scopes.ts exists and why every list query starts from a scope
+rather than hand-rolling its filter. Defence in depth, in the order I would
+spend effort:
+
+  1. One choke point (scopes.ts + guard.ts) — every read goes through it.
+  2. Tests that assert isolation directly: seller A cannot see seller B's
+     order, by id, through every entry point. Cheap and catches the common bug.
+  3. Code review rule: a `prisma.<model>.findMany` with no scope spread is a
+     defect, the same as a missing await.
+  4. OPTIONAL, LATER: Postgres Row-Level Security. The database itself refuses
+     to return other tenants' rows even if the WHERE is forgotten. Real
+     protection, but with Prisma it means setting a transaction-local
+     `app.user_id` on every query and it interacts awkwardly with pooled
+     connections. Worth it if we ever host genuinely mutually-distrusting
+     tenants; overkill for staff + sellers under one company today.
+
+Answer to "is user data secure per user, not mixed": it will be, because
+scoping is centralised and tested — not because the database enforces it.
+Anyone adding a query must go through the choke point.
+
+--------------------------------------------------------------------------------
+7. PORTABILITY — VERCEL TODAY, ECS/EC2/DOCKER LATER
+--------------------------------------------------------------------------------
+VERIFIED 2026-07-20, not assumed. `output: "standalone"` is enabled, the app
+was built and booted with plain `node server.js` outside any Vercel runtime,
+and SSR pages, /api/search and /api/auth all answered 200. A Dockerfile and a
+CI job that builds the image AND boots it now exist, so the exit door stays
+verified on every PR instead of rotting.
+
+Audit result: the codebase currently has ZERO Vercel lock-in — no `@vercel/*`
+imports, no edge runtime, no vercel.json. Keep it that way with these rules:
+
+  R1. NO `runtime = "edge"`. Fluid Compute (the default) is Node, is not
+      slower for our workload, and is portable. Edge is not.
+  R2. NO `@vercel/*` imports in business logic. If we ever need Blob, KV,
+      Queues or `waitUntil`, put them behind a tiny interface in
+      server/platform/ with a Vercel implementation and a plain-Node one.
+      One file to swap, not a grep across the codebase.
+  R3. Platform services are pluggable by policy:
+        file storage → S3-compatible interface (Vercel Blob or S3)
+        cron        → a plain authenticated route the platform calls
+                      (Vercel Cron today, EventBridge/ECS Scheduled Task later)
+        queue       → interface; Vercel Queues or SQS behind it
+        cache       → Postgres or Redis, never in-process memory
+  R4. STATELESS app processes. No local disk, no in-memory session or cache
+      that two containers would disagree about. Everything shared lives in
+      Postgres (or Redis when we need it).
+  R5. DATABASE stays generic Postgres. Already true — Neon → RDS is a
+      DATABASE_URL swap, which is exactly why it was chosen.
+  R6. Bind to 0.0.0.0 in containers (HOSTNAME env). Next defaults to
+      localhost, which an ALB health check cannot reach — a classic silent
+      ECS failure, already handled in the Dockerfile.
+  R7. If we adopt ISR/`use cache` later, self-hosting multiple instances needs
+      a shared `cacheHandler` (Redis). Low risk for us: this dashboard is
+      authenticated and almost entirely dynamic.
+
+What moving to ECS would actually involve, given the above: build the image
+(already CI-tested), push to ECR, run it behind an ALB, point DATABASE_URL at
+RDS, set AUTH_URL, and replace Vercel Cron with EventBridge. No application
+rewrite.
+
+--------------------------------------------------------------------------------
+8. BUILDING FOR ~100 ENDPOINTS AND A MOBILE CLIENT
+--------------------------------------------------------------------------------
+The goal: when Capacitor work starts, the only new work is the shell, native
+auth and FCM — not an API project.
+
+That cannot mean "write 100 endpoints now"; endpoints for features that do not
+exist yet are speculative. It means two things instead:
+
+  A. THE ENDPOINT SHIPS WITH THE FEATURE. Every feature PR adds its service
+     function, its Server Action (web) and its /api/v1 route (everything else)
+     in the same change. The route is ~5 lines over the service. By the time
+     the features are built, the API is complete — there is no "API phase"
+     left to do. This is the rule that actually delivers what we want.
+
+  B. THE CONVENTIONS ARE FIXED NOW, because they are what is expensive to
+     retrofit across 100 endpoints:
+
+     • Versioned from day one: /api/v1/...
+     • Auth accepts BOTH from day one: session cookie (web) and
+       `Authorization: Bearer` (mobile/integrations). Same resolver, so
+       "some auth changes later" really is just the mobile token issuance.
+     • MONEY AS STRINGS in JSON. Prisma Decimal → JSON number silently loses
+       precision, and JS floats cannot hold 12,2 reliably. `"12.50"`, always.
+       Retrofitting this across 100 endpoints and a shipped mobile app is
+       misery.
+     • Timestamps ISO-8601 UTC. No local time, ever.
+     • CURSOR pagination, not offset. Offset double-serves and skips rows on
+       an infinite-scroll list that mutates underneath you.
+     • One error envelope: { error: { code, message, details? } } with stable
+       machine-readable codes. Mobile switches on `code`, never on prose.
+     • Idempotency-Key header honoured on every mutation. Mobile networks
+       retry on their own; without this a flaky tunnel double-charges a
+       seller.
+     • Every list response: { data, nextCursor, hasMore }. Consistent shape
+       beats bespoke-per-endpoint.
+
+  C. TOOLING, at the scale being described. Ten endpoints: plain Next route
+     handlers, no dependency. At ~100 endpoints plus a mobile client plus
+     third-party sellers, hand-maintained routing/validation/docs stops paying
+     for itself. Recommended then: Hono mounted at
+     `app/api/v1/[[...route]]/route.ts` with @hono/zod-openapi — one
+     definition per endpoint yields validation, an OpenAPI spec (Swagger for
+     sellers, replacing the legacy /docs) and a generated typed client the
+     Capacitor app imports. It runs unchanged on Vercel, in Docker, or lifted
+     out to a standalone Node service, which also serves R1-R7 above.
+     Not needed to start. Adopt when the endpoint count passes ~20, and do it
+     then rather than at 80.
+
+--------------------------------------------------------------------------------
+9. NOT IN PHASE 2
+--------------------------------------------------------------------------------
+  • Policy engine (Casbin/OPA) — revisit when non-engineers edit permissions.
+  • Per-user permission overrides — revisit when roles genuinely cannot express
+    a real case.
+  • Impersonation — the permission string is reserved; build it when support
+    asks, and make it audited and time-limited.
+  • Webhook delivery log + retries as its own model — the URL/secret on User is
+    enough until webhooks actually misbehave.
+  • Full public API parity with the legacy backend — three endpoints now, more
+    when a real integration needs them.
+================================================================================

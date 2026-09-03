@@ -1,0 +1,102 @@
+{
+  "title": "Notifications",
+  "back": "Back",
+  "unread": "unread",
+  "unreadOnly": "Unread Only",
+  "markAllRead": "Mark All Read",
+  "delete": "Delete",
+  "deleted": "Notification deleted.",
+  "loadMore": "Load More",
+  "empty": "You're all caught up.",
+  "viewAll": "View All Notifications",
+  "tabs": {
+    "all": "All",
+    "orders": "Orders",
+    "warehouse": "Warehouse",
+    "payments": "Payments",
+    "system": "System"
+  },
+  "time": {
+    "m": "m",
+    "h": "h",
+    "d": "d"
+  },
+  "items": {
+    "inviteReceived": {
+      "title": "You've been invited",
+      "body": "{from} invited you as {roles}. Open to accept."
+    },
+    "inviteAccepted": {
+      "title": "Invitation accepted",
+      "body": "{email} accepted your invitation."
+    },
+    "roleChanged": {
+      "title": "Your access changed",
+      "body": "Your roles are now {roles}."
+    },
+    "toppedUp": {
+      "title": "Wallet topped up",
+      "body": "{amount} was added. New balance {balance}."
+    },
+    "refunded": {
+      "title": "Refund received",
+      "body": "{amount} was refunded. New balance {balance}."
+    },
+    "transactionApproved": {
+      "title": "Top-up approved",
+      "body": "{amount} was added. New balance {balance}."
+    },
+    "transactionRejected": {
+      "title": "Top-up not approved",
+      "body": "Your {amount} request was declined: {reason}"
+    },
+    "ordersAssigned": {
+      "title": "{count} orders sent to production",
+      "body": "{amount} was charged. New balance {balance}."
+    },
+    "orderCreated": {
+      "title": "An order was filed for you",
+      "body": "Order {externalId} was created on your account."
+    },
+    "orderStatusChanged": {
+      "title": "Order {externalId} is now {status}",
+      "body": "Open Orders to see the details."
+    },
+    "workAssigned": {
+      "title": "{count} orders arrived at {warehouse}",
+      "body": "They're ready to go into production."
+    },
+    "orderOnHold": {
+      "title": "Order {externalId} is on hold",
+      "body": "{reason}"
+    },
+    "shippingLabelReady": {
+      "title": "Label ready for order {externalId}",
+      "body": "Tracking {tracking} · {provider}"
+    },
+    "trackingUpdated": {
+      "title": "Order {externalId} is {status}",
+      "body": "Carrier update for tracking {tracking}."
+    },
+    "fulfillmentBlocked": {
+      "title": "The floor is blocked at {warehouse}",
+      "body": "{reason} — a parcel cannot be staged until this is cleared."
+    },
+    "labelPurchaseFailed": {
+      "title": "Label purchase failed",
+      "body": "{count} parcel(s) could not be bought: {reason}"
+    },
+    "ticketReplied": {
+      "title": "New reply on “{title}”",
+      "body": "{from} answered your ticket."
+    },
+    "ticketStatusChanged": {
+      "title": "Ticket “{title}” is now {status}",
+      "body": "Open the ticket to see the thread."
+    },
+    "transactionRequested": {
+      "title": "{from} requested a {kind}",
+      "body": "{amount} is waiting for approval."
+    }
+  }
+}

@@ -1,0 +1,27 @@
+/// An in-app notification for one person.
+///
+/// Stores a TYPE plus a payload, never rendered prose: the text is looked up
+/// from the locale files at display time, so a notification written while the
+/// reader used English still reads correctly after they switch to Vietnamese.
+/// That is also why `data` holds the interpolation values (an email, a role
+/// list) rather than a finished sentence.
+model Notification {
+  id     BigInt           @id @default(autoincrement())
+  userId String           @map("user_id")
+  type   NotificationType
+  /// Values interpolated into the localized strings, e.g. { "email": "…" }.
+  data   Json?
+  /// Where clicking it should take the reader.
+  href   String?
+  /// Null until read. A timestamp rather than a boolean so "when did they see
+  /// it" is answerable later without another column.
+  readAt DateTime? @map("read_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  /// The panel's only query: this user's newest first, unread first.
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}

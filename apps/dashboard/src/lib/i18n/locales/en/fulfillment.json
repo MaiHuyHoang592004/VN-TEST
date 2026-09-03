@@ -1,0 +1,161 @@
+{
+  "nav": {
+    "section": "Fulfillment",
+    "station": "Station",
+    "quick": "Quick scan",
+    "monitor": "Monitor"
+  },
+  "station": {
+    "title": "Scan station",
+    "subtitle": "Scan a parcel to start it, fill it, photograph it and hand it over.",
+    "idle": "Scan a tracking number or an order barcode to begin.",
+    "handoffDone": "Parcel handed over."
+  },
+  "scan": {
+    "mode": {
+      "tracking": "Tracking #",
+      "order": "Order ID"
+    },
+    "placeholder": {
+      "tracking": "Scan or type a tracking number",
+      "order": "Scan or type an order id"
+    },
+    "submit": "Find",
+    "clear": "Clear",
+    "hintTracking": "Long codes keep their last {n} characters.",
+    "hintOrder": "The number printed under the order's QR code.",
+    "tooShort": "A tracking number is at least 10 characters.",
+    "notAnId": "An order id is a number.",
+    "cancelled": "Scan cancelled. No status was changed.",
+    "confirmTitle": "That is a lot of orders",
+    "confirmDesc": "This scan will move {count} orders to In production (the threshold is {threshold}).",
+    "confirmBody": "Nothing has changed yet. Cancel if that count looks wrong — it usually means a mistyped code.",
+    "confirmSubmit": "Move them all"
+  },
+  "scanned": {
+    "title": "This parcel has been worked already",
+    "desc": "{count} of these orders were started before this scan.",
+    "continue": "Continue anyway"
+  },
+  "group": {
+    "tracking": "Tracking",
+    "copy": "Copy tracking number",
+    "copied": "Copied.",
+    "noCustomer": "No seller on file",
+    "openLabel": "Open label",
+    "viewProof": "View proof photo",
+    "multiUnit": "Multi-unit parcel — count every piece before closing it."
+  },
+  "card": {
+    "qty": "ordered",
+    "filled": "Filled",
+    "progress": "Made",
+    "fill": "Fill",
+    "fillAmount": "How many to add"
+  },
+  "fill": {
+    "basket": "Staged in basket {name}."
+  },
+  "actions": {
+    "summary": "{orders} orders · {units} units",
+    "updateAll": "Update all",
+    "proof": "Proof photo",
+    "handoff": "Complete handoff",
+    "linkLabel": "Link label"
+  },
+  "proof": {
+    "saved": "Proof photo saved. The parcel is fulfilled.",
+    "overwriteTitle": "Replace the proof photo?",
+    "overwriteDesc": "This parcel already has a photo, or has already been fulfilled.",
+    "overwriteBody": "The existing photo is the evidence for any dispute about this parcel. Replace it only if the first one was wrong.",
+    "overwriteSubmit": "Replace it"
+  },
+  "handoff": {
+    "title": "Complete handoff",
+    "desc": "Type the word completed to confirm the parcel is packed and leaving.",
+    "typeIt": "Type \"completed\"",
+    "tracking": "Tracking number",
+    "trackingPlaceholder": "The number on the box",
+    "submit": "Hand it over",
+    "done": "Parcel shipped."
+  },
+  "label": {
+    "title": "Link a shipping label",
+    "desc": "Attaches this label and tracking number to all {count} orders in the parcel.",
+    "tracking": "Tracking number",
+    "url": "Label URL",
+    "provider": "Provider",
+    "method": "Service",
+    "submit": "Link label",
+    "linked": "Label linked to {count} orders."
+  },
+  "camera": {
+    "title": "Camera",
+    "capture": "Capture photo",
+    "retry": "Try again",
+    "denied": "No camera available. The scan box above still works.",
+    "duplicate": "Already detected this barcode.",
+    "photoFirst": "Capture the order photo first.",
+    "tooMany": "That code matches too many orders — use the scan box to confirm.",
+    "spaceHint": "Press Space to capture the proof photo.",
+    "scanHint": "Point the camera at a barcode to load a parcel.",
+    "mirrored": "Preview is mirrored, like a mirror. The saved photo is not."
+  },
+  "quick": {
+    "title": "Quick scan",
+    "subtitle": "Scan a parcel and set one status across every order in it.",
+    "status": "New status",
+    "note": "Note (optional)",
+    "submit": "Apply",
+    "lastScanned": "Last scanned",
+    "parcels": "Parcels",
+    "updated": "Orders updated",
+    "empty": "Scanned parcels appear here.",
+    "colCustomer": "Seller",
+    "colTracking": "Tracking",
+    "colStatus": "Status",
+    "colQty": "Qty",
+    "colProduct": "Product",
+    "colNote": "Note",
+    "skipped": "Skipped: {orders}",
+    "applied": "{count} orders updated."
+  },
+  "monitor": {
+    "title": "Monitor",
+    "subtitle": "Every parcel in flight. Read-only.",
+    "tabs": {
+      "open": "Open",
+      "ready": "Ready",
+      "all": "All"
+    },
+    "colTracking": "Tracking",
+    "colCustomer": "Seller",
+    "colOrders": "Orders",
+    "colProgress": "Progress",
+    "colStatus": "Statuses",
+    "colBasket": "Basket",
+    "colLabel": "Label",
+    "colOldest": "Oldest",
+    "label": "Open",
+    "empty": "No parcels to show.",
+    "loadMore": "Load more"
+  },
+  "errors": {
+    "group-not-found": "Nothing matched that code.",
+    "no-available-basket": "No basket position is free. Empty one before continuing.",
+    "check-failed": "Check failed — type the word again.",
+    "not-ready": "Every order in this parcel must be fulfilled first.",
+    "not-ready-detail": "Not fulfilled yet: {orders}",
+    "not-in-production": "Scan the parcel before filling it.",
+    "amount-exceeds-remaining": "That is more than is left to fill.",
+    "invalid-transition": "That status move is not allowed from here.",
+    "file-too-large": "Images must be 10MB or smaller.",
+    "not-an-image": "Upload a PNG, JPG or WEBP image.",
+    "invalid-key": "That file could not be stored.",
+    "storage-not-configured": "File storage is not configured. Tell an administrator.",
+    "validation": "Check the fields and try again.",
+    "provider-rejected": "The carrier refused the purchase.",
+    "provider-unreachable": "The carrier did not respond. Nothing was bought — try again.",
+    "not-configured": "No label provider is configured."
+  }
+}

@@ -1,0 +1,86 @@
+/// A person on the platform: sellers, admins, warehouse staff, support.
+/// Rows are created by Auth.js on first Google sign-in, or migrated from the
+/// legacy system (those keep `passwordHash` for email+password login).
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  /// Legacy login handle; new Google-only users won't have one.
+  username      String?    @unique
+  email         String     @unique
+  emailVerified DateTime?  @map("email_verified")
+  /// Avatar URL (set by Google profile on OAuth sign-in).
+  image         String?
+  /// Self-uploaded avatar. Wins over `image` when set, so a Google re-login
+  /// can't overwrite the user's own choice.
+  avatarUrl     String?    @map("avatar_url")
+  /// bcrypt hash. Null for OAuth-only users.
+  passwordHash  String?    @map("password_hash")
+  phone         String?    @unique
+  status        UserStatus @default(ACTIVE)
+  roles         UserRole[] @default([SELLER])
+  /// Pricing tier; matches VariantPrice.tier (null = base price).
+  tier          Int?
+  /// Prepaid credit. Debits/credits must go through a Transaction row.
+  balance       Decimal    @default(0) @db.Decimal(12, 2)
+  debt          Decimal    @default(0) @db.Decimal(12, 2)
+  /// Seller-facing webhook for order events; secret signs the payloads.
+  webhookUrl    String?    @map("webhook_url")
+  webhookSecret String?    @map("webhook_secret")
+  /// Free-form per-user settings (UI prefs, feature flags).
+  configs       Json?
+  lastLoginAt   DateTime?  @map("last_login_at")
+
+  /// UI preferences. Typed columns rather than `configs` because we read them
+  /// on every render and the app ships 7 locales.
+  locale        String     @default("en")
+  timezone      String     @default("Asia/Ho_Chi_Minh")
+
+  /// Seller business details — invoices and support look these up.
+  companyName   String?    @map("company_name")
+  taxId         String?    @map("tax_id")
+  /// Admin-only note about this account. Never shown to the user.
+  adminNote     String?    @map("admin_note")
+
+  /// Email changes are two-step: the new address parks here until its OTP is
+  /// verified, then swaps into `email`. An unverified swap is an account
+  /// takeover primitive.
+  pendingEmail  String?    @map("pending_email")
+
+  /// JWTs issued before this instant are rejected. Bumped on deactivate,
+  /// password change, email change and "sign out everywhere" — the only way
+  /// to revoke a session under the JWT strategy.
+  sessionsValidFrom DateTime? @map("sessions_valid_from")
+
+  /// Set for WAREHOUSE-role staff: which warehouse they work in.
+  warehouseId Int?       @map("warehouse_id")
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  accounts       Account[]
+  sessions       Session[]
+  apiKeys        ApiKey[]
+  orders         Order[]       @relation("CustomerOrders")
+  assignedOrders Order[]       @relation("AssignedOrders")
+  transactions   Transaction[]
+  tickets        Ticket[]
+  ticketReplies  TicketReply[]
+
+  auditLogs        AuditLog[]           @relation("AuditActor")
+  notifications    Notification[]
+  invitesSent      UserInvite[]         @relation("InviteInviter")
+  warehouseMembers WarehouseMember[]
+  allowedProducts  UserAllowedProduct[]
+
+  receiptsCreated  StockReceipt[]       @relation("ReceiptCreator")
+  receiptsApproved StockReceipt[]       @relation("ReceiptApprover")
+  stockMovements   InventoryMovement[]  @relation("MovementCreator")
+  expenseEntries   ExpenseEntry[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([warehouseId])
+  /// Admin user lists filter on these two together.
+  @@index([status, deletedAt])
+  @@map("users")
+}

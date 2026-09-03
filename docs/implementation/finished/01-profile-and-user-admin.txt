@@ -1,0 +1,894 @@
+================================================================================
+IMPLEMENTATION 01 — PROFILE + USER ADMIN (+ WAREHOUSE SETUP)
+================================================================================
+Written: 2026-07-20
+Scope:   Profile page, admin user management, permission layer, warehouse setup.
+Goal:    Production-grade (the "FAANG-grade" bar) without enterprise bloat.
+
+Read this top to bottom once before writing code. The phases are ordered by
+dependency: schema -> backend -> frontend. Don't start phase 3 before phase 2
+compiles, or you will build UI against a contract that changes under you.
+
+--------------------------------------------------------------------------------
+SECTION 0 — WHAT ALREADY EXISTS (verified in this repo, 2026-07-20)
+--------------------------------------------------------------------------------
+
+Schema (libs/db/prisma/schema/):
+  User        id(cuid), name, username?, email, emailVerified?, image?,
+              passwordHash?, phone?, status(enum), roles(enum[]), tier?,
+              balance(Decimal 12,2), debt(Decimal 12,2), webhookUrl?,
+              webhookSecret?, configs(Json?), lastLoginAt?, warehouseId?,
+              createdAt, updatedAt, deletedAt?
+  Warehouse   id(Int), name, line1?, city?, state?, zip?, country?,
+              status(enum), createdAt, updatedAt
+  ApiKey      id, userId, keyHash(unique), name?, lastUsedAt?, createdAt
+  Session     Auth.js session table (see finding F3 below)
+  Account, VerificationToken, Order, Transaction, Ticket, Product, Variant,
+  ProductVariant, VariantPrice, Mockup, Address, Shipment, StockImport,
+  WarehouseInventory, BasketPosition, ImportMovement, AppConfig
+
+Enums: UserStatus(ACTIVE/INACTIVE/BANNED), UserRole(ADMIN/SELLER/WAREHOUSE/
+  SUPPORT), WarehouseStatus, ProductStatus, FulfillmentStatus, TicketStatus,
+  TicketPriority, TransactionType, TransactionStatus, BasketPositionStatus
+
+Auth (libs/auth/src/index.ts): Auth.js v5. Google OAuth + email/password
+  (bcrypt) + email OTP via Resend. Session strategy = JWT. Session callback
+  puts { id, roles } on session.user.
+
+App (apps/dashboard/src/app/): "/" = login screen when signed out,
+  (protected)/layout.tsx redirects signed-out users to "/",
+  (protected)/[...comingSoon] catch-all covers unbuilt routes.
+
+Stack notes: Next.js 16 App Router, shadcn on Base UI primitives (render=,
+  never asChild), TanStack Query installed, sonner for toasts, 7-locale i18n
+  in src/lib/i18n (every user-facing string goes through t()).
+
+THIS SCHEMA IS ALREADY BETTER THAN THE LEGACY SYSTEM. Roles are a typed enum
+(legacy used free-text strings), API keys are hashed (legacy stored plaintext
+and could not be rotated), money is Decimal (legacy was Float on some
+branches). What follows adds the pieces that are still missing.
+
+--------------------------------------------------------------------------------
+SECTION 0b — FINDINGS TO RESOLVE BEFORE BUILDING
+--------------------------------------------------------------------------------
+
+F1. ROLE COVERAGE. Legacy had 7 roles: admin, customer, warehouse,
+    warehouse_admin, warehouse_external, supporter, designer. New enum has 4.
+    Missing capability, not just missing names:
+      - warehouse_admin = manages a warehouse's staff/stock, not just orders.
+      - designer        = sees orders, edits artwork, no money/product access.
+      - warehouse_external = a partner who may only see CERTAIN PRODUCTS
+                             (legacy did this with configs.products, an
+                             untyped JSON allowlist).
+    Decision: add WAREHOUSE_ADMIN and DESIGNER to UserRole. Do NOT add
+    warehouse_external as a role — it is a *scope*, not a job title. Model it
+    as an explicit allow-list relation (see UserAllowedProduct in Phase 1).
+
+F2. ADMIN "ADD USER" CANNOT SET A PASSWORD ANYMORE. Legacy's modal had a
+    password field. With Google OAuth + OTP as the primary path, an admin
+    typing someone's password is both bad security and usually wrong (the
+    user will sign in with Google and never use it). Replace "create user
+    with password" with an INVITE flow (UserInvite model, Phase 1).
+
+F3. SESSION STRATEGY MISMATCH. libs/auth sets session.strategy = "jwt", but
+    apps/dashboard/src/app/(protected)/layout.tsx has a comment claiming a
+    "DB-session check runs server-side per request". With the JWT strategy
+    auth() reads and verifies the cookie; it does not hit the database, and
+    the Session table is unused. Two consequences:
+      (a) The layout comment is wrong and should be corrected.
+      (b) You CANNOT revoke a session ("sign out everywhere", "deactivate a
+          user and kick them out now") — the JWT stays valid until expiry.
+    Decision required. Options:
+      Option A (recommended): keep JWT, add a `sessionsValidFrom DateTime?`
+        column on User. On deactivate / password change / "sign out
+        everywhere", set it to now(); the JWT callback compares token.iat
+        against it and rejects older tokens. One column, one comparison, no
+        per-request DB read on the happy path if you cache it in the token
+        refresh window.
+      Option B: switch to database sessions. Cleanest revocation, but the
+        Credentials provider does not support DB sessions, so email+password
+        login would have to go.
+    This doc assumes Option A.
+
+F4. STATUS CHECK IS MISSING AT LOGIN FOR INACTIVE USERS. libs/auth rejects
+    BANNED in the Credentials provider only. A user with status INACTIVE can
+    still sign in, and Google sign-in checks neither. Fix in the signIn
+    callback so it covers every provider (Phase 2, step 2.1).
+
+F5. LEGACY BUGS NOT TO COPY. From the audit of the old system:
+      - "Member Since" rendered new Date() instead of created_at.
+      - Phone was editable in the form but silently dropped on save.
+      - GET /api/user returned the entire user row (balance, debt, tier,
+        configs, api key) to the browser on every page load.
+      - API key could not be rotated or revoked.
+      - Order assignment charged the seller's balance inside an unawaited
+        forEach and could double-charge already-assigned orders.
+    Each has an explicit countermeasure below.
+
+================================================================================
+PHASE 1 — SCHEMA (libs/db)                                    ✅ COMPLETE
+================================================================================
+Rule: one migration per logical change, named. NEVER `prisma db push` or
+`migrate reset`. From libs/db:  npm run db:migrate -- --name <change>
+
+STATUS 2026-07-20: all 8 migrations applied to LOCAL and PROD. Both databases
+report zero drift (`prisma migrate diff` returns an empty migration). Branch
+`profile`.
+
+  Deviations from the plan as written, and why:
+
+  D1. `prisma migrate dev` cannot run in this sandbox. Once it has a warning to
+      show (e.g. adding a UNIQUE constraint) it demands an interactive
+      confirmation, and it checks for a TTY — piping "y" does not satisfy it.
+      Migrations 3-8 were therefore authored as SQL and applied with
+      `prisma migrate deploy`, which is non-interactive. Still Prisma Migrate,
+      still versioned migration files, no `db push` anywhere.
+
+  D2. Migration 3 (warehouse `code`) was hand-written rather than generated.
+      Prisma's output was a single `ADD COLUMN "code" TEXT NOT NULL`, which
+      succeeds on an empty local DB and FAILS on any populated one. Replaced
+      with add-nullable → backfill → set-not-null. Verified by seeding rows
+      with duplicate names and a punctuation-only name before applying:
+      produced HOCHIMIN-1, HOCHIMIN-2, WH-3. Test rows removed afterwards.
+
+  D3. The legacy cutover script needed four fixes it did not have (see the
+      cutover section below). Not optional: two of them would have broken the
+      cutover outright or silently mis-assigned staff permissions.
+
+--------------------------------------------------------------------------------
+1.0  LEGACY CUTOVER — fixes and the rehearsal harness
+--------------------------------------------------------------------------------
+`prisma/scripts/migrate-legacy.sql` predates these migrations. Fixed:
+
+  • warehouses INSERT omitted `code`, now UNIQUE NOT NULL — the statement
+    would have aborted the whole (single-transaction) cutover.
+  • the role CASE mapped only admin/seller/warehouse/support and sent every
+    other legacy role to SELLER. Supporters, warehouse managers and designers
+    would have arrived with a seller's access and none of their own — silent,
+    and a permissions problem in both directions. All 7 legacy roles now map
+    explicitly; warehouse_external → WAREHOUSE + allow-list rows.
+  • warehouse_members would have been empty: the migration's backfill runs
+    before legacy users exist. The same backfill now repeats in the cutover.
+  • configs.products (legacy product allow-list) survived only as opaque JSON;
+    it now also populates user_allowed_products, skipping ids no longer in the
+    catalog rather than failing on the FK.
+
+REHEARSAL HARNESS (new):  npm run db:test:cutover     [from libs/db]
+
+  prisma/scripts/test/
+    legacy-fixture.sql       synthetic legacy tables + deliberately awkward
+                             rows (duplicate warehouse names, a name with no
+                             alphanumerics, all 7 role strings, allow-lists
+                             pointing at deleted products, null/non-array
+                             configs, unknown enum strings everywhere)
+    cutover-assertions.sql   ~45 assertions; RAISEs on failure so the runner
+                             exits non-zero
+    run-cutover-test.sh      builds a scratch DB, applies the real migrations,
+                             loads the fixture, runs the REAL cutover script,
+                             asserts, then drops the DB
+
+  Current state: PASS — all 16 legacy/migrated row counts match and every
+  assertion holds. The suite was mutation-tested (the role bug above was
+  reintroduced on purpose; the suite failed with exit 3 and named the exact
+  assertion), so the checks are not vacuous.
+
+  ⚠ WHAT THIS DOES NOT PROVE. The fixture mirrors the ARCHIVED legacy schema,
+  which trails the real legacy production database by roughly 10 months (the
+  archived backend is on `dev`; the frontend targets controllers that exist
+  only on its `prod` branch). Green means the cutover is SELF-CONSISTENT. It
+  does not prove the script matches live prod data. Before the real cutover:
+  restore a genuine pg_dump into a Neon branch and rehearse against that, and
+  run the pre-flight audit queries at the top of migrate-legacy.sql to catch
+  status/role strings these CASEs still do not cover.
+
+--------------------------------------------------------------------------------
+1.1  ENUMS — add roles + audit/invite/key supporting types
+--------------------------------------------------------------------------------
+File: libs/db/prisma/schema/enums/enums.prisma
+
+  enum UserRole {
+    ADMIN
+    SELLER
+    WAREHOUSE
+    WAREHOUSE_ADMIN   // NEW — manages a warehouse: staff, stock, assignments
+    SUPPORT
+    DESIGNER          // NEW — artwork/mockups on orders, no money access
+  }
+
+  enum InviteStatus {   // NEW
+    PENDING
+    ACCEPTED
+    REVOKED
+    EXPIRED
+  }
+
+  enum AuditAction {    // NEW — extend as features land; keep it an enum so a
+    USER_CREATED        //       typo can never create a phantom action
+    USER_UPDATED
+    USER_ROLE_CHANGED
+    USER_STATUS_CHANGED
+    USER_DELETED
+    USER_INVITED
+    USER_INVITE_REVOKED
+    PASSWORD_CHANGED
+    API_KEY_CREATED
+    API_KEY_REVOKED
+    BALANCE_TOPUP
+    BALANCE_REFUND
+    BALANCE_ADJUSTED
+    WAREHOUSE_CREATED
+    WAREHOUSE_UPDATED
+    WAREHOUSE_STATUS_CHANGED
+    WAREHOUSE_MEMBER_ADDED
+    WAREHOUSE_MEMBER_REMOVED
+    WEBHOOK_UPDATED
+  }
+
+Migration name: add_roles_invite_audit_enums
+
+--------------------------------------------------------------------------------
+1.2  USER — profile + admin + session-revocation columns
+--------------------------------------------------------------------------------
+File: libs/db/prisma/schema/models/user.prisma — ADD these fields:
+
+  /// User's own uploaded avatar. `image` stays as the Google profile photo;
+  /// this wins when set, so a Google re-login can't overwrite their choice.
+  avatarUrl        String?   @map("avatar_url")
+
+  /// UI preferences. Typed columns (not configs JSON) because we filter and
+  /// display them, and the app already ships 7 locales.
+  locale           String    @default("en")
+  timezone         String    @default("Asia/Ho_Chi_Minh")
+
+  /// Seller business details — shown on invoices, used by support.
+  companyName      String?   @map("company_name")
+  taxId            String?   @map("tax_id")
+
+  /// Admin-only free-text note about this account (never shown to the user).
+  adminNote        String?   @map("admin_note")
+
+  /// Any JWT issued before this instant is rejected. Bumped on deactivate,
+  /// password change, and "sign out everywhere". See finding F3.
+  sessionsValidFrom DateTime? @map("sessions_valid_from")
+
+  /// Email change is a two-step flow: we stash the requested address here
+  /// until the OTP sent to it is verified, then swap it into `email`.
+  pendingEmail     String?   @map("pending_email")
+
+  // relations added by later steps
+  auditLogs        AuditLog[]        @relation("AuditActor")
+  invitesSent      UserInvite[]      @relation("InviteInviter")
+  warehouseMembers WarehouseMember[]
+  allowedProducts  UserAllowedProduct[]
+
+Also ADD an index used by every admin list query:
+  @@index([status, deletedAt])
+  @@index([email])   // if not already implied by @unique on your Postgres
+
+Migration name: user_profile_admin_fields
+
+WHY NOT MORE: no `twoFactorEnabled` (Google already carries 2FA for most
+users; add it when you actually build TOTP), no notification-prefs columns
+until the notifications feature is real (configs Json covers experiments).
+
+--------------------------------------------------------------------------------
+1.3  WAREHOUSE — master data an admin can actually configure
+--------------------------------------------------------------------------------
+File: libs/db/prisma/schema/models/warehouse.prisma — ADD:
+
+  /// Short human code used on labels, imports and receipts, e.g. "HCM-01".
+  /// Master data: uppercase letters, digits, dash, underscore only.
+  code        String  @unique
+  /// What this warehouse is for — free text shown in pickers and on cards.
+  description String?
+  /// Grouping for filters/reporting, e.g. "VN-South", "US-East".
+  region      String?
+  line2       String?
+  timezone    String  @default("Asia/Ho_Chi_Minh")
+  contactName  String? @map("contact_name")
+  contactEmail String? @map("contact_email")
+  contactPhone String? @map("contact_phone")
+  /// Soft delete. A warehouse referenced by inventory/orders is NEVER hard
+  /// deleted — it is deactivated (status) or soft-deleted.
+  deletedAt   DateTime? @map("deleted_at")
+
+  members     WarehouseMember[]
+
+  @@index([status, deletedAt])
+
+Backfill note: `code` is unique and non-null. The migration must generate
+codes for existing rows before adding the constraint (slugify(name) +
+sequence suffix). Write that into the migration SQL by hand — do not let a
+default of "" collide.
+
+Migration name: warehouse_master_data_fields
+
+--------------------------------------------------------------------------------
+1.4  WAREHOUSE MEMBERSHIP — the fix for the legacy design
+--------------------------------------------------------------------------------
+NEW FILE: libs/db/prisma/schema/models/warehouse-member.prisma
+
+Legacy modelled "a warehouse" as a *user account*, so orders pointed at a
+person and only one person could hold a warehouse's queue. Our schema already
+does the right thing (Order -> Warehouse, User.warehouseId -> Warehouse), but
+User.warehouseId is a single FK, which still means one warehouse per person.
+A join table removes that ceiling and lets a manager cover two sites.
+
+  /// Which warehouses a staff user works in. Many-to-many so one person can
+  /// cover several sites and a site can have many staff.
+  model WarehouseMember {
+    id          Int       @id @default(autoincrement())
+    userId      String    @map("user_id")
+    warehouseId Int       @map("warehouse_id")
+    /// True for the user's default site — drives the landing view.
+    isPrimary   Boolean   @default(false) @map("is_primary")
+    createdAt   DateTime  @default(now()) @map("created_at")
+
+    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+    @@unique([userId, warehouseId])
+    @@index([warehouseId])
+    @@map("warehouse_members")
+  }
+
+KEEP User.warehouseId for now — it is the user's primary site and existing
+code/migrations read it. Rule: WarehouseMember is the source of truth for
+"can this user see this warehouse"; User.warehouseId is a denormalised
+pointer to the primary membership, written in the same transaction.
+// ponytail: two sources of truth is a known smell. Ceiling: they can drift.
+// Upgrade path: once every read goes through WarehouseMember, drop the column.
+
+Migration name: warehouse_members
+
+--------------------------------------------------------------------------------
+1.5  USER ALLOWED PRODUCTS — replaces legacy configs.products
+--------------------------------------------------------------------------------
+NEW FILE: libs/db/prisma/schema/models/user-allowed-product.prisma
+
+  /// Optional product allow-list for restricted partners (the legacy
+  /// "warehouse_external" case). NO rows for a user = no restriction.
+  model UserAllowedProduct {
+    userId    String  @map("user_id")
+    productId Int     @map("product_id")
+    createdAt DateTime @default(now()) @map("created_at")
+
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+    @@id([userId, productId])
+    @@index([productId])
+    @@map("user_allowed_products")
+  }
+
+(Adds `allowedUsers UserAllowedProduct[]` to Product.)
+
+Migration name: user_allowed_products
+
+--------------------------------------------------------------------------------
+1.6  USER INVITE — how admins add people now
+--------------------------------------------------------------------------------
+NEW FILE: libs/db/prisma/schema/models/user-invite.prisma
+
+  /// An admin invites by email; the invitee sets themselves up with Google
+  /// or OTP. We never set someone else's password.
+  model UserInvite {
+    id          String       @id @default(cuid())
+    email       String
+    roles       UserRole[]
+    /// Only the SHA-256 hash of the invite token is stored (same rule as
+    /// ApiKey). The raw token exists only in the emailed link.
+    tokenHash   String       @unique @map("token_hash")
+    status      InviteStatus @default(PENDING)
+    expiresAt   DateTime     @map("expires_at")
+    acceptedAt  DateTime?    @map("accepted_at")
+    /// Pre-assigned warehouse + tier so the account is usable on first login.
+    warehouseId Int?         @map("warehouse_id")
+    tier        Int?
+    invitedById String       @map("invited_by_id")
+    invitedBy   User         @relation("InviteInviter", fields: [invitedById], references: [id])
+    createdAt   DateTime     @default(now()) @map("created_at")
+
+    @@index([email, status])
+    @@map("user_invites")
+  }
+
+Migration name: user_invites
+
+--------------------------------------------------------------------------------
+1.7  AUDIT LOG — the single biggest gap vs. production-grade
+--------------------------------------------------------------------------------
+NEW FILE: libs/db/prisma/schema/models/audit-log.prisma
+
+Every sensitive mutation writes one row. Money and permissions changes
+without an audit trail is the thing that fails a real review.
+
+  /// Append-only record of sensitive actions. Never updated, never deleted.
+  model AuditLog {
+    id         BigInt      @id @default(autoincrement())
+    action     AuditAction
+    /// Who did it. Null only for system/cron actions.
+    actorId    String?     @map("actor_id")
+    actor      User?       @relation("AuditActor", fields: [actorId], references: [id])
+    /// What it was done to: "user" | "warehouse" | "order" | "transaction"...
+    targetType String      @map("target_type")
+    targetId   String      @map("target_id")
+    /// Before/after for changed fields only — never the whole row, never
+    /// secrets (no password hashes, no API keys, no tokens).
+    before     Json?
+    after      Json?
+    /// Free-text reason captured from the admin UI where we ask for one.
+    reason     String?
+    ip         String?
+    userAgent  String?     @map("user_agent")
+    createdAt  DateTime    @default(now()) @map("created_at")
+
+    @@index([targetType, targetId, createdAt])
+    @@index([actorId, createdAt])
+    @@map("audit_logs")
+  }
+
+Migration name: audit_log
+
+--------------------------------------------------------------------------------
+1.8  API KEY — make rotation and revocation real
+--------------------------------------------------------------------------------
+File: libs/db/prisma/schema/models/api-key.prisma — ADD:
+
+  /// First ~8 chars of the key ("opc_live_a1b2c3d4"), safe to display so a
+  /// user can tell two keys apart. The secret half is never stored.
+  prefix    String    @default("")
+  revokedAt DateTime? @map("revoked_at")
+  expiresAt DateTime? @map("expires_at")
+
+  @@index([userId, revokedAt])
+
+Lookup rule for the whole codebase: find by keyHash AND revokedAt = null AND
+(expiresAt is null OR expiresAt > now()).
+
+Migration name: api_key_rotation_fields
+
+--------------------------------------------------------------------------------
+1.9  MIGRATION ORDER
+--------------------------------------------------------------------------------
+  1. add_roles_invite_audit_enums
+  2. user_profile_admin_fields
+  3. warehouse_master_data_fields      (hand-write the `code` backfill)
+  4. warehouse_members                 (+ backfill from User.warehouseId)
+  5. user_allowed_products             (+ backfill from legacy configs.products
+                                        if any rows carry it)
+  6. user_invites
+  7. audit_log
+  8. api_key_rotation_fields           (prefix backfill = "" is fine; legacy
+                                        imported keys have no known prefix)
+
+After each: verify with `npx prisma migrate status`, commit the migration
+folder with the schema change in the SAME commit.
+
+================================================================================
+PHASE 2 — BACKEND (libs/auth, libs/db, apps/dashboard server code)
+================================================================================
+Architecture decision, stated once: THERE IS NO SEPARATE BACKEND. This is
+Next.js on Vercel. "Backend" = Server Actions for mutations the dashboard
+makes, and Route Handlers (app/api/...) only for things outside the app
+(the public seller API authenticated by ApiKey, and webhooks). Do not build a
+REST layer for the dashboard to call itself.
+
+--------------------------------------------------------------------------------
+2.1  THE PERMISSION LAYER  (build this FIRST — everything depends on it)
+--------------------------------------------------------------------------------
+NEW: libs/auth/src/permissions.ts
+
+Ask "can this user do X?", never "is this user an admin?". Roles map to
+permissions in ONE place, so adding a role later touches one file.
+
+  export const PERMISSIONS = [
+    "users.read", "users.create", "users.update", "users.delete",
+    "users.roles.manage", "users.balance.manage", "users.impersonate",
+    "warehouses.read", "warehouses.manage", "warehouses.members.manage",
+    "orders.read.all", "orders.read.own", "orders.read.warehouse",
+    "orders.assign", "orders.refund",
+    "products.read", "products.manage",
+    "transactions.read.all", "transactions.read.own", "transactions.approve",
+    "tickets.read.all", "tickets.read.own", "tickets.manage",
+    "audit.read",
+  ] as const;
+  export type Permission = (typeof PERMISSIONS)[number];
+
+  const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
+    ADMIN:           [...PERMISSIONS],                   // everything
+    WAREHOUSE_ADMIN: ["warehouses.read","warehouses.members.manage",
+                      "orders.read.warehouse","orders.assign","users.read", ...],
+    WAREHOUSE:       ["orders.read.warehouse","warehouses.read", ...],
+    SUPPORT:         ["users.read","orders.read.all","tickets.manage", ...],
+    DESIGNER:        ["orders.read.all","products.read", ...],
+    SELLER:          ["orders.read.own","transactions.read.own",
+                      "tickets.read.own","products.read"],
+  };
+
+  export function can(user: SessionUser, p: Permission): boolean
+  export function permissionsFor(roles: UserRole[]): Set<Permission>
+
+Design rules:
+  - Permissions live in CODE, not in the database. A DB-backed permission
+    editor is only worth it when non-engineers must change rules at runtime;
+    you have 6 roles and one engineer. Revisit if that changes.
+  - `.own` / `.warehouse` / `.all` suffixes are how scope is expressed. The
+    query layer (2.3) reads these, so scoping is never re-implemented per page.
+
+--------------------------------------------------------------------------------
+2.2  THE GUARD — one choke point, deny by default
+--------------------------------------------------------------------------------
+NEW: apps/dashboard/src/lib/auth/guard.ts
+
+  /// Returns the session user or throws. Every server action starts here.
+  export async function requireUser(): Promise<SessionUser>
+
+  /// Throws ForbiddenError unless the user holds the permission.
+  export async function requirePermission(p: Permission): Promise<SessionUser>
+
+Rules that make this "deny by default" rather than "remember to check":
+  - EVERY server action's first line is requireUser() or requirePermission().
+  - Add a lint rule or a code-review checklist item: a file exporting
+    "use server" functions must import from guard.ts.
+  - Never trust an id coming from the client for authorisation ("update user
+    X" must re-check that the actor may manage X — the client can send any id).
+
+Also in Phase 2.1/2.2 territory, fix finding F4: in libs/auth's signIn
+callback, reject users whose status is not ACTIVE or whose deletedAt is set,
+for ALL providers (currently only Credentials checks BANNED).
+
+And implement F3 Option A: in the jwt callback, if
+  user.sessionsValidFrom && token.iat * 1000 < sessionsValidFrom
+then return null so the session dies.
+
+--------------------------------------------------------------------------------
+2.3  DATA ACCESS + SCOPING  (libs/db/src/)
+--------------------------------------------------------------------------------
+NEW: libs/db/src/scopes.ts
+
+  /// Turns a user + permission scope into a Prisma `where` fragment, so
+  /// "customers only see their own orders" is written ONCE.
+  export function orderScope(user: SessionUser): Prisma.OrderWhereInput
+  export function userScope(user: SessionUser): Prisma.UserWhereInput
+
+Every list query composes its filters on top of the scope. This is the fix
+for the legacy pattern where ~15 hand-written role checks were scattered
+through one service file and one of them was left commented out.
+
+Also: a select-list constant per model, so we never ship the whole row to the
+browser (legacy bug F5c):
+
+  export const USER_PUBLIC_SELECT   = { id, name, image, avatarUrl }
+  export const USER_SELF_SELECT     = { ...profile fields the owner may see }
+  export const USER_ADMIN_SELECT    = { ...+ balance, debt, tier, roles,
+                                        status, adminNote, lastLoginAt }
+
+--------------------------------------------------------------------------------
+2.4  VALIDATION
+--------------------------------------------------------------------------------
+Zod is NOT currently a dependency. Add it (`npm i zod -w @opcreative/dashboard`)
+— hand-rolled validation across ~20 forms is the wrong kind of lazy.
+
+NEW: apps/dashboard/src/lib/validation/user.ts, warehouse.ts
+
+  profileUpdateSchema   name, phone(E.164-ish), locale(enum of the 7),
+                        timezone(IANA string), companyName, taxId
+  emailChangeSchema     email
+  webhookSchema         url(https only), secret(min 16)
+  adminUserUpdateSchema roles(non-empty, enum), status, tier(1..4),
+                        warehouseIds(int[]), adminNote
+  inviteSchema          email, roles, warehouseId?, tier?
+  warehouseSchema       code(/^[A-Z0-9_-]{2,16}$/), name, description, region,
+                        timezone, address fields, contact fields, status
+  balanceSchema         amount(positive, max 2dp), reason(required!), method
+
+Parse on the SERVER inside every action, not just in the form. Client-side
+validation is UX; server-side is the actual boundary.
+
+--------------------------------------------------------------------------------
+2.5  SERVER ACTIONS — PROFILE (self-service)
+--------------------------------------------------------------------------------
+NEW: apps/dashboard/src/app/(protected)/profile/actions.ts
+
+  updateProfile(input)          requireUser. Updates name, phone, locale,
+                                timezone, companyName, taxId, avatarUrl.
+                                Countermeasure to legacy bug F5b: the action
+                                and the form share ONE schema, so a field can
+                                never be editable in the UI but dropped on save.
+  requestEmailChange(email)     requireUser. Writes pendingEmail, sends an OTP
+                                to the NEW address. Never change `email`
+                                directly — an unverified swap is an account
+                                takeover primitive.
+  confirmEmailChange(code)      Verifies, moves pendingEmail -> email, bumps
+                                sessionsValidFrom, audits.
+  changePassword(current, next) requireUser. Only for users WITH a
+                                passwordHash. Verify current, bcrypt the new,
+                                bump sessionsValidFrom, audit PASSWORD_CHANGED.
+  updateWebhook(url, secret)    requireUser. https-only. Audit WEBHOOK_UPDATED.
+  testWebhook()                 Sends a signed ping, returns status + body
+                                snippet. (Cheap, and saves hours of support.)
+  createApiKey(name)            requireUser. Generate 32 random bytes ->
+                                "opc_live_<base62>". Store SHA-256 hash +
+                                prefix. RETURN THE RAW KEY EXACTLY ONCE.
+                                Audit API_KEY_CREATED.
+  revokeApiKey(id)              requireUser + ownership. Sets revokedAt.
+  signOutEverywhere()           Bumps sessionsValidFrom.
+
+Every one of these ends with an audit write where the action list in 1.1
+names it. Wrap the write + audit in prisma.$transaction so you can never have
+a change without its log entry.
+
+--------------------------------------------------------------------------------
+2.6  SERVER ACTIONS — ADMIN (user management)
+--------------------------------------------------------------------------------
+NEW: apps/dashboard/src/app/(protected)/admin/users/actions.ts
+
+  listUsers(query)          requirePermission("users.read") + userScope.
+                            Server-side pagination/sort/filter. Returns
+                            USER_ADMIN_SELECT only.
+  getUser(id)               requirePermission("users.read")
+  inviteUser(input)         requirePermission("users.create"). Creates
+                            UserInvite + emails the link (reuse the Resend
+                            sender in libs/auth). Audit USER_INVITED.
+  resendInvite / revokeInvite
+  updateUser(id, input)     requirePermission("users.update"). Roles require
+                            "users.roles.manage" as a SEPARATE check. Audit
+                            with before/after of changed fields only.
+  setUserStatus(id, status) requirePermission("users.update"). Deactivating
+                            bumps that user's sessionsValidFrom so they are
+                            kicked out immediately (this is why F3 matters).
+  deleteUser(id)            requirePermission("users.delete"). SOFT delete
+                            (deletedAt) — a user with orders/transactions is
+                            never hard-deleted.
+  topUpBalance(id, input)   requirePermission("users.balance.manage").
+                            MUST be one transaction: create Transaction row
+                            (TOPUP/COMPLETED) + increment User.balance + audit.
+                            Reason is REQUIRED. Idempotency key on the request
+                            so a double-click cannot double-credit.
+                            (Legacy bug F5e was exactly this, unawaited.)
+  refundBalance(id, input)  Same shape, TransactionType.REFUND.
+  adjustBalance(id, input)  ADJUSTMENT, admin-only, reason required.
+
+MONEY RULES (non-negotiable):
+  - Balance is NEVER written outside a $transaction that also writes the
+    Transaction row. If the two can disagree, the ledger is fiction.
+  - Amounts are Decimal end to end. No float arithmetic anywhere.
+  - Every money action takes a human-entered reason and writes an audit row.
+
+--------------------------------------------------------------------------------
+2.7  SERVER ACTIONS — WAREHOUSE SETUP
+--------------------------------------------------------------------------------
+NEW: apps/dashboard/src/app/(protected)/admin/warehouses/actions.ts
+
+  listWarehouses(query)        requirePermission("warehouses.read")
+  createWarehouse(input)       requirePermission("warehouses.manage"). Code is
+                               uppercased + uniqueness-checked with a friendly
+                               error, not a raw Prisma constraint dump.
+  updateWarehouse(id, input)
+  setWarehouseStatus(id, s)    Deactivate instead of delete when in use.
+  getWarehouseUsage(id)        Counts referencing rows (users, inventory,
+                               orders, stock imports) -> drives can_delete and
+                               the "used by" pills in the delete dialog.
+  deleteWarehouse(id)          Only when usage is zero; otherwise the UI must
+                               offer deactivate. Soft delete regardless.
+  addWarehouseMember(wid, uid, isPrimary)
+  removeWarehouseMember(wid, uid)
+                               Both require "warehouses.members.manage".
+                               Writing isPrimary also updates User.warehouseId
+                               inside the same transaction (see 1.4).
+
+--------------------------------------------------------------------------------
+2.8  RATE LIMITING + ABUSE
+--------------------------------------------------------------------------------
+Minimum viable, do not skip:
+  - OTP send + verify: per-email counter (libs/auth already carries a
+    ponytail: note that this is missing).
+  - changePassword, requestEmailChange, createApiKey: per-user throttle.
+  - Public seller API (ApiKey routes): per-key throttle.
+Implementation: a small table or Vercel KV counter. Anything is better than
+nothing here; the correct sophisticated version can come later.
+
+--------------------------------------------------------------------------------
+2.9  TESTS (the check that makes this phase "done")
+--------------------------------------------------------------------------------
+One test file: apps/dashboard/src/lib/auth/permissions.test.ts (or a plain
+assert-based node script if you'd rather not add a runner yet). It must
+assert, at minimum:
+  - SELLER cannot list users, cannot read another seller's order, cannot
+    top up a balance.
+  - DESIGNER cannot touch money or products.
+  - WAREHOUSE sees only their warehouse's orders.
+  - ADMIN can do all of the above.
+  - A revoked API key fails lookup.
+  - topUpBalance called twice with the same idempotency key credits once.
+Authorization bugs are regressions like any other; this is the file that
+catches them.
+
+================================================================================
+PHASE 3 — FRONTEND (apps/dashboard)                          ✅ COMPLETE
+================================================================================
+STATUS 2026-07-22 — shipped on branch phase-2-backend.
+
+  Built as planned: data table · form kit · <Can> · profile (5 tabs) · admin
+  users + invites + money dialogs · warehouses + members · audit viewer ·
+  Administration sidebar group filtered by permission.
+
+  Beyond the plan, because verifying turned them up:
+  • i18n restructured to locales/<lang>/<namespace>.json (7 languages x 10
+    namespaces, all complete). Admin and billing were 100% hardcoded English;
+    now every string goes through t(). Language switches the running app and
+    follows the ACCOUNT, not the browser.
+  • Invite accept page (/invite/[token]) — invites had been emailing a link
+    that 404'd. Accepting verifies the signed-in email matches the invited
+    address: the token proves someone was invited, not who holds it.
+  • forbidden.tsx + Next authInterrupts — a permission denial renders a real
+    403 instead of a 500 with a stack trace.
+  • withValidation() — server-side zod failures return as DATA. A ZodError
+    thrown inside a Server Action otherwise 500s and cannot be recovered
+    client-side, because the class does not survive the wire.
+  • Mobile: FormDialog/ResponsiveDialog render as bottom sheets on phones; no
+    page overflows horizontally; low-value table columns hide on small screens.
+  • Geist dark mode adopted properly — page and card share one surface, the
+    hairline separates them (see DESIGN-VERCEL.md, researched from Vercel's own
+    spec rather than inferred).
+
+  STILL OPEN, deliberately:
+  • Avatar upload — URL only; needs a storage decision (Vercel Blob vs S3,
+    which ties into the AWS consolidation goal).
+  • Notification panel — still demo data; should surface pending invites.
+  • Org/multi-tenant model — agreed in principle, plan NOT started. Settle
+    tenant-isolation vs grouping FIRST; it moves roles off User onto a
+    membership and re-scopes every query.
+Conventions that apply to every screen below: shadcn on Base UI (render=, not
+asChild; nativeButton={false} for non-button renders), semantic tokens only
+(bg-background, text-muted-foreground; brand colours via the vercel-* theme
+tokens), every string through t() with keys added to ALL 7 locales, sonner for
+success/error toasts.
+
+--------------------------------------------------------------------------------
+3.0  SHARED PIECES — build once, reused by ~20 later pages
+--------------------------------------------------------------------------------
+This is the highest-leverage work in the whole project. Do it before the
+pages, and the rest of the rebuild becomes assembly.
+
+  src/components/global/data-table/       Server-side table: pagination,
+                                          sorting, column filters, row
+                                          selection, empty + loading states,
+                                          column visibility.
+  src/components/global/form/             Field wrappers bound to the zod
+                                          schemas from 2.4, inline errors,
+                                          pending state, one <FormDialog>
+                                          shell that every CRUD modal reuses.
+  src/components/global/permission-gate/  <Can permission="users.create">
+                                          Hides UI. NOT security — the server
+                                          check in 2.2 is the security.
+  src/lib/hooks/use-permissions.ts        Reads session.user.roles, exposes
+                                          can(). Same map as the server.
+
+--------------------------------------------------------------------------------
+3.1  PROFILE PAGE   route: /profile
+--------------------------------------------------------------------------------
+Layout: page header (avatar, name, email, role badges) + vertical tabs.
+
+  TAB "Profile"
+    - Avatar: current image, upload, remove. Falls back to Google `image`.
+    - Fields: display name, email (read-only + "Change" button opening the
+      OTP flow from 2.5), phone, company name, tax ID.
+    - Preferences: language (the 7 locales — persists to User.locale so it
+      follows the account, not the browser), timezone.
+    - "Member since" reads createdAt. (Legacy bug F5a: it rendered today.)
+    - Save button disabled until dirty; optimistic toast on success.
+
+  TAB "Security"
+    - Sign-in methods: Google connected/not, password set/not, email OTP.
+    - Change password (only when passwordHash exists; otherwise a "set a
+      password" CTA).
+    - "Sign out everywhere" button -> signOutEverywhere().
+    - Recent sign-in info (lastLoginAt).
+
+  TAB "API"
+    - Key list: name, prefix (opc_live_a1b2…), created, last used, Revoke.
+    - "Create key" dialog -> shows the raw key ONCE with a copy button and an
+      explicit "you won't see this again" warning.
+    - Base URL + auth header examples, link to API docs.
+    (Legacy had a single un-rotatable key displayed in plaintext. This
+    replaces it.)
+
+  TAB "Webhooks"
+    - Webhook URL (https only), secret (masked, regenerate button).
+    - "Send test event" -> shows response code/body.
+
+  TAB "Billing"   (SELLER only)
+    - Balance card (read-only) + debt if non-zero.
+    - Transactions table: date, id, type, method, amount (signed/coloured),
+      balance before/after, status, note. Filters: search, type, status,
+      date range. Server-side paginated.
+
+  Data loading: server components fetch with USER_SELF_SELECT; mutations are
+  the server actions from 2.5 via useActionState / TanStack Query where
+  optimistic UI helps.
+
+--------------------------------------------------------------------------------
+3.2  ADMIN — USERS   route: /admin/users
+--------------------------------------------------------------------------------
+Guarded by requirePermission("users.read") in the page itself, not only by
+hiding the menu item.
+
+  Table columns: name+avatar, email, roles (badges), status, tier, warehouse,
+    balance (only with users.balance.manage), last login, created.
+  Toolbar: search, role filter, status filter, warehouse filter, column
+    visibility, export.
+  Row actions (each wrapped in <Can>): View, Edit, Manage roles, Top up,
+    Refund, Adjust balance, Activate/Deactivate, Delete, View audit trail.
+  "Invite user" button -> dialog: email, roles (multi-select), warehouse,
+    tier. Sends an invite; NO password field (finding F2).
+  Pending invites: a second tab listing invites with resend/revoke.
+
+  User detail drawer/page (/admin/users/[id]):
+    Overview (identity, roles, status, warehouse memberships, tier),
+    Balance & transactions, Orders, Tickets, Audit trail for this user.
+
+  Money dialogs (top up / refund / adjust): amount, method, REASON (required),
+  optional evidence upload, and a confirmation step showing
+  "balance X -> Y". Reason flows into the audit row.
+
+--------------------------------------------------------------------------------
+3.3  ADMIN — WAREHOUSES   route: /admin/warehouses
+--------------------------------------------------------------------------------
+  Summary tiles: total, active, inactive, staff count.
+  Table/cards: code, name, description, region, city/country, status, staff
+    count, inventory rows.
+  Create/Edit dialog: code (uppercase-enforced, uniqueness checked live),
+    name, description, region, timezone, address (line1/line2/city/state/zip/
+    country), contact name/email/phone, status.
+  Members tab per warehouse: list staff, add member (user picker filtered to
+    WAREHOUSE / WAREHOUSE_ADMIN roles), set primary, remove.
+  Delete dialog: calls getWarehouseUsage first. Zero usage -> allow delete.
+    Otherwise switch the dialog to "Deactivate" and show usage pills
+    ("12 users, 340 inventory rows, 87 orders") explaining why.
+
+--------------------------------------------------------------------------------
+3.4  ADMIN — AUDIT LOG   route: /admin/audit
+--------------------------------------------------------------------------------
+  requirePermission("audit.read"). Table: time, actor, action, target,
+  reason, IP. Filters: actor, action, target type, date range. Row expands to
+  a before/after diff view. Read-only, no delete — that is the point.
+
+--------------------------------------------------------------------------------
+3.5  NAVIGATION + i18n
+--------------------------------------------------------------------------------
+  - Add an "Administration" section to the sidebar (Users, Warehouses, Audit)
+    filtered by permission, not by role name — one list, one source of truth.
+  - Add every new string to all 7 locales in src/lib/i18n/translations.ts
+    (en, zh, vi, ja, ko, fr, ar).
+  - Locale now comes from User.locale for signed-in users.
+
+================================================================================
+BUILD ORDER (what to actually do, in order)
+================================================================================
+  1. ✅ DONE — Phase 1 migrations 1..8, local + prod, cutover harness green.
+  2. Permission layer + guard + scopes + the F3/F4 auth fixes.    (~half day)
+  3. Permission tests (2.9) — green before any UI.                (~1 hour)
+  4. Shared frontend kit (3.0).                                   (~1 day)
+  5. Profile page (3.1) end to end, all tabs.                     (~1 day)
+  6. Admin users (3.2) + invite flow.                             (~1 day)
+  7. Admin warehouses (3.3) + members.                            (~half day)
+  8. Audit log viewer (3.4).                                      (~2 hours)
+
+================================================================================
+DELIBERATELY NOT DOING (and when to revisit)
+================================================================================
+  - DB-backed permission editor / policy engine (Casbin, OPA). Revisit when
+    non-engineers need to change permissions at runtime.
+  - Per-user permission overrides on top of roles. Revisit when a real case
+    appears that roles genuinely cannot express.
+  - TOTP 2FA. Google covers most accounts. Revisit when password logins
+    dominate or a customer demands it.
+  - Organisations / teams / multi-tenant hierarchy. Not in the legacy system
+    and not requested.
+  - Webhook delivery log + retries as a separate model. The URL/secret on
+    User is enough until webhooks actually misbehave.
+  - Impersonation ("log in as user"). The permission string is reserved in
+    2.1; build it when support asks, and make it audited and time-limited.
+================================================================================

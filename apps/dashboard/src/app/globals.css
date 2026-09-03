@@ -1,0 +1,540 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-vercel-blue: var(--vercel-blue);
+  --color-vercel-purple: var(--vercel-purple);
+  --color-vercel-pink: var(--vercel-pink);
+  --color-vercel-cyan: var(--vercel-cyan);
+  --color-vercel-green: var(--vercel-green);
+  --color-vercel-yellow: var(--vercel-yellow);
+  --color-vercel-red: var(--vercel-red);
+  --color-vercel-orange: var(--vercel-orange);
+  --color-vercel-violet: var(--vercel-violet);
+  --color-vercel-magenta: var(--vercel-magenta);
+  --color-vercel-amber: var(--vercel-amber);
+  --color-vercel-coral: var(--vercel-coral);
+  --color-vercel-teal: var(--vercel-teal);
+
+  /* Geist gray-alpha scale (official design.md) — translucent, layers over any
+     surface. Hover ramp: rest 100 → hover 200 → active 300; 400 = default border. */
+  --color-gray-alpha-100: var(--gray-alpha-100);
+  --color-gray-alpha-200: var(--gray-alpha-200);
+  --color-gray-alpha-300: var(--gray-alpha-300);
+  --color-gray-alpha-400: var(--gray-alpha-400);
+  --color-gray-alpha-500: var(--gray-alpha-500);
+  --color-gray-alpha-600: var(--gray-alpha-600);
+  --color-gray-alpha-700: var(--gray-alpha-700);
+  --color-gray-alpha-800: var(--gray-alpha-800);
+  --color-gray-alpha-900: var(--gray-alpha-900);
+  --color-gray-alpha-1000: var(--gray-alpha-1000);
+
+  /* Geist motion — 150ms state / 200ms popover / 300ms overlay, this easing */
+  --ease-geist: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+
+  /* Semantic scale — DESIGN-VERCEL.md "Semantic" + soft/deep pairs */
+  --color-link: var(--link);
+  --color-link-deep: var(--link-deep);
+  --color-link-soft: var(--link-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-deep: var(--warning-deep);
+  --color-error: var(--error);
+  --color-error-soft: var(--error-soft);
+  --color-error-deep: var(--error-deep);
+  --color-violet-soft: var(--violet-soft);
+  --color-violet-deep: var(--violet-deep);
+  --color-cyan-soft: var(--cyan-soft);
+  --color-cyan-deep: var(--cyan-deep);
+
+  /* Surface ladder + text ladder */
+  --color-canvas: var(--canvas);
+  --color-canvas-soft: var(--canvas-soft);
+  --color-canvas-soft-2: var(--canvas-soft-2);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-body-text: var(--body-text);
+  --color-mute: var(--mute);
+
+  /* Radii — exact Geist values, not a multiplier chain */
+  --radius-xs: 4px;
+  --radius-sm: 6px;  /* --geist-radius */
+  --radius-md: 8px;  /* --geist-marketing-radius */
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-4xl: 32px;
+  --radius-pill-sm: 64px;
+  --radius-pill: 100px;
+
+  /* Elevation — official Geist recipes (design.md): card / popover / modal.
+     The trailing inset ring is ours, not spec: panels here draw no border of
+     their own, so it stands in for the panel edge (dark mode needs it). */
+  --shadow-ds-1: inset 0 0 0 1px var(--ds-ring);
+  --shadow-ds-2: var(--shadow-card);
+  --shadow-ds-3: 0 1px 1px rgb(0 0 0 / 0.02), 0 4px 8px -4px rgb(0 0 0 / 0.04), 0 16px 24px -8px rgb(0 0 0 / 0.06), inset 0 0 0 1px var(--ds-ring);
+  --shadow-ds-4: 0 1px 1px rgb(0 0 0 / 0.02), 0 4px 8px -4px rgb(0 0 0 / 0.04), 0 16px 24px -8px rgb(0 0 0 / 0.06), inset 0 0 0 1px var(--ds-ring);
+  --shadow-ds-5: 0 1px 1px rgb(0 0 0 / 0.02), 0 8px 16px -4px rgb(0 0 0 / 0.04), 0 24px 32px -8px rgb(0 0 0 / 0.06), inset 0 0 0 1px var(--ds-ring);
+
+  /* Type scale — official Geist metrics (design.md). display-xl/lg/md/sm map
+     to heading-48/32/24/20; body-* to copy-18/16/14. Negative tracking only on
+     headings (600) — body text carries none. */
+  --text-display-xl: 48px;
+  --text-display-xl--line-height: 56px;
+  --text-display-xl--letter-spacing: -2.88px;
+  --text-display-xl--font-weight: 600;
+  --text-display-lg: 32px;
+  --text-display-lg--line-height: 40px;
+  --text-display-lg--letter-spacing: -1.28px;
+  --text-display-lg--font-weight: 600;
+  --text-display-md: 24px;
+  --text-display-md--line-height: 32px;
+  --text-display-md--letter-spacing: -0.96px;
+  --text-display-md--font-weight: 600;
+  --text-display-sm: 20px;
+  --text-display-sm--line-height: 26px;
+  --text-display-sm--letter-spacing: -0.4px;
+  --text-display-sm--font-weight: 600;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+  --text-body-sm: 14px;
+  --text-body-sm--line-height: 20px;
+  --text-caption: 12px;
+  --text-caption--line-height: 16px;
+  --text-code: 13px;
+  --text-code--line-height: 20px;
+
+  /* Spacing — 4px base; only the values Tailwind's scale doesn't already give.
+     NOTE: never name a --spacing-* token after a container size (5xl, 6xl, …):
+     Tailwind resolves max-w-* against --spacing-* first, so `--spacing-5xl`
+     silently turned every `max-w-5xl` into 96px. */
+  --spacing-section: 192px;
+}
+
+/* ---- Vercel / Geist palette (light) — exact hexes from vercel.com/design.md.
+   Ink #171717 (gray-1000) is the brand primary, never pure black. ---- */
+:root {
+  --background: #ffffff; /* background-100 */
+  --foreground: #171717; /* gray-1000 */
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #171717;
+  --primary-foreground: #ffffff;
+  --secondary: #f2f2f2; /* gray-100 */
+  --secondary-foreground: #171717;
+  --muted: #f2f2f2;
+  --muted-foreground: #4d4d4d; /* gray-900, secondary text */
+  --accent: #ebebeb; /* gray-200, the hover step */
+  --accent-foreground: #171717;
+  --destructive: #ea001d; /* red-800, the error-button fill */
+  --border: #eaeaea; /* gray-400 — official default border */
+  --input: #eaeaea; /* gray-400, default border */
+  --ring: #006bff; /* blue-700 — official focus */
+  --chart-1: oklch(0.62 0.2 253);
+  --chart-2: oklch(0.5 0.25 300);
+  --chart-3: oklch(0.65 0.27 8);
+  --chart-4: oklch(0.84 0.13 178);
+  --chart-5: oklch(0.77 0.15 70);
+  --radius: 0.5rem;
+  --sidebar: #ffffff; /* match --background: sidebar is not a separate surface */
+  --sidebar-foreground: #171717;
+  --sidebar-primary: #171717;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #ebebeb;
+  --sidebar-accent-foreground: #171717;
+  --sidebar-border: #eaeaea;
+  --sidebar-ring: #006bff;
+
+  /* Geist gray-alpha (light) — official values */
+  --gray-alpha-100: #0000000d;
+  --gray-alpha-200: #00000015;
+  --gray-alpha-300: #0000001a;
+  --gray-alpha-400: #00000014;
+  --gray-alpha-500: #00000036;
+  --gray-alpha-600: #0000003d;
+  --gray-alpha-700: #00000070;
+  --gray-alpha-800: #00000082;
+  --gray-alpha-900: #000000b3;
+  --gray-alpha-1000: #000000e8;
+
+  /* Vercel brand — exact Geist hexes */
+  --vercel-blue: #007cf0;
+  --vercel-purple: #7928ca;
+  --vercel-pink: #ff0080;
+  --vercel-cyan: #50e3c2;
+  --vercel-green: oklch(0.78 0.22 150);
+  --vercel-yellow: #f9cb28;
+  --vercel-red: #ff4d4d;
+  --vercel-orange: #f5a623;
+  --vercel-violet: #7928ca;
+  --vercel-magenta: #eb367f;
+  --vercel-amber: #f9cb28;
+  --vercel-coral: #ff4d4d;
+  --vercel-teal: #00dfd8;
+
+  /* Semantic — official steps: base = solid fill, soft = 100 bg, deep = readable text/hover */
+  --link: #006bff; /* blue-700 */
+  --link-deep: #0059ec; /* blue-800 */
+  --link-soft: #f0f7ff; /* blue-100 */
+  --error: #ea001d; /* red-800 */
+  --error-soft: #ffeeef; /* red-100 */
+  --error-deep: #d8001b; /* red-900 */
+  --warning: #ffae00; /* amber-700 */
+  --warning-soft: #fff6de; /* amber-100 */
+  --warning-deep: #aa4d00; /* amber-900, the readable amber text */
+  --violet-soft: #d8ccf1;
+  --violet-deep: #4c2889;
+  --cyan-soft: #aaffec;
+  --cyan-deep: #29bc9b;
+
+  /* Surface ladder + text ladder */
+  --canvas: #ffffff;
+  --canvas-soft: #fafafa;
+  --canvas-soft-2: #f5f5f5;
+  --hairline: #ebebeb;
+  --hairline-strong: #a1a1a1;
+  --body-text: #4d4d4d; /* gray-900 */
+  --mute: #8f8f8f; /* gray-700, disabled tier */
+
+  /* Elevation ingredients (flipped in dark) */
+  --ds-ring: #00000014; /* = gray-alpha-400, the official default border */
+  --shadow-card: 0 2px 2px rgb(0 0 0 / 0.04); /* official raised-card, light */
+
+  /* The three gradient pairs, and the mesh they fuse into */
+  --gradient-develop: linear-gradient(90deg, #007cf0, #00dfd8);
+  --gradient-preview: linear-gradient(90deg, #7928ca, #ff0080);
+  --gradient-ship: linear-gradient(90deg, #ff4d4d, #f9cb28);
+  --brand-gradient: linear-gradient(120deg, var(--vercel-blue), var(--vercel-purple) 45%, var(--vercel-pink));
+  --brand-mesh:
+    radial-gradient(60% 60% at 15% 20%, #00dfd8 0%, transparent 60%),
+    radial-gradient(60% 60% at 40% 0%, #007cf0 0%, transparent 60%),
+    radial-gradient(55% 65% at 70% 25%, #ff0080 0%, transparent 60%),
+    radial-gradient(50% 60% at 90% 5%, #f9cb28 0%, transparent 60%);
+  --grid-line: oklch(0 0 0 / 0.05);
+  --selection-bg: #171717;
+  --selection-fg: #f2f2f2;
+}
+
+/* ---- Vercel / Geist palette (dark — the signature look) — exact hexes from
+   vercel.com/design.dark.md. Text is #ededed, never pure white. ---- */
+.dark {
+  --background: #000000; /* background-100 AND background-200 — both black */
+  --foreground: #ededed; /* gray-1000 dark */
+  /* Geist background-100 — the page AND card surface. A lifted card step
+     does not exist in this system; the hairline border separates them. */
+  --card: #000000;
+  --card-foreground: #ededed;
+  --popover: #000000;
+  --popover-foreground: #ededed;
+  --primary: #ededed;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a; /* gray-100 dark */
+  --secondary-foreground: #ededed;
+  --muted: #1a1a1a;
+  --muted-foreground: #a0a0a0; /* gray-900 dark, secondary text */
+  --accent: #1f1f1f; /* gray-200 dark, the hover step */
+  --accent-foreground: #ededed;
+  --destructive: #ff565f; /* red-900 dark — readable on black */
+  --border: #ffffff24; /* gray-alpha-400 dark — official default border */
+  --input: #ffffff24; /* gray-alpha-400 dark, default border */
+  --ring: #47a8ff; /* blue-900 dark — official focus */
+  --chart-1: oklch(0.62 0.2 253);
+  --chart-2: oklch(0.5 0.25 300);
+  --chart-3: oklch(0.65 0.27 8);
+  --chart-4: oklch(0.84 0.13 178);
+  --chart-5: oklch(0.77 0.15 70);
+  --sidebar: #000000; /* match --background: sidebar is not a separate surface */
+  --sidebar-foreground: #ededed;
+  --sidebar-primary: #ededed;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #1f1f1f;
+  --sidebar-accent-foreground: #ededed;
+  --sidebar-border: #ffffff24;
+  --sidebar-ring: #47a8ff;
+  --grid-line: oklch(1 0 0 / 0.06);
+
+  /* Geist gray-alpha (dark) — official values */
+  --gray-alpha-100: #ffffff12;
+  --gray-alpha-200: #ffffff17;
+  --gray-alpha-300: #ffffff21;
+  --gray-alpha-400: #ffffff24;
+  --gray-alpha-500: #ffffff3d;
+  --gray-alpha-600: #ffffff82;
+  --gray-alpha-700: #ffffff8a;
+  --gray-alpha-800: #ffffff78;
+  --gray-alpha-900: #ffffff9c;
+  --gray-alpha-1000: #ffffffeb;
+
+  /* Surface + text ladder flips; brand/semantic hues stay put, softs deepen */
+  --canvas: oklch(0.16 0 0);
+  --canvas-soft: oklch(0.11 0 0);
+  --canvas-soft-2: oklch(0.2 0 0);
+  --hairline: oklch(1 0 0 / 12%);
+  --hairline-strong: oklch(1 0 0 / 28%);
+  --body-text: #a0a0a0; /* gray-900 dark */
+  --mute: #8f8f8f; /* gray-700 dark */
+
+  --link: #47a8ff; /* blue-900 dark */
+  --link-deep: #0090ff; /* blue-600 dark */
+  --link-soft: #06193a; /* blue-100 dark */
+  --error: #ff565f; /* red-900 dark */
+  --error-soft: #330a11; /* red-100 dark */
+  --error-deep: #e2162a; /* red-800 dark */
+  --warning: #ffae00; /* amber-700 dark */
+  --warning-soft: #2a1700; /* amber-100 dark */
+  --warning-deep: #ff9300; /* amber-900 dark */
+  --violet-soft: oklch(0.5 0.25 300 / 26%);
+  --violet-deep: #8a63d2;
+  --cyan-soft: oklch(0.84 0.13 178 / 22%);
+  --cyan-deep: #79ffe1;
+
+  --ds-ring: #ffffff24; /* = gray-alpha-400 dark — the panel edge on black */
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.16); /* official raised-card, dark */
+
+  --selection-bg: #f2f2f2;
+  --selection-fg: #171717;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring; /* focus blue at full strength, per spec */
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+    /* Measured off vercel.com: contextual alternates off, required ligatures
+       on, stylistic set 11. Needs the self-hosted Geist binary — the Google
+       Fonts build has no ss* sets and silently ignores this. */
+    font-feature-settings: "calt" 0, "rlig", "ss11";
+  }
+  ::selection {
+    background: var(--selection-bg);
+    color: var(--selection-fg);
+  }
+  /* A11y: drop nonessential motion (Geist spec). The one sanctioned
+     !important — utility-layer duration-* classes outrank base rules. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  /* Weight 600 is the display ceiling — never 700+ */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+  }
+}
+
+/* ============================================================
+   Vercel-style effects: gradients, grid, hover, spotlight
+   ============================================================ */
+@layer utilities {
+  /* Brand gradient text (headings) */
+  .text-gradient {
+    background: var(--brand-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Solid brand gradient fill */
+  .bg-brand {
+    background: var(--brand-gradient);
+  }
+
+  /* The three named gradient pairs — Develop / Preview / Ship */
+  .bg-develop { background: var(--gradient-develop); }
+  .bg-preview { background: var(--gradient-preview); }
+  .bg-ship { background: var(--gradient-ship); }
+  .text-develop,
+  .text-preview,
+  .text-ship {
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .text-develop { background-image: var(--gradient-develop); }
+  .text-preview { background-image: var(--gradient-preview); }
+  .text-ship { background-image: var(--gradient-ship); }
+
+  /* Hero-scale mesh — the brand's only decorative system. Never miniaturize. */
+  .mesh-bg {
+    background-image: var(--brand-mesh);
+    filter: blur(60px);
+    opacity: 0.55;
+  }
+  .dark .mesh-bg {
+    opacity: 0.4;
+  }
+
+  /* Scrolls, but without the bar — narrow tab rows that overflow in long locales */
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mono eyebrow above a display headline */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: var(--text-caption);
+    line-height: var(--text-caption--line-height);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  /* Vercel hero grid */
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  /* Fade the edges of the grid, radial from top */
+  .radial-fade {
+    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, #000 35%, transparent 100%);
+    mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, #000 35%, transparent 100%);
+  }
+
+  /* Lift + colored glow on hover */
+  .hover-lift {
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 44px -14px oklch(0.62 0.2 253 / 0.4);
+  }
+}
+
+/* Gradient border that brightens on hover (Vercel card edge) */
+.gradient-border {
+  position: relative;
+}
+.gradient-border::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--brand-gradient);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.45;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.gradient-border:hover::after {
+  opacity: 1;
+}
+
+/* Shine sweep on hover (buttons) */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -160%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, oklch(1 0 0 / 0.35), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.btn-shine:hover::after {
+  left: 160%;
+}
+
+/* Mouse-following spotlight card — the signature Vercel hover */
+.spotlight-card {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--card);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.spotlight-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    240px circle at var(--mx, 50%) var(--my, 0%),
+    var(--vercel-blue),
+    transparent 65%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.spotlight-card:hover {
+  transform: translateY(-2px);
+}
+.spotlight-card:hover::before {
+  opacity: 1;
+}
+  ::view-transition-old(root), ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+}

@@ -1,0 +1,12 @@
+/// Key-value app settings editable from the admin panel.
+model AppConfig {
+  id          Int     @id @default(autoincrement())
+  key         String  @unique
+  value       Json?
+  description String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("app_configs")
+}

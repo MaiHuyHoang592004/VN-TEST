@@ -1,0 +1,11 @@
+# Keep CLI uploads lean — Vercel rebuilds everything server-side anyway.
+.git
+.archive
+node_modules
+.next
+.turbo
+.vercel
+*.log
+.env
+.env.*
+libs/db/src/generated

@@ -1,0 +1,26 @@
+/// A supplier. The model lands with receipts because a shipment needs someone
+/// to have sent it; the vendors and expenses admin pages come later.
+model Vendor {
+  id   Int    @id @default(autoincrement())
+  code String @unique
+  name String
+
+  contactName String? @map("contact_name")
+  phone       String?
+  email       String?
+  address     String?
+  taxCode     String? @map("tax_code")
+  note        String?
+
+  status ProductStatus @default(ACTIVE)
+
+  shipments StockReceiptShipment[]
+  expenses  ExpenseEntry[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([status, deletedAt])
+  @@map("vendors")
+}

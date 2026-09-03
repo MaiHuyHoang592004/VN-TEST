@@ -1,0 +1,161 @@
+{
+  "nav": {
+    "section": "Expédition",
+    "station": "Poste de scan",
+    "quick": "Scan rapide",
+    "monitor": "Suivi"
+  },
+  "station": {
+    "title": "Poste de scan",
+    "subtitle": "Scannez un colis pour le lancer, le compter, le photographier et le remettre.",
+    "idle": "Scannez un numéro de suivi ou un code-barres de commande pour commencer.",
+    "handoffDone": "Colis remis."
+  },
+  "scan": {
+    "mode": {
+      "tracking": "N° de suivi",
+      "order": "N° de commande"
+    },
+    "placeholder": {
+      "tracking": "Scannez ou saisissez un numéro de suivi",
+      "order": "Scannez ou saisissez un numéro de commande"
+    },
+    "submit": "Chercher",
+    "clear": "Effacer",
+    "hintTracking": "Les codes longs ne gardent que leurs {n} derniers caractères.",
+    "hintOrder": "Le nombre imprimé sous le QR code de la commande.",
+    "tooShort": "Un numéro de suivi fait au moins 10 caractères.",
+    "notAnId": "Un numéro de commande est un nombre.",
+    "cancelled": "Scan annulé. Aucun statut n'a été modifié.",
+    "confirmTitle": "Cela fait beaucoup de commandes",
+    "confirmDesc": "Ce scan passera {count} commandes en En production (le seuil est de {threshold}).",
+    "confirmBody": "Rien n'a encore changé. Annulez si ce nombre paraît faux — c'est presque toujours un code mal saisi.",
+    "confirmSubmit": "Toutes les déplacer"
+  },
+  "scanned": {
+    "title": "Ce colis a déjà été traité",
+    "desc": "{count} de ces commandes avaient déjà été lancées avant ce scan.",
+    "continue": "Continuer quand même"
+  },
+  "group": {
+    "tracking": "Suivi",
+    "copy": "Copier le numéro de suivi",
+    "copied": "Copié.",
+    "noCustomer": "Aucun vendeur renseigné",
+    "openLabel": "Ouvrir l'étiquette",
+    "viewProof": "Voir la photo de preuve",
+    "multiUnit": "Colis multi-articles — comptez chaque pièce avant de le fermer."
+  },
+  "card": {
+    "qty": "commandé",
+    "filled": "Complet",
+    "progress": "Fabriqué",
+    "fill": "Ajouter",
+    "fillAmount": "Quantité à ajouter"
+  },
+  "fill": {
+    "basket": "Rangé dans l'emplacement {name}."
+  },
+  "actions": {
+    "summary": "{orders} commandes · {units} pièces",
+    "updateAll": "Tout mettre à jour",
+    "proof": "Photo de preuve",
+    "handoff": "Terminer la remise",
+    "linkLabel": "Lier une étiquette"
+  },
+  "proof": {
+    "saved": "Photo enregistrée. Le colis est prêt.",
+    "overwriteTitle": "Remplacer la photo de preuve ?",
+    "overwriteDesc": "Ce colis a déjà une photo, ou il est déjà terminé.",
+    "overwriteBody": "La photo existante est la preuve en cas de litige sur ce colis. Ne la remplacez que si la première était mauvaise.",
+    "overwriteSubmit": "La remplacer"
+  },
+  "handoff": {
+    "title": "Terminer la remise",
+    "desc": "Tapez le mot completed pour confirmer que le colis est emballé et part.",
+    "typeIt": "Tapez « completed »",
+    "tracking": "Numéro de suivi",
+    "trackingPlaceholder": "Le numéro sur le carton",
+    "submit": "Le remettre",
+    "done": "Colis expédié."
+  },
+  "label": {
+    "title": "Lier une étiquette d'expédition",
+    "desc": "Associe cette étiquette et ce numéro de suivi aux {count} commandes du colis.",
+    "tracking": "Numéro de suivi",
+    "url": "URL de l'étiquette",
+    "provider": "Transporteur",
+    "method": "Service",
+    "submit": "Lier l'étiquette",
+    "linked": "Étiquette liée à {count} commandes."
+  },
+  "camera": {
+    "title": "Caméra",
+    "capture": "Prendre la photo",
+    "retry": "Réessayer",
+    "denied": "Aucune caméra disponible. Le champ de scan ci-dessus fonctionne toujours.",
+    "duplicate": "Ce code-barres a déjà été détecté.",
+    "photoFirst": "Prenez d'abord la photo de la commande.",
+    "tooMany": "Ce code correspond à trop de commandes — confirmez via le champ de scan.",
+    "spaceHint": "Appuyez sur Espace pour prendre la photo de preuve.",
+    "scanHint": "Pointez la caméra vers un code-barres pour charger un colis.",
+    "mirrored": "L'aperçu est inversé comme un miroir. La photo enregistrée ne l'est pas."
+  },
+  "quick": {
+    "title": "Scan rapide",
+    "subtitle": "Scannez un colis et appliquez un même statut à toutes ses commandes.",
+    "status": "Nouveau statut",
+    "note": "Note (facultatif)",
+    "submit": "Appliquer",
+    "lastScanned": "Dernier scan",
+    "parcels": "Colis",
+    "updated": "Commandes mises à jour",
+    "empty": "Les colis scannés apparaissent ici.",
+    "colCustomer": "Vendeur",
+    "colTracking": "Suivi",
+    "colStatus": "Statut",
+    "colQty": "Qté",
+    "colProduct": "Produit",
+    "colNote": "Note",
+    "skipped": "Ignorées : {orders}",
+    "applied": "{count} commandes mises à jour."
+  },
+  "monitor": {
+    "title": "Suivi",
+    "subtitle": "Tous les colis en cours. Lecture seule.",
+    "tabs": {
+      "open": "En cours",
+      "ready": "Prêts",
+      "all": "Tous"
+    },
+    "colTracking": "Suivi",
+    "colCustomer": "Vendeur",
+    "colOrders": "Commandes",
+    "colProgress": "Avancement",
+    "colStatus": "Statuts",
+    "colBasket": "Emplacement",
+    "colLabel": "Étiquette",
+    "colOldest": "Plus ancienne",
+    "label": "Ouvrir",
+    "empty": "Aucun colis à afficher.",
+    "loadMore": "Charger plus"
+  },
+  "errors": {
+    "group-not-found": "Aucun résultat pour ce code.",
+    "no-available-basket": "Aucun emplacement libre. Videz-en un avant de continuer.",
+    "check-failed": "Vérification échouée — retapez le mot.",
+    "not-ready": "Toutes les commandes du colis doivent d'abord être terminées.",
+    "not-ready-detail": "Pas encore terminées : {orders}",
+    "not-in-production": "Scannez le colis avant d'ajouter des pièces.",
+    "amount-exceeds-remaining": "C'est plus que ce qu'il reste à fabriquer.",
+    "invalid-transition": "Ce changement de statut n'est pas possible depuis ici.",
+    "file-too-large": "Les images doivent faire 10 Mo ou moins.",
+    "not-an-image": "Envoyez une image PNG, JPG ou WEBP.",
+    "invalid-key": "Ce fichier n'a pas pu être stocké.",
+    "storage-not-configured": "Le stockage de fichiers n'est pas configuré. Prévenez un administrateur.",
+    "validation": "Vérifiez les champs et réessayez.",
+    "provider-rejected": "Le transporteur a refusé l'achat.",
+    "provider-unreachable": "Le transporteur n'a pas répondu. Rien n'a été acheté — réessayez.",
+    "not-configured": "Aucun fournisseur d'étiquettes n'est configuré."
+  }
+}

@@ -1,0 +1,289 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// opcreative — enums
+// Every status/type column is an enum (never a free string). Carrier-supplied
+// values (e.g. Shipment.trackingStatus) are the exception: external data we
+// don't control stays String.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  BANNED
+}
+
+/// Job titles, not scopes. A restricted partner is a SELLER/WAREHOUSE with
+/// UserAllowedProduct rows — never its own role (that was the legacy
+/// "warehouse_external" mistake).
+enum UserRole {
+  ADMIN
+  SELLER
+  WAREHOUSE
+  /// Runs a warehouse: its staff, stock and order assignments.
+  WAREHOUSE_ADMIN
+  SUPPORT
+  /// Artwork and mockups on orders. No money, no product management.
+  DESIGNER
+}
+
+/// What happened. The panel maps each to a locale key and an icon, so adding a
+/// type means adding a case there — not a new column here.
+enum NotificationType {
+  INVITE_RECEIVED
+  INVITE_ACCEPTED
+  ROLE_CHANGED
+  BALANCE_TOPPED_UP
+  BALANCE_REFUNDED
+  TRANSACTION_APPROVED
+  TRANSACTION_REJECTED
+  ORDER_ASSIGNED
+  ORDER_CREATED
+  ORDER_STATUS_CHANGED
+  WORK_ASSIGNED
+  ORDER_ON_HOLD
+  /// A label and tracking number now exist for a seller's order — the event a
+  /// shop needs to tell its own customer something.
+  SHIPPING_LABEL_READY
+  /// The carrier moved the parcel. Raised only for outcomes (delivered,
+  /// exception, returned), never for every scan along the route.
+  TRACKING_UPDATED
+  /// The floor is stuck and a human has to clear it (no basket free).
+  FULFILLMENT_BLOCKED
+  /// A label purchase failed. Money-adjacent, so it is never silent.
+  LABEL_PURCHASE_FAILED
+  /// A seller asked for money to move (top-up claimed, refund requested) and
+  /// somebody with the approve grant has to look at it.
+  TRANSACTION_REQUESTED
+  /// Someone answered a ticket. Legacy sent NOTHING on ticket events — sellers
+  /// refreshed the page to find out whether support had replied.
+  TICKET_REPLIED
+  /// A ticket was opened, resolved or closed by the other party.
+  TICKET_STATUS_CHANGED
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+/// Every sensitive mutation names one of these. An enum (not a string) so a
+/// typo can never invent a phantom action that no query will ever find.
+enum AuditAction {
+  USER_CREATED
+  USER_UPDATED
+  USER_ROLE_CHANGED
+  USER_STATUS_CHANGED
+  USER_DELETED
+  USER_INVITED
+  USER_INVITE_REVOKED
+  PASSWORD_CHANGED
+  EMAIL_CHANGED
+  API_KEY_CREATED
+  API_KEY_REVOKED
+  BALANCE_TOPUP
+  BALANCE_REFUND
+  BALANCE_ADJUSTED
+  WAREHOUSE_CREATED
+  WAREHOUSE_UPDATED
+  WAREHOUSE_STATUS_CHANGED
+  WAREHOUSE_MEMBER_ADDED
+  WAREHOUSE_MEMBER_REMOVED
+  WEBHOOK_UPDATED
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_STATUS_CHANGED
+  PRODUCT_DELETED
+  VARIANT_CREATED
+  VARIANT_UPDATED
+  VARIANT_STATUS_CHANGED
+  VARIANT_DELETED
+  SKU_ATTACHED
+  SKU_UPDATED
+  SKU_PRICES_UPDATED
+  MOCKUP_CREATED
+  MOCKUP_UPDATED
+  MOCKUP_DELETED
+  ORDER_CREATED
+  ORDER_UPDATED
+  ORDER_STATUS_CHANGED
+  ORDER_ASSIGNED
+  ORDER_DELETED
+  ORDER_PROOF_UPLOADED
+  SHIPMENT_CREATED
+  LABEL_PURCHASED
+  TRANSACTION_APPROVED
+  TRANSACTION_REJECTED
+  MATERIAL_CREATED
+  MATERIAL_UPDATED
+  STOCK_ADJUSTED
+  RECEIPT_CREATED
+  RECEIPT_RECEIVED
+  RECEIPT_REJECTED
+  BOM_CREATED
+  BOM_UPDATED
+  BOM_ACTIVATED
+  BOM_DELETED
+  VENDOR_CREATED
+  VENDOR_UPDATED
+  VENDOR_DELETED
+  EXPENSE_CREATED
+  EXPENSE_UPDATED
+  EXPENSE_DELETED
+  EXPENSE_CATEGORY_CREATED
+  EXPENSE_CATEGORY_UPDATED
+  EXPENSE_CATEGORY_DELETED
+  /// Ticket create and reply are ordinary rows; a STATUS flip is what a support
+  /// dispute hinges on ("you closed it without answering"), so only that is
+  /// audited.
+  TICKET_STATUS_CHANGED
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+/// Canonical order lifecycle. Carrier tracking strings live on Shipment.
+enum FulfillmentStatus {
+  PENDING
+  ASSIGNED
+  IN_PRODUCTION
+  FULFILLED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  ON_HOLD
+  /// Order refunded to the customer. Kept distinct from CANCELLED so the ~319
+  /// legacy "Refund" orders stay reportable as refunds, not plain cancellations.
+  REFUNDED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TransactionType {
+  TOPUP
+  ORDER_PAYMENT
+  REFUND
+  ADJUSTMENT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum WarehouseStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BasketPositionStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+  BROKEN
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inventory. The legacy system ran THREE parallel stock systems (per-variant,
+// finished-goods-by-sku, materials) with zero enums — every status was a free
+// string, so "Design problems" and "Design Problems" were different states.
+// One system here, one discriminator, and every state checked at compile time.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// What a stock row, movement, receipt line or reservation points at. This is
+/// the whole reason there is one inventory system instead of two: a material
+/// and a finished SKU differ only in which column is filled.
+enum InventoryItemType {
+  MATERIAL
+  PRODUCT
+}
+
+/// Why stock moved. The ledger is append-only, so this is also the vocabulary
+/// of the movements page. Movements that TAKE stock away (CONSUME) carry a
+/// negative quantity — the sign is what the UI colours red or green.
+enum InventoryMovementType {
+  RECEIPT
+  MANUAL_IMPORT
+  MANUAL_ADJUSTMENT
+  RESERVE
+  RESERVE_RELEASE
+  CONSUME
+  RETURN
+  /// A reservation could not be met — the shortage is recorded so the floor
+  /// can see what to order, and cleared by NEEDED_RESOLVED when stock lands.
+  NEEDED
+  NEEDED_RESOLVED
+}
+
+enum ReceiptStatus {
+  PENDING
+  PARTIAL
+  COMPLETE
+  REJECTED
+}
+
+/// PARTIAL_RECEIVED is what makes receiving across several sessions safe: a
+/// shipment can be re-received and only the delta hits stock.
+enum ReceiptShipmentStatus {
+  PENDING
+  PARTIAL_RECEIVED
+  RECEIVED
+  REJECTED
+}
+
+enum ReservationStatus {
+  RESERVED
+  CONSUMED
+  RELEASED
+  RETURNED
+}
+
+enum BomStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+/// Where in the build a component is used. Reporting only — it does not
+/// change when stock moves.
+enum BomStage {
+  PRODUCTION
+  PACKING
+  SHIPPING
+  OTHER
+}
+
+/// Note there is no unit-of-measure enum to match: the floor types real units
+/// ("m", "roll", "kg") and constraining that list only invents work.
+enum MaterialType {
+  RAW_MATERIAL
+  PACKAGING
+  SEMI_FINISHED
+  CONSUMABLE
+  OTHER
+}
+
+/// Which way the company's own money moved. Not a seller ledger direction —
+/// see ExpenseEntry for why that is a separate system entirely.
+enum ExpenseType {
+  EXPENSE
+  INCOME
+}

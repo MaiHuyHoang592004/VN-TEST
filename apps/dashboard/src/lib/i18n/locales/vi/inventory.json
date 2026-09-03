@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "section": "Kho",
+    "stock": "Tồn kho",
+    "movements": "Biến động",
+    "materials": "Nguyên vật liệu",
+    "boms": "BOM"
+  },
+  "tabs": {
+    "stock": "Tồn kho",
+    "movements": "Biến động",
+    "receipts": "Phiếu nhập"
+  },
+  "stock": {
+    "title": "Tồn kho",
+    "subtitle": "Đang có bao nhiêu trên kệ, giữ cho đơn bao nhiêu, và còn thiếu bao nhiêu.",
+    "search": "Tìm theo tên hoặc SKU",
+    "empty": "Chưa có tồn kho.",
+    "emptyFiltered": "Không có mặt hàng nào khớp bộ lọc.",
+    "adjust": "Điều chỉnh",
+    "import": "Nhập kho",
+    "allWarehouses": "Tất cả kho",
+    "types": {
+      "MATERIAL": "Nguyên vật liệu",
+      "PRODUCT": "Thành phẩm"
+    },
+    "tiles": {
+      "items": "Mặt hàng",
+      "onHand": "Đang có",
+      "reserved": "Đã giữ",
+      "shortage": "Thiếu hụt"
+    },
+    "col": {
+      "item": "Mặt hàng",
+      "kind": "Loại",
+      "onHand": "Đang có",
+      "reserved": "Đã giữ",
+      "shortage": "Thiếu hụt",
+      "available": "Khả dụng",
+      "warehouses": "Kho"
+    },
+    "tip": {
+      "reserved": "Đã phân bổ cho các đơn đang sản xuất",
+      "shortage": "Phải nhập thêm mới đủ cho các đơn hiện tại",
+      "available": "Đang có − đã giữ"
+    }
+  },
+  "adjust": {
+    "title": "Điều chỉnh tồn kho",
+    "description": "Sửa số lượng của một mặt hàng tại một kho. Thay đổi được ghi lại kèm lý do của bạn.",
+    "warehouse": "Kho",
+    "delta": "Điều chỉnh",
+    "deltaHint": "Nhập số âm để giảm.",
+    "reason": "Lý do",
+    "reasonPlaceholder": "Sửa sau kiểm kê",
+    "note": "Ghi chú",
+    "submit": "Áp dụng",
+    "done": "Đã điều chỉnh tồn kho."
+  },
+  "import": {
+    "title": "Nhập kho",
+    "description": "Ghi nhận hàng về mà không có phiếu nhập.",
+    "item": "Mặt hàng",
+    "itemPlaceholder": "Tìm nguyên vật liệu theo tên hoặc SKU",
+    "warehouse": "Kho",
+    "quantity": "Số lượng",
+    "provider": "Nhà cung cấp",
+    "note": "Ghi chú",
+    "submit": "Nhập kho",
+    "done": "Đã nhập kho.",
+    "noItem": "Hãy chọn mặt hàng trước."
+  },
+  "movements": {
+    "title": "Biến động",
+    "subtitle": "Mọi thay đổi số lượng, theo đúng thứ tự đã xảy ra.",
+    "search": "Tìm theo tên mặt hàng hoặc SKU",
+    "empty": "Chưa có biến động.",
+    "emptyFiltered": "Không có biến động nào khớp bộ lọc.",
+    "loadMore": "Tải thêm",
+    "allTypes": "Tất cả loại",
+    "col": {
+      "created": "Thời điểm",
+      "type": "Loại",
+      "item": "Mặt hàng",
+      "warehouse": "Kho",
+      "quantity": "Số lượng",
+      "reference": "Chứng từ",
+      "user": "Người thực hiện"
+    },
+    "types": {
+      "RECEIPT": "Nhận hàng",
+      "MANUAL_IMPORT": "Nhập tay",
+      "MANUAL_ADJUSTMENT": "Điều chỉnh tay",
+      "RESERVE": "Giữ hàng",
+      "RESERVE_RELEASE": "Bỏ giữ",
+      "CONSUME": "Tiêu hao",
+      "RETURN": "Trả lại",
+      "NEEDED": "Thiếu hụt",
+      "NEEDED_RESOLVED": "Đã bù thiếu hụt"
+    },
+    "allItems": "Tất cả mặt hàng"
+  },
+  "materials": {
+    "title": "Nguyên vật liệu",
+    "subtitle": "Nguyên liệu, bao bì và vật tư tiêu hao — chúng là gì, không phải còn bao nhiêu.",
+    "search": "Tìm theo tên, SKU hoặc mô tả",
+    "empty": "Chưa có nguyên vật liệu.",
+    "emptyFiltered": "Không có mục nào khớp bộ lọc.",
+    "new": "Thêm nguyên vật liệu",
+    "created": "Đã tạo nguyên vật liệu.",
+    "updated": "Đã cập nhật nguyên vật liệu.",
+    "deleted": "Đã xoá nguyên vật liệu.",
+    "dialogNewTitle": "Nguyên vật liệu mới",
+    "dialogEditTitle": "Sửa nguyên vật liệu",
+    "dialogDesc": "Chỉ là dữ liệu gốc. Số lượng được thay đổi ở trang tồn kho.",
+    "col": {
+      "name": "Nguyên vật liệu",
+      "type": "Loại",
+      "uom": "Đơn vị",
+      "status": "Trạng thái",
+      "available": "Khả dụng",
+      "bomLines": "Dòng BOM"
+    },
+    "field": {
+      "sku": "SKU",
+      "name": "Tên",
+      "type": "Loại",
+      "uom": "Đơn vị tính",
+      "uomHint": "Nhập tự do: pcs, m, cuộn, kg…",
+      "description": "Mô tả",
+      "status": "Trạng thái",
+      "trackInventory": "Theo dõi tồn kho",
+      "trackInventoryHint": "Tắt cho các món đếm bằng mắt — vẫn xuất hiện trong BOM nhưng không giữ hàng hay báo thiếu."
+    },
+    "types": {
+      "RAW_MATERIAL": "Nguyên liệu thô",
+      "PACKAGING": "Bao bì",
+      "SEMI_FINISHED": "Bán thành phẩm",
+      "CONSUMABLE": "Vật tư tiêu hao",
+      "OTHER": "Khác"
+    },
+    "allTypes": "Tất cả loại",
+    "delete": {
+      "action": "Xoá",
+      "title": "Xoá nguyên vật liệu",
+      "confirm": "Nó vẫn nằm trong các biến động và phiếu nhập cũ để lịch sử còn đọc được.",
+      "blocked": "Vẫn còn dòng BOM đang hoạt động cần nguyên vật liệu này. Hãy gỡ khỏi các BOM đó trước.",
+      "submit": "Xoá",
+      "pillBomLines": "dòng BOM đang hoạt động"
+    },
+    "errSkuTaken": "SKU này đã được nguyên vật liệu khác sử dụng."
+  },
+  "errors": {
+    "warehouse-not-allowed": "Bạn không thuộc kho đó.",
+    "item-not-found": "Mặt hàng đó không còn tồn tại.",
+    "below-zero": "Không thể giảm tồn kho xuống dưới 0.",
+    "insufficient-stock": "Không đủ tồn kho cho thao tác đó."
+  },
+  "receipts": {
+    "title": "Phiếu nhập",
+    "subtitle": "Hàng về: đã đặt bao nhiêu, thực nhận bao nhiêu, và cái gì trễ.",
+    "search": "Tìm theo mã, mã vận đơn hoặc nhà cung cấp",
+    "empty": "Chưa có phiếu nhập.",
+    "emptyFiltered": "Không có phiếu nào khớp bộ lọc.",
+    "new": "Tạo phiếu nhập",
+    "created": "Đã tạo phiếu nhập.",
+    "updated": "Đã cập nhật phiếu nhập.",
+    "received": "Đã nhận hàng.",
+    "rejected": "Đã từ chối phiếu nhập.",
+    "allStatuses": "Tất cả trạng thái",
+    "uploaded": "Đã tải ảnh lên.",
+    "tiles": {
+      "upcoming": "Sắp về",
+      "overdue": "Trễ hẹn",
+      "partial": "Nhận một phần",
+      "variance": "Chênh lệch"
+    },
+    "col": {
+      "code": "Mã",
+      "itemType": "Loại",
+      "warehouse": "Kho",
+      "status": "Trạng thái",
+      "supplier": "Nhà cung cấp",
+      "shipments": "Lô",
+      "created": "Ngày tạo"
+    },
+    "status": {
+      "PENDING": "Chờ nhận",
+      "PARTIAL": "Một phần",
+      "COMPLETE": "Hoàn tất",
+      "REJECTED": "Từ chối"
+    },
+    "shipStatus": {
+      "PENDING": "Chờ nhận",
+      "PARTIAL_RECEIVED": "Nhận một phần",
+      "RECEIVED": "Đã nhận",
+      "REJECTED": "Từ chối"
+    },
+    "detail": {
+      "title": "Phiếu nhập",
+      "expected": "Đặt",
+      "unitPrice": "Đơn giá",
+      "lineTotal": "Thành tiền",
+      "receivedQty": "Thực nhận",
+      "rejectedQty": "Từ chối",
+      "note": "Ghi chú",
+      "receive": "Nhận hàng",
+      "eta": "Dự kiến về",
+      "tracking": "Mã vận đơn",
+      "carrier": "Đơn vị vận chuyển",
+      "vendor": "Nhà cung cấp",
+      "evidence": "Ảnh chứng từ",
+      "upload": "Tải ảnh lên",
+      "reject": "Từ chối phiếu",
+      "rejectReason": "Lý do",
+      "edit": "Sửa",
+      "noEvidence": "Chưa có ảnh."
+    },
+    "form": {
+      "title": "Tạo phiếu nhập",
+      "editTitle": "Sửa phiếu nhập",
+      "desc": "Một kho, một hoặc nhiều lô, mỗi lô có các dòng riêng.",
+      "warehouse": "Kho",
+      "itemType": "Loại hàng",
+      "provider": "Nhà cung cấp",
+      "note": "Ghi chú",
+      "shipment": "Lô",
+      "addShipment": "Thêm lô",
+      "addLine": "Thêm dòng",
+      "remove": "Xoá",
+      "item": "Mặt hàng",
+      "quantity": "Số lượng",
+      "shipmentCode": "Mã lô",
+      "submit": "Tạo phiếu",
+      "save": "Lưu"
+    },
+    "errors": {
+      "not-found": "Phiếu nhập đó không còn tồn tại.",
+      "not-receivable": "Phiếu hoặc lô này đã kết thúc.",
+      "not-editable": "Phiếu này đã có hàng về nên không sửa được nữa.",
+      "received-below-current": "Không thể giảm số đã nhận — hàng đã nhập đang nằm trên kệ.",
+      "too-many-files": "Tối đa 10 ảnh mỗi lần.",
+      "not-an-image": "Hãy tải lên ảnh PNG, JPG hoặc WEBP.",
+      "file-too-large": "Ảnh phải nhỏ hơn 10MB."
+    }
+  },
+  "boms": {
+    "section": "BOM",
+    "title": "Định mức nguyên vật liệu",
+    "subtitle": "Mỗi SKU làm từ những gì, và các thành phần có sẵn hàng hay không.",
+    "tabs": {
+      "configs": "Cấu hình",
+      "coverage": "Mức đáp ứng"
+    },
+    "search": "Tìm theo SKU, sản phẩm hoặc tên BOM",
+    "empty": "Chưa có BOM.",
+    "emptyFiltered": "Không có BOM nào khớp bộ lọc.",
+    "new": "BOM mới",
+    "created": "Đã tạo BOM.",
+    "updated": "Đã lưu BOM.",
+    "activated": "Đã kích hoạt BOM.",
+    "duplicated": "Đã tạo bản nháp mới.",
+    "deleted": "Đã xoá BOM.",
+    "tiles": {
+      "total": "BOM",
+      "active": "Đang dùng",
+      "draft": "Nháp",
+      "incomplete": "Dòng chưa xong"
+    },
+    "col": {
+      "variant": "Biến thể sản phẩm",
+      "bom": "BOM",
+      "status": "Trạng thái",
+      "lines": "Dòng",
+      "components": "Thành phần",
+      "manage": "Quản lý"
+    },
+    "status": {
+      "DRAFT": "Nháp",
+      "ACTIVE": "Đang dùng",
+      "INACTIVE": "Ngưng"
+    },
+    "linesOf": "bắt buộc trên",
+    "linked": "đã gán",
+    "incomplete": "chưa gán",
+    "manage": "Quản lý",
+    "dialog": {
+      "title": "Định mức nguyên vật liệu",
+      "versions": "Phiên bản",
+      "newDraft": "Bản nháp mới",
+      "name": "Tên",
+      "version": "Phiên bản",
+      "versionAuto": "Tự động",
+      "status": "Trạng thái",
+      "material": "Nguyên vật liệu",
+      "sku": "SKU",
+      "qtyPerUnit": "SL / đơn vị",
+      "unit": "Đơn vị",
+      "wastage": "Hao hụt %",
+      "stage": "Công đoạn",
+      "required": "BB",
+      "addLine": "Thêm dòng",
+      "save": "Lưu",
+      "activate": "Kích hoạt",
+      "duplicate": "Nhân bản",
+      "delete": "Xoá",
+      "preview": "Xem trước",
+      "previewQty": "Số lượng",
+      "previewWarehouse": "Kho",
+      "component": "Thành phần",
+      "requiredQty": "Cần",
+      "available": "Khả dụng",
+      "shortage": "Thiếu",
+      "mapping": "Gán",
+      "unmapped": "Chưa gán",
+      "noLines": "Chưa có dòng nào."
+    },
+    "stage": {
+      "PRODUCTION": "Sản xuất",
+      "PACKING": "Đóng gói",
+      "SHIPPING": "Vận chuyển",
+      "OTHER": "Khác"
+    },
+    "coverage": {
+      "search": "Tìm thành phần",
+      "empty": "Chưa có thành phần.",
+      "tiles": {
+        "components": "Thành phần",
+        "linked": "Đã gán",
+        "shortage": "Thiếu hụt",
+        "noStock": "Hết hàng"
+      },
+      "col": {
+        "material": "Nguyên vật liệu",
+        "coverage": "Mức đáp ứng",
+        "qty": "SL",
+        "reserved": "Đã giữ",
+        "shortage": "Thiếu",
+        "available": "Khả dụng",
+        "usedIn": "Dùng trong BOM",
+        "warehouses": "Kho"
+      },
+      "badge": {
+        "AVAILABLE": "Khả dụng",
+        "NEEDED": "Thiếu hụt",
+        "NO_STOCK": "Hết hàng",
+        "UNMAPPED": "Chưa gán"
+      },
+      "boms": "BOM",
+      "perUnit": "cần/đơn vị"
+    },
+    "errors": {
+      "not-found": "BOM đó không còn tồn tại.",
+      "not-editable": "BOM không có dòng nào thì không kích hoạt được.",
+      "item-not-found": "SKU đó không còn tồn tại.",
+      "bom-line-unmapped": "Có thành phần bắt buộc chưa gán nguyên vật liệu."
+    }
+  }
+}

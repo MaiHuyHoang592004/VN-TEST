@@ -1,0 +1,55 @@
+/// A sellable SKU: Product × Variant (e.g. "Leather Wallet / Brown").
+model ProductVariant {
+  id        Int     @id @default(autoincrement())
+  productId Int     @map("product_id")
+  variantId Int     @map("variant_id")
+  sku       String? @unique
+  /// Retire a SKU that has orders behind it without deleting the row those
+  /// orders point at. A never-ordered SKU is detached outright instead.
+  status    ProductStatus @default(ACTIVE)
+  /// Cached total on hand; source of truth is WarehouseInventory.
+  stock     Int     @default(0)
+  needed    Int     @default(0)
+  salePrice Decimal @default(0) @db.Decimal(12, 2) @map("sale_price")
+  /// Default storage position label in the warehouse.
+  position  String?
+  configs   Json?
+  data      Json?
+
+  product Product @relation(fields: [productId], references: [id])
+  variant Variant @relation(fields: [variantId], references: [id])
+
+  prices       VariantPrice[]
+  stockImports StockImport[]
+  orders       Order[]
+  inventory    WarehouseInventory[]
+  receiptLines StockReceiptLine[]
+  reservations InventoryReservation[]
+  movements    InventoryMovement[]
+  boms         Bom[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  // ponytail: no @@unique([productId, variantId]) yet. Not an oversight and
+  // not laziness — it is blocked on ONE fact nobody can check without legacy
+  // prod credentials: whether the old data holds duplicate (product, variant)
+  // rows. Adding it blind turns a low-severity race (two admins attaching the
+  // same variant in the same instant produce a cosmetic duplicate row, which
+  // attachVariants' existence check makes rare and a detach cleans up) into a
+  // cutover that aborts on real data.
+  //
+  // The application side is already ready for it: detachSku hard-deletes
+  // never-ordered SKUs rather than leaving a tombstone, so nothing we write
+  // can collide once the constraint lands.
+  //
+  // Upgrade path, in order: run the duplicate pre-flight in
+  // prisma/scripts/migrate-legacy.sql → if it returns no rows, add
+  // @@unique([productId, variantId]) and switch attachVariants to
+  // createMany({ skipDuplicates: true }) → if it returns rows, dedupe them in
+  // the cutover script first.
+  @@index([productId])
+  @@index([variantId])
+  @@map("product_variants")
+}

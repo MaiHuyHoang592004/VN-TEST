@@ -1,0 +1,34 @@
+/// How much of one material sits in one warehouse.
+///
+/// The counter convention, which the whole inventory domain obeys and which
+/// legacy got two different ways round in two different services:
+///
+///   quantity  = units physically present, INCLUDING reserved
+///   reserved  = held for assigned orders, still on the shelf
+///   needed    = shortage backlog, written when a reservation could not be met
+///   available = max(quantity − reserved − needed, 0)
+///
+/// `available` is COMPUTED and never stored — one exported availableOf() owns
+/// the formula. A stored copy is a second source of truth that drifts, which
+/// is exactly what the legacy `stock` column became.
+model MaterialStock {
+  id          Int @id @default(autoincrement())
+  warehouseId Int @map("warehouse_id")
+  materialId  Int @map("material_id")
+
+  quantity    Int @default(0)
+  reserved    Int @default(0)
+  /// Damaged/unusable units. Held out of every count, never auto-scrapped.
+  badQuantity Int @default(0) @map("bad_quantity")
+  needed      Int @default(0)
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  material  Material  @relation(fields: [materialId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([warehouseId, materialId])
+  @@index([materialId])
+  @@map("material_stock")
+}

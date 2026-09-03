@@ -1,0 +1,55 @@
+{
+  "title": "لوحة التحكم",
+  "subtitle": "وضع العمل الآن.",
+  "from": "من",
+  "to": "إلى",
+  "periods": {
+    "today": "اليوم",
+    "week": "هذا الأسبوع",
+    "month": "هذا الشهر",
+    "year": "هذه السنة",
+    "all": "كل الفترات"
+  },
+  "admin": {
+    "transactions": "المعاملات",
+    "customers": "العملاء",
+    "orders": "الطلبات",
+    "quantity": "الكمية",
+    "baseCost": "التكلفة",
+    "topups": "الشحن",
+    "search": "ابحث عن بائع",
+    "empty": "لا يوجد بائعون بعد.",
+    "colSeller": "البائع",
+    "colOrders": "الطلبات",
+    "colQuantity": "الكمية",
+    "colBaseCost": "التكلفة",
+    "colTopups": "الشحن",
+    "colBalance": "الرصيد",
+    "colDebt": "المديونية"
+  },
+  "seller": {
+    "balance": "الرصيد",
+    "debt": "المستحق",
+    "orders": "الطلبات",
+    "quantity": "الكمية",
+    "statuses": "أين وصلت طلباتك",
+    "ordersWord": "طلب",
+    "noOrders": "لا توجد طلبات بعد.",
+    "recent": "أحدث المعاملات",
+    "allTransactions": "عرض الكل",
+    "noTransactions": "لا توجد معاملات بعد.",
+    "openTickets": "لديك {count} تذكرة دعم مفتوحة.",
+    "viewTickets": "فتح التذاكر"
+  },
+  "warehouse": {
+    "orders": "الطلبات",
+    "quantity": "الوحدات",
+    "skus": "الأصناف",
+    "mockups": "التصاميم",
+    "bySku": "أعلى الأصناف",
+    "byMockup": "أعلى التصاميم",
+    "ordersWord": "طلب",
+    "nothing": "لا شيء في هذه الفترة.",
+    "monitor": "فتح شاشة الإنتاج"
+  }
+}

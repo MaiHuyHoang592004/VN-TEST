@@ -1,0 +1,55 @@
+{
+  "title": "ダッシュボード",
+  "subtitle": "いまのビジネスの状況。",
+  "from": "開始",
+  "to": "終了",
+  "periods": {
+    "today": "今日",
+    "week": "今週",
+    "month": "今月",
+    "year": "今年",
+    "all": "全期間"
+  },
+  "admin": {
+    "transactions": "取引数",
+    "customers": "顧客数",
+    "orders": "注文数",
+    "quantity": "数量",
+    "baseCost": "原価",
+    "topups": "チャージ",
+    "search": "販売者を検索",
+    "empty": "販売者はまだいません。",
+    "colSeller": "販売者",
+    "colOrders": "注文",
+    "colQuantity": "数量",
+    "colBaseCost": "原価",
+    "colTopups": "チャージ",
+    "colBalance": "残高",
+    "colDebt": "未払い"
+  },
+  "seller": {
+    "balance": "残高",
+    "debt": "未払い",
+    "orders": "注文",
+    "quantity": "数量",
+    "statuses": "注文の状況",
+    "ordersWord": "件",
+    "noOrders": "注文はまだありません。",
+    "recent": "最近の取引",
+    "allTransactions": "すべて表示",
+    "noTransactions": "取引はまだありません。",
+    "openTickets": "未解決のチケットが {count} 件あります。",
+    "viewTickets": "チケットを開く"
+  },
+  "warehouse": {
+    "orders": "注文",
+    "quantity": "点数",
+    "skus": "SKU 数",
+    "mockups": "デザイン数",
+    "bySku": "SKU 上位",
+    "byMockup": "デザイン上位",
+    "ordersWord": "件",
+    "nothing": "この期間のデータはありません。",
+    "monitor": "フロアモニターを開く"
+  }
+}

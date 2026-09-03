@@ -1,0 +1,18 @@
+/// A variant axis value shared across products (e.g. "Brown", "Large").
+model Variant {
+  id      Int           @id @default(autoincrement())
+  name    String
+  key     String        @unique
+  status  ProductStatus @default(ACTIVE)
+  data    Json?
+  configs Json?
+
+  productVariants ProductVariant[]
+  orders          Order[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("variants")
+}

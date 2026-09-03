@@ -1,0 +1,21 @@
+/// A base product (e.g. "Leather Wallet"). Sellable combinations live in
+/// ProductVariant.
+model Product {
+  id        Int           @id @default(autoincrement())
+  name      String
+  /// Stable machine key, e.g. "leather-wallet". Used in URLs and the API.
+  key       String        @unique
+  thumbnail String?
+  status    ProductStatus @default(DRAFT)
+  configs   Json?
+
+  variants     ProductVariant[]
+  orders       Order[]
+  allowedUsers UserAllowedProduct[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("products")
+}

@@ -1,0 +1,335 @@
+"use client";
+
+import { useId, type ReactNode } from "react";
+import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+/**
+ * The table every list screen is built from — Users, Warehouses, Audit and the
+ * ~20 pages of the legacy rebuild. Built once so they can't drift into twenty
+ * slightly different tables.
+ *
+ * Server-driven by design: sorting, filtering and paging are URL state handled
+ * by the page, not hidden client state. That keeps a filtered list linkable and
+ * shareable, lets each page server-render exactly the rows it needs, and means
+ * a 50k-column table never ships to the browser.
+ *
+ * Deliberately NOT a wrapper around a table library: what we need is row
+ * definitions, selection and the three empty/loading/error states. A library
+ * would add a dependency and a second mental model for less than it gives back.
+ */
+
+export type Column<T> = {
+  /** Stable key; also the sort key sent to the server when `sortable`. */
+  id: string;
+  header: ReactNode;
+  /** Cell renderer. Kept explicit rather than magic key access so a cell can
+   * combine fields (name + avatar) without a special case. */
+  cell: (column: T) => ReactNode;
+  sortable?: boolean;
+  /** Tailwind classes for both the header and its cells — alignment, width. */
+  className?: string;
+  /** Hidden below `sm`. Use for columns that aren't worth a horizontal scroll
+   * on a phone. Ignored when the table renders as cards (see `mobileCard`). */
+  hideOnMobile?: boolean;
+};
+
+export type SortState = { id: string; desc: boolean } | null;
+
+export type DataTableProps<T> = {
+  rows: T[];
+  columns: Column<T>[];
+  /** Stable identity — used for React keys and selection. */
+  rowId: (column: T) => string;
+
+  loading?: boolean;
+  /** Shown when there are no rows and we're not loading. */
+  empty?: ReactNode;
+  /** Shown instead of rows when a fetch failed. */
+  error?: ReactNode;
+
+  sort?: SortState;
+  onSortChange?: (sort: SortState) => void;
+
+  /** Omit both to disable selection entirely. */
+  selected?: Set<string>;
+  onSelectedChange?: (next: Set<string>) => void;
+
+  /** Rendered above the table — filters, search, bulk actions. */
+  toolbar?: ReactNode;
+  /** Rendered below — usually <DataTablePagination />. */
+  footer?: ReactNode;
+
+  onRowClick?: (column: T) => void;
+
+  /**
+   * Render each column as a CARD on phones instead of a table.
+   *
+   * A table on a 390px screen is a horizontal scroll with most of its columns
+   * hidden, which is how the information a phone user needs ends up being the
+   * information they cannot reach. A card shows the same column as a block, and
+   * the app is going into a Capacitor shell where "phone" is the primary
+   * surface rather than a fallback.
+   *
+   * Optional: a list without one keeps the (scrolling) table, so adopting this
+   * is per-page rather than a flag day.
+   */
+  mobileCard?: (column: T) => ReactNode;
+};
+
+export function DataTable<T>({
+  rows,
+  columns,
+  rowId,
+  loading = false,
+  empty,
+  error,
+  sort = null,
+  onSortChange,
+  selected,
+  onSelectedChange,
+  toolbar,
+  footer,
+  onRowClick,
+  mobileCard,
+}: DataTableProps<T>) {
+  const headingId = useId();
+  const isMobile = useIsMobile();
+  const selectable = Boolean(selected && onSelectedChange);
+
+  const allOnPageSelected =
+    selectable && rows.length > 0 && rows.every((r) => selected!.has(rowId(r)));
+  const someOnPageSelected =
+    selectable && rows.some((r) => selected!.has(rowId(r))) && !allOnPageSelected;
+
+  const toggleAll = () => {
+    if (!selectable) return;
+    const next = new Set(selected!);
+    // Only ever touches the CURRENT page, so a selection made across pages
+    // isn't silently wiped by toggling the header checkbox.
+    if (allOnPageSelected) rows.forEach((r) => next.delete(rowId(r)));
+    else rows.forEach((r) => next.add(rowId(r)));
+    onSelectedChange!(next);
+  };
+
+  const toggleOne = (id: string) => {
+    if (!selectable) return;
+    const next = new Set(selected!);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    onSelectedChange!(next);
+  };
+
+  const nextSortFor = (id: string): SortState => {
+    // asc → desc → none, so a user can always get back to the default order.
+    if (!sort || sort.id !== id) return { id, desc: false };
+    if (!sort.desc) return { id, desc: true };
+    return null;
+  };
+
+  const colSpan = columns.length + (selectable ? 1 : 0);
+
+  if (mobileCard && isMobile) {
+    return (
+      <div className="flex flex-col gap-3">
+        {toolbar}
+        {error ? (
+          <p className="py-10 text-center text-sm">{error}</p>
+        ) : loading ? (
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={`card-skeleton-${i}`} className="h-28 w-full rounded-lg" />
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <p className="text-muted-foreground py-10 text-center text-sm">{empty}</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {rows.map((column) => {
+              const id = rowId(column);
+              return (
+                <li
+                  key={id}
+                  className={cn(
+                    "border-border bg-card rounded-lg border p-3 transition-colors",
+                    selectable && selected!.has(id) && "border-foreground/30 bg-accent/40",
+                  )}
+                >
+                  <div className="flex gap-3">
+                    {selectable && (
+                      <Checkbox
+                        checked={selected!.has(id)}
+                        onCheckedChange={() => toggleOne(id)}
+                        aria-label="Select column"
+                        className="mt-1 shrink-0"
+                      />
+                    )}
+                    <div
+                      className="min-w-0 flex-1"
+                      onClick={onRowClick ? () => onRowClick(column) : undefined}
+                    >
+                      {mobileCard(column)}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {footer}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {toolbar}
+
+      <div className="border-border overflow-x-auto rounded-lg border">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              {selectable && (
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allOnPageSelected}
+                    indeterminate={someOnPageSelected}
+                    onCheckedChange={toggleAll}
+                    aria-label="Select all rows on this page"
+                  />
+                </TableHead>
+              )}
+              {columns.map((col) => {
+                const isSorted = sort?.id === col.id;
+                return (
+                  <TableHead
+                    key={col.id}
+                    aria-sort={
+                      isSorted ? (sort!.desc ? "descending" : "ascending") : undefined
+                    }
+                    className={cn(
+                      col.className,
+                      col.hideOnMobile && "hidden sm:table-cell",
+                    )}
+                  >
+                    {col.sortable && onSortChange ? (
+                      <button
+                        type="button"
+                        onClick={() => onSortChange(nextSortFor(col.id))}
+                        className="text-muted-foreground hover:text-foreground -mx-1 inline-flex items-center gap-1 rounded px-1 transition-colors"
+                      >
+                        {col.header}
+                        {isSorted ? (
+                          sort!.desc ? (
+                            <ChevronDown className="size-3.5" />
+                          ) : (
+                            <ChevronUp className="size-3.5" />
+                          )
+                        ) : (
+                          <ChevronsUpDown className="size-3.5 opacity-40" />
+                        )}
+                      </button>
+                    ) : (
+                      col.header
+                    )}
+                  </TableHead>
+                );
+              })}
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {/* Error beats loading beats empty: showing skeletons after a failed
+                fetch reads as "still working" and hides the problem. */}
+            {error ? (
+              <TableRow>
+                <TableCell colSpan={colSpan} className="py-10 text-center">
+                  {error}
+                </TableCell>
+              </TableRow>
+            ) : loading ? (
+              Array.from({ length: 5 }, (_, i) => (
+                <TableRow key={`skeleton-${i}`}>
+                  {selectable && (
+                    <TableCell>
+                      <Skeleton className="size-4" />
+                    </TableCell>
+                  )}
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.id}
+                      className={cn(col.hideOnMobile && "hidden sm:table-cell")}
+                    >
+                      <Skeleton className="h-4 w-full max-w-[12rem]" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : rows.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={colSpan}
+                  className="text-muted-foreground py-10 text-center text-sm"
+                >
+                  {empty ?? "Nothing to show."}
+                </TableCell>
+              </TableRow>
+            ) : (
+              rows.map((column) => {
+                const id = rowId(column);
+                const isSelected = selectable && selected!.has(id);
+                return (
+                  <TableRow
+                    key={id}
+                    data-state={isSelected ? "selected" : undefined}
+                    aria-labelledby={headingId}
+                    onClick={onRowClick ? () => onRowClick(column) : undefined}
+                    className={cn(onRowClick && "cursor-pointer")}
+                  >
+                    {selectable && (
+                      <TableCell
+                        // The checkbox must not trigger the column's own click.
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleOne(id)}
+                          aria-label="Select column"
+                        />
+                      </TableCell>
+                    )}
+                    {columns.map((col) => (
+                      <TableCell
+                        key={col.id}
+                        className={cn(
+                          col.className,
+                          col.hideOnMobile && "hidden sm:table-cell",
+                        )}
+                      >
+                        {col.cell(column)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+              })
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {footer}
+    </div>
+  );
+}

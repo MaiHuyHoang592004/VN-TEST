@@ -1,0 +1,161 @@
+{
+  "nav": {
+    "section": "履约",
+    "station": "工作台",
+    "quick": "快速扫描",
+    "monitor": "监控"
+  },
+  "station": {
+    "title": "扫描工作台",
+    "subtitle": "扫描包裹即可开始生产、计数、拍照并交接。",
+    "idle": "扫描运单号或订单条码以开始。",
+    "handoffDone": "包裹已交接。"
+  },
+  "scan": {
+    "mode": {
+      "tracking": "运单号",
+      "order": "订单 ID"
+    },
+    "placeholder": {
+      "tracking": "扫描或输入运单号",
+      "order": "扫描或输入订单 ID"
+    },
+    "submit": "查找",
+    "clear": "清除",
+    "hintTracking": "过长的编码只保留最后 {n} 位。",
+    "hintOrder": "订单二维码下方的数字。",
+    "tooShort": "运单号至少需要 10 个字符。",
+    "notAnId": "订单 ID 必须是数字。",
+    "cancelled": "已取消扫描，未更改任何状态。",
+    "confirmTitle": "订单数量过多",
+    "confirmDesc": "此次扫描会将 {count} 个订单移至「生产中」（阈值为 {threshold}）。",
+    "confirmBody": "目前尚未做任何更改。如果数量看起来不对请取消——这通常意味着编码输错了。",
+    "confirmSubmit": "全部移动"
+  },
+  "scanned": {
+    "title": "该包裹已被处理过",
+    "desc": "其中 {count} 个订单在本次扫描前已开始处理。",
+    "continue": "仍然继续"
+  },
+  "group": {
+    "tracking": "运单号",
+    "copy": "复制运单号",
+    "copied": "已复制。",
+    "noCustomer": "无卖家记录",
+    "openLabel": "打开面单",
+    "viewProof": "查看凭证照片",
+    "multiUnit": "多件包裹——封箱前请清点每一件。"
+  },
+  "card": {
+    "qty": "订购",
+    "filled": "已完成",
+    "progress": "已制作",
+    "fill": "登记",
+    "fillAmount": "本次登记数量"
+  },
+  "fill": {
+    "basket": "已放入货位 {name}。"
+  },
+  "actions": {
+    "summary": "{orders} 个订单 · {units} 件",
+    "updateAll": "全部更新",
+    "proof": "凭证照片",
+    "handoff": "完成交接",
+    "linkLabel": "关联面单"
+  },
+  "proof": {
+    "saved": "凭证照片已保存，包裹已完成。",
+    "overwriteTitle": "替换凭证照片？",
+    "overwriteDesc": "该包裹已有照片，或已经完成。",
+    "overwriteBody": "现有照片是该包裹争议时的凭证。只有第一张拍错时才应替换。",
+    "overwriteSubmit": "替换"
+  },
+  "handoff": {
+    "title": "完成交接",
+    "desc": "输入 completed 以确认包裹已装箱并即将发出。",
+    "typeIt": "请输入「completed」",
+    "tracking": "运单号",
+    "trackingPlaceholder": "箱子上的编号",
+    "submit": "交接",
+    "done": "包裹已发出。"
+  },
+  "label": {
+    "title": "关联运输面单",
+    "desc": "将该面单与运单号关联到包裹中的全部 {count} 个订单。",
+    "tracking": "运单号",
+    "url": "面单链接",
+    "provider": "服务商",
+    "method": "服务方式",
+    "submit": "关联面单",
+    "linked": "面单已关联到 {count} 个订单。"
+  },
+  "camera": {
+    "title": "摄像头",
+    "capture": "拍摄照片",
+    "retry": "重试",
+    "denied": "没有可用的摄像头。上方的扫描框仍可使用。",
+    "duplicate": "已识别过该条码。",
+    "photoFirst": "请先拍摄订单照片。",
+    "tooMany": "该编码匹配的订单过多——请用扫描框确认。",
+    "spaceHint": "按空格键拍摄凭证照片。",
+    "scanHint": "将摄像头对准条码即可载入包裹。",
+    "mirrored": "预览为镜像显示，保存的照片不是。"
+  },
+  "quick": {
+    "title": "快速扫描",
+    "subtitle": "扫描包裹，为其中所有订单设置同一状态。",
+    "status": "新状态",
+    "note": "备注（可选）",
+    "submit": "应用",
+    "lastScanned": "最近扫描",
+    "parcels": "包裹数",
+    "updated": "已更新订单",
+    "empty": "扫描过的包裹会显示在这里。",
+    "colCustomer": "卖家",
+    "colTracking": "运单号",
+    "colStatus": "状态",
+    "colQty": "数量",
+    "colProduct": "产品",
+    "colNote": "备注",
+    "skipped": "已跳过：{orders}",
+    "applied": "已更新 {count} 个订单。"
+  },
+  "monitor": {
+    "title": "监控",
+    "subtitle": "所有在途包裹，仅供查看。",
+    "tabs": {
+      "open": "进行中",
+      "ready": "待发出",
+      "all": "全部"
+    },
+    "colTracking": "运单号",
+    "colCustomer": "卖家",
+    "colOrders": "订单数",
+    "colProgress": "进度",
+    "colStatus": "状态",
+    "colBasket": "货位",
+    "colLabel": "面单",
+    "colOldest": "最早",
+    "label": "打开",
+    "empty": "暂无包裹。",
+    "loadMore": "加载更多"
+  },
+  "errors": {
+    "group-not-found": "没有匹配该编码的内容。",
+    "no-available-basket": "没有空闲货位，请先腾出一个。",
+    "check-failed": "校验未通过——请重新输入该词。",
+    "not-ready": "包裹中的所有订单必须先完成。",
+    "not-ready-detail": "尚未完成：{orders}",
+    "not-in-production": "请先扫描包裹再登记数量。",
+    "amount-exceeds-remaining": "超过了剩余待制作的数量。",
+    "invalid-transition": "当前状态不允许这样变更。",
+    "file-too-large": "图片不得超过 10MB。",
+    "not-an-image": "请上传 PNG、JPG 或 WEBP 图片。",
+    "invalid-key": "该文件无法存储。",
+    "storage-not-configured": "文件存储尚未配置，请联系管理员。",
+    "validation": "请检查填写内容后重试。",
+    "provider-rejected": "承运商拒绝了此次购买。",
+    "provider-unreachable": "承运商无响应，未产生购买——请重试。",
+    "not-configured": "尚未配置面单服务商。"
+  }
+}

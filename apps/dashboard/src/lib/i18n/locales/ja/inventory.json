@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "section": "在庫",
+    "stock": "在庫",
+    "movements": "入出庫履歴",
+    "materials": "資材",
+    "boms": "部品表"
+  },
+  "tabs": {
+    "stock": "在庫",
+    "movements": "入出庫履歴",
+    "receipts": "入荷"
+  },
+  "stock": {
+    "title": "在庫",
+    "subtitle": "棚にある数、受注のために確保している数、そして不足している数。",
+    "search": "名称または SKU で検索",
+    "empty": "在庫はまだありません。",
+    "emptyFiltered": "条件に一致する品目はありません。",
+    "adjust": "調整",
+    "import": "入庫",
+    "allWarehouses": "すべての倉庫",
+    "types": {
+      "MATERIAL": "資材",
+      "PRODUCT": "完成品"
+    },
+    "tiles": {
+      "items": "品目数",
+      "onHand": "在庫数",
+      "reserved": "引当済み",
+      "shortage": "不足"
+    },
+    "col": {
+      "item": "品目",
+      "kind": "種別",
+      "onHand": "在庫数",
+      "reserved": "引当済み",
+      "shortage": "不足",
+      "available": "利用可能",
+      "warehouses": "倉庫"
+    },
+    "tip": {
+      "reserved": "生産中の受注に割り当て済み",
+      "shortage": "現在の受注を満たすには追加入庫が必要",
+      "available": "在庫数 − 引当済み"
+    }
+  },
+  "adjust": {
+    "title": "在庫調整",
+    "description": "一つの倉庫の一品目の数量を修正します。理由とともに記録されます。",
+    "warehouse": "倉庫",
+    "delta": "調整数",
+    "deltaHint": "減らす場合はマイナスの数値を入力します。",
+    "reason": "理由",
+    "reasonPlaceholder": "棚卸しによる修正",
+    "note": "備考",
+    "submit": "調整を適用",
+    "done": "在庫を調整しました。"
+  },
+  "import": {
+    "title": "入庫",
+    "description": "入荷伝票なしで届いた在庫を登録します。",
+    "item": "品目",
+    "itemPlaceholder": "名称または SKU で資材を検索",
+    "warehouse": "倉庫",
+    "quantity": "数量",
+    "provider": "仕入先",
+    "note": "備考",
+    "submit": "入庫する",
+    "done": "入庫しました。",
+    "noItem": "先に品目を選択してください。"
+  },
+  "movements": {
+    "title": "入出庫履歴",
+    "subtitle": "すべての数量変更を、発生した順に記録しています。",
+    "search": "品目名または SKU で検索",
+    "empty": "履歴はまだありません。",
+    "emptyFiltered": "条件に一致する履歴はありません。",
+    "loadMore": "さらに読み込む",
+    "allTypes": "すべての種別",
+    "col": {
+      "created": "日時",
+      "type": "種別",
+      "item": "品目",
+      "warehouse": "倉庫",
+      "quantity": "数量",
+      "reference": "参照",
+      "user": "担当者"
+    },
+    "types": {
+      "RECEIPT": "入荷",
+      "MANUAL_IMPORT": "手動入庫",
+      "MANUAL_ADJUSTMENT": "手動調整",
+      "RESERVE": "引当",
+      "RESERVE_RELEASE": "引当解除",
+      "CONSUME": "消費",
+      "RETURN": "返却",
+      "NEEDED": "不足",
+      "NEEDED_RESOLVED": "不足解消"
+    },
+    "allItems": "すべての品目"
+  },
+  "materials": {
+    "title": "資材",
+    "subtitle": "原材料・梱包材・消耗品——数量ではなく、それが何かを管理します。",
+    "search": "名称・SKU・説明で検索",
+    "empty": "資材はまだありません。",
+    "emptyFiltered": "条件に一致する資材はありません。",
+    "new": "資材を追加",
+    "created": "資材を作成しました。",
+    "updated": "資材を更新しました。",
+    "deleted": "資材を削除しました。",
+    "dialogNewTitle": "新規資材",
+    "dialogEditTitle": "資材の編集",
+    "dialogDesc": "マスタ情報のみです。数量は在庫ページで変更します。",
+    "col": {
+      "name": "資材",
+      "type": "種別",
+      "uom": "単位",
+      "status": "ステータス",
+      "available": "利用可能",
+      "bomLines": "BOM 行"
+    },
+    "field": {
+      "sku": "SKU",
+      "name": "名称",
+      "type": "種別",
+      "uom": "計量単位",
+      "uomHint": "自由入力：pcs、m、ロール、kg など",
+      "description": "説明",
+      "status": "ステータス",
+      "trackInventory": "在庫を管理する",
+      "trackInventoryHint": "目視で数える品目はオフに——BOM には表示されますが、引当も不足報告も行いません。"
+    },
+    "types": {
+      "RAW_MATERIAL": "原材料",
+      "PACKAGING": "梱包材",
+      "SEMI_FINISHED": "半製品",
+      "CONSUMABLE": "消耗品",
+      "OTHER": "その他"
+    },
+    "allTypes": "すべての種別",
+    "delete": {
+      "action": "削除",
+      "title": "資材を削除",
+      "confirm": "過去の履歴や入荷記録には残るため、履歴は引き続き読めます。",
+      "blocked": "有効な BOM 行がまだこの資材を必要としています。先にそれらの BOM から外してください。",
+      "submit": "削除",
+      "pillBomLines": "件の有効な BOM 行"
+    },
+    "errSkuTaken": "その SKU は別の資材で使用されています。"
+  },
+  "errors": {
+    "warehouse-not-allowed": "その倉庫のメンバーではありません。",
+    "item-not-found": "その品目はすでに存在しません。",
+    "below-zero": "在庫をマイナスにすることはできません。",
+    "insufficient-stock": "在庫が不足しています。"
+  },
+  "receipts": {
+    "title": "入荷",
+    "subtitle": "到着した品物：発注数、実際に届いた数、そして遅れているもの。",
+    "search": "伝票番号・追跡番号・仕入先で検索",
+    "empty": "入荷伝票はまだありません。",
+    "emptyFiltered": "条件に一致する伝票はありません。",
+    "new": "入荷伝票を作成",
+    "created": "入荷伝票を作成しました。",
+    "updated": "入荷伝票を更新しました。",
+    "received": "入荷を登録しました。",
+    "rejected": "入荷伝票を却下しました。",
+    "allStatuses": "すべてのステータス",
+    "uploaded": "写真をアップロードしました。",
+    "tiles": {
+      "upcoming": "到着予定",
+      "overdue": "遅延",
+      "partial": "一部入荷",
+      "variance": "数量差異"
+    },
+    "col": {
+      "code": "伝票番号",
+      "itemType": "区分",
+      "warehouse": "倉庫",
+      "status": "ステータス",
+      "supplier": "仕入先",
+      "shipments": "便",
+      "created": "作成日"
+    },
+    "status": {
+      "PENDING": "未入荷",
+      "PARTIAL": "一部入荷",
+      "COMPLETE": "完了",
+      "REJECTED": "却下"
+    },
+    "shipStatus": {
+      "PENDING": "未入荷",
+      "PARTIAL_RECEIVED": "一部入荷",
+      "RECEIVED": "入荷済み",
+      "REJECTED": "却下"
+    },
+    "detail": {
+      "title": "入荷伝票",
+      "expected": "発注数",
+      "unitPrice": "単価",
+      "lineTotal": "金額",
+      "receivedQty": "入荷数",
+      "rejectedQty": "不良数",
+      "note": "備考",
+      "receive": "入荷登録",
+      "eta": "到着予定",
+      "tracking": "追跡番号",
+      "carrier": "配送業者",
+      "vendor": "仕入先",
+      "evidence": "証拠写真",
+      "upload": "写真をアップロード",
+      "reject": "伝票を却下",
+      "rejectReason": "理由",
+      "edit": "編集",
+      "noEvidence": "写真はまだありません。"
+    },
+    "form": {
+      "title": "入荷伝票の作成",
+      "editTitle": "入荷伝票の編集",
+      "desc": "倉庫は一つ、便は一つ以上、便ごとに明細を持ちます。",
+      "warehouse": "倉庫",
+      "itemType": "品目区分",
+      "provider": "仕入先",
+      "note": "備考",
+      "shipment": "便",
+      "addShipment": "便を追加",
+      "addLine": "明細を追加",
+      "remove": "削除",
+      "item": "品目",
+      "quantity": "数量",
+      "shipmentCode": "便番号",
+      "submit": "作成",
+      "save": "保存"
+    },
+    "errors": {
+      "not-found": "その入荷伝票は存在しません。",
+      "not-receivable": "この伝票または便はすでに確定しています。",
+      "not-editable": "この伝票はすでに入荷登録済みのため編集できません。",
+      "received-below-current": "入荷数は減らせません——登録済みの品物は棚にあります。",
+      "too-many-files": "一度にアップロードできる画像は 10 枚までです。",
+      "not-an-image": "PNG、JPG、WEBP 画像をアップロードしてください。",
+      "file-too-large": "画像は 10MB 以下にしてください。"
+    }
+  },
+  "boms": {
+    "section": "部品表",
+    "title": "部品表 (BOM)",
+    "subtitle": "各 SKU が何でできているか、そして部材が棚にあるかどうか。",
+    "tabs": {
+      "configs": "構成",
+      "coverage": "充足状況"
+    },
+    "search": "SKU・製品・BOM 名で検索",
+    "empty": "BOM はまだありません。",
+    "emptyFiltered": "条件に一致する BOM はありません。",
+    "new": "BOM を作成",
+    "created": "BOM を作成しました。",
+    "updated": "BOM を保存しました。",
+    "activated": "BOM を有効化しました。",
+    "duplicated": "新しい下書きを作成しました。",
+    "deleted": "BOM を削除しました。",
+    "tiles": {
+      "total": "BOM 数",
+      "active": "有効",
+      "draft": "下書き",
+      "incomplete": "未完了の明細"
+    },
+    "col": {
+      "variant": "製品バリアント",
+      "bom": "BOM",
+      "status": "ステータス",
+      "lines": "明細",
+      "components": "部材",
+      "manage": "管理"
+    },
+    "status": {
+      "DRAFT": "下書き",
+      "ACTIVE": "有効",
+      "INACTIVE": "無効"
+    },
+    "linesOf": "必須 /",
+    "linked": "紐付け済み",
+    "incomplete": "未割当",
+    "manage": "管理",
+    "dialog": {
+      "title": "部品表",
+      "versions": "バージョン",
+      "newDraft": "新しい下書き",
+      "name": "名称",
+      "version": "バージョン",
+      "versionAuto": "自動",
+      "status": "ステータス",
+      "material": "資材",
+      "sku": "SKU",
+      "qtyPerUnit": "1個あたり",
+      "unit": "単位",
+      "wastage": "歩留まり損 %",
+      "stage": "工程",
+      "required": "必須",
+      "addLine": "明細を追加",
+      "save": "保存",
+      "activate": "有効化",
+      "duplicate": "複製",
+      "delete": "削除",
+      "preview": "プレビュー",
+      "previewQty": "数量",
+      "previewWarehouse": "倉庫",
+      "component": "部材",
+      "requiredQty": "必要数",
+      "available": "利用可能",
+      "shortage": "不足",
+      "mapping": "割当",
+      "unmapped": "未割当",
+      "noLines": "明細がありません。"
+    },
+    "stage": {
+      "PRODUCTION": "製造",
+      "PACKING": "梱包",
+      "SHIPPING": "出荷",
+      "OTHER": "その他"
+    },
+    "coverage": {
+      "search": "部材を検索",
+      "empty": "部材はまだありません。",
+      "tiles": {
+        "components": "部材数",
+        "linked": "紐付け済み",
+        "shortage": "不足",
+        "noStock": "在庫なし"
+      },
+      "col": {
+        "material": "資材",
+        "coverage": "充足",
+        "qty": "数量",
+        "reserved": "引当済み",
+        "shortage": "不足",
+        "available": "利用可能",
+        "usedIn": "使用中の BOM",
+        "warehouses": "倉庫"
+      },
+      "badge": {
+        "AVAILABLE": "利用可能",
+        "NEEDED": "不足",
+        "NO_STOCK": "在庫なし",
+        "UNMAPPED": "未割当"
+      },
+      "boms": "件の BOM",
+      "perUnit": "1個あたり必要数"
+    },
+    "errors": {
+      "not-found": "その BOM は存在しません。",
+      "not-editable": "明細のない BOM は有効化できません。",
+      "item-not-found": "その SKU は存在しません。",
+      "bom-line-unmapped": "必須部材に資材が割り当てられていません。"
+    }
+  }
+}

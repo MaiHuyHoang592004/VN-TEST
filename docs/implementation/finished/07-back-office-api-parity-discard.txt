@@ -1,0 +1,590 @@
+================================================================================
+IMPLEMENTATION 07 — BACK OFFICE, API PARITY, AND THE DISCARD CHECKLIST
+================================================================================
+Written: 2026-07-22   Status: A-F BUILT (2026-07-22) · G NOT STARTED
+                      ★ THE FINAL REBUILD PHASE ★
+Prereq:  docs 04 · 05 · 06 — ALL BUILT before this doc started (this doc uses
+         doc 05 A1 storage and doc 04's ledger/notifications).
+Covers:  master-plan PHASE 6 — tickets, vendors/expenses, dashboard home,
+         seller money self-service, orders leftovers (export/refund/
+         recalculate), real global search, public-API parity — PLUS the
+         completeness ledger and the checklist that makes discarding the
+         legacy system safe. After this doc ships and the checklist passes,
+         .archive/oldproject and the legacy servers can be deleted.
+
+Written to be followed line by line: WHAT file, WHAT goes in it, WHY (one
+line), HOW to verify. Verified against legacy `origin/prod` (10117f7,
+2026-07-14 — the true tip, per doc 06 §0) plus a full sweep of the legacy
+frontend and the opcreative-portal repo, 2026-07-22.
+
+  PHASE A — TICKETS          replies, attachments, reasons, notifications
+  PHASE B — SELLER MONEY     top-up / refund requests with evidence,
+                             admin bulk refund, transaction evidence
+  PHASE C — VENDORS+EXPENSES full pages + Expense models
+  PHASE D — DASHBOARD+SEARCH role-switched home (with the guards legacy
+                             forgot) + real global search
+  PHASE E — ORDERS LEFTOVERS export XLSX, recalculate, design upload lite,
+                             warehouse summary widget
+  PHASE F — PUBLIC API PARITY the endpoint set + migration map sellers need
+  PHASE G — THE DISCARD CHECKLIST (the gate; do not skip)
+
+--------------------------------------------------------------------------------
+0. THREE VERDICTS THAT SHAPE THIS DOC  (each evidence-backed, 2026-07-22)
+--------------------------------------------------------------------------------
+
+V1. TIKTOK SHOP — EXCLUDED FROM THE REBUILD, and here is the honest picture:
+    it was NOT "never configured". The FE half was real and production-used
+    (prod hotfixes to the TTS import modal as late as 2026-04-07; a real
+    production TikTok label artifact hardcoded as the dev fixture;
+    shops pages last touched 2026-07-10). BUT the actual TikTok logic lived
+    in a SEPARATE MICROSERVICE (env VITE_APP_TTS_API_URL, dev
+    localhost:8081, prod URL injected at Docker build) that is NOT in the
+    archive anywhere, and the legacy MAIN backend contains zero TikTok code
+    on any branch. There is nothing portable to port: the archive holds
+    only the browser client of a service we do not have.
+    → DECISION: no TikTok in the rebuild. If TikTok selling is to continue,
+      that is a NEW integration project (TikTok Shop OAuth + order pull)
+      that pushes orders through /api/v1 (Phase F) — budget it separately.
+      Only the `customer` role ever saw those pages, so no staff workflow
+      breaks. ONE OPEN QUESTION FOR THE TEAM (G-gate): is the TTS
+      microservice still running somewhere, and are customers still
+      importing through it? If yes, killing the legacy FE cuts their UI.
+
+V2. OPCREATIVE-PORTAL IS A LIVE, DEPLOYED PRODUCTION SYSTEM — NOT part of
+    this discard. Correction to doc 04 §0c (which undersold it): the portal
+    is a Cloudflare Worker (Hono + D1 + R2, v0.4.0) deployed to production
+    per its own DEPLOY.md — Plaid bank sync on a 2h cron, transaction↔
+    seller reconciliation, payout batches, seller-finance ledger, KYC,
+    2FA, its own ticket case-hub. It shares NOTHING with the fulfillment
+    stack (separate repo, separate infra, Google-OAuth allowlist).
+    → The discard in Phase G covers fulfillment-system-be +
+      fulfillment-fe-new + their servers ONLY. The portal gets its own
+      keep/replace decision another day; deleting it here would break
+      live money operations.
+
+V3. LEGACY SECURITY HOLES — FIXED BY CONSTRUCTION, NEVER COPIED. The sweep
+    found three the rebuild must not reproduce (all cited on origin/prod):
+    · /api/reports/* had NO role guards — any signed-in customer could pull
+      the all-customers financial report (report.controller.ts).
+    · /webhook/v1 admin maintenance endpoints (bulk-subscribe, retry-failed)
+      had no auth at all (noted in doc 05 C6; port NEITHER hole).
+    · update-by-keyword applied unvalidated fields to every ILIKE match
+      (fixed in doc 05 A4 quickUpdate).
+    Every endpoint in this doc states its guard. "AuthGuard only" is not
+    a guard.
+
+--------------------------------------------------------------------------------
+0b. THE COMPLETENESS LEDGER — every legacy module, where it landed
+--------------------------------------------------------------------------------
+This table is WHY the discard is safe. Legacy backend origin/prod has 40
+src/ modules; every one is dispositioned below (FE pages fold into the same
+rows). ✔ = rebuilt (doc), �落 = this doc, ✂ = deliberately dead with reason.
+
+  auth, user, api-keys, warehouse       ✔ 01/03 (invites replace admin
+                                          passwords; keys hashed+rotatable)
+  order (core CRUD/import/assign/status)✔ 04 · stations/labels/scan 05
+  product, variant, mockup              ✔ 04 (catalog)
+  transaction (admin ledger+approve)    ✔ 04 · seller requests ◊ Phase B
+  material-item, material-stock-receipt,
+  physical-inventory, physical-stock-
+  receipt, inventory-movement, bom      ✔ 06 (unified system)
+  vendor, expense                       ◊ Phase C (models: vendor 06,
+                                          expense here)
+  ticket                                ◊ Phase A
+  report                                ◊ Phase D (with guards)
+  metadata                              ✂ superseded: enums + i18n + real
+                                          endpoints replace the status/
+                                          reason/color blob; FE reads no
+                                          metadata endpoint in the rebuild
+  webhook (outbound seller + DRX in)    ✔ 05 (signed; header CHANGED —
+                                          see G3 seller comms)
+  file (S3 uploads, 5MB)                ✔ pattern replaced by doc 05 A1
+                                          storage + evidence-Json (06/A/B)
+  storage (S3+Drive+local trio)         ✔ 05 A1 (Blob/S3) · Drive ✂ below
+  app-config                            ✔ model exists; only 3 keys ever
+                                          used: LABEL_CONFIG (05 C4),
+                                          SHEETS (✂ with label-extractor),
+                                          API_LOG_ENABLE (✂ with api-log).
+                                          No admin UI existed; none built.
+                                          Edit via DB, as legacy did.
+  admin-api (/api/admin/v1, x-api-key)  ✂ external admin integrations —
+                                          no known consumer; the dashboard
+                                          covers every operation. Revive
+                                          only when a real consumer shows
+                                          up, through /api/v1.
+  api-log (request logger + viewer)     ✂ platform logs (Vercel) + audit
+                                          log cover it; revisit if compliance
+                                          asks for request-level retention.
+  third-party-log (provider call log)   ✔ equivalent: Shipment.configs
+                                          stores raw provider responses
+                                          (05 A2); a dedicated table only
+                                          if disputes demand it.
+  notification (Lark webhook cards)     ✂ replaced by in-app notifications
+                                          (04 C2b) + the events in A/B.
+                                          A Lark/Slack ops feed is a
+                                          10-line env-gated dispatcher if
+                                          the team misses it — ask first.
+  order-validate + order-design-asset +
+  order-import-design (BullMQ queues),
+  mockup-composer (PSD), OCR extract-
+  label, sync-mockup, Google Drive
+  assets                                ✂ THE DRIVE PIPELINE. All of it
+                                          depends on per-order Google Drive
+                                          folders + Redis queues we are not
+                                          carrying. New system stores plain
+                                          URLs + uploaded files (05 A1).
+                                          Statuses Validating / Mockup
+                                          Generating / Processing die with
+                                          it (ledger: legacy tabs used
+                                          them; new tabs use the enum).
+                                          Revisit ONLY with a deliberate
+                                          "design ingestion" project.
+  technique, print-position, material
+  (attribute catalog), production-
+  option, physical-variant              ✂ the V3/SKU-management system —
+                                          superseded by ProductVariant +
+                                          VariantPrice (04); confirmed
+                                          frontend-flag-only (06 §0).
+  TTS shops/orders (FE only)            ✂ V1 above.
+  FE dead code (pages/order, network,
+  product-variants, payments/products
+  dashboard widgets, notifications-
+  sheet, demo8 layout, 2FA mockup,
+  /billing 404 pill)                    ✂ template leftovers / broken —
+                                          verified unreferenced or broken
+                                          in legacy itself.
+  opcreative-portal                     ⛔ SEPARATE LIVE SYSTEM — V2.
+  apps/storefront (new repo skeleton)   — future product work, not part of
+                                          the legacy discard gate.
+
+--------------------------------------------------------------------------------
+0c. CUTOVER NOTES FROM THE BUILD  (written 2026-07-22, as A-F shipped)
+--------------------------------------------------------------------------------
+Everything below was discovered while BUILDING A-F. None of it blocks the
+build; all of it has to be decided or done AROUND the legacy cutover
+(finished/02 + doc 06 E). Each item says who it hurts if it is skipped.
+
+C1. LEGACY REFUNDS ARE INVISIBLE TO THE NEW DOUBLE-REFUND GUARD.  ★ money ★
+    Phase B decides "has this order already been refunded?" by reading the
+    LEDGER: a COMPLETED REFUND transaction whose metadata.orderIds contains
+    the id (orders/service/refund.ts). Rows imported from legacy have no
+    such metadata, so an order refunded in the OLD system can be refunded
+    again in the new one — real money, paid twice, with nothing to flag it.
+    DO ONE OF (before the first refund runs post-cutover):
+      (a) backfill metadata = {"orderIds":[…]} on imported REFUND rows from
+          whatever the legacy refund recorded (its description carries the
+          order ids in most rows), or
+      (b) rely on the second guard — a refunded order is CANCELLED, and
+          cancelled orders are skipped — which holds ONLY if the cutover
+          brings legacy "Refund" status across as CANCELLED. Verify that in
+          migrate-legacy.sql before trusting it.
+    Cheapest safe answer: do (b) deliberately, assert it with a row count
+    ("no legacy-refunded order arrives in a non-CANCELLED status"), and note
+    (a) as the fallback if the assertion fails.
+
+C2. PRICE UNITS DECIDE WHETHER "RECALCULATE" IS SAFE.  ★ money ★
+    Phase E2 re-prices unpaid orders from today's price list. If legacy
+    prices came across in the wrong unit (the dollars-vs-cents question
+    still open in finished/02), every recalculated order is wrong by 100x.
+    Do not expose the Recalculate button to staff until the unit question is
+    closed and spot-checked. It refuses PAID orders already, so the blast
+    radius is unassigned orders only.
+
+C3. TICKET HISTORY ARRIVES WITHOUT ITS CONVERSATION.
+    Legacy tickets have no replies table (Phase A added one). Imported
+    tickets will render as an opening post and an empty thread, which is
+    accurate — the conversation happened in chat — but support should be
+    told, or they will read it as data loss. Ticket ATTACHMENTS live in the
+    legacy S3 bucket: they are part of the G4 file-asset decision.
+
+C4. ORDER ARTWORK URLs POINT AT THE DYING SERVER.
+    Order.imageUrl and Mockup.url on imported rows are Google Drive links
+    and legacy uploaded/ paths. Phase E3 lets staff replace either by hand,
+    one order at a time — fine for a handful, not for a backlog. If those
+    images matter after the cutover, they are a bulk copy job (G4), not a
+    UI task.
+
+C5. NOTHING MIGRATES VENDORS' EXPENSE HISTORY.
+    Phase C's expense_categories / expense_entries are NEW tables. The
+    legacy expense module's rows are not in migrate-legacy.sql and nobody
+    has asked for them. DECIDE: import them (a small script — category
+    names + entries), or start the books fresh at cutover and keep the old
+    system's read-only export as the archive. Vendors themselves DO come
+    across (doc 06).
+
+C6. THE WEBHOOK SIGNATURE CHANGE IS THE ONE BREAKING CHANGE FOR SELLERS.
+    x-api-key → X-Signature (doc 05 A6). It is already on the F4 migration
+    map inside the dashboard; G3 is what makes sure a human also sends it.
+    API KEYS themselves keep working (imported as hashes) — test one real
+    key against /api/v1 before announcing anything, as G3 says.
+
+C7. SEARCH IS UNINDEXED SUBSTRING MATCHING, AND THAT IS A SCALE CEILING.
+    Phase D2 matches with ILIKE '%term%', which no btree index can serve, so
+    every ⌘K keystroke is a sequential scan of orders, product_variants and
+    users. Guarded today by: signed-in only, per-group cap of 5, a minimum
+    query length of 2, and a per-user rate limit (RATE_LIMITS.search).
+    Fine at today's volume; at roughly 100k orders it becomes noticeable and
+    at 1M it saturates the database. UPGRADE PATH, when the numbers say so:
+    a pg_trgm extension + GIN indexes on orders.external_id,
+    shipments.tracking_number, product_variants.sku and users.email/name —
+    one migration, no application code changes. Measure before doing it.
+
+C8. THE CLIENT-SIDE SEARCH INDEX IS GONE ON PURPOSE.
+    /api/search/all used to ship the whole index to the browser for fuzzy
+    matching. With real rows that is a bulk export of everything the caller
+    may see, and a PARTIAL index silently hides rows, so both were removed
+    (doc 07 D2). The user-visible loss is typo tolerance. If sellers ask for
+    it back, it comes from pg_trgm similarity() in C7, not from the client.
+
+--------------------------------------------------------------------------------
+PHASE A — TICKETS  (modules/support/tickets/)
+--------------------------------------------------------------------------------
+
+A1. SCHEMA — migration `ticket_replies_attachments`:
+      model TicketReply {
+        id Int @id @default(autoincrement())
+        ticketId Int @map("ticket_id")
+        authorId String @map("author_id")
+        content String
+        attachments Json?          // [{url, filename, mimeType, size,
+                                   //   uploadedAt}] — evidence-Json pattern
+        createdAt/updatedAt        //   (docs 05/06), NOT a generic File table
+        @@index([ticketId]) @@map("ticket_replies")
+      }
+      + Ticket.attachments Json?   (same shape, for the opening post)
+      + Ticket relation replies TicketReply[]
+      + AuditAction: TICKET_STATUS_CHANGED (create/reply are ordinary rows,
+        status flips are what support disputes hinge on)
+      + NotificationType: TICKET_REPLIED, TICKET_STATUS_CHANGED — legacy
+        sent NOTHING on ticket events (verified: NotificationService never
+        imported in the ticket module); sellers refreshed the page to see
+        answers. Wiring these into NOTIFICATION_META (build-breaking record,
+        keep that property) is the single biggest UX win of this phase.
+
+A2. DICTIONARY — legacy → new:
+      status  open→OPEN · in_progress→IN_PROGRESS · closed→CLOSED
+              (RESOLVED exists in our enum; use it for "answered, awaiting
+              confirmation" — a state legacy lacked and support wanted)
+      priority low→LOW · medium→MEDIUM · high→HIGH · critical→URGENT
+              (fixes TWO legacy bugs: metadata offered `critical` but the
+              DTO enum rejected it, and the detail page had no badge for it)
+      reasons — legacy hardcoded SIX Vietnamese strings with a suggested
+              priority each (metadata.ts:147-179). Port as a CODE constant
+              of stable keys, translated in ALL 7 locales:
+                wrong-item→HIGH · quality-return→URGENT · bad-label→LOW ·
+                wrong-address→URGENT · missing-item→LOW · other→MEDIUM
+              The reason→priority mapping stays a UI SUGGESTION (legacy
+              behaviour: form auto-fills priority, disabled for editing) —
+              the server accepts the submitted priority verbatim.
+
+A3. modules/support/tickets/ — service:
+      createTicket(actor, {title, description, reason, orderId?, priority,
+        files?})   guard tickets.read.own+ (every role that has it);
+        orderId must be inside the actor's order scope or it is DROPPED
+        with a warning in the response (legacy silently dropped it —
+        surface it); files → storage (doc 05 A1 assertImageUpload, ≤5MB
+        each ≤10 files, key tickets/<id>/…) → attachments Json.
+      replyTicket(actor, ticketId, {content, files?})   scope: author or
+        tickets.manage. REFUSED when status CLOSED ("ticket-closed" —
+        legacy locked the form client-side only; ours refuses server-side).
+        notify(tx): the OTHER party (author ↔ last staff replier;
+        TICKET_REPLIED).
+      setTicketStatus(actor, id, status, note?)   author may CLOSED/OPEN
+        own; tickets.manage any. Audit + notify TICKET_STATUS_CHANGED.
+      updateTicket / deleteTicket   tickets.manage only for delete (legacy:
+        admin/supporter); edit by author while OPEN.
+      queries: list (scope: own vs all via tickets scope — already in
+        scopes.ts; filters status/priority/reason/author/order/search),
+        getTicketDetail (ticket + replies + author info).
+
+A4. PAGES
+    /tickets — table: Author (staff view), Title (→ detail), Status badge,
+      Order link, Reason, Priority badge, Created, row Edit/Delete (<Can>).
+      Toolbar: search, status + priority selects. "New ticket" dialog:
+      title*, reason select (auto-fills priority, priority shown disabled),
+      order picker (own orders), description, image attach.
+    /tickets/[id] — the chat page, port of the legacy layout that worked:
+      sticky sidebar (status select — save in place; priority/reason
+      badges; customer; order link; created; reply count), thread bubbles
+      (staff right-aligned, attachment thumbnails → lightbox), reply box
+      with attach + Ctrl/Cmd+Enter send, CLOSED banner replacing the form
+      ("Reopen to reply"). Unread-ticket count feeds D's seller dashboard.
+
+A5. TESTS — tickets.test.ts: reply on CLOSED rejects · seller cannot read
+    another seller's ticket (by id, through the page query) · staff reply
+    notifies the author and vice versa · out-of-scope orderId is dropped
+    AND reported · attachment over 5MB rejects.
+
+--------------------------------------------------------------------------------
+PHASE B — SELLER MONEY SELF-SERVICE  (modules/finance/requests/)
+--------------------------------------------------------------------------------
+Legacy sellers could REQUEST money moves (billing.controller.ts): a top-up
+request and a refund request, both creating PENDING transactions an admin
+then approves — and doc 04 C1's approve/reject flow is ALREADY BUILT. This
+phase adds the request side + evidence, and the admin bulk-refund action.
+
+B1. requestTopUp(actor, {amount > 0, method, note?, files?})
+      guard transactions.read.own (any seller). Creates Transaction
+      {type TOPUP, status PENDING, amount, paymentMethod, note} + evidence
+      files → storage key transactions/<publicId>/… → NEW COLUMN
+      Transaction.evidence Json? (migration transaction_evidence — this is
+      the doc 04 C2 deferral, now unblocked by doc 05 A1). Notifies every
+      transactions.approve holder (NotificationType TRANSACTION_REQUESTED —
+      add to enum + META + 7 locales). NO balance change until approval —
+      the built settlePendingTransaction handles that atomically.
+B2. requestRefund(actor, {orderIds, reason REQUIRED, amount?, files?})
+      guard transactions.read.own + every order inside own scope. Ports the
+      legacy guards exactly (transaction.service.ts:148-345): orders must
+      not be CANCELLED/already-refunded · no second PENDING refund request
+      touching the same order (check pending REFUND transactions' metadata)
+      · amount defaults to Σ(baseCost + shipping cost) of the orders and is
+      CAPPED there. Creates PENDING REFUND transaction with
+      {metadata: {orderIds, reason}} + evidence + notify approvers.
+B3. adminRefundOrders(actor, {orderIds, idempotencyKey})
+      guard orders.refund (the permission reserved since phase 2 — grant
+      stays ADMIN). The legacy bulk refund, rebuilt on our ledger: group by
+      seller; refund = Σ(baseCost + shipment costs), full only (legacy had
+      no partial); skip orders already refunded (movement/transaction
+      check); ONE applyBalanceMove(REFUND) per seller (core/ledger — never
+      a second credit routine) + orders → CANCELLED via updateStatus (the
+      dictionary: legacy "Refund" status = money action + terminal state)
+      with note "refunded" + audit + the seller notification the ledger
+      flow already sends. UI: the orders-page row/bulk action ("Refund…"
+      dialog: order list w/ per-order cost, total, confirm).
+B4. UI: /profile/billing gains "Request top-up" and "Request refund"
+      buttons + dialogs (evidence dropzone, running total for refunds);
+      /admin/transactions rows show evidence thumbnails (the C2 deferral)
+      and REQUESTED rows surface in the approvers' bell.
+B5. TESTS: refund request over the cap rejects · duplicate pending request
+      on the same order rejects · admin refund is idempotent under the key
+      and skips already-refunded · approve of a requested top-up moves
+      balance exactly once (extends the doc 04 C1 concurrency lesson).
+
+--------------------------------------------------------------------------------
+PHASE C — VENDORS + EXPENSES  (modules/finance/…)
+--------------------------------------------------------------------------------
+
+C1. SCHEMA — migration `expenses`:
+      model ExpenseCategory { id, name, type ExpenseType, note?,
+        deletedAt?, timestamps @@map("expense_categories") }
+      model ExpenseEntry { id, categoryId, type ExpenseType,
+        amount Decimal @db.Decimal(12,2), occurredAt DateTime,
+        paymentMethod String?, vendorId Int?, description String?,
+        attachments Json?, createdById String?, deletedAt?, timestamps
+        @@index([occurredAt]) @@map("expense_entries") }
+      enum ExpenseType { EXPENSE INCOME }
+      + AuditAction: EXPENSE_CREATED/UPDATED/DELETED, CATEGORY_* ;
+      permissions: expenses.manage → ADMIN (legacy: admin-only module).
+
+C2. modules/finance/vendors/ — the FULL page on doc 06's model:
+      service CRUD (code auto-generated "VND-<n>" when blank — legacy
+      behaviour; delete → deactivate when referenced by receipts/expenses,
+      the warehouse-usage pattern). PAGE /admin/vendors (vendors.manage):
+      tiles Total/Active/Inactive; table Code, Vendor (+tax code), Contact
+      (name/phone/email), Address, Status, Updated, Edit/Delete; search +
+      status filter; FormDialog (code?, name*, contact, phone, email,
+      address, taxCode, status, note).
+
+C3. modules/finance/expenses/ — service CRUD for both models + a summary
+      query (Σ expense, Σ income, net, count — server-side over the FULL
+      filter, per the doc 06 tile rule). PAGE /admin/expenses
+      (expenses.manage), 2 tabs:
+      ENTRIES: tiles Expense/Income/Net/Entries; table Date, Type badge,
+        Category, Vendor, Amount (signed colour), Payment, Description,
+        Edit/Delete; filters search/type/category/vendor/date-range; entry
+        dialog (category, type follows category but editable, amount,
+        occurredAt date, vendor?, paymentMethod, description, receipts →
+        attachments via storage).
+      CATEGORIES: tiles + table Category/Type/Note/Updated; dialog
+        (name*, type, note).
+
+--------------------------------------------------------------------------------
+PHASE D — DASHBOARD HOME + REAL SEARCH
+--------------------------------------------------------------------------------
+
+D1. modules/platform/reports/ — queries ONLY (no mutations), and EVERY one
+    opens with a guard (V3). Port the numbers the legacy pages actually
+    rendered; the unused overview/efficiency/billing endpoints are NOT
+    ported (ledger: endpoints existed, archived FE never called them —
+    steal their alert ideas later if wanted).
+      adminReport({from, to})       guard transactions.read.all.
+        Per ACTIVE seller: order count/quantity/base-cost (placedAt range,
+        deleted null) + completed transaction sum; summary totals = the six
+        stat cards (transactions, customers, orders, quantity, base cost,
+        topup).
+      sellerReport(actor, {from,to}) guard transactions.read.own — SELF
+        ONLY (the legacy endpoint took an optional :id — ours never does;
+        admin uses adminReport).
+        Balance/debt · order count+quantity in range · per-status counts
+        (all-time) for the status-summary card · last 6 transactions ·
+        open-ticket count (Phase A queries).
+      warehouseReport(actor,{from,to,warehouseId?}) guard
+        orders.read.warehouse, scope-spread. Orders grouped by SKU and by
+        mockup (count+quantity) — the two donuts legacy SHIPPED BROKEN
+        (widgets read context the page never supplied); ours are two plain
+        bar lists, no chart dep, actually wired.
+    PAGE / (the signed-in home, replacing the current placeholder):
+      role-switched by permission, not role name: admin → 6 stat cards +
+      seller table (Name, Email, Orders, Quantity, Base cost, Topups,
+      Balance, Debt; client search); seller → balance/orders/quantity
+      cards + status-summary card (badge + count + % bar) + recent
+      transactions card + open-tickets chip; warehouse → the two grouped
+      lists + link to /fulfillment/monitor. Shared TimePeriod control:
+      Today / This Week / This Month / This Year / custom range (the
+      legacy segmented control, kept).
+
+D2. REAL GLOBAL SEARCH — swap src/lib/search-data.ts demo for Prisma,
+    keeping the /api/search contract (the standing CLAUDE.md note).
+    modules/platform/search/queries.ts: one guarded query fanning to
+    scoped sub-searches — orders (externalId, tracking via shipments,
+    customer name — orderScope spread), products/SKUs (name, key, sku),
+    users (users.read only), navigation entries (static, permission-
+    filtered). Each capped 5 per group, merged {group, title, subtitle,
+    href}. The search UI already exists — this is a data swap behind the
+    same route, plus deleting the demo dataset.
+
+--------------------------------------------------------------------------------
+PHASE E — ORDERS LEFTOVERS  (all on the existing /orders page)
+--------------------------------------------------------------------------------
+
+E1. EXPORT XLSX — action exportOrders(actor, filter) [permission
+    orders.read.* via scope; WAREHOUSE role gets it, legacy blocked only
+    warehouse_external]. Reuse xlsx-js-style (installed — do NOT add
+    exceljs). Current table filter + cap 50 000 rows. Sheet: title row,
+    export date, total, applied-filters block, then the legacy column set
+    (§sweep list) MINUS Drive-era columns, PLUS proof/label URLs from
+    shipments; money columns (baseCost, fee, revenue, profit, paid) only
+    when the actor holds transactions.read.all — the legacy role-pruning
+    rule, enforced server-side. Streams as download
+    orders-export-<date>.xlsx. Toolbar "Export" button.
+E2. RECALCULATE PRICING — service recalcOrders(actor, ids) guard
+    orders.update: recompute baseCost = effectivePrice(sku, seller tier) ×
+    quantity for UNASSIGNED (unpaid) orders only — refuses paid ones (the
+    money already moved; legacy recalculated anyway and could desync the
+    ledger — ours refuses with "already-charged"). Row + bulk action.
+E3. DESIGN/MOCKUP UPLOAD (lite) — the legacy modal minus Google Drive:
+    dialog on each order row (orders.update / own while PENDING): design
+    URL input XOR file upload → storage → order.imageUrl; mockup URL XOR
+    file → creates/links a Mockup row (url + thumbnail = same file). No
+    Drive folders, no queues, no OCR. // ponytail: ceiling = no automated
+    ingestion; upgrade path is a deliberate design-pipeline project (0b).
+E4. WAREHOUSE SUMMARY WIDGET — the OrderInfo card strip for warehouse
+    users on /orders: one card per status (count + quantity, themed
+    badge), date-range aware, click applies that status filter to the
+    table; detail popover groups by product (variant/SKU/qty/orders).
+    Query: orders groupBy status within scope — one query, no new module.
+
+--------------------------------------------------------------------------------
+PHASE F — PUBLIC API PARITY  (app/api/(public)/v1/…)
+--------------------------------------------------------------------------------
+What integrations lose when legacy dies, and what replaces it. Doc 04 built
+GET/POST /api/v1/orders + GET :id. Legacy sellers ALSO had (customer API,
+x-api-key): PATCH order, resolve-design, resolve-label, list filters,
+pricing table, product/variant metadata, /docs. Parity set to build:
+
+F1. PATCH /api/v1/orders/:id — v2-shaped partial update (address, note,
+    imageUrl (≙ resolve-design: setting it on an ON_HOLD design-problem
+    order returns it to PENDING via the status map), quantity while
+    PENDING). Guard: key owner's own order. labelUrl+trackingNumber in the
+    body routes to doc 05's linkLabel (≙ resolve-label → order returns to
+    the flow). Idempotency-Key honoured.
+F2. GET /api/v1/catalog — replaces legacy customer metadata + the pricing
+    endpoint: products → variants → SKUs with THE CALLER'S effective tier
+    prices (effectivePrice per sku), allow-list scoped. Cursor paged.
+F3. GET /api/v1/me — key owner identity + balance (money as strings).
+F4. THE MIGRATION MAP — a static docs page (extend the profile API tab)
+    published BEFORE cutover, mapping every legacy endpoint a seller could
+    hold to its replacement or retirement:
+      POST /api/(v2/)customer/orders      → POST /api/v1/orders
+      POST /api/v3/customer/orders        → retired (V3 SKUs gone; the
+                                            sku field on v1 covers it)
+      GET  /api/customer/orders(+filters) → GET /api/v1/orders (cursor)
+      PATCH /api/customer/orders/:id      → PATCH /api/v1/orders/:id
+      PATCH …/resolve-design|resolve-label→ PATCH (F1 semantics)
+      GET  /api/customer/metadata,
+      GET  /api/v3/customer/orders/pricing→ GET /api/v1/catalog
+      x-api-key header                    → unchanged (keys migrated as
+                                            hashes — old keys KEEP WORKING)
+      outbound webhooks                   → same events; signature header
+                                            CHANGED x-api-key→X-Signature
+                                            (doc 05 A6) — flag LOUDLY
+    Everything else (admin-api, OCR, sync-mockup, SSE) is retired — listed
+    on the page so nobody discovers it by 404.
+    Endpoint count after F: ~8 — still under the ~20 Hono threshold; plain
+    handlers remain correct (doc 03 §8C).
+
+--------------------------------------------------------------------------------
+PHASE G — THE DISCARD CHECKLIST  ★ the gate this doc exists for ★
+--------------------------------------------------------------------------------
+Run top to bottom; every box checked = .archive/oldproject +
+the legacy servers can be deleted. Anything unchecked = DO NOT DELETE.
+
+  G0. □ §0c CUTOVER NOTES read and each item decided — C1 (legacy refunds
+        invisible to the double-refund guard) and C2 (price units vs
+        Recalculate) are MONEY items and block the first post-cutover
+        refund and re-price respectively.
+  G1. □ Docs 05 + 06 + 07 A-F shipped, their "done" checks green.
+  G2. □ THE CUTOVER HAS RUN (finished/02 + doc 06 E): real prod pg_dump
+        rehearsal green → production cutover executed → row-count
+        assertions + spot checks pass → sellers see their orders/balances.
+  G3. □ SELLER COMMS SENT (F4 page live first): endpoint map, the
+        X-Signature webhook change, the /docs URL, a sunset date for the
+        legacy base URL. Verify at least one real seller key works against
+        /api/v1 (the keys were imported as hashes — test, don't assume).
+  G4. □ FILE ASSETS DECIDED AND EXECUTED (each dies with the legacy server
+        otherwise): receipt evidence (doc 06 E1 decision) · legacy label
+        PDFs + order photos under uploaded/ · Google Drive design/mockup
+        folders (Drive account OWNERSHIP survives the server — confirm who
+        owns it and keep or export) · S3 bucket (ticket/top-up evidence) —
+        for each: copy-to-new-storage script, or accept loss, IN WRITING.
+  G5. □ TIKTOK QUESTION ANSWERED (V1): TTS microservice dead → nothing to
+        do; alive with active customers → planned replacement or announced
+        sunset BEFORE the FE that drives it disappears.
+  G6. □ opcreative-portal explicitly EXCLUDED from the deletion list (V2).
+  G7. □ FINAL BACKUPS TAKEN AND STORED OFF THE DOOMED BOXES: legacy prod
+        pg_dump + a tarball of both repos (with .git — the prod branches
+        ARE the spec archive) + uploaded/ tree. Verify restorability once.
+  G8. □ Pre-production checklist from memory cleared (Resend sender domain,
+        AUTH_OTP_CONSOLE off, prod admin bootstrap, rotated keys).
+  G9. □ DNS/base URLs flipped; legacy servers stopped but NOT wiped for 30
+        days (the cheap undo); THEN wiped. .archive/ deleted from the
+        working tree last — it was never in git (local only).
+  G10.□ MASTER PLAN updated: docs 05/06/07 → finished/, ledger statuses
+        flipped, this checklist's completion date recorded.
+
+--------------------------------------------------------------------------------
+BUILD ORDER (verify gate = exit)
+--------------------------------------------------------------------------------
+   1. A1 schema + A2 dictionary constants + permissions          (~2 hours)
+   2. A3 tickets service + A5 tests GREEN                        (~half day)
+   3. A4 both ticket pages + notifications wired                 (~1 day)
+   4. B1-B2 request services + B5 tests · B4 billing UI          (~1 day)
+   5. B3 admin refund + orders-page dialog                       (~half day)
+   6. C1 schema + C2 vendors page + C3 expenses page             (~1 day)
+   7. D1 reports + home page (all three roles)                   (~1 day)
+   8. D2 search swap (+ delete the demo dataset)                 (~half day)
+   9. E1 export · E2 recalculate · E3 upload-lite · E4 widget    (~1 day)
+  10. F1-F3 endpoints + F4 migration-map page                    (~half day)
+  11. i18n sweep for A-F, all 7 locales (~150 keys)              (~half day)
+  12. PHASE G — run the checklist (calendar time, not code time)
+
+--------------------------------------------------------------------------------
+THE CHECK THAT MAKES DOC 07 "DONE"
+--------------------------------------------------------------------------------
+  · All phase tests green, including B5's concurrency case.
+  · A seller can: open a ticket with a photo, get a bell notification when
+    support replies, request a top-up with evidence, see it approved and
+    the balance move — with zero admin SQL.
+  · A signed-in SELLER hitting the admin report action gets 403 (the
+    legacy hole, proven closed by a test, not by the hidden menu).
+  · Export of 50k orders completes; the money columns are absent from a
+    warehouse user's file (server-side, asserted).
+  · /api/v1 smoke passes with a LEGACY-IMPORTED key: create → PATCH →
+    list → catalog → me.
+  · Global search returns only rows inside the caller's scope (seller A
+    searching seller B's tracking number finds nothing) — tested.
+  · The F4 migration-map page renders and every legacy endpoint on it has
+    a disposition.
+  · Phase G checklist exists as an issue/checklist the team can tick —
+    the DOC is done when A-F ship; the DISCARD is done when G is.
+================================================================================

@@ -1,0 +1,47 @@
+/// Ledger of every balance change (top-ups, order payments, refunds,
+/// manual adjustments). `publicId` is the id we put in Stripe metadata
+/// (txn_id) to map webhooks back to the row — never trust a webhook without
+/// signature verification + idempotency on this id.
+model Transaction {
+  id       Int               @id @default(autoincrement())
+  publicId String            @unique @default(uuid()) @map("public_id")
+  userId   String            @map("user_id")
+  amount   Decimal           @db.Decimal(12, 2)
+  type     TransactionType   @default(TOPUP)
+  status   TransactionStatus @default(PENDING)
+
+  paymentMethod String?  @map("payment_method")
+  description   String?
+  note          String?
+  balanceBefore Decimal? @db.Decimal(12, 2) @map("balance_before")
+  balanceAfter  Decimal? @db.Decimal(12, 2) @map("balance_after")
+
+  /// What the seller attached to justify the request — a bank-transfer
+  /// screenshot for a top-up, a photo of the damage for a refund. Same
+  /// evidence-Json shape stock receipts and tickets use: [{url, key, filename,
+  /// originalFilename, mimeType, size, uploadedAt, uploadedById}].
+  evidence Json?
+
+  /// What the row is ABOUT, when the amount alone does not say it: a refund
+  /// carries {orderIds, reason} so the approver can see which parcels are being
+  /// paid back, and so a second request for the same order can be refused.
+  /// Deliberately not columns: only refunds have order ids, and nothing joins
+  /// on them.
+  metadata Json?
+
+  /// Dedupe key for admin money moves. A UNIQUE constraint (not an app-level
+  /// check) is what actually makes a double-click or a mobile retry credit
+  /// exactly once — the second insert fails at the database. Null for
+  /// system/legacy rows; Postgres allows many nulls under UNIQUE.
+  idempotencyKey String? @unique @map("idempotency_key")
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("transactions")
+}

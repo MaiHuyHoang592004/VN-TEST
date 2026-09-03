@@ -1,0 +1,20 @@
+/// A physical shelf slot used to stage in-progress orders.
+model BasketPosition {
+  id             Int                  @id @default(autoincrement())
+  name           String?
+  shelfName      String?              @map("shelf_name")
+  trackingNumber String?              @map("tracking_number")
+  row            Int
+  column         String
+  level          Int?
+  status         BasketPositionStatus @default(AVAILABLE)
+  note           String?
+
+  orders Order[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([shelfName, row, column])
+  @@map("basket_positions")
+}

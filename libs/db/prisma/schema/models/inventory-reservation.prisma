@@ -1,0 +1,43 @@
+/// Stock held for one order: what was promised, and how much of it has since
+/// been consumed. Reserving does NOT move `quantity` — the goods are still on
+/// the shelf until production takes them — it raises `reserved`, and
+/// availability subtracts it.
+///
+/// One mechanism for both item types. Legacy wrote reservation rows for
+/// materials but inferred finished-goods reservations by scanning the movement
+/// ledger for matching rows, so the two could disagree about what was held.
+model InventoryReservation {
+  id Int @id @default(autoincrement())
+
+  itemType         InventoryItemType @map("item_type")
+  materialId       Int?              @map("material_id")
+  productVariantId Int?              @map("product_variant_id")
+  warehouseId      Int               @map("warehouse_id")
+
+  /// Which BOM line asked for this, for tracing a shortage back to its cause.
+  /// Plain ids, no FK — same reason as the ledger: BOM edits replace lines.
+  bomId     Int? @map("bom_id")
+  bomLineId Int? @map("bom_line_id")
+
+  orderId Int   @map("order_id")
+  order   Order @relation(fields: [orderId], references: [id])
+
+  quantity         Int
+  consumedQuantity Int               @default(0) @map("consumed_quantity")
+  status           ReservationStatus @default(RESERVED)
+
+  createdById String? @map("created_by_id")
+  note        String?
+
+  material       Material?       @relation(fields: [materialId], references: [id])
+  productVariant ProductVariant? @relation(fields: [productVariantId], references: [id])
+  warehouse      Warehouse       @relation(fields: [warehouseId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([orderId])
+  @@index([itemType, materialId, status])
+  @@index([itemType, productVariantId, status])
+  @@map("inventory_reservations")
+}

@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "section": "Inventaire",
+    "stock": "Stock",
+    "movements": "Mouvements",
+    "materials": "Matières",
+    "boms": "Nomenclatures"
+  },
+  "tabs": {
+    "stock": "Stock",
+    "movements": "Mouvements",
+    "receipts": "Réceptions"
+  },
+  "stock": {
+    "title": "Stock",
+    "subtitle": "Ce qui est en rayon, ce qui est réservé aux commandes, et ce qui manque.",
+    "search": "Rechercher par nom ou SKU",
+    "empty": "Aucun stock pour l'instant.",
+    "emptyFiltered": "Aucun article ne correspond à ces filtres.",
+    "adjust": "Ajuster",
+    "import": "Entrée de stock",
+    "allWarehouses": "Tous les entrepôts",
+    "types": {
+      "MATERIAL": "Matières",
+      "PRODUCT": "Produits finis"
+    },
+    "tiles": {
+      "items": "Articles",
+      "onHand": "En stock",
+      "reserved": "Réservé",
+      "shortage": "Manquant"
+    },
+    "col": {
+      "item": "Article",
+      "kind": "Type",
+      "onHand": "En stock",
+      "reserved": "Réservé",
+      "shortage": "Manquant",
+      "available": "Disponible",
+      "warehouses": "Entrepôts"
+    },
+    "tip": {
+      "reserved": "Affecté à des commandes en production",
+      "shortage": "Il faut réceptionner davantage pour couvrir les commandes en cours",
+      "available": "En stock − réservé"
+    }
+  },
+  "adjust": {
+    "title": "Ajuster le stock",
+    "description": "Corrigez la quantité d'un article dans un entrepôt. La modification est enregistrée avec votre motif.",
+    "warehouse": "Entrepôt",
+    "delta": "Ajuster de",
+    "deltaHint": "Saisissez un nombre négatif pour diminuer.",
+    "reason": "Motif",
+    "reasonPlaceholder": "Correction d'inventaire",
+    "note": "Note",
+    "submit": "Appliquer l'ajustement",
+    "done": "Stock ajusté."
+  },
+  "import": {
+    "title": "Entrée de stock",
+    "description": "Enregistrez du stock arrivé sans bon de réception.",
+    "item": "Article",
+    "itemPlaceholder": "Rechercher une matière par nom ou SKU",
+    "warehouse": "Entrepôt",
+    "quantity": "Quantité",
+    "provider": "Fournisseur",
+    "note": "Note",
+    "submit": "Enregistrer",
+    "done": "Stock enregistré.",
+    "noItem": "Choisissez d'abord un article."
+  },
+  "movements": {
+    "title": "Mouvements",
+    "subtitle": "Toutes les variations de quantité, dans l'ordre où elles se sont produites.",
+    "search": "Rechercher par nom d'article ou SKU",
+    "empty": "Aucun mouvement pour l'instant.",
+    "emptyFiltered": "Aucun mouvement ne correspond à ces filtres.",
+    "loadMore": "Charger plus",
+    "allTypes": "Tous les types",
+    "col": {
+      "created": "Date",
+      "type": "Type",
+      "item": "Article",
+      "warehouse": "Entrepôt",
+      "quantity": "Quantité",
+      "reference": "Référence",
+      "user": "Utilisateur"
+    },
+    "types": {
+      "RECEIPT": "Réception",
+      "MANUAL_IMPORT": "Entrée manuelle",
+      "MANUAL_ADJUSTMENT": "Ajustement",
+      "RESERVE": "Réservation",
+      "RESERVE_RELEASE": "Libération",
+      "CONSUME": "Consommation",
+      "RETURN": "Retour",
+      "NEEDED": "Manquant",
+      "NEEDED_RESOLVED": "Manque comblé"
+    },
+    "allItems": "Tous les articles"
+  },
+  "materials": {
+    "title": "Matières",
+    "subtitle": "Matières premières, emballages et consommables — ce qu'ils sont, pas combien il en reste.",
+    "search": "Rechercher par nom, SKU ou description",
+    "empty": "Aucune matière pour l'instant.",
+    "emptyFiltered": "Aucune matière ne correspond à ces filtres.",
+    "new": "Nouvelle matière",
+    "created": "Matière créée.",
+    "updated": "Matière mise à jour.",
+    "deleted": "Matière supprimée.",
+    "dialogNewTitle": "Nouvelle matière",
+    "dialogEditTitle": "Modifier la matière",
+    "dialogDesc": "Données de référence uniquement. Les quantités se modifient sur la page Stock.",
+    "col": {
+      "name": "Matière",
+      "type": "Type",
+      "uom": "Unité",
+      "status": "Statut",
+      "available": "Disponible",
+      "bomLines": "Lignes BOM"
+    },
+    "field": {
+      "sku": "SKU",
+      "name": "Nom",
+      "type": "Type",
+      "uom": "Unité de mesure",
+      "uomHint": "Texte libre : pcs, m, rouleau, kg…",
+      "description": "Description",
+      "status": "Statut",
+      "trackInventory": "Suivre le stock",
+      "trackInventoryHint": "Désactivez-le pour ce qui se compte à vue — ces articles figurent dans les BOM mais ne réservent rien et ne signalent aucun manque."
+    },
+    "types": {
+      "RAW_MATERIAL": "Matière première",
+      "PACKAGING": "Emballage",
+      "SEMI_FINISHED": "Semi-fini",
+      "CONSUMABLE": "Consommable",
+      "OTHER": "Autre"
+    },
+    "allTypes": "Tous les types",
+    "delete": {
+      "action": "Supprimer",
+      "title": "Supprimer la matière",
+      "confirm": "Elle reste sur les mouvements et réceptions passés pour que l'historique reste lisible.",
+      "blocked": "Encore utilisée par des lignes de BOM actives. Retirez-la d'abord de ces BOM.",
+      "submit": "Supprimer",
+      "pillBomLines": "lignes de BOM actives"
+    },
+    "errSkuTaken": "Ce SKU est déjà utilisé par une autre matière."
+  },
+  "errors": {
+    "warehouse-not-allowed": "Vous n'êtes pas membre de cet entrepôt.",
+    "item-not-found": "Cet article n'existe plus.",
+    "below-zero": "Impossible de descendre le stock en dessous de zéro.",
+    "insufficient-stock": "Stock insuffisant pour cette opération."
+  },
+  "receipts": {
+    "title": "Réceptions",
+    "subtitle": "Marchandises à l'arrivée : ce qui a été commandé, ce qui est arrivé, ce qui est en retard.",
+    "search": "Rechercher par code, suivi ou fournisseur",
+    "empty": "Aucune réception pour l'instant.",
+    "emptyFiltered": "Aucune réception ne correspond à ces filtres.",
+    "new": "Créer une réception",
+    "created": "Réception créée.",
+    "updated": "Réception mise à jour.",
+    "received": "Expédition réceptionnée.",
+    "rejected": "Réception refusée.",
+    "allStatuses": "Tous les statuts",
+    "uploaded": "Photos téléversées.",
+    "tiles": {
+      "upcoming": "ETA à venir",
+      "overdue": "ETA dépassée",
+      "partial": "Partielles",
+      "variance": "Écart"
+    },
+    "col": {
+      "code": "Code",
+      "itemType": "Articles",
+      "warehouse": "Entrepôt",
+      "status": "Statut",
+      "supplier": "Fournisseur",
+      "shipments": "Expéditions",
+      "created": "Créée"
+    },
+    "status": {
+      "PENDING": "En attente",
+      "PARTIAL": "Partielle",
+      "COMPLETE": "Terminée",
+      "REJECTED": "Refusée"
+    },
+    "shipStatus": {
+      "PENDING": "En attente",
+      "PARTIAL_RECEIVED": "Partiellement reçue",
+      "RECEIVED": "Reçue",
+      "REJECTED": "Refusée"
+    },
+    "detail": {
+      "title": "Réception",
+      "expected": "Commandé",
+      "unitPrice": "Prix unitaire",
+      "lineTotal": "Total ligne",
+      "receivedQty": "Reçu",
+      "rejectedQty": "Refusé",
+      "note": "Note",
+      "receive": "Réceptionner",
+      "eta": "ETA",
+      "tracking": "Suivi",
+      "carrier": "Transporteur",
+      "vendor": "Fournisseur",
+      "evidence": "Preuves",
+      "upload": "Téléverser des photos",
+      "reject": "Refuser la réception",
+      "rejectReason": "Motif",
+      "edit": "Modifier",
+      "noEvidence": "Aucune photo pour l'instant."
+    },
+    "form": {
+      "title": "Créer une réception",
+      "editTitle": "Modifier la réception",
+      "desc": "Un entrepôt, une ou plusieurs expéditions, chacune avec ses lignes.",
+      "warehouse": "Entrepôt",
+      "itemType": "Type d'article",
+      "provider": "Fournisseur",
+      "note": "Note",
+      "shipment": "Expédition",
+      "addShipment": "Ajouter une expédition",
+      "addLine": "Ajouter une ligne",
+      "remove": "Retirer",
+      "item": "Article",
+      "quantity": "Quantité",
+      "shipmentCode": "Code expédition",
+      "submit": "Créer",
+      "save": "Enregistrer"
+    },
+    "errors": {
+      "not-found": "Cette réception n'existe plus.",
+      "not-receivable": "Cette réception ou expédition est déjà clôturée.",
+      "not-editable": "Cette réception a déjà fait l'objet d'une réception et ne peut plus être modifiée.",
+      "received-below-current": "La quantité reçue ne peut pas diminuer — la marchandise déjà enregistrée est en rayon.",
+      "too-many-files": "Téléversez 10 images au maximum.",
+      "not-an-image": "Téléversez une image PNG, JPG ou WEBP.",
+      "file-too-large": "Les images doivent faire 10 Mo ou moins."
+    }
+  },
+  "boms": {
+    "section": "Nomenclatures",
+    "title": "Nomenclatures",
+    "subtitle": "De quoi chaque SKU est fait, et si les composants sont en rayon.",
+    "tabs": {
+      "configs": "Configurations",
+      "coverage": "Couverture"
+    },
+    "search": "Rechercher par SKU, produit ou nom de BOM",
+    "empty": "Aucune nomenclature.",
+    "emptyFiltered": "Aucune nomenclature ne correspond.",
+    "new": "Nouvelle nomenclature",
+    "created": "Nomenclature créée.",
+    "updated": "Nomenclature enregistrée.",
+    "activated": "Nomenclature activée.",
+    "duplicated": "Nouvelle version brouillon créée.",
+    "deleted": "Nomenclature supprimée.",
+    "tiles": {
+      "total": "Nomenclatures",
+      "active": "Actives",
+      "draft": "Brouillons",
+      "incomplete": "Lignes incomplètes"
+    },
+    "col": {
+      "variant": "Variante produit",
+      "bom": "Nomenclature",
+      "status": "Statut",
+      "lines": "Lignes",
+      "components": "Composants",
+      "manage": "Gérer"
+    },
+    "status": {
+      "DRAFT": "Brouillon",
+      "ACTIVE": "Active",
+      "INACTIVE": "Inactive"
+    },
+    "linesOf": "requises sur",
+    "linked": "liés",
+    "incomplete": "incomplets",
+    "manage": "Gérer",
+    "dialog": {
+      "title": "Nomenclature",
+      "versions": "Versions",
+      "newDraft": "Nouveau brouillon",
+      "name": "Nom",
+      "version": "Version",
+      "versionAuto": "Auto",
+      "status": "Statut",
+      "material": "Matière",
+      "sku": "SKU",
+      "qtyPerUnit": "Qté / unité",
+      "unit": "Unité",
+      "wastage": "Perte %",
+      "stage": "Étape",
+      "required": "Req",
+      "addLine": "Ajouter une ligne",
+      "save": "Enregistrer",
+      "activate": "Activer",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer",
+      "preview": "Aperçu",
+      "previewQty": "Quantité",
+      "previewWarehouse": "Entrepôt",
+      "component": "Composant",
+      "requiredQty": "Requis",
+      "available": "Disponible",
+      "shortage": "Manquant",
+      "mapping": "Lien",
+      "unmapped": "Non assigné",
+      "noLines": "Aucune ligne."
+    },
+    "stage": {
+      "PRODUCTION": "Production",
+      "PACKING": "Emballage",
+      "SHIPPING": "Expédition",
+      "OTHER": "Autre"
+    },
+    "coverage": {
+      "search": "Rechercher un composant",
+      "empty": "Aucun composant.",
+      "tiles": {
+        "components": "Composants",
+        "linked": "Liés",
+        "shortage": "Manquants",
+        "noStock": "Sans stock"
+      },
+      "col": {
+        "material": "Matière",
+        "coverage": "Couverture",
+        "qty": "Qté",
+        "reserved": "Réservé",
+        "shortage": "Manquant",
+        "available": "Disponible",
+        "usedIn": "Utilisé dans",
+        "warehouses": "Entrepôts"
+      },
+      "badge": {
+        "AVAILABLE": "Disponible",
+        "NEEDED": "Manquant",
+        "NO_STOCK": "Sans stock",
+        "UNMAPPED": "Non assigné"
+      },
+      "boms": "nomenclatures",
+      "perUnit": "requis/unité"
+    },
+    "errors": {
+      "not-found": "Cette nomenclature n'existe plus.",
+      "not-editable": "Une nomenclature sans ligne ne peut pas être activée.",
+      "item-not-found": "Ce SKU n'existe plus.",
+      "bom-line-unmapped": "Un composant requis n'a aucune matière assignée."
+    }
+  }
+}

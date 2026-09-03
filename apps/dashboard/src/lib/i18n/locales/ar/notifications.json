@@ -1,0 +1,102 @@
+{
+  "title": "الإشعارات",
+  "back": "رجوع",
+  "unread": "غير مقروء",
+  "unreadOnly": "غير المقروءة فقط",
+  "markAllRead": "تعليم الكل كمقروء",
+  "delete": "حذف",
+  "deleted": "تم حذف الإشعار.",
+  "loadMore": "تحميل المزيد",
+  "empty": "لا توجد إشعارات جديدة.",
+  "viewAll": "عرض كل الإشعارات",
+  "tabs": {
+    "all": "الكل",
+    "orders": "الطلبات",
+    "warehouse": "المستودع",
+    "payments": "المدفوعات",
+    "system": "النظام"
+  },
+  "time": {
+    "m": " د",
+    "h": " س",
+    "d": " ي"
+  },
+  "items": {
+    "inviteReceived": {
+      "title": "لقد تمت دعوتك",
+      "body": "دعاك {from} بصفة {roles}. افتح للقبول."
+    },
+    "inviteAccepted": {
+      "title": "تم قبول الدعوة",
+      "body": "قبل {email} دعوتك."
+    },
+    "roleChanged": {
+      "title": "تغيّرت صلاحياتك",
+      "body": "أدوارك الآن {roles}."
+    },
+    "toppedUp": {
+      "title": "تم شحن الرصيد",
+      "body": "تمت إضافة {amount}. الرصيد الجديد {balance}."
+    },
+    "refunded": {
+      "title": "تم استلام استرداد",
+      "body": "تم استرداد {amount}. الرصيد الجديد {balance}."
+    },
+    "transactionApproved": {
+      "title": "تمت الموافقة على الشحن",
+      "body": "تمت إضافة {amount}. الرصيد الجديد {balance}."
+    },
+    "transactionRejected": {
+      "title": "لم تتم الموافقة على الشحن",
+      "body": "تم رفض طلبك بقيمة {amount}: {reason}"
+    },
+    "ordersAssigned": {
+      "title": "تم إرسال {count} طلبات إلى الإنتاج",
+      "body": "تم خصم {amount}. الرصيد الجديد {balance}."
+    },
+    "orderCreated": {
+      "title": "تم إنشاء طلب باسمك",
+      "body": "تم إنشاء الطلب {externalId} على حسابك."
+    },
+    "orderStatusChanged": {
+      "title": "الطلب {externalId} أصبح {status}",
+      "body": "افتح الطلبات لعرض التفاصيل."
+    },
+    "workAssigned": {
+      "title": "وصل {count} طلبات إلى {warehouse}",
+      "body": "جاهزة للدخول في الإنتاج."
+    },
+    "orderOnHold": {
+      "title": "الطلب {externalId} معلّق",
+      "body": "{reason}"
+    },
+    "shippingLabelReady": {
+      "title": "الملصق جاهز للطلب {externalId}",
+      "body": "التتبع {tracking} · {provider}"
+    },
+    "trackingUpdated": {
+      "title": "الطلب {externalId} أصبح {status}",
+      "body": "تحديث من شركة الشحن لرقم التتبع {tracking}."
+    },
+    "fulfillmentBlocked": {
+      "title": "العمل متوقف في {warehouse}",
+      "body": "{reason} — لا يمكن تجهيز أي طرد حتى تُحل المشكلة."
+    },
+    "labelPurchaseFailed": {
+      "title": "فشل شراء الملصق",
+      "body": "تعذّر شراء {count} طرد: {reason}"
+    },
+    "ticketReplied": {
+      "title": "رد جديد على «{title}»",
+      "body": "{from} رد على تذكرتك."
+    },
+    "ticketStatusChanged": {
+      "title": "التذكرة «{title}» أصبحت {status}",
+      "body": "افتح التذكرة لعرض المحادثة."
+    },
+    "transactionRequested": {
+      "title": "{from} قدّم طلب {kind}",
+      "body": "{amount} بانتظار الموافقة."
+    }
+  }
+}

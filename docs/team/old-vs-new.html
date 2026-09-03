@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OpCreative — Old system → New system</title>
+<style>
+  /* ── DOC KIT TOKENS (docs/styling/docstyling.html) ─────────────────────── */
+  :root {
+    --bg:#000; --bg-1:#0a0a0a; --bg-2:#111; --bg-3:#181818;
+    --line:rgba(255,255,255,.08); --line-2:rgba(255,255,255,.14); --line-hi:rgba(255,255,255,.28);
+    --text:#ededed; --text-2:#a1a1a1; --text-3:#6b6b6b; --text-4:#444;
+    --blue:#0070f3; --blue-2:#3291ff; --pink:#ff0080; --pink-2:#ff4da6;
+    --cyan:#00d8ff; --lime:#00f5a0; --amber:#f5a623; --red:#ff4d4f; --purple:#7928ca;
+    --grad:linear-gradient(90deg,#0070f3 0%,#7928ca 50%,#ff0080 100%);
+    --grad-cyan:linear-gradient(90deg,#00d8ff 0%,#00f5a0 100%);
+    --grad-warn:linear-gradient(90deg,#f5a623 0%,#ff4d4f 100%);
+    --sans:-apple-system,BlinkMacSystemFont,'Inter','SF Pro Display',system-ui,sans-serif;
+    --mono:ui-monospace,'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
+    --radius:12px; --radius-sm:8px; --radius-lg:16px;
+    --shadow:0 0 0 1px var(--line),0 24px 60px -32px rgba(0,0,0,.8);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:
+    radial-gradient(800px 500px at 80% -10%,rgba(255,0,128,.10),transparent 60%),
+    radial-gradient(900px 600px at -10% 10%,rgba(0,112,243,.10),transparent 60%),
+    radial-gradient(700px 500px at 50% 100%,rgba(0,216,255,.06),transparent 60%)}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+    background-size:48px 48px;mask-image:radial-gradient(1200px 800px at 50% 0%,#000,transparent 80%)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
+  a{color:var(--blue-2)}
+
+  /* language toggle: every bit of copy exists twice; body class picks one */
+  .vi{display:none}
+  body.lang-vi .vi{display:revert}
+  body.lang-vi .en{display:none}
+
+  nav.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(0,0,0,.7);border-bottom:1px solid var(--line)}
+  nav.top .inner{max-width:1100px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  nav.top .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:13px}
+  nav.top .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--grad);box-shadow:0 0 12px rgba(255,0,128,.5)}
+  nav.top .links{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+  nav.top .links::-webkit-scrollbar{display:none}
+  nav.top a{color:var(--text-2);text-decoration:none;padding:6px 10px;font-size:13px;font-family:var(--mono);border-radius:6px;white-space:nowrap;transition:color .15s,background .15s}
+  nav.top a:hover{color:var(--text);background:var(--bg-2)}
+  .langbtns{display:flex;gap:4px}
+  .langbtns button{font-family:var(--mono);font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--line-2);background:transparent;color:var(--text-2);cursor:pointer}
+  .langbtns button.on{color:#000;background:var(--lime);border-color:var(--lime)}
+
+  .hero{padding:72px 0 40px}
+  .hero .eyebrow{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;color:var(--text-3);margin-bottom:18px}
+  .hero .eyebrow .tag{border:1px solid var(--line-2);border-radius:999px;padding:3px 10px;color:var(--text-2)}
+  .hero h1{font-size:clamp(34px,6vw,58px);line-height:1.05;letter-spacing:-.03em;font-weight:800}
+  .hero h1 .accent{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero .deck{margin-top:18px;max-width:760px;color:var(--text-2);font-size:17px}
+  .hero .deck b{color:var(--text)}
+
+  .s{padding:44px 0}
+  .s-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:14px}
+  .s-head h2{font-size:26px;letter-spacing:-.02em}
+  .s-head .punct{color:var(--pink)}
+  .s-head .meta{font-family:var(--mono);font-size:12px;color:var(--text-3)}
+
+  .tldr{border:1px solid var(--line-2);border-radius:var(--radius-lg);padding:26px;background:linear-gradient(180deg,var(--bg-2),var(--bg-1));box-shadow:var(--shadow)}
+  .tldr .badge{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--lime);border:1px solid rgba(0,245,160,.35);border-radius:999px;padding:3px 10px;margin-bottom:14px}
+  .tldr h2{font-size:22px;letter-spacing:-.01em;margin-bottom:10px}
+  .tldr p{color:var(--text-2)}
+  .tldr p b{color:var(--text)}
+
+  .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-1);padding:20px}
+  .card h3{font-size:15px;margin-bottom:8px}
+  .card p{color:var(--text-2);font-size:13.5px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  @media (max-width:820px){.grid2,.grid3{grid-template-columns:1fr}}
+
+  /* chips + diagram atoms */
+  .chip{display:inline-block;font-family:var(--mono);font-size:12px;border:1px solid var(--line-2);border-radius:999px;padding:4px 11px;color:var(--text-2);background:var(--bg-2);margin:3px 3px 0 0}
+  .chip.old{border-color:rgba(245,166,35,.4);color:var(--amber)}
+  .chip.new{border-color:rgba(0,245,160,.4);color:var(--lime)}
+  .chip.dead{border-color:rgba(255,77,79,.35);color:var(--red);text-decoration:line-through;text-decoration-thickness:1px}
+  .chip.hold{border-color:rgba(0,216,255,.4);color:var(--cyan)}
+  .arrow{color:var(--text-3);font-family:var(--mono);padding:0 6px}
+
+  .maprow{display:grid;grid-template-columns:minmax(180px,240px) 24px minmax(190px,260px) 1fr;gap:10px;align-items:baseline;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .maprow:hover{background:var(--bg-1)}
+  .maprow .oldp{font-family:var(--mono);font-size:12.5px;color:var(--amber)}
+  .maprow .newp{font-family:var(--mono);font-size:12.5px;color:var(--lime)}
+  .maprow .newp.dead{color:var(--red)}
+  .maprow .newp.hold{color:var(--cyan)}
+  .maprow .ar{color:var(--text-4);font-family:var(--mono);text-align:center}
+  .maprow .what{color:var(--text-2)}
+  .maprow.h{border-bottom:1px solid var(--line-2);padding-top:26px}
+  .maprow.h .oldp{color:var(--text);font-family:var(--sans);font-weight:700;font-size:14px}
+  @media (max-width:820px){.maprow{grid-template-columns:1fr;gap:2px}.maprow .ar{display:none}}
+
+  /* pipeline */
+  .pipe{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-1)}
+  .pipe .st{font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:999px;border:1px solid var(--line-2);color:var(--text)}
+  .pipe .st.g{border-color:rgba(0,245,160,.5);color:var(--lime);box-shadow:0 0 14px -6px rgba(0,245,160,.6)}
+  .pipe .st.b{border-color:rgba(50,145,255,.5);color:var(--blue-2)}
+  .pipe .st.r{border-color:rgba(255,77,79,.5);color:var(--red)}
+  .pipe .st.a{border-color:rgba(245,166,35,.5);color:var(--amber)}
+  .pipe .sep{color:var(--text-4);font-family:var(--mono)}
+  .pipe .lbl{width:100%;font-family:var(--mono);font-size:11px;color:var(--text-3);margin-bottom:2px}
+
+  /* architecture diagram */
+  .arch{display:grid;grid-template-columns:1fr 60px 1fr;gap:10px;align-items:stretch}
+  @media (max-width:820px){.arch{grid-template-columns:1fr}.arch .mid{transform:rotate(90deg);height:40px}}
+  .arch .box{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg-1);padding:18px}
+  .arch .box.newer{border-color:rgba(0,245,160,.35);box-shadow:0 0 30px -18px rgba(0,245,160,.6)}
+  .arch .box h4{font-family:var(--mono);font-size:12px;color:var(--text-3);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase}
+  .arch .node{display:block;font-family:var(--mono);font-size:12.5px;border:1px solid var(--line-2);border-radius:var(--radius-sm);padding:8px 12px;margin:6px 0;color:var(--text)}
+  .arch .node small{display:block;color:var(--text-3);font-family:var(--sans);font-size:11.5px}
+  .arch .node.warn{border-color:rgba(245,166,35,.4)}
+  .arch .node.dead{border-color:rgba(255,77,79,.35);color:var(--text-3)}
+  .arch .node.ok{border-color:rgba(0,245,160,.4)}
+  .arch .mid{display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:26px}
+
+  .quote{border-left:3px solid var(--pink);padding:8px 0 8px 18px;margin:18px 0;color:var(--text-2);font-size:16px}
+  .quote b{color:var(--text)}
+  .foot{padding:40px 0 70px;color:var(--text-3);font-size:12.5px;font-family:var(--mono);border-top:1px solid var(--line);margin-top:30px}
+  .kbd{font-family:var(--mono);font-size:12px;border:1px solid var(--line-2);border-bottom-width:2px;border-radius:6px;padding:1px 7px;background:var(--bg-2)}
+  ul.clean{list-style:none}
+  ul.clean li{padding:7px 0;border-bottom:1px solid var(--line);color:var(--text-2);font-size:13.5px}
+  ul.clean li b{color:var(--text)}
+</style>
+</head>
+<body>
+
+<nav class="top">
+  <div class="inner">
+    <div class="brand"><span class="dot"></span><span>opcreative / old → new</span></div>
+    <div class="links">
+      <a href="#roles"><span class="en">Roles</span><span class="vi">Vai trò</span></a>
+      <a href="#pages"><span class="en">Page map</span><span class="vi">Bản đồ trang</span></a>
+      <a href="#lifecycle"><span class="en">Order lifecycle</span><span class="vi">Vòng đời đơn</span></a>
+      <a href="#arch"><span class="en">Architecture</span><span class="vi">Kiến trúc</span></a>
+      <a href="#new"><span class="en">What's new</span><span class="vi">Điểm mới</span></a>
+      <a href="#retired"><span class="en">Retired</span><span class="vi">Đã bỏ</span></a>
+    </div>
+    <div class="langbtns">
+      <button id="btn-en" class="on" onclick="setLang('en')">EN</button>
+      <button id="btn-vi" onclick="setLang('vi')">VI</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="eyebrow"><span class="tag">2026-07-22</span><span class="tag">docs 01–07 shipped</span>
+      <span class="en">team briefing</span><span class="vi">tài liệu cho team</span></div>
+    <h1><span class="en">Same business.<br/><span class="accent">A new machine.</span></span>
+        <span class="vi">Vẫn công việc đó.<br/><span class="accent">Một cỗ máy mới.</span></span></h1>
+    <p class="deck">
+      <span class="en">Every screen, status and rule of the old fulfillment system was read line by line and rebuilt — or deliberately retired with the reason written down. This page is the whole story in one place: what each old page became, why "customer" is now <b>Seller</b>, and what the new system does that the old one never could.</span>
+      <span class="vi">Từng màn hình, trạng thái và quy tắc của hệ thống fulfillment cũ đã được đọc từng dòng và xây lại — hoặc chủ động loại bỏ kèm lý do rõ ràng. Trang này kể toàn bộ câu chuyện: mỗi trang cũ trở thành gì, vì sao "customer" giờ gọi là <b>Seller</b>, và hệ thống mới làm được gì mà hệ thống cũ không thể.</span>
+    </p>
+  </section>
+
+  <!-- TLDR -->
+  <div class="tldr">
+    <div class="badge">▲ TL;DR</div>
+    <h2><span class="en">100% of the old system is accounted for.</span>
+        <span class="vi">100% hệ thống cũ đã được xử lý.</span></h2>
+    <p>
+      <span class="en">All 40 backend modules and every page of the legacy app have a written disposition: <b>rebuilt</b> (better), <b>replaced</b> (by a stronger design), or <b>retired on purpose</b> (with the reason recorded). Nothing was lost by accident. The one thing not rebuilt is the TikTok import screen — its backend was a separate microservice that was never in our archive, so there was nothing to port.</span>
+      <span class="vi">Toàn bộ 40 module backend và mọi trang của app cũ đều có kết luận bằng văn bản: <b>xây lại</b> (tốt hơn), <b>thay thế</b> (bằng thiết kế mạnh hơn), hoặc <b>chủ động bỏ</b> (có ghi lý do). Không có gì bị mất do sơ suất. Thứ duy nhất không xây lại là màn hình nhập đơn TikTok — backend của nó là một microservice riêng chưa bao giờ nằm trong archive, nên không có gì để chuyển.</span>
+    </p>
+  </div>
+
+  <!-- ROLES -->
+  <section class="s" id="roles">
+    <div class="s-head">
+      <h2><span class="en">Who is who</span><span class="vi">Ai là ai</span><span class="punct">.</span></h2>
+      <div class="meta">§ 01 · roles</div>
+    </div>
+
+    <div class="quote">
+      <span class="en">"The old system had customers, admin and warehouse — so what is a <b>Seller</b>?" It's the same person. The old system called the print-on-demand shops <b>customer</b> (they are OUR customers). The new system names the <b>job they do</b>: they sell on Etsy/Amazon/Shopify, we produce and ship for them. Same account, same people — clearer name.</span>
+      <span class="vi">"Hệ thống cũ có customer, admin và warehouse — vậy <b>Seller</b> là gì?" Là cùng một người. Hệ thống cũ gọi các shop print-on-demand là <b>customer</b> (họ là khách hàng CỦA CHÚNG TA). Hệ thống mới gọi theo <b>công việc họ làm</b>: họ bán trên Etsy/Amazon/Shopify, chúng ta sản xuất và giao hàng cho họ. Cùng tài khoản, cùng con người — tên gọi rõ hơn.</span>
+    </div>
+
+    <div class="maprow h"><div class="oldp"><span class="en">Old role (free text)</span><span class="vi">Vai trò cũ (chuỗi tự do)</span></div><div class="ar"></div><div class="oldp"><span class="en">New role (enum)</span><span class="vi">Vai trò mới (enum)</span></div><div class="what"></div></div>
+    <div class="maprow"><div class="oldp">admin</div><div class="ar">→</div><div class="newp">ADMIN</div><div class="what"><span class="en">Everything, unchanged.</span><span class="vi">Toàn quyền, không đổi.</span></div></div>
+    <div class="maprow"><div class="oldp">customer</div><div class="ar">→</div><div class="newp">SELLER</div><div class="what"><span class="en">Renamed only. Sees own orders, wallet, tickets, catalog with own tier prices.</span><span class="vi">Chỉ đổi tên. Thấy đơn của mình, ví tiền, ticket, catalog với giá theo tier của mình.</span></div></div>
+    <div class="maprow"><div class="oldp">warehouse</div><div class="ar">→</div><div class="newp">WAREHOUSE</div><div class="what"><span class="en">Floor work: scan, fill, photograph, hand off — scoped to their own site(s).</span><span class="vi">Việc tại xưởng: quét, đóng, chụp ảnh, bàn giao — giới hạn theo kho của mình.</span></div></div>
+    <div class="maprow"><div class="oldp">warehouse_admin</div><div class="ar">→</div><div class="newp">WAREHOUSE_ADMIN</div><div class="what"><span class="en">Runs a site: staff, stock, receipts, BOMs.</span><span class="vi">Quản lý một kho: nhân sự, tồn kho, phiếu nhập, BOM.</span></div></div>
+    <div class="maprow"><div class="oldp">supporter</div><div class="ar">→</div><div class="newp">SUPPORT</div><div class="what"><span class="en">Tickets + read access across orders/users.</span><span class="vi">Ticket + quyền đọc đơn hàng/người dùng.</span></div></div>
+    <div class="maprow"><div class="oldp">designer</div><div class="ar">→</div><div class="newp">DESIGNER</div><div class="what"><span class="en">Sees orders and products; no money, no management.</span><span class="vi">Thấy đơn và sản phẩm; không đụng tiền, không quản trị.</span></div></div>
+    <div class="maprow"><div class="oldp">warehouse_external</div><div class="ar">→</div><div class="newp hold">WAREHOUSE + <span class="en">product allow-list</span><span class="vi">danh sách SP được phép</span></div><div class="what"><span class="en">Not a job title — a restriction. A partner is a normal warehouse account whose product list is limited. The old JSON hack became a real table.</span><span class="vi">Không phải chức danh — là một giới hạn. Đối tác là tài khoản kho bình thường nhưng bị giới hạn danh sách sản phẩm. "Hack" JSON cũ giờ là bảng dữ liệu thật.</span></div></div>
+
+    <div class="grid2" style="margin-top:22px">
+      <div class="card"><h3><span class="en">Old: role checks scattered</span><span class="vi">Cũ: kiểm tra vai trò rải rác</span></h3>
+        <p><span class="en">~15 hand-written "is this an admin?" checks in one file; one was commented out. Buttons were hidden but the server often didn't check at all — any logged-in user could post an order.</span>
+           <span class="vi">~15 đoạn "có phải admin không?" viết tay trong một file; một đoạn bị comment. Nút bấm bị ẩn nhưng server thường không kiểm tra — ai đăng nhập cũng có thể tạo đơn.</span></p></div>
+      <div class="card"><h3><span class="en">New: permissions, deny by default</span><span class="vi">Mới: quyền hạn, mặc định từ chối</span></h3>
+        <p><span class="en">Roles map to <b>permissions</b> in one file; every server action starts with a guard; every database query starts from a <b>scope</b>. A seller physically cannot read another seller's row — proven by tests, not by hidden menus.</span>
+           <span class="vi">Vai trò ánh xạ thành <b>quyền</b> trong một file duy nhất; mọi server action mở đầu bằng guard; mọi truy vấn mở đầu bằng <b>scope</b>. Seller không thể đọc dữ liệu của seller khác — chứng minh bằng test, không phải bằng việc giấu menu.</span></p></div>
+    </div>
+  </section>
+
+  <!-- PAGE MAP -->
+  <section class="s" id="pages">
+    <div class="s-head">
+      <h2><span class="en">Every old page, one line each</span><span class="vi">Mỗi trang cũ, một dòng</span><span class="punct">.</span></h2>
+      <div class="meta">§ 02 · <span class="en">old route → new route</span><span class="vi">đường dẫn cũ → mới</span></div>
+    </div>
+
+    <div class="maprow h"><div class="oldp"><span class="en">Selling & money</span><span class="vi">Bán hàng & tiền</span></div><div class="ar"></div><div class="oldp"></div><div class="what"></div></div>
+    <div class="maprow"><div class="oldp">/orders</div><div class="ar">→</div><div class="newp">/orders</div><div class="what"><span class="en">Same heart, one page for all roles — the scope decides what you see. Import now runs server-side (a closed tab can't lose rows).</span><span class="vi">Vẫn là trái tim hệ thống, một trang cho mọi vai trò — scope quyết định bạn thấy gì. Import chạy phía server (đóng tab không mất dòng nào).</span></div></div>
+    <div class="maprow"><div class="oldp"><span class="en">barcode column (CODE128)</span><span class="vi">cột barcode (CODE128)</span></div><div class="ar">→</div><div class="newp">/orders <span class="en">code cell + /orders/print</span><span class="vi">ô mã + /orders/print</span></div><div class="what"><span class="en">Now a QR <i>and</i> CODE128 — phones and old laser guns both scan it. Print sheet replaces the popup.</span><span class="vi">Giờ có QR <i>và</i> CODE128 — điện thoại lẫn súng quét cũ đều đọc được. Trang in thay cho popup.</span></div></div>
+    <div class="maprow"><div class="oldp"><span class="en">buy labels (KiloShips)</span><span class="vi">mua tem (KiloShips)</span></div><div class="ar">→</div><div class="newp">/orders · Buy labels</div><div class="what"><span class="en">Same provider behind a clean interface; idempotent — a retry can never buy twice.</span><span class="vi">Cùng nhà cung cấp, đặt sau một interface gọn; idempotent — bấm lại không bao giờ mua trùng.</span></div></div>
+    <div class="maprow"><div class="oldp"><span class="en">download labels / print barcode</span><span class="vi">tải tem / in barcode</span></div><div class="ar">→</div><div class="newp">/orders <span class="en">toolbar</span><span class="vi">thanh công cụ</span></div><div class="what"><span class="en">Bulk label zip + QR print sheet, no server barcode endpoint needed.</span><span class="vi">Zip tem hàng loạt + trang in QR, không cần endpoint barcode phía server.</span></div></div>
+    <div class="maprow"><div class="oldp"><span class="en">refund (admin modal)</span><span class="vi">hoàn tiền (modal admin)</span></div><div class="ar">→</div><div class="newp">/orders · Refund</div><div class="what"><span class="en">Same rule (full base+shipping), now through the one ledger — atomic, audited, notified.</span><span class="vi">Cùng quy tắc (hoàn đủ tiền gốc+ship), giờ đi qua một sổ cái duy nhất — nguyên tử, có audit, có thông báo.</span></div></div>
+    <div class="maprow"><div class="oldp">/transactions</div><div class="ar">→</div><div class="newp">/admin/transactions</div><div class="what"><span class="en">Approve/reject with evidence photos; sellers now REQUEST top-ups/refunds themselves from /profile/billing.</span><span class="vi">Duyệt/từ chối kèm ảnh chứng từ; seller giờ tự GỬI YÊU CẦU nạp/hoàn tiền từ /profile/billing.</span></div></div>
+    <div class="maprow"><div class="oldp">/users · update-price</div><div class="ar">→</div><div class="newp">/admin/users · <span class="en">tiers</span><span class="vi">tier giá</span></div><div class="what"><span class="en">Per-customer price sheets became price tiers 0–4 on each SKU; a seller's tier picks their price.</span><span class="vi">Bảng giá riêng từng khách trở thành tier 0–4 trên mỗi SKU; tier của seller quyết định giá.</span></div></div>
+    <div class="maprow"><div class="oldp">/ (dashboard)</div><div class="ar">→</div><div class="newp">/ <span class="en">(role-switched)</span><span class="vi">(theo vai trò)</span></div><div class="what"><span class="en">Admin: seller report + 6 stat cards. Seller: wallet, status summary, recent transactions. Warehouse: grouped work lists. Old version leaked the all-customer report to anyone — new one is permission-guarded.</span><span class="vi">Admin: báo cáo seller + 6 thẻ số liệu. Seller: ví, tóm tắt trạng thái, giao dịch gần đây. Kho: danh sách việc theo nhóm. Bản cũ để lộ báo cáo toàn bộ khách cho bất kỳ ai — bản mới chặn theo quyền.</span></div></div>
+
+    <div class="maprow h"><div class="oldp"><span class="en">Catalog</span><span class="vi">Danh mục</span></div><div class="ar"></div><div class="oldp"></div><div class="what"></div></div>
+    <div class="maprow"><div class="oldp">/products</div><div class="ar">→</div><div class="newp">/admin/products</div><div class="what"><span class="en">Same CRUD, plus parcel dimensions per product (label buying reads them).</span><span class="vi">CRUD như cũ, thêm kích thước gói hàng theo sản phẩm (mua tem sẽ đọc).</span></div></div>
+    <div class="maprow"><div class="oldp">/products/variants/:id</div><div class="ar">→</div><div class="newp">/admin/products/[id]/variants</div><div class="what"><span class="en">The SKU + tier-price grid, bulk fill included.</span><span class="vi">Bảng SKU + giá theo tier, có điền hàng loạt.</span></div></div>
+    <div class="maprow"><div class="oldp">/variants</div><div class="ar">→</div><div class="newp">/admin/variants</div><div class="what"><span class="en">Unchanged in spirit; variants are per-product now, not one shared list.</span><span class="vi">Tinh thần không đổi; variant giờ theo từng sản phẩm, không dùng chung một danh sách.</span></div></div>
+    <div class="maprow"><div class="oldp">/mockups</div><div class="ar">→</div><div class="newp">/admin/mockups</div><div class="what"><span class="en">Simple CRUD; files are plain URLs or uploads — no Google Drive folders.</span><span class="vi">CRUD đơn giản; file là URL hoặc upload thẳng — không còn thư mục Google Drive.</span></div></div>
+    <div class="maprow"><div class="oldp">/product-catalog</div><div class="ar">→</div><div class="newp">/catalog</div><div class="what"><span class="en">Seller-facing browse showing THAT seller's tier prices.</span><span class="vi">Trang duyệt cho seller, hiển thị đúng giá tier của seller đó.</span></div></div>
+
+    <div class="maprow h"><div class="oldp"><span class="en">Warehouse floor</span><span class="vi">Sàn kho</span></div><div class="ar"></div><div class="oldp"></div><div class="what"></div></div>
+    <div class="maprow"><div class="oldp">/fulfillment · /fulfillment-2 · /fulfillment-scan (+by-id)</div><div class="ar">→</div><div class="newp">/fulfillment</div><div class="what"><span class="en">FOUR stations became ONE: tracking or order-ID search, optional camera scanning, fill counters, basket assignment, proof photo → Fulfilled, typed "completed" → Shipped + label opens.</span><span class="vi">BỐN trạm gộp thành MỘT: tìm theo mã vận đơn hoặc mã đơn, quét camera tùy chọn, đếm số lượng đã đóng, gán vị trí giỏ, ảnh chứng từ → Fulfilled, gõ "completed" → Shipped + mở tem.</span></div></div>
+    <div class="maprow"><div class="oldp">/quick-scan</div><div class="ar">→</div><div class="newp">/fulfillment/quick</div><div class="what"><span class="en">Same rapid flow; now matches by tracking only and REPORTS skipped rows instead of silently updating whatever matched.</span><span class="vi">Vẫn thao tác nhanh; giờ chỉ khớp theo mã vận đơn và BÁO các dòng bị bỏ qua thay vì âm thầm cập nhật mọi thứ khớp.</span></div></div>
+    <div class="maprow"><div class="oldp">/fulfillment-new</div><div class="ar">→</div><div class="newp">/fulfillment/monitor</div><div class="what"><span class="en">Read-only board grouped by tracking number, with correct group pagination.</span><span class="vi">Bảng chỉ-đọc nhóm theo mã vận đơn, phân trang theo nhóm chính xác.</span></div></div>
+    <div class="maprow"><div class="oldp">/warehouses</div><div class="ar">→</div><div class="newp">/admin/warehouses</div><div class="what"><span class="en">Plus members: one person can now cover two sites (old design allowed exactly one).</span><span class="vi">Thêm thành viên: một người giờ phụ trách được hai kho (thiết kế cũ chỉ cho một).</span></div></div>
+
+    <div class="maprow h"><div class="oldp"><span class="en">Inventory & materials</span><span class="vi">Tồn kho & nguyên liệu</span></div><div class="ar"></div><div class="oldp"></div><div class="what"></div></div>
+    <div class="maprow"><div class="oldp">/materials</div><div class="ar">→</div><div class="newp">/admin/materials</div><div class="what"><span class="en">Same master data, typed enums instead of free strings.</span><span class="vi">Vẫn dữ liệu gốc, dùng enum thay chuỗi tự do.</span></div></div>
+    <div class="maprow"><div class="oldp">/material-inventory + /physical-inventory <span class="en">(two 3-tab pages)</span><span class="vi">(hai trang 3 tab)</span></div><div class="ar">→</div><div class="newp">/inventory (+/receipts +/movements)</div><div class="what"><span class="en">TWO parallel systems became ONE with a Materials/Products toggle. Stock, receipts, movements — one set of rules for both.</span><span class="vi">HAI hệ song song gộp thành MỘT với nút chuyển Nguyên liệu/Thành phẩm. Tồn, phiếu nhập, lịch sử — một bộ quy tắc cho cả hai.</span></div></div>
+    <div class="maprow"><div class="oldp">/boms/configs + /boms/stock</div><div class="ar">→</div><div class="newp">/admin/boms</div><div class="what"><span class="en">Two pages → two tabs: recipes (versioned, one active) and coverage (shortage per material).</span><span class="vi">Hai trang → hai tab: định mức (có phiên bản, một bản active) và độ phủ (thiếu hụt theo nguyên liệu).</span></div></div>
+
+    <div class="maprow h"><div class="oldp"><span class="en">Support & account</span><span class="vi">Hỗ trợ & tài khoản</span></div><div class="ar"></div><div class="oldp"></div><div class="what"></div></div>
+    <div class="maprow"><div class="oldp">/tickets (+/:id)</div><div class="ar">→</div><div class="newp">/tickets (+/[id])</div><div class="what"><span class="en">Replies are now real database rows with attachments — and BOTH sides get a bell notification (old system sent nothing; people refreshed the page).</span><span class="vi">Trả lời giờ là dữ liệu thật kèm tệp đính kèm — và CẢ HAI bên nhận chuông thông báo (hệ cũ không gửi gì; mọi người phải refresh trang).</span></div></div>
+    <div class="maprow"><div class="oldp">/vendors · /expenses</div><div class="ar">→</div><div class="newp">/admin/vendors · /admin/expenses</div><div class="what"><span class="en">Same bookkeeping, vendors now also feed stock receipts.</span><span class="vi">Vẫn sổ sách đó, vendor giờ còn gắn với phiếu nhập kho.</span></div></div>
+    <div class="maprow"><div class="oldp">/api-keys</div><div class="ar">→</div><div class="newp">/profile/api</div><div class="what"><span class="en">Old key was plaintext and could never be rotated; new keys are hashed, named, revocable — and old imported keys keep working.</span><span class="vi">Key cũ lưu dạng chữ thường và không thể thay; key mới được băm, đặt tên, thu hồi được — key cũ đã import vẫn dùng bình thường.</span></div></div>
+    <div class="maprow"><div class="oldp">/profile</div><div class="ar">→</div><div class="newp">/profile <span class="en">(5 tabs)</span><span class="vi">(5 tab)</span></div><div class="what"><span class="en">Profile, security (sign out everywhere works now), API, webhooks, billing.</span><span class="vi">Hồ sơ, bảo mật ("đăng xuất mọi nơi" giờ hoạt động thật), API, webhook, ví tiền.</span></div></div>
+    <div class="maprow"><div class="oldp"><span class="en">login (email+password only)</span><span class="vi">đăng nhập (chỉ email+mật khẩu)</span></div><div class="ar">→</div><div class="newp">/ · Google + OTP + <span class="en">password</span><span class="vi">mật khẩu</span></div><div class="what"><span class="en">Three ways in; admins INVITE people instead of typing their passwords.</span><span class="vi">Ba cách đăng nhập; admin MỜI người dùng thay vì gõ hộ mật khẩu.</span></div></div>
+
+    <div class="maprow h"><div class="oldp"><span class="en">Retired / moved</span><span class="vi">Đã bỏ / chuyển</span></div><div class="ar"></div><div class="oldp"></div><div class="what"></div></div>
+    <div class="maprow"><div class="oldp">/tts-shops · /tts-orders</div><div class="ar">→</div><div class="newp dead"><span class="en">not rebuilt</span><span class="vi">không xây lại</span></div><div class="what"><span class="en">Real in production, but its backend was a separate microservice that was never archived — only the browser half exists. If TikTok returns, it's a NEW integration through the public API.</span><span class="vi">Từng chạy thật, nhưng backend là một microservice riêng chưa bao giờ được lưu archive — chỉ còn nửa phía trình duyệt. Nếu quay lại TikTok, đó là tích hợp MỚI qua API công khai.</span></div></div>
+    <div class="maprow"><div class="oldp">/label-extractor</div><div class="ar">→</div><div class="newp dead"><span class="en">retired</span><span class="vi">đã bỏ</span></div><div class="what"><span class="en">Google-Sheets label pulling; native label purchase replaces it.</span><span class="vi">Lấy tem qua Google Sheets; chức năng mua tem trực tiếp thay thế.</span></div></div>
+    <div class="maprow"><div class="oldp">/production-pipeline</div><div class="ar">→</div><div class="newp dead"><span class="en">was never real</span><span class="vi">chưa từng là thật</span></div><div class="what"><span class="en">An HTML-playground prototype with no data behind it.</span><span class="vi">Bản thử nghiệm HTML không có dữ liệu phía sau.</span></div></div>
+    <div class="maprow"><div class="oldp"><span class="en">OCR bulk customer info · Drive design pipeline · mockup sync</span><span class="vi">OCR thông tin khách hàng loạt · pipeline thiết kế Drive · đồng bộ mockup</span></div><div class="ar">→</div><div class="newp dead"><span class="en">retired with the Drive stack</span><span class="vi">bỏ cùng hệ Drive</span></div><div class="what"><span class="en">All depended on per-order Google Drive folders + queues we deliberately did not carry. Files upload straight to storage now.</span><span class="vi">Tất cả phụ thuộc thư mục Google Drive theo đơn + hàng đợi mà ta chủ động không mang theo. File giờ upload thẳng vào storage.</span></div></div>
+  </section>
+
+  <!-- LIFECYCLE -->
+  <section class="s" id="lifecycle">
+    <div class="s-head">
+      <h2><span class="en">One order, start to finish</span><span class="vi">Một đơn hàng, từ đầu đến cuối</span><span class="punct">.</span></h2>
+      <div class="meta">§ 03 · statuses</div>
+    </div>
+
+    <p style="color:var(--text-2);margin-bottom:14px">
+      <span class="en">The old system had <b>14+ free-text statuses</b> — including "Design problems" and "Design Problems" as two different states. The new system has <b>8 typed states</b>, and carrier tracking lives on its own axis (the shipment), where it always belonged.</span>
+      <span class="vi">Hệ cũ có <b>hơn 14 trạng thái dạng chuỗi tự do</b> — kể cả "Design problems" và "Design Problems" là hai trạng thái khác nhau. Hệ mới có <b>8 trạng thái định kiểu</b>, và trạng thái vận chuyển nằm trên trục riêng (shipment), đúng chỗ của nó.</span>
+    </p>
+
+    <div class="pipe" style="margin-bottom:10px">
+      <div class="lbl"><span class="en">OLD — what the floor typed</span><span class="vi">CŨ — những gì xưởng từng gõ</span></div>
+      <span class="st a">Pending</span><span class="sep">→</span>
+      <span class="st a">Production Ready</span><span class="sep">→</span>
+      <span class="st a">In Production</span><span class="sep">→</span>
+      <span class="st a">Produced</span><span class="sep">→</span>
+      <span class="st a">Filled</span><span class="sep">→</span>
+      <span class="st a">Fulfilled</span><span class="sep">→</span>
+      <span class="st a">Completed</span>
+      <span class="sep">+</span>
+      <span class="st r">Cancel</span><span class="st r">Refund</span><span class="st r">Wrong Label</span><span class="st r">Design problems</span><span class="st r">Out Of Stock</span><span class="st r">Return</span><span class="st r">Pending Dropoff</span><span class="st r">Design Sorted</span>
+    </div>
+
+    <div class="pipe">
+      <div class="lbl"><span class="en">NEW — the pipeline (and what moves it)</span><span class="vi">MỚI — chuỗi trạng thái (và điều gì đẩy nó đi)</span></div>
+      <span class="st">PENDING</span><span class="sep">→</span>
+      <span class="st b">ASSIGNED <small>💰</small></span><span class="sep">→</span>
+      <span class="st b">IN_PRODUCTION <small>📷 scan</small></span><span class="sep">→</span>
+      <span class="st g">FULFILLED <small>📸 proof</small></span><span class="sep">→</span>
+      <span class="st g">SHIPPED <small>⌨ "completed"</small></span><span class="sep">→</span>
+      <span class="st g">DELIVERED</span>
+      <span class="sep">·</span>
+      <span class="st r">CANCELLED</span><span class="st a">ON_HOLD <small>+ note</small></span>
+    </div>
+
+    <div class="grid3" style="margin-top:16px">
+      <div class="card"><h3><span class="en">Money moves once</span><span class="vi">Tiền đi đúng một lần</span></h3>
+        <p><span class="en"><b>ASSIGNED</b> is when the seller is charged — one atomic transaction: balance + ledger row + audit together. The old code charged inside an unawaited loop and could lose money silently.</span>
+           <span class="vi"><b>ASSIGNED</b> là lúc trừ tiền seller — một giao dịch nguyên tử: số dư + dòng sổ cái + audit cùng nhau. Code cũ trừ tiền trong vòng lặp không chờ và có thể mất tiền âm thầm.</span></p></div>
+      <div class="card"><h3><span class="en">"Filled" is a counter now</span><span class="vi">"Filled" giờ là bộ đếm</span></h3>
+        <p><span class="en">Pieces packed show as a progress bar (3/4), not a separate status. Wrong Label / Design problems / Out Of Stock became <b>ON_HOLD + a note saying why</b>.</span>
+           <span class="vi">Số món đã đóng hiển thị dạng thanh tiến độ (3/4), không phải trạng thái riêng. Wrong Label / Design problems / Out Of Stock trở thành <b>ON_HOLD + ghi chú lý do</b>.</span></p></div>
+      <div class="card"><h3><span class="en">Tracking is the parcel's story</span><span class="vi">Tracking là câu chuyện của kiện hàng</span></h3>
+        <p><span class="en">"in_transit", "delivered" come from the carrier and live on the <b>shipment</b>, updated by the tracking webhook — they never mix with production states again.</span>
+           <span class="vi">"in_transit", "delivered" đến từ hãng vận chuyển và nằm trên <b>shipment</b>, cập nhật qua webhook — không bao giờ trộn lẫn với trạng thái sản xuất nữa.</span></p></div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="s" id="arch">
+    <div class="s-head">
+      <h2><span class="en">The machine, before and after</span><span class="vi">Cỗ máy, trước và sau</span><span class="punct">.</span></h2>
+      <div class="meta">§ 04 · architecture</div>
+    </div>
+
+    <div class="arch">
+      <div class="box">
+        <h4><span class="en">Old — six moving parts</span><span class="vi">Cũ — sáu bộ phận rời</span></h4>
+        <span class="node warn">React SPA <small><span class="en">separate frontend repo</span><span class="vi">repo frontend riêng</span></small></span>
+        <span class="node warn">NestJS API <small><span class="en">separate backend repo, 40 modules</span><span class="vi">repo backend riêng, 40 module</span></small></span>
+        <span class="node warn">Redis + BullMQ <small><span class="en">4 queues</span><span class="vi">4 hàng đợi</span></small></span>
+        <span class="node warn">Google Drive <small><span class="en">a folder per order, design pipeline</span><span class="vi">mỗi đơn một thư mục, pipeline thiết kế</span></small></span>
+        <span class="node dead">TTS microservice <small><span class="en">TikTok — never archived</span><span class="vi">TikTok — chưa từng được lưu</span></small></span>
+        <span class="node warn"><span class="en">Local disk uploads</span><span class="vi">Upload lên ổ đĩa máy chủ</span> <small><span class="en">dies with the server</span><span class="vi">mất cùng máy chủ</span></small></span>
+      </div>
+      <div class="mid">→</div>
+      <div class="box newer">
+        <h4><span class="en">New — one application</span><span class="vi">Mới — một ứng dụng</span></h4>
+        <span class="node ok">Next.js <small><span class="en">dashboard + server logic + /api/v1, one repo, one deploy</span><span class="vi">dashboard + logic server + /api/v1, một repo, một lần deploy</span></small></span>
+        <span class="node ok">Postgres (Neon) <small><span class="en">typed schema, 32 migrations, one ledger</span><span class="vi">schema định kiểu, 32 migration, một sổ cái</span></small></span>
+        <span class="node ok"><span class="en">Blob storage</span><span class="vi">Kho file Blob</span> <small><span class="en">proof photos, evidence, labels — survives any server</span><span class="vi">ảnh chứng từ, tem — không phụ thuộc máy chủ nào</span></small></span>
+        <span class="node ok">KiloShips + DRX <small><span class="en">labels & tracking, behind interfaces, env-gated</span><span class="vi">tem & tracking, sau interface, bật bằng env</span></small></span>
+        <span class="node ok"><span class="en">Portable by rule</span><span class="vi">Di động theo nguyên tắc</span> <small><span class="en">runs on Vercel today, Docker/ECS tomorrow — verified in CI</span><span class="vi">chạy Vercel hôm nay, Docker/ECS ngày mai — CI kiểm chứng</span></small></span>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:16px">
+      <div class="card"><h3><span class="en">Three stock systems → one</span><span class="vi">Ba hệ tồn kho → một</span></h3>
+        <p><span class="en">Legacy ran three parallel inventory systems that disagreed with each other (one even reserved stock in the opposite direction). Now: one system, one movements ledger that is append-only — <b>the counters always equal the sum of the history</b>, verified by tests.</span>
+           <span class="vi">Hệ cũ chạy ba hệ tồn kho song song mâu thuẫn nhau (một hệ còn trừ tồn ngược chiều). Giờ: một hệ, một sổ lịch sử chỉ-ghi-thêm — <b>số tồn luôn bằng tổng lịch sử</b>, có test kiểm chứng.</span></p></div>
+      <div class="card"><h3><span class="en">The two clocks of an order</span><span class="vi">Hai chiếc đồng hồ của một đơn</span></h3>
+        <p><span class="en"><b>Production clock</b>: PENDING → … → SHIPPED (our floor). <b>Carrier clock</b>: label created → in transit → delivered (their trucks). The old system kept both on one field and they fought; now each has its own column and its own page.</span>
+           <span class="vi"><b>Đồng hồ sản xuất</b>: PENDING → … → SHIPPED (xưởng của ta). <b>Đồng hồ vận chuyển</b>: tạo tem → đang chuyển → đã giao (xe của hãng). Hệ cũ nhét cả hai vào một cột nên chúng đá nhau; giờ mỗi cái một cột, một trang riêng.</span></p></div>
+    </div>
+  </section>
+
+  <!-- WHAT'S NEW -->
+  <section class="s" id="new">
+    <div class="s-head">
+      <h2><span class="en">Things the old system never had</span><span class="vi">Những thứ hệ cũ chưa từng có</span><span class="punct">.</span></h2>
+      <div class="meta">§ 05 · net-new</div>
+    </div>
+    <ul class="clean">
+      <li><b><span class="en">In-app notifications</span><span class="vi">Thông báo trong app</span></b> — <span class="en">the bell: order shipped, money moved, ticket answered, floor blocked. Old system: a Lark webhook to one chat group, nothing for sellers.</span><span class="vi">chuông thông báo: đơn đã gửi, tiền đã chuyển, ticket có trả lời, xưởng bị kẹt. Hệ cũ: chỉ một webhook Lark vào nhóm chat, seller không nhận gì.</span></li>
+      <li><b><span class="en">Audit log</span><span class="vi">Nhật ký audit</span></b> — <span class="en">every sensitive change (money, roles, status) writes who/what/before/after. /admin/audit did not exist before.</span><span class="vi">mọi thay đổi nhạy cảm (tiền, vai trò, trạng thái) ghi lại ai/cái gì/trước/sau. /admin/audit trước đây không tồn tại.</span></li>
+      <li><b><span class="en">Invites</span><span class="vi">Lời mời</span></b> — <span class="en">admins invite by email; nobody types another person's password ever again.</span><span class="vi">admin mời qua email; không ai còn phải gõ hộ mật khẩu người khác.</span></li>
+      <li><b><span class="en">Signed webhooks</span><span class="vi">Webhook có chữ ký</span></b> — <span class="en">sellers' systems verify an X-Signature instead of receiving our secret in every request (yes, the old system sent the secret itself).</span><span class="vi">hệ thống của seller xác minh X-Signature thay vì nhận luôn secret trong mỗi request (đúng vậy, hệ cũ gửi thẳng secret đi).</span></li>
+      <li><b><span class="en">Idempotent money</span><span class="vi">Tiền chống trùng lặp</span></b> — <span class="en">a double-click or a retry can never charge or credit twice; the database itself refuses.</span><span class="vi">bấm đúp hay thử lại không bao giờ trừ/cộng tiền hai lần; chính database từ chối.</span></li>
+      <li><b>/api/v1</b> — <span class="en">a real versioned public API (orders, catalog, me) with cursor paging, money as strings, one error format — the front door for every future integration, TikTok included.</span><span class="vi">API công khai có phiên bản thật (orders, catalog, me) với phân trang cursor, tiền dạng chuỗi, một định dạng lỗi — cửa chính cho mọi tích hợp tương lai, kể cả TikTok.</span></li>
+      <li><b><span class="en">Real global search</span><span class="vi">Tìm kiếm toàn cục thật</span></b> — <span class="en">orders, SKUs, people, pages — scoped to what YOU may see. The old app had no search at all.</span><span class="vi">đơn, SKU, người, trang — giới hạn theo quyền của BẠN. App cũ hoàn toàn không có tìm kiếm.</span></li>
+      <li><b>7 <span class="en">languages</span><span class="vi">ngôn ngữ</span></b> — <span class="en">EN, VI, ZH, JA, KO, FR, AR with a real switcher; the old app shipped 4 locales and no way to switch.</span><span class="vi">EN, VI, ZH, JA, KO, FR, AR với nút chuyển thật; app cũ có 4 ngôn ngữ nhưng không có chỗ chuyển.</span></li>
+    </ul>
+  </section>
+
+  <!-- RETIRED -->
+  <section class="s" id="retired">
+    <div class="s-head">
+      <h2><span class="en">Retired on purpose — and why</span><span class="vi">Chủ động bỏ — và lý do</span><span class="punct">.</span></h2>
+      <div class="meta">§ 06 · <span class="en">nothing lost by accident</span><span class="vi">không mất gì do sơ suất</span></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3><span class="en">The Google Drive stack</span><span class="vi">Hệ Google Drive</span></h3>
+        <p><span class="en">Order validation queues, design-asset ingestion, PSD mockup composer, OCR label reading, mockup sync — all built on per-order Drive folders and Redis queues. Retired as a set; files now upload directly. If automated design ingestion is ever wanted again, it is its own project.</span>
+           <span class="vi">Hàng đợi kiểm tra đơn, nhập file thiết kế, ghép mockup PSD, đọc tem bằng OCR, đồng bộ mockup — tất cả dựng trên thư mục Drive theo đơn và hàng đợi Redis. Bỏ cả cụm; file giờ upload trực tiếp. Nếu sau này cần tự động nhập thiết kế, đó là một dự án riêng.</span></p></div>
+      <div class="card"><h3><span class="en">The V3 catalog experiment</span><span class="vi">Thử nghiệm catalog V3</span></h3>
+        <p><span class="en">PhysicalVariant, ProductionOption, techniques, print positions, addon rules — superseded by the simpler SKU + tier-price model that now runs everything.</span>
+           <span class="vi">PhysicalVariant, ProductionOption, techniques, print positions, addon rules — được thay bằng mô hình SKU + giá tier đơn giản hơn, nay vận hành tất cả.</span></p></div>
+      <div class="card"><h3><span class="en">TikTok client</span><span class="vi">Client TikTok</span></h3>
+        <p><span class="en">Only the browser half exists in the archive; the microservice holding the actual TikTok logic was never archived. Not portable — a future rebuild goes through /api/v1.</span>
+           <span class="vi">Archive chỉ còn nửa phía trình duyệt; microservice chứa logic TikTok thật chưa từng được lưu. Không thể chuyển — bản làm lại tương lai sẽ đi qua /api/v1.</span></p></div>
+      <div class="card"><h3><span class="en">Small print</span><span class="vi">Ghi chú nhỏ</span></h3>
+        <p><span class="en">admin-api (no known consumer), api-log (platform logs cover it), Lark cards (bell replaces them), "Produced"/"Design Sorted"/"Pending Dropoff" statuses (already dead in legacy prod). The <b>opcreative-portal</b> money tool is a separate LIVE system and is not part of any of this.</span>
+           <span class="vi">admin-api (không ai dùng), api-log (log nền tảng thay thế), thẻ Lark (chuông thay thế), các trạng thái "Produced"/"Design Sorted"/"Pending Dropoff" (đã chết từ prod cũ). Công cụ tiền tệ <b>opcreative-portal</b> là hệ thống RIÊNG đang chạy thật, không thuộc phạm vi này.</span></p></div>
+    </div>
+
+    <div class="quote" style="margin-top:26px">
+      <span class="en"><b>Bottom line for the team:</b> if you did it in the old system, there is exactly one place to do it in the new one — usually faster, always safer. If you can't find something, it's in the "retired" list above with the reason, not lost.</span>
+      <span class="vi"><b>Chốt lại cho team:</b> việc gì bạn từng làm ở hệ cũ đều có đúng một chỗ để làm ở hệ mới — thường nhanh hơn, luôn an toàn hơn. Nếu không tìm thấy thứ gì, nó nằm trong danh sách "đã bỏ" phía trên kèm lý do, chứ không thất lạc.</span>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span class="en">Sources: docs/implementation 00–07 (completeness ledger in 07 §0b) · verified against legacy origin/prod (2026-07-14) and the live app routes · </span>
+    <span class="vi">Nguồn: docs/implementation 00–07 (bảng đối chiếu đầy đủ ở 07 §0b) · đối chiếu với origin/prod của hệ cũ (14-07-2026) và các trang thật của app mới · </span>
+    opcreative · 2026-07-22
+  </footer>
+</div>
+
+<script>
+  function setLang(l){
+    document.body.classList.toggle('lang-vi', l === 'vi');
+    document.documentElement.lang = l;
+    document.getElementById('btn-en').classList.toggle('on', l === 'en');
+    document.getElementById('btn-vi').classList.toggle('on', l === 'vi');
+    try { localStorage.setItem('ovn-lang', l); } catch (e) {}
+  }
+  try { const s = localStorage.getItem('ovn-lang'); if (s) setLang(s); } catch (e) {}
+</script>
+</body>
+</html>

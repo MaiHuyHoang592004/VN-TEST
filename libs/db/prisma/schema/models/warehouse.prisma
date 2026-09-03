@@ -1,0 +1,44 @@
+/// A physical warehouse. Address is inline (it's 1:1 and rarely changes) —
+/// the Address model is reserved for per-order shipping snapshots.
+model Warehouse {
+  id Int @id @default(autoincrement())
+  /// Short human code used on labels, imports and receipts, e.g. "HCM-01".
+  /// Master data: [A-Z0-9_-] only, enforced in the app layer.
+  code        String          @unique
+  name        String
+  /// What this site is for — shown in pickers and on cards.
+  description String?
+  /// Grouping for filters and reporting, e.g. "VN-South".
+  region      String?
+  line1       String?
+  line2       String?
+  city        String?
+  state       String?
+  zip         String?
+  country     String?
+  timezone    String          @default("Asia/Ho_Chi_Minh")
+  status      WarehouseStatus @default(ACTIVE)
+
+  contactName  String? @map("contact_name")
+  contactEmail String? @map("contact_email")
+  contactPhone String? @map("contact_phone")
+
+  users         User[]
+  members       WarehouseMember[]
+  orders        Order[]
+  inventory     WarehouseInventory[]
+  stockImports  StockImport[]
+  materialStock MaterialStock[]
+  stockReceipts StockReceipt[]
+  movements     InventoryMovement[]
+  reservations  InventoryReservation[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  /// Soft delete: a warehouse referenced by inventory or orders is never
+  /// hard-deleted — it is deactivated (status) or soft-deleted.
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([status, deletedAt])
+  @@map("warehouses")
+}

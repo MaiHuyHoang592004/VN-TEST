@@ -1,0 +1,49 @@
+/// Every change to every stock count, append-only. There is no update and no
+/// delete — not by convention, but because the service layer exposes neither.
+///
+/// This ledger IS the history. Legacy kept separate import-history tables
+/// alongside it that recorded the same events in a second place; they are not
+/// ported, and "show me the imports" is a filter on `type` here.
+///
+/// Quantity is SIGNED: movements that take stock away (CONSUME) are negative,
+/// and the page colours off the sign. Summing this column per item is what a
+/// reconcile-from-movements script would rebuild the counters from, which is
+/// only possible because nothing here is ever rewritten.
+model InventoryMovement {
+  id BigInt @id @default(autoincrement())
+
+  itemType         InventoryItemType @map("item_type")
+  materialId       Int?              @map("material_id")
+  productVariantId Int?              @map("product_variant_id")
+  warehouseId      Int               @map("warehouse_id")
+
+  type     InventoryMovementType
+  quantity Int
+
+  /// What caused this, recorded as plain ids with NO foreign keys on purpose:
+  /// a BOM update replaces its lines wholesale, and a historical fact must not
+  /// be what blocks that — or worse, get cascaded away with it.
+  reservationId Int?    @map("reservation_id")
+  bomId         Int?    @map("bom_id")
+  bomLineId     Int?    @map("bom_line_id")
+  orderId       Int?    @map("order_id")
+  referenceType String? @map("reference_type")
+  referenceId   String? @map("reference_id")
+
+  createdById String? @map("created_by_id")
+  createdBy   User?   @relation("MovementCreator", fields: [createdById], references: [id])
+  note        String?
+
+  material       Material?       @relation(fields: [materialId], references: [id])
+  productVariant ProductVariant? @relation(fields: [productVariantId], references: [id])
+  warehouse      Warehouse       @relation(fields: [warehouseId], references: [id])
+
+  /// No updatedAt: a row that can be updated is not a ledger.
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([itemType, materialId])
+  @@index([itemType, productVariantId])
+  @@index([warehouseId, createdAt])
+  @@index([orderId])
+  @@map("inventory_movements")
+}

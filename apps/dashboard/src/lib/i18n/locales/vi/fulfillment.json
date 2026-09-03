@@ -1,0 +1,161 @@
+{
+  "nav": {
+    "section": "Hoàn tất đơn",
+    "station": "Trạm quét",
+    "quick": "Quét nhanh",
+    "monitor": "Theo dõi"
+  },
+  "station": {
+    "title": "Trạm quét",
+    "subtitle": "Quét kiện hàng để bắt đầu, đếm, chụp ảnh và bàn giao.",
+    "idle": "Quét mã vận đơn hoặc mã vạch đơn hàng để bắt đầu.",
+    "handoffDone": "Đã bàn giao kiện hàng."
+  },
+  "scan": {
+    "mode": {
+      "tracking": "Mã vận đơn",
+      "order": "Mã đơn hàng"
+    },
+    "placeholder": {
+      "tracking": "Quét hoặc nhập mã vận đơn",
+      "order": "Quét hoặc nhập mã đơn hàng"
+    },
+    "submit": "Tìm",
+    "clear": "Xoá",
+    "hintTracking": "Mã dài chỉ giữ lại {n} ký tự cuối.",
+    "hintOrder": "Số in dưới mã QR của đơn hàng.",
+    "tooShort": "Mã vận đơn phải có ít nhất 10 ký tự.",
+    "notAnId": "Mã đơn hàng phải là số.",
+    "cancelled": "Đã huỷ quét. Không có trạng thái nào thay đổi.",
+    "confirmTitle": "Số lượng đơn quá lớn",
+    "confirmDesc": "Lần quét này sẽ chuyển {count} đơn sang Đang sản xuất (ngưỡng là {threshold}).",
+    "confirmBody": "Chưa có gì thay đổi. Hãy huỷ nếu con số đó có vẻ sai — thường là do nhập nhầm mã.",
+    "confirmSubmit": "Chuyển tất cả"
+  },
+  "scanned": {
+    "title": "Kiện hàng này đã được xử lý",
+    "desc": "{count} đơn trong đó đã được bắt đầu trước lần quét này.",
+    "continue": "Vẫn tiếp tục"
+  },
+  "group": {
+    "tracking": "Mã vận đơn",
+    "copy": "Sao chép mã vận đơn",
+    "copied": "Đã sao chép.",
+    "noCustomer": "Không có người bán",
+    "openLabel": "Mở nhãn",
+    "viewProof": "Xem ảnh xác nhận",
+    "multiUnit": "Kiện nhiều sản phẩm — đếm từng món trước khi đóng."
+  },
+  "card": {
+    "qty": "đặt",
+    "filled": "Đã đủ",
+    "progress": "Đã làm",
+    "fill": "Ghi nhận",
+    "fillAmount": "Số lượng thêm"
+  },
+  "fill": {
+    "basket": "Đã đặt vào giỏ {name}."
+  },
+  "actions": {
+    "summary": "{orders} đơn · {units} sản phẩm",
+    "updateAll": "Cập nhật tất cả",
+    "proof": "Ảnh xác nhận",
+    "handoff": "Hoàn tất bàn giao",
+    "linkLabel": "Gắn nhãn"
+  },
+  "proof": {
+    "saved": "Đã lưu ảnh xác nhận. Kiện hàng đã hoàn tất.",
+    "overwriteTitle": "Thay ảnh xác nhận?",
+    "overwriteDesc": "Kiện hàng này đã có ảnh, hoặc đã hoàn tất.",
+    "overwriteBody": "Ảnh hiện tại là bằng chứng cho mọi khiếu nại về kiện hàng này. Chỉ thay khi ảnh đầu bị sai.",
+    "overwriteSubmit": "Thay ảnh"
+  },
+  "handoff": {
+    "title": "Hoàn tất bàn giao",
+    "desc": "Gõ chữ completed để xác nhận kiện hàng đã đóng và sắp rời kho.",
+    "typeIt": "Gõ \"completed\"",
+    "tracking": "Mã vận đơn",
+    "trackingPlaceholder": "Số trên thùng hàng",
+    "submit": "Bàn giao",
+    "done": "Kiện hàng đã gửi đi."
+  },
+  "label": {
+    "title": "Gắn nhãn vận chuyển",
+    "desc": "Gắn nhãn và mã vận đơn này cho cả {count} đơn trong kiện.",
+    "tracking": "Mã vận đơn",
+    "url": "Liên kết nhãn",
+    "provider": "Nhà vận chuyển",
+    "method": "Dịch vụ",
+    "submit": "Gắn nhãn",
+    "linked": "Đã gắn nhãn cho {count} đơn."
+  },
+  "camera": {
+    "title": "Máy ảnh",
+    "capture": "Chụp ảnh",
+    "retry": "Thử lại",
+    "denied": "Không có máy ảnh. Ô quét phía trên vẫn dùng được.",
+    "duplicate": "Mã vạch này đã được nhận.",
+    "photoFirst": "Hãy chụp ảnh đơn hàng trước.",
+    "tooMany": "Mã này khớp quá nhiều đơn — hãy dùng ô quét để xác nhận.",
+    "spaceHint": "Nhấn phím cách để chụp ảnh xác nhận.",
+    "scanHint": "Hướng máy ảnh vào mã vạch để tải kiện hàng.",
+    "mirrored": "Bản xem trước được lật gương; ảnh lưu lại thì không."
+  },
+  "quick": {
+    "title": "Quét nhanh",
+    "subtitle": "Quét một kiện và đặt cùng một trạng thái cho mọi đơn trong đó.",
+    "status": "Trạng thái mới",
+    "note": "Ghi chú (tuỳ chọn)",
+    "submit": "Áp dụng",
+    "lastScanned": "Quét gần nhất",
+    "parcels": "Kiện hàng",
+    "updated": "Đơn đã cập nhật",
+    "empty": "Các kiện đã quét sẽ hiện ở đây.",
+    "colCustomer": "Người bán",
+    "colTracking": "Mã vận đơn",
+    "colStatus": "Trạng thái",
+    "colQty": "SL",
+    "colProduct": "Sản phẩm",
+    "colNote": "Ghi chú",
+    "skipped": "Đã bỏ qua: {orders}",
+    "applied": "Đã cập nhật {count} đơn."
+  },
+  "monitor": {
+    "title": "Theo dõi",
+    "subtitle": "Mọi kiện hàng đang xử lý. Chỉ xem.",
+    "tabs": {
+      "open": "Đang mở",
+      "ready": "Sẵn sàng",
+      "all": "Tất cả"
+    },
+    "colTracking": "Mã vận đơn",
+    "colCustomer": "Người bán",
+    "colOrders": "Đơn",
+    "colProgress": "Tiến độ",
+    "colStatus": "Trạng thái",
+    "colBasket": "Giỏ",
+    "colLabel": "Nhãn",
+    "colOldest": "Cũ nhất",
+    "label": "Mở",
+    "empty": "Không có kiện hàng nào.",
+    "loadMore": "Tải thêm"
+  },
+  "errors": {
+    "group-not-found": "Không có gì khớp với mã đó.",
+    "no-available-basket": "Không còn giỏ trống. Hãy dọn một giỏ trước.",
+    "check-failed": "Xác nhận sai — hãy gõ lại từ đó.",
+    "not-ready": "Mọi đơn trong kiện phải hoàn tất trước.",
+    "not-ready-detail": "Chưa hoàn tất: {orders}",
+    "not-in-production": "Hãy quét kiện hàng trước khi ghi nhận.",
+    "amount-exceeds-remaining": "Vượt quá số còn lại cần làm.",
+    "invalid-transition": "Không thể chuyển trạng thái như vậy từ đây.",
+    "file-too-large": "Ảnh phải nhỏ hơn hoặc bằng 10MB.",
+    "not-an-image": "Hãy tải lên ảnh PNG, JPG hoặc WEBP.",
+    "invalid-key": "Không lưu được tệp đó.",
+    "storage-not-configured": "Kho lưu trữ tệp chưa được cấu hình. Hãy báo quản trị viên.",
+    "validation": "Kiểm tra lại các trường rồi thử lại.",
+    "provider-rejected": "Nhà vận chuyển từ chối giao dịch.",
+    "provider-unreachable": "Nhà vận chuyển không phản hồi. Chưa mua gì — hãy thử lại.",
+    "not-configured": "Chưa cấu hình nhà cung cấp nhãn."
+  }
+}

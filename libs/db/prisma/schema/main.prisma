@@ -1,0 +1,37 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// opcreative — core schema (PostgreSQL · Prisma · deploys on Vercel + Neon)
+//
+// Conventions
+//   • DB names are snake_case (@map/@@map); Prisma client fields are camelCase.
+//   • Money is Decimal(12, 2). Never Float.
+//   • Status/type columns are enums; carrier-supplied strings stay String.
+//   • Business records soft-delete via `deletedAt`; auth records hard-delete.
+//   • Every foreign key has an index (Postgres doesn't create these for you).
+//   • Auth = Auth.js v5 (Google OAuth first) using the official Prisma-adapter
+//     models: User, Account, Session, VerificationToken. `passwordHash` stays
+//     nullable so legacy email+password logins keep working.
+//   • User.id is a String (cuid) because Auth.js generates string ids. Legacy
+//     integer ids migrate as their text form ("42"). All other tables keep
+//     Int autoincrement ids.
+//
+// Layout (Prisma 7 multi-file schema — every .prisma under prisma/schema):
+//   main.prisma        this file: generator + datasource only
+//   enums/             all enums
+//   models/            one file per model (user.prisma, order.prisma, …)
+//   ../config/         prisma.config.ts — connection URL + env-file loading
+//
+// Workflow: `npm run db:migrate` (local) / `npm run db:migrate:prod` (prod).
+// NEVER `prisma db push` or `prisma migrate reset`.
+//
+// Legacy data: prisma/scripts/migrate-legacy.sql maps the old backend's tables
+// (.archive/oldproject/fulfillment-system-be) into this schema — it runs on
+// PROD only (that's where the legacy data lives); local starts fresh.
+// ─────────────────────────────────────────────────────────────────────────────
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}

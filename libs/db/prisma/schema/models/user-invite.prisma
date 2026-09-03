@@ -1,0 +1,26 @@
+/// An admin invites by email; the invitee sets themselves up with Google or
+/// an emailed OTP. We never set another person's password — with OAuth as the
+/// primary sign-in that is both insecure and usually pointless.
+model UserInvite {
+  id    String     @id @default(cuid())
+  email String
+  roles UserRole[]
+  /// Only the SHA-256 hash of the invite token is stored (same rule as
+  /// ApiKey). The raw token exists only inside the emailed link.
+  tokenHash String       @unique @map("token_hash")
+  status    InviteStatus @default(PENDING)
+  expiresAt DateTime     @map("expires_at")
+
+  /// Pre-assigned so the account is usable on first sign-in.
+  warehouseId Int? @map("warehouse_id")
+  tier        Int?
+
+  invitedById String @map("invited_by_id")
+  invitedBy   User   @relation("InviteInviter", fields: [invitedById], references: [id])
+
+  acceptedAt DateTime? @map("accepted_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([email, status])
+  @@map("user_invites")
+}

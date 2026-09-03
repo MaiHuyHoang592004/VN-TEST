@@ -1,0 +1,586 @@
+================================================================================
+00 — MASTER PLAN: THE FULL REBUILD MAP AND WHERE EVERY PHASE STANDS
+================================================================================
+Written: 2026-07-22   Living document — update the STATUS LEDGER as docs land.
+
+HOW THIS FOLDER WORKS
+  docs/implementation/00-MASTER-PLAN.txt   ← this file: the whole map + status
+  docs/implementation/NN-*.txt             ← active build sheets, one per phase
+  docs/implementation/finished/            ← docs whose work has SHIPPED, moved
+                                             here when done so the active folder
+                                             only ever shows what is left
+Rule: when a doc's build order is complete and its "done" checks are green,
+move it to finished/ and update the ledger below in the same commit.
+
+Corollary, learned filing doc 05: a doc may be filed with work still OPEN when
+what remains needs hardware, credentials or a real day's traffic rather than
+code. When that happens its open items DO NOT travel to finished/ with it —
+they move to §3c below, in this file, which stays in the active folder. A
+pending item filed under finished/ is a pending item nobody reads again.
+
+--------------------------------------------------------------------------------
+0. WHERE THIS STANDS  (2026-07-22, after doc 07 A-F merged as 3f4d598)
+--------------------------------------------------------------------------------
+EVERY BUILD DOC IS FILED. 01 · 02 · 03 · 04 · 05 · 06 · 07 all live in
+finished/, and the active folder is this file alone. That is the whole rebuild:
+schema, backend kernel, catalog, orders, transactions, fulfillment stations,
+labels, shipments, inventory, tickets, seller money self-service, vendors,
+expenses, the dashboard, search, and /api/v1.
+
+WHAT IS LEFT IS NOT CODE. Three things, in this order:
+
+  1. THE CUTOVER (finished/02 + doc 06 E). Old data has never moved. It waits
+     on the dollars-vs-cents price decision and a rehearsal against a real prod
+     pg_dump — legacy credentials were expected ~2026-07-24. §3c V11.
+  2. THE DISCARD GATE (finished/07 PHASE G). The checklist that makes deleting
+     .archive/oldproject and the legacy servers safe. Not one box ticked, and
+     its own G0 says to read doc 07 §0c first — two of those items are money
+     (§3c V18, V19). Nothing gets deleted until every box is.
+  3. THE PENDING-VERIFICATION LIST (§3c). Twenty-three items that are built and
+     have never met the thing they were built for: a barcode gun, a carrier's
+     API, six locales on a screen, a legacy-imported API key.
+
+The prod DATABASE is migrated and current (32/32, additive). The prod DEPLOY is
+not: main carries doc 07 and Vercel does not yet.
+
+--------------------------------------------------------------------------------
+1. STATUS LEDGER
+--------------------------------------------------------------------------------
+  DOC                                  COVERS                        STATUS
+  finished/01-profile-and-user-admin   schema (8 migrations), the    ✅ DONE
+                                       permission/guard/scope        2026-07-21
+                                       design, shared frontend kit,
+                                       profile page (5 tabs), admin
+                                       users + invites, warehouses,
+                                       audit viewer
+  finished/03-phase-2-backend          backend kernel: services/     ✅ DONE (core)
+                                       actions/queries layers,       2026-07-21
+                                       money invariants + tests,
+                                       rate limiting, portability
+                                       rules (R1-R7), API
+                                       conventions (§8)
+                                       Deferred, on purpose: mobile
+                                       token auth + FCM (when
+                                       Capacitor starts), Hono (at
+                                       ~20 endpoints), per-feature
+                                       /api/v1 routes (ship WITH
+                                       each feature)
+  finished/02-legacy-cutover-runbook   move prod data old → new.     📄 DOC DONE
+                                       Runbook written, rehearsal    cutover NOT
+                                       harness green. The cutover    RUN — waits
+                                       itself has NOT run: it waits  on O1 price
+                                       on the dollars-vs-cents       units
+                                       decision (O1 in doc 04) and
+                                       a rehearsal against a real
+                                       prod pg_dump. Pull it back
+                                       out when cutover day comes.
+  finished/04-catalog-orders-       Phase A catalog · Phase B     ✅ DONE
+                                       orders · Phase C transactions 2026-07-22
+                                       Backend AND frontend, shipped
+                                       as PR #3 (18 commits).
+                                       Two items deferred with the
+                                       reason recorded (D1/D2 in
+                                       that doc): the own-shipping
+                                       price question for the team,
+                                       and the ProductVariant unique
+                                       constraint, which waits on
+                                       legacy prod credentials.
+  finished/05-fulfillment-stations-    scan station + quick scan +   ✅ SHIPPED
+  labels-shipments                     monitor, proof photos, first     2026-07-22
+                                       storage layer, Shipment          PR #4 · V-items
+                                                                        open (§3c)
+                                       writes, QR print sheet, label
+                                       purchase (KiloShips) + DRX
+                                       tracking, seller webhooks.
+                                       Verified against the legacy
+                                       PROD branch (origin/
+                                       prod-20260617 — the checked-
+                                       out archive tree is a stale
+                                       2025 dev branch; doc 05 §0
+                                       explains).
+                                       Merged as PR #4, 26 commits:
+                                       A (storage, 2 migrations,
+                                       permission, station service,
+                                       monitor query, webhooks), B (3
+                                       pages, nav, 7 locales), C (code
+                                       cell + print sheet, proof row
+                                       action, bulk label download,
+                                       KiloShips purchase behind a
+                                       provider interface, DRX inbound
+                                       webhook) — plus four
+                                       NOTIFICATION types the doc
+                                       never specified, a demo seed,
+                                       a phone card layout, and live
+                                       bell delivery (P1 below).
+                                       95/95 tests; both browser
+                                       passes done; three real bugs
+                                       found and fixed, one of them
+                                       inherited from doc 04.
+                                       FILED WITH WORK OPEN: ten
+                                       V-items in §3c stay in the
+                                       ACTIVE folder. No carrier has
+                                       been called, no webhook
+                                       delivered, no hardware ritual
+                                       run. Doc 05 also carries an
+                                       environment checklist and three
+                                       open questions for the team.
+  finished/06-inventory-materials-bom  inventory & materials (master ✅ BUILT
+                                       Phase 5): unified stock/      2026-07-22
+                                       receipts/movements/           V11-V16
+                                       reservations schema, BOM      open (§3c)
+                                       versioning + reserve/consume/
+                                       release order-flow (env-
+                                       gated), materials master,
+                                       /inventory + /admin/boms
+                                       pages, and the inventory
+                                       cutover extension (legacy
+                                       systems B+C had NO migration
+                                       coverage). Verified against
+                                       origin/prod (2026-07-14) —
+                                       the TRUE legacy prod tip;
+                                       prod-20260617 is its ancestor
+                                       (doc 06 §0).
+  finished/07-back-office-api-      THE FINAL PHASE: tickets      ✅ A-F BUILT
+                                       (replies+attachments+          2026-07-22
+                                                                      PR #6 →
+                                                                      3f4d598.
+                                                                      FILED. G,
+                                                                      the discard
+                                                                      gate, is
+                                                                      open — see
+                                                                      §3c V17
+                                       notifications), seller top-up/
+                                       refund requests + admin bulk
+                                       refund, vendors+expenses
+                                       pages, dashboard home (with
+                                       the guards legacy forgot),
+                                       real global search, orders
+                                       export/recalc/upload-lite,
+                                       /api/v1 parity + seller
+                                       migration map — and the
+                                       DISCARD CHECKLIST (G1-G10)
+                                       gating deletion of the legacy
+                                       system. TikTok: NOT rebuilt —
+                                       verified real-but-unportable
+                                       (client half only in archive;
+                                       its microservice was never
+                                       archived). opcreative-portal:
+                                       LIVE production system,
+                                       excluded from the discard.
+  storefront (apps/storefront)         future product work — not     future
+                                       part of the legacy discard
+
+--------------------------------------------------------------------------------
+2. THE LEGACY APP — COMPLETE PAGE MAP (from the full scan of
+   .archive/oldproject/fulfillment-fe-new/src, 2026-07-22)
+--------------------------------------------------------------------------------
+The old app has ~24 real pages plus dead code that must NOT be rebuilt. Every
+page was role-gated (7 legacy roles: admin, customer, warehouse,
+warehouse_external, warehouse_admin, designer, supporter — mapped in the new
+system to the 6-role enum + the UserAllowedProduct allow-list), so roles/
+permissions are cross-cutting and were built ONCE (docs 01/03, shipped).
+
+Really ~4 systems: ORDERS · CATALOG/PRICING · WAREHOUSE OPS · BACK OFFICE.
+The shared machinery (data table with filters/pagination, CRUD modal pattern,
+permission gates) is built and reused everywhere; every remaining page is
+assembly on top of it.
+
+PHASE 1 — FOUNDATION                                        [✅ SHIPPED, doc 01]
+  Auth               login, signup, email verify, password reset. Old app was
+                     JWT email/password; new app is Auth.js v5 with Google
+                     OAuth + password + email OTP — already live.
+  Profile /profile   view/edit own info, security, API keys, webhooks, billing
+                     tab with own transaction history + filters — already live.
+
+PHASE 2 — ORDER MANAGEMENT                                  [⏳ doc 04, B + C]
+  Orders /orders     THE core page. Role-aware table, 3 tabs (All / Processing
+                     / Attention Required). ~20 columns (dates, statuses,
+                     tracking, product/variant, address, mockup thumbnails,
+                     barcode, costs), heavy filters (search, status, customer,
+                     warehouse, product, date ranges), 6 modals — add/edit,
+                     spreadsheet import, bulk edit/assign/delete, bulk
+                     customer-info edit, mockup sync, label-purchase preview —
+                     plus bulk actions: export, download/purchase labels,
+                     print barcodes, refund, per-order image upload.
+                     (New build slices the modals: core table + CRUD + import
+                     + assign in doc 04; labels/barcodes/mockup-sync → doc 05.)
+  Transactions /transactions
+                     admin money ledger (topups, refunds, order charges) with
+                     approve/reject workflow: amount + balance-before/after
+                     columns, evidence images, filters, add/edit modal,
+                     reject-reason modal, detail drawer.
+
+PHASE 3 — PRODUCTS & PRICING                                [⏳ doc 04, A]
+  Products /products             product CRUD table (name, key, status, price,
+                                 shipping) + add/edit, price-table, delete
+                                 modals.
+  Product Variants /products/variants/:id
+                                 per-product variant pricing grid with bulk
+                                 set-prices, bulk set-info, edit (pricing
+                                 tiers), BOM-assign modals.
+  Variants /variants             master list of variant keys (size/color),
+                                 simple CRUD modals.
+  Product Catalog /product-catalog
+                                 read-only browsable card/list gallery for
+                                 customers, search + details view.
+  Mockups /mockups               mockup asset CRUD (name, status, URL) used by
+                                 orders; simple table + modals.
+  Users /users                   admin user management — ✅ ALREADY SHIPPED in
+                                 doc 01 (table, roles, balance, top-up/refund,
+                                 invite flow replacing password-set).
+  User price editor /users/update-price/:id
+                                 per-customer custom pricing (4 price fields
+                                 per variant, bulk-fill). DELIBERATELY REPLACED
+                                 by the tier 0-4 pricing model (doc 04, O2/O3)
+                                 — only revisit on a concrete seller case.
+
+PHASE 4 — WAREHOUSE & FULFILLMENT      [✅ doc 05 SHIPPED 2026-07-22 (PR #4).
+                                        Hardware + live-integration checks
+                                        still open — §3c]
+  Five stations sharing one order-card system:
+  Warehouse Fulfillment /fulfillment      scan/search by tracking number →
+                                          order cards → update warehouse
+                                          status, upload proof photo;
+                                          overwrite/duplicate-scan warnings.
+  Fulfillment 2 /fulfillment-2            search by order ID → confirm
+                                          quantities filled per item → typed
+                                          "completed" check → auto-print label.
+  Fulfillment Scan /fulfillment-scan(+by-id)
+                                          live webcam barcode scanner (browser
+                                          BarcodeDetector) auto-searching each
+                                          scan + camera proof-photo capture.
+  Quick Scan /quick-scan                  rapid-fire bulk status updater with
+                                          session stats + running log table.
+  Fulfillment Overview /fulfillment-new   read-only monitor of warehouse
+                                          orders grouped by tracking number
+                                          with fill progress.
+  Backend note: the status-transition map + updateStatus service these need
+  is built in doc 04 Phase B — doc 05 is mostly UI + hardware quirks.
+
+PHASE 5 — INVENTORY & MATERIALS        [🔨 doc 06 — phases A-D BUILT 2026-07-22
+                                       on branch phase-5-inventory (schema,
+                                       materials, stock, receipts, BOMs, order
+                                       flow). Order flow ships INERT:
+                                       INVENTORY_ORDER_FLOW is unset until the
+                                       counts are trusted post-cutover.
+                                       ONLY E (legacy data migration) REMAINS]
+  Warehouses /warehouses         ✅ ALREADY SHIPPED in doc 01 (CRUD, filters,
+                                 tiles, usage-aware delete→deactivate modal).
+  Materials /admin/materials     ✅ BUILT. Raw-material master data (type, UOM,
+                                 status, availability) with form modal.
+  Inventory /inventory (+/movements, +/receipts in phase C)
+                                 ✅ Stock + Movements BUILT. ONE page for
+                                 materials AND finished goods — the item type
+                                 is a filter, replacing legacy's two parallel
+                                 screens (/material-inventory and
+                                 /physical-inventory) and their two services.
+                                 Receipts (multi-shipment modal:
+                                 vendor/tracking/per-line qty + evidence
+                                 uploads) lands with doc 06 phase C.
+  BOM Configs /admin/boms        ✅ BUILT. Bill-of-materials per product
+                                 variant, versioned, one ACTIVE at a time, with
+                                 a Coverage view (?tab=coverage, was
+                                 /boms/stock): shortage/reserved/available per
+                                 component across warehouses.
+  Physical Inventory             ❌ NO SUCH PAGE. Finished-product stock is the
+                                 [Products] toggle on /inventory — one screen,
+                                 one service, one ledger. Kept as a line here
+                                 only so nobody goes looking for the route the
+                                 legacy app had (it was flagged "V3" there).
+
+PHASE 6 — SUPPORT, FINANCE & INTEGRATIONS   [✅ doc 07 A-F BUILT + FILED 07-22]
+  ⚠ BEFORE THE CUTOVER: doc 07 §0c lists eight things the BUILD discovered
+    that have to be decided around the migration, two of them money items —
+    legacy refunds are invisible to the new double-refund guard (C1), and
+    "Recalculate" is unsafe until the legacy price-unit question is closed
+    (C2). Doc 07's G0 gates the discard checklist on reading them.
+  Tickets /tickets (+/:id)   ✅   ticket list (priority/status/order, CRUD
+                                 modals) + chat-style detail thread with image
+                                 uploads and status sidebar.
+  Vendors /admin/vendors     ✅   supplier directory CRUD (contact, tax code,
+                                 status) with summary tiles.
+  Expenses /admin/expenses   ✅   bookkeeping, 2 tabs: entries (tiles, vendor/
+                                 category/date filters) + category management.
+  TTS Shops + Orders /tts-shops /tts-orders
+                                 NOT REBUILT (doc 07 V1): production-real but
+                                 unportable — the archive holds only the
+                                 browser client; the TikTok microservice
+                                 behind it was never archived. If TikTok
+                                 selling resumes, it is a NEW integration
+                                 through /api/v1, budgeted separately.
+  API Keys /api-keys             ✅ ALREADY SHIPPED in doc 01 as the profile
+                                 API tab — better than legacy (rotation,
+                                 hashed, revocable vs plaintext un-rotatable).
+  Label Extractor /label-extractor
+                                 ✂ NOT REBUILT. Doc 05's native label
+                                 handling (buy, link, download, print)
+                                 replaced what this was for, and it depended
+                                 on Google Sheets + Apps Script that die with
+                                 the legacy server (doc 07 §0b).
+  Dashboard /                ✅   role-switched home: admin stat cards
+                                 (transactions, customers, orders, cost) +
+                                 report grid; customers get balance/order
+                                 stats + recent transactions. Build LAST —
+                                 it aggregates every other feature's data.
+
+--------------------------------------------------------------------------------
+3. DO NOT REBUILD (dead code found in the old repo)
+--------------------------------------------------------------------------------
+  pages/order, pages/network, pages/product-variants
+                          unused legacy/template leftovers (not routed).
+  production-pipeline     a non-functional HTML-playground prototype, never a
+                          real feature despite being routed.
+  physical_variants + production_options
+                          the "V3 products" experiment, feature-flagged off.
+                          Decide separately whether the concept survives —
+                          parts of it (price-config, SKU matrix) already
+                          informed the new ProductVariant/VariantPrice schema.
+  Orphaned components     2FA static mockup, Metronic demo blocks
+                          (dashboards/Contributions etc.), unused toolbars
+                          (shops/ShopToolbar), unrouted ticket-detail
+                          components — flagged during the 2026-07-22 scan.
+
+--------------------------------------------------------------------------------
+3b. PARKED — DECIDED TO DEFER, NOT FORGOTTEN
+--------------------------------------------------------------------------------
+Things a phase deliberately left undone that belong to NO single doc, so they
+would otherwise live only in a commit message nobody re-reads. Each says what
+it is, why it was skipped, and what should trigger picking it up.
+
+P1. LIVE NOTIFICATION DELIVERY.  ✅ DONE 2026-07-22 by doc 05, exactly as this
+    entry prescribed: the bell polls the existing query every 60s while the tab
+    is visible, pauses when it is hidden, and refreshes the moment it comes
+    back. No SSE, no realtime vendor. Raise the cost before raising the
+    frequency if a bench ever wants faster. Original entry, for the record:
+    Raised by doc 04, 2026-07-22.
+    The panel is real and audience-routed — the right people get the right
+    events — but it only refreshes when the page does. A notification raised
+    while someone sits on a screen does not appear until they navigate.
+    Why deferred: the events landed first because routing is the part that is
+    expensive to get wrong; delivery is a transport swap on top of a panel that
+    already works, and it costs nothing to add later.
+    PICK IT UP WHEN: doc 05's fulfillment stations start. A packer standing at
+    a bench needs work to appear without navigating, which is the first time
+    this stops being a nicety. Cheapest first move is polling the existing
+    unread-count query on an interval; SSE only if that proves too slow or too
+    chatty. Do NOT reach for a websocket service — Vercel Functions support SSE
+    on the default runtime, and a third-party realtime provider would be a new
+    vendor for a problem an interval solves.
+
+P2. NOTIFICATION PREFERENCES / DIGESTS.  Raised by doc 04, 2026-07-22.
+    Every event notifies every member of its audience, immediately. Nobody can
+    mute a category, and a busy warehouse rota will feel that first.
+    Why deferred: entirely speculative until real volume exists — the current
+    restraints (one line per assignment batch, silence on routine internal
+    steps, nobody notified of their own action) may well be enough.
+    PICK IT UP WHEN: someone actually complains, or a rota exceeds a few dozen
+    notifications a day. Not before; a preferences table nobody uses is worse
+    than no preferences.
+
+P3. SEARCH IS DEMO DATA AIMED AT ROUTES THAT DO NOT EXIST.  Raised by the
+    mobile nav pass, 2026-07-22.
+    Two independent breaks, either one fatal. /api/search still reads
+    src/lib/search-data.ts — the demo dataset CLAUDE.md says to swap for Prisma
+    "when the database lands", which it did three docs ago. And resultHref in
+    search.tsx sends every hit to /orders/<id> or /products/<id>, NEITHER of
+    which is a route: every successful search ends on the coming-soon page. The
+    feature reads as finished from the outside, which is why it survived this
+    long.
+    Done now, not deferred: the mobile search row and its dock tab are gone. A
+    tab costing a fifth of a phone's navigation has to work. The sidebar keeps
+    its box, so the entry point survives for when the index is real.
+    PICK IT UP WHEN: order or catalogue volume makes scrolling a table
+    unreasonable — the first moment search earns its keep. Two pieces, in
+    order: point the index at Prisma through libs/db, keeping the /api/search
+    contract; then give resultHref somewhere real. /orders already filters on
+    ?q= via useTableParams, so an order can land there and no /orders/<id> page
+    need ever exist — /catalog wants the same treatment. Restore the dock tab
+    only after both, and only if the bar still has room.
+
+P4. NAV LINKS TO PAGES THAT DO NOT EXIST.  Raised by the mobile nav pass,
+    2026-07-22.
+    The [...comingSoon] catch-all makes a dead link indistinguishable from a
+    live one, so these accumulate silently. Full census at that date, after the
+    two stale ones were repointed (/products → /catalog, /billing →
+    /profile/billing) and the mobile drawer's three were dropped:
+      /notifications  bell "View all"        — ✅ DONE 2026-07-22: a real page.
+                                               Cursor-paged, category-tabbed
+                                               archive (read + unread; tabs
+                                               filter server-side by type),
+                                               delete via swipe /
+                                               long-press / hover-trash. Hard
+                                               delete, no schema change —
+                                               nothing references a
+                                               notification. No /api/v1 route:
+                                               session chrome, not partner
+                                               surface.
+      /wallet         sidebar, tools, footer — real feature, unbuilt
+      /analytics      sidebar, tools, footer — real feature, unbuilt
+      /settings       sidebar, user menu     — may never need a page; /profile
+                                               already holds what it would
+      /help           sidebar, user menu,    — support surface, unbuilt
+                      footer
+      /about /contact /privacy /terms        — marketing, footer only
+    Left in place ON PURPOSE: a sidebar entry is how this app advertises its
+    own roadmap, and deleting them hides the plan rather than shipping it. The
+    mobile drawer was different — three of its four links were dead, and a menu
+    that mostly apologises is worse than a short one.
+    PICK IT UP WHEN: /notifications first and separately — it is the only one
+    that is a gap rather than a plan. The rest resolve when their feature does;
+    decide /settings explicitly, since /profile may already be the answer.
+
+--------------------------------------------------------------------------------
+3c. PENDING VERIFICATION — SHIPPED BUT NOT PROVEN
+--------------------------------------------------------------------------------
+Different from §3b: PARKED is work deliberately not done. This is work that IS
+done and has never met the thing it was built for. It is the more dangerous
+list, because every line of it looks finished in the repo — a green test suite
+says the rules hold, not that a barcode gun types into the right box.
+
+Rule: a doc does not move to finished/ while it still has open V-items.
+
+  FROM DOC 05 (shipped 2026-07-22, PR #4; the doc itself now lives in
+  finished/). THIS IS THE LIVE LIST — the doc moved, these did not. Full
+  detail in that doc's PENDING VERIFICATION section, its production checklist
+  and its open questions; the short form:
+  V1   The hardware smoke ritual — barcode gun, phone rear camera, a real
+       webcam through BarcodeDetector, and the getUserMedia fallback chain on
+       hardware that cannot do 1080p. Build-order step 6, never run.
+  V2   The Vercel Blob driver has never executed. Only local disk has, so the
+       SELF-HOST path is proven and the production default is not.
+  V3   No outbound webhook has ever been delivered — every seller used so far
+       had no webhookUrl, so the HMAC signing path has run zero times.
+  V4   ✅ CLEARED — the QR loop closes: printed a sheet, typed its QR value
+       into the station, the parcel loaded and started.
+  V5   THE CARRIER HAS NEVER BEEN CALLED. Grouping, skip rules and preview are
+       tested; the HTTP call is not. The duplicate-reference recovery is the
+       risky part — it matches on their error WORDING, and if that differs a
+       retry buys a second label. Test in a sandbox, never in production.
+  V5b  No product has parcel dimensions yet, so label purchase currently skips
+       everything with "missing-dimensions" (the safe failure, but it means
+       the feature does nothing until the box rules are entered).
+  V5c  One ship-from address from env, not per warehouse.
+  V6   Six locales have never been rendered on a screen. Arabic is the one to
+       look at first — the station is a two-column grid with a sticky footer
+       and nothing has been seen under dir="rtl".
+  V7   The "no available basket" banner has never fired for real.
+  V8   Two real stations working one parcel at the same moment (the race is
+       proven by an in-process test, not by two browsers).
+  V9   Volume: the monitor's grouped query, the >20 confirmation gate and the
+       200-label download cap have only met seeded rows.
+  V10  The DRX webhook has never received a real delivery, so their header
+       name, digest form and status vocabulary are all assumptions.
+
+  FROM DOC 06 (built 2026-07-22, branch phase-5-inventory; the doc now lives
+  in finished/). Same rule as doc 05: the doc moved, these did not.
+  V11  THE CUTOVER HAS NOT RUN. migrate-legacy-inventory.sql and its rehearsal
+       are green against the synthetic fixture, which proves the script is
+       SELF-CONSISTENT — not that it matches live prod data. Legacy prod
+       credentials expected ~2026-07-24. Rehearse against a real pg_dump
+       FIRST, then run both scripts in order (main, then inventory), then READ
+       migration_report before anyone touches the app.
+  V12  INVENTORY_ORDER_FLOW HAS NEVER BEEN ON outside a test. Reserve/consume/
+       release are proven in-process, including their races, but no real
+       assignment has ever been refused for want of stock. Turn it on only
+       after V11, and only once the counts are trusted — a wrong count with
+       enforcement on surfaces as an order nobody can assign, not as a wrong
+       number.
+  V13  NO INVENTORY PAGE HAS BEEN OPENED IN A BROWSER. /inventory (3 tabs),
+       /admin/materials and /admin/boms have server-rendered in a build and
+       nothing more. The BOM dialog is the one to look at first: a versions
+       sidebar, a lines grid and a preview panel in one responsive dialog is
+       the most likely thing to be wrong on a laptop screen.
+  V14  Doc 06's ~200 new strings exist in all 7 locales and NONE has been seen
+       rendered. Arabic again first — the BOM lines grid and the receipt detail
+       table are both column layouts that have never met dir="rtl".
+  V15  Receipt evidence upload has only ever run through the LOCAL DISK driver
+       (same gap as V2). The dock-photo path on Vercel Blob is unproven.
+  V16  E3's deciding query for the ProductVariant unique constraint (doc 04's
+       deferral) is written and commented in migrate-legacy-inventory.sql,
+       waiting for the same credentials as V11. Inventory rows joining
+       product_variants are what make duplicates visible, so this is the
+       session to settle it in.
+
+  FROM DOC 07 (A-F built 2026-07-22, PR #6 merged as 3f4d598; the doc now
+  lives in finished/). Same rule again: the doc moved, these did not. G is the
+  one that is not a V-item at all — it is the GATE, and it has not been opened.
+  V17  THE DISCARD HAS NOT HAPPENED. Doc 07 PHASE G is the checklist that makes
+       deleting .archive/oldproject and the legacy servers safe, and not one
+       box is ticked. Its G0 now gates the rest on reading doc 07 §0c first.
+       Nothing may be deleted until every box is.
+  V18  ★ MONEY ★ LEGACY REFUNDS ARE INVISIBLE TO THE NEW DOUBLE-REFUND GUARD.
+       It reads metadata.orderIds off the ledger; imported rows have none, so
+       an order refunded in the OLD system can be refunded AGAIN in the new
+       one. Either backfill that metadata, or prove the cutover lands legacy
+       refunds as CANCELLED and assert it with a row count. Doc 07 §0c C1.
+  V19  ★ MONEY ★ RECALCULATE IS UNSAFE UNTIL THE PRICE UNITS ARE SETTLED. E2
+       re-prices unpaid orders from today's list; if legacy prices arrive in
+       the wrong unit every recalculated order is wrong by 100x. Keep the
+       button away from staff until finished/02's dollars-vs-cents question is
+       closed. Doc 07 §0c C2.
+  V20  The XLSX export has only ever run on the LOCAL DISK storage driver (the
+       V2/V15 gap again) and against ~15 rows — never near its 50 000 cap, and
+       never on Vercel Blob where the workbook is a public URL.
+  V21  Doc 07's ~250 new strings exist in all 7 locales and only ENGLISH has
+       been rendered. Arabic first, as always: the ticket thread (alternating
+       bubbles), the one-row status strip and the migration-map table are all
+       layouts that have never met dir="rtl".
+  V22  /api/v1 was smoke-tested with a key created in THIS app. No
+       legacy-imported key has ever authenticated — the keys came across as
+       hashes and "they still work" is an assumption until one does. G3.
+  V23  TWO PORTING QUESTIONS ARE STILL UNANSWERED, both the same shape: is
+       anyone still using it? (a) the TikTok microservice behind the retired
+       TTS pages (doc 07 V1 / G5); (b) the /label-extractor Sheets + Apps
+       Script flow, which doc 05 C5-C7 made obsolete but told us to ASK about.
+       Switching the legacy server off takes both routines with it. Promote
+       (b) into the G checklist if the answer is not an immediate "nobody".
+
+  ENVIRONMENT, NOT CODE (doc 05's production checklist): storage token or S3
+  driver, carrier + ship-from vars, DRX secret, product parcel configs, and a
+  note to sellers that webhooks are now SIGNED rather than carrying the secret
+  — every existing receiver checks the wrong thing until told.
+
+  BUILT BEYOND THAT DOC, from opening the app rather than reading the plan:
+  four fulfillment notification types, BOTH code formats (QR joins legacy's
+  CODE128 rather than replacing it — laser scanners read one, phones the
+  other), a demo seed (`npm run db:seed:demo`), a card layout for phones ahead
+  of the Capacitor wrap, and a mirrored camera preview that never mirrors the
+  saved photo. Doc 05's "BUILT BEYOND THE DOC" section has the reasoning.
+
+  HOW TO CLEAR ONE: run it, then delete the line in the same commit that
+  records the result. A V-item that stays "pending" for two phases is telling
+  you the feature was not needed, and that is worth knowing too.
+
+--------------------------------------------------------------------------------
+4. STANDING DECISIONS THAT APPLY TO EVERY REMAINING PHASE
+--------------------------------------------------------------------------------
+  • One Next.js app, no separate backend. Logic in transport-agnostic
+    services (explicit actor); Server Actions + /api/v1 routes are thin
+    adapters. The endpoint ships WITH the feature (doc 03 §8A).
+  • Deny by default: every action starts with a guard; every list query
+    starts from scopes.ts. A findMany without a scope spread is a defect.
+  • Money: Decimal end to end, $transaction + ledger row + audit row
+    together, idempotency keys, reason required. Proven by tests in CI.
+  • Stay deployable off Vercel (R1-R7 in doc 03): no edge runtime, no
+    @vercel/* in business logic, platform services behind interfaces.
+  • shadcn on Base UI (render=, never asChild), semantic tokens, Geist spec
+    in DESIGN-VERCEL.md, every string through t() in all 7 locales.
+  • Prisma: migrations only, never db push / migrate reset.
+  • FK when a row makes a claim on something LIVE; a plain id when it states
+    something that already HAPPENED. Append-only history (the inventory
+    movements ledger, audit logs) keeps reference ids WITHOUT foreign keys, so
+    a later edit elsewhere can neither block the past nor cascade it away —
+    the BOM line a movement names is replaced wholesale on every BOM save.
+    Live claims (a reservation's order) get the constraint, because an orphan
+    there holds real stock forever and nothing self-heals it. Decided in full
+    in doc 06 §A3.
+  • Join to User only where a screen NAMES the person. Otherwise the actor id
+    stays a plain column: AuditLog is already the who-did-what trail, and a
+    speculative relation costs an edit to the most-referenced model in the
+    schema for a join nobody performs. Adding one later is pure metadata.
+  • Hono + zod-openapi when the endpoint count passes ~20 — not before.
+  • A notification's AUDIENCE is derived from ROLE_PERMISSIONS, never from a
+    hard-coded role list — the same table the guards read. Reach and access
+    then cannot drift apart, and a role granted a capability starts receiving
+    the alerts that capability implies without anyone editing the sender.
+================================================================================

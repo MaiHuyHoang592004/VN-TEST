@@ -1,0 +1,23 @@
+{
+  "home": "홈",
+  "orders": "주문",
+  "products": "상품",
+  "wallet": "지갑",
+  "search": "검색",
+  "analytics": "분석",
+  "login": "로그인",
+  "signup": "회원가입",
+  "profile": "프로필",
+  "settings": "설정",
+  "billing": "결제",
+  "helpSupport": "도움말 및 지원",
+  "logout": "로그아웃",
+  "tools": {
+    "label": "도구",
+    "analytics": "분석",
+    "analyticsDescription": "스토어 성과 및 인사이트",
+    "wallet": "지갑",
+    "walletDescription": "잔액 및 충전"
+  },
+  "tickets": "고객 지원"
+}

@@ -1,0 +1,640 @@
+================================================================================
+IMPLEMENTATION 04 — CATALOG, ORDERS, TRANSACTIONS  (the product rebuild begins)
+================================================================================
+Written: 2026-07-22   Status: IMPLEMENTED AND FINISHED 2026-07-22
+All three phases shipped, backend and frontend, on branch phase-4-catalog.
+Shipped as PR #3 — https://github.com/niyamvora/opcreative/pull/3 (18 commits).
+That PR's description is the change summary: what shipped, the four decisions
+worth reviewing, what the mutation testing proved, and the three bugs that only
+appeared when the pages were opened in a browser.
+Verified against the archived legacy apps 2026-07-22 — see 0b (all four open
+questions settled) and 0c (how orders actually arrive).
+
+WHAT SHIPPED
+  A  catalog     modules/catalog/{products,variants,product-variants,mockups}
+                 /admin/products · /admin/products/[id]/variants (tier price
+                 grid) · /admin/variants · /admin/mockups · /catalog
+  B  orders      modules/fulfillment/orders (service, status map, assignOrders)
+                 /orders with tabs, filters, status actions, add/edit, assign,
+                 CSV import, bulk delete · /api/v1/orders (GET/POST/GET :id)
+  C  finance     modules/finance/transactions · /admin/transactions with
+                 approve/reject · notifications for every money event
+     notifications  AUDIENCE-ROUTED, not broadcast. notify() reaches one
+                 person; notifyMany/usersWithPermission/warehouseMemberIds
+                 reach a role or a site. The audience for a staff alert is
+                 derived from ROLE_PERMISSIONS — the same table the guards
+                 read — so a notification's reach and a page's access can never
+                 disagree, and a new role gains both together.
+                 Who hears what: an order filed BY someone else → its owner ·
+                 assignment → the seller hears the CHARGE, the site's rota
+                 hears the WORK (one line per batch, never the amount) ·
+                 SHIPPED/DELIVERED/CANCELLED/ON_HOLD → the seller · ON_HOLD
+                 also → everyone holding orders.read.all, because it is the one
+                 status that needs a human. Nobody is ever notified of their
+                 own action, and routine internal steps are silent.
+  Tests: 47 integration (node --test, real DB) + 10 pure pricing + 7 CSV
+  grammar. Money paths are mutation-verified — deleting a guard fails the test
+  that names it.
+
+TWO ITEMS DEFERRED ON PURPOSE — REVISIT, DO NOT LOSE
+  D1. THE OWN-SHIPPING PRICE (0b/O2). Legacy carries four price fields in a
+      `price_config` JSON blob on the PRODUCT (price_op_ship,
+      price_customer_ship, shipping_cost_first_item, shipping_cost_add_on) that
+      only the newer frontend reads; the archived backend has no such column
+      and no money path touches them. We built the tier model, which IS what
+      legacy charges through.
+      QUESTION FOR THE TEAM: do sellers get quoted a different price when they
+      ship themselves? If yes it is a second price DIMENSION — one extra column
+      on VariantPrice plus one line in effectivePrice, NOT a redesign. Nothing
+      built so far has to change either way.
+  D2. @@unique([productId, variantId]) ON ProductVariant. Blocked on one fact
+      unobtainable without legacy prod credentials: whether the old data holds
+      duplicate (product, variant) rows. Until then attachVariants uses a
+      read-then-write check, so two admins attaching the same variant in the
+      same instant can create a cosmetic duplicate an admin can detach.
+      The deciding query sits in migrate-legacy.sql's pre-flight with both
+      branches written out. The application side is already ready: detachSku
+      hard-deletes never-ordered SKUs rather than leaving a tombstone, so
+      nothing we write can collide once the constraint lands.
+Prereq:  Phase 1 (schema) DONE · Phase 2 (backend kernel) DONE ·
+         doc 01 frontend (profile, admin users/warehouses/audit, shared kit,
+         invite accept) SHIPPED.
+Next:    doc 05 (planned) — fulfillment stations, labels/barcodes, inventory.
+
+This doc covers the next three phases, in dependency order:
+
+  PHASE A — CATALOG        products, variants, SKUs + tier pricing, mockups
+  PHASE B — ORDERS         the core order table, CRUD, import, assignment
+                           (with the money rules), /api/v1/orders
+  PHASE C — TRANSACTIONS   admin ledger page with approve/reject
+
+Orders is the heart of the app but it CANNOT go first: an order row points at
+a product, a variant and a price, and no UI exists yet to create any of those.
+Catalog is the smaller half and unblocks everything.
+
+Read doc 01 for the architecture reasoning and doc 03 for the module/transport
+rules. This doc assumes both and repeats nothing that hasn't changed. Same
+conventions apply to every screen: shadcn on Base UI (render=, never asChild),
+semantic tokens only, every string through t() in ALL 7 locales, sonner toasts,
+the shared data-table/form/permission-gate kit from components/global/.
+
+--------------------------------------------------------------------------------
+0. WHAT EXISTS THAT THIS BUILDS ON  (verified in-repo 2026-07-22)
+--------------------------------------------------------------------------------
+
+Schema (libs/db/prisma/schema/models/ — already migrated, nothing to add for
+Phase A/B/C except where a section below says so):
+
+  Product         id(Int), name, key(unique), thumbnail?, status(ProductStatus),
+                  configs Json?, soft delete. Relation: allowedUsers
+                  (UserAllowedProduct — the partner allow-list).
+  Variant         id, name, key(unique), status, data/configs Json — a shared
+                  axis value ("Brown", "Large"), NOT product-specific.
+  ProductVariant  the sellable SKU: productId × variantId, sku?(unique),
+                  stock(cached), needed, salePrice, position?, soft delete.
+                  ⚠ no @@unique([productId, variantId]) yet — legacy data may
+                  hold duplicates; add the constraint after the cutover audit.
+  VariantPrice    per-SKU, per-tier price. tier 0 = base/public; tiers 1-4
+                  match User.tier. @@unique([productVariantId, tier]).
+                  REPLACES the legacy price_tier_1..4 columns.
+  Mockup          id, name, thumbnail?, url, folderId?, status(String).
+  Order           marketplace/source/seller fields, customerId, assignedToId,
+                  warehouseId, productId/variantId/productVariantId/mockupId,
+                  quantity + filled, status(FulfillmentStatus), placedAt/
+                  assignedAt/fulfilledAt/deadline, paid, baseCost/fee/revenue/
+                  profit (Decimal 12,2), note vs internalNote, imageUrl,
+                  configs Json (configs.legacy holds migrated odd fields),
+                  soft delete. Carrier tracking does NOT live here —
+  Shipment        one order → many shipments: provider, method, cost,
+                  trackingNumber, trackingStatus (carrier's raw string, not an
+                  enum), labelUrl/labelPath, shippedAt.
+  Transaction     publicId (goes into Stripe metadata), amount, type
+                  (TOPUP/ORDER_PAYMENT/REFUND/ADJUSTMENT), status, note,
+                  balanceBefore/After, idempotencyKey @unique (the DB-level
+                  double-click guard).
+
+  FulfillmentStatus: PENDING ASSIGNED IN_PRODUCTION FULFILLED SHIPPED
+                     DELIVERED CANCELLED ON_HOLD
+
+Authorization (libs/shared/src/access/permissions.ts):
+  Already defined and TESTED: products.read (every role), products.manage
+  (admin), orders.read.own/.warehouse/.all, orders.assign, orders.refund,
+  transactions.read.own/.all, transactions.approve. scopeFor() already
+  resolves the widest scope for orders/transactions, and libs/db scopes.ts
+  turns it into the Prisma where — including the UserAllowedProduct
+  intersection for restricted partners. The row-isolation machinery this doc
+  needs is BUILT; these phases consume it.
+
+Frontend kit (components/global/): data-table (server-side pagination/sort/
+filter/selection), form (zod-bound fields + FormDialog shell), permission-gate
+(<Can>), use-permissions. The pages below are assembly, not invention.
+
+--------------------------------------------------------------------------------
+0b. THE FOUR QUESTIONS — SETTLED AGAINST THE LEGACY CODE 2026-07-22
+--------------------------------------------------------------------------------
+All four were answered by reading the archived legacy apps directly
+(fulfillment-system-be, fulfillment-fe-new, opcreative-portal). One caveat
+applies to every conclusion below: the archive trails legacy PROD by ~10
+months, so each is "verify with one query when the DB creds land", not "never
+look again". NONE of them block building — the old blocker framing was wrong.
+
+Standing rule for everything in this doc: legacy is a reference for BUSINESS
+RULES only. Its implementation is largely what not to do (see O4 and B2's
+double-charge). Take the rule, rebuild it on our patterns.
+
+O1. PRICE UNITS — DOLLARS. Divisor stays 1.0.  SETTLED (confirm pre-cutover).
+    Five independent signals, no dissent:
+      · ProductVariant.price and price_tier_1..4 are `Int` — legacy literally
+        cannot express $12.50, so prices were whole dollars only;
+      · User.balance and Transaction.amount are `Float`;
+      · the charge is a direct `balance - base_cost`, so both share a unit;
+      · the UI formats the raw number through Intl USD with NO /100
+        (fulfillment-fe-new/src/utils/Number.js);
+      · no `* 100` or `/ 100` exists anywhere in the legacy backend.
+    Were these cents, a $12.50 item would have displayed as "$1,250" and every
+    seller would have noticed. Decimal(12,2) is a strict superset of Int
+    dollars — nothing is lost, no conversion needed. Still run the runbook's
+    20-row SELECT against real prod before the cutover; leave BOTH
+    PRICE_DIVISOR markers in migrate-legacy.sql at 1.0.
+    → Does NOT gate the pricing UI. Build A3/A4 now.
+
+O2. PRICING SHAPE — the tier model IS the money model. SETTLED ENOUGH TO BUILD.
+    What actually charges a seller is price_tier_{user.tier} on ProductVariant
+    (order.service.ts:151) — a 1:1 match for VariantPrice. The four legacy
+    fields do exist, but as a `price_config` JSON blob on the PRODUCT
+    (price_op_ship, price_customer_ship, shipping_cost_first_item,
+    shipping_cost_add_on) that only the NEWER frontend reads; the archived
+    backend has no such column and no money path touches them.
+    → Build VariantPrice exactly as specced.
+    → ONE QUESTION STILL WORTH ASKING THE TEAM: do sellers get quoted a
+      different price when they ship themselves? If yes, that is a second
+      price DIMENSION — one extra column on VariantPrice plus one line in
+      effectivePrice, NOT a redesign. Ask before A4 ships; do not block
+      A1/A2/A3 waiting for the answer.
+    Also noted: the legacy tier lookup has no fallback, so a seller with a
+    null tier got `price_tier_undefined` — a free order. Our effectivePrice
+    fallback chain (tier → tier 0 → salePrice) closes that hole; it is a fix,
+    not a port.
+
+O3. PER-USER CUSTOM PRICES. Unchanged — deferred, and nothing found in the
+    archive argues otherwise. Legacy /users/update-price/:id set bespoke
+    prices per seller per variant; tiers 1-4 replace it on the THEORY that
+    four bands cover the real spread. Revisit only when a real seller needs a
+    price no tier expresses; the change then is a userId column on
+    VariantPrice, not a redesign.
+
+O4. WHO CREATES ORDERS — LEGACY ANSWER: EVERYONE, FOR THEMSELVES ONLY.
+    This doc previously assumed "admin can create for any seller". That is
+    WRONG about legacy. Both create paths hardcode the owner to the caller —
+    order.service.ts:50 (form) and :451 (import) each set
+    `customer_id = user.id` — and no order form has a customer selector. An
+    admin clicking "Add order" therefore created the ADMIN'S OWN order, and
+    the admin's balance was charged at assignment. Worth asking the team
+    whether that was deliberate or a bug nobody ever hit.
+    Legacy's role lists (OrderActionButtons.jsx) only hide BUTTONS; the
+    endpoint carried AuthGuard and no role check at all, so any logged-in user
+    could post an order. Our server-side gate is a fix, not a port.
+    → DECISION: match legacy. createOrder forces customerId = actor.id for
+      everyone; skip the admin "create for seller X" feature until support
+      actually asks. BUT have the service take an owner parameter rather than
+      reading the actor inline — 0c's importers will need it, and it is one
+      argument now versus a signature change later.
+
+--------------------------------------------------------------------------------
+0c. HOW ORDERS ACTUALLY ARRIVE  (verified in the archive 2026-07-22)
+--------------------------------------------------------------------------------
+Checked because the whole shape of Phase B depends on it. The app being
+replaced has NO ecommerce integration: no Shopify, Etsy, Amazon, eBay,
+WooCommerce, Printful or Printify — not a connector, not a webhook receiver,
+not an API client. Those words appear in the legacy repo only inside icon
+fonts and lockfiles. `Order.marketplace` is FREE TEXT that a human types. The
+one webhook module is OUTBOUND (pings the seller's own webhook_url when a
+shipment or status changes); nothing flows in.
+
+Orders arrive three ways, all human-initiated — precisely what Phase B builds:
+  1. the add-order form   2. the Excel import   3. POST /customer/orders with
+  the seller's own API key  →  becomes our B5
+
+TIKTOK SHOP is the only real platform link, and it is half-manual. A separate
+TTS microservice (VITE_APP_TTS_API_URL — its own backend, NOT in the archive)
+does the OAuth, syncs shops/orders and fetches labels. Getting one INTO
+fulfillment is a person clicking Import, hand-mapping every line item to a
+product/variant/shape and pasting a mockup link; the browser then LOOPS the
+line items calling POST /orders one at a time, then reports Imported /
+ImportFailed back to TikTok (TTSOrderPage.jsx:105-175). Close the tab halfway
+through a 5-item order and 2 orders exist, 3 are lost, and TikTok is told
+nothing. The orders also land on whoever clicked, per O4.
+
+THE WIDER COMPANY — from opcreative-portal's own brief (2026-07-08). Those
+repos are NOT in the archive, so this is their documentation, not code we
+verified. This app is 1 of ~10 repos. The real marketplace flow for phone
+cases is:
+    customer orders on a marketplace → a cron on VM 4001 fetches it → merges
+    artwork → dispatches over SSH to a Selenium fleet (G1-G5) → auto-fills a
+    form on tuoli.icutmax.com → print
+which BYPASSES the fulfillment app entirely. Shopify/Stripe/PayPal appear in
+that portal for MONEY only (Plaid bank sync + payout matching) — and note OP
+Creative OWNS those accounts and rents them to sellers, i.e. one company
+account, not multi-tenant OAuth, which matches the one-Stripe-account decision
+already in the schema notes. That reconciliation code is uncommitted and never
+deployed, and the portal's own orders table is empty in prod.
+
+WHAT THIS CHANGES HERE — three things, none of them a new phase:
+  · B5 /api/v1/orders is THE front door for every future integration
+    (Shopify, Etsy, TikTok, the VM 4001 cron). Build it complete, not as a
+    demo, so that no integration ever needs to reach into the database.
+  · B4's importer processes SERVER-side. Legacy looped in the browser and lost
+    rows to a closed tab; ours takes the batch and survives it.
+  · createOrder takes an owner, defaulted to the actor (O4). Import-on-behalf
+    -of is the one genuine "create for someone else" case, and it is coming.
+
+OPEN FOR THE TEAM (doc 06 sized, blocks nothing here): is the VM 4001 →
+Selenium → tuoli pipeline still running, and does the new system absorb it or
+deliberately stay out of its way?
+
+--------------------------------------------------------------------------------
+PHASE A — CATALOG  (modules/catalog/)
+--------------------------------------------------------------------------------
+Everything follows the per-feature convention from modules/README.md:
+schema.ts + service.ts (explicit actor) + queries.ts + actions.ts, routes.ts
+when the public API needs it, tests next to their subject. Domain boundary:
+other domains import from modules/catalog/index.ts only.
+
+A1. PERMISSIONS — one addition.
+    Add "mockups.manage" to PERMISSIONS; grant to ADMIN, WAREHOUSE_ADMIN,
+    SUPPORT (matching legacy access). Do NOT reuse products.manage for
+    mockups — that would hand warehouse admins the product catalog.
+    products.read/products.manage already cover the rest of the phase.
+    Update the permission test's role matrix in the same commit.
+
+A2. modules/catalog/products/
+    service:  createProduct / updateProduct (name, key, thumbnail, status,
+              configs) · setProductStatus · deleteProduct (SOFT — a product
+              with orders is never hard-deleted; follow the warehouse-usage
+              pattern: count referencing orders/SKUs → drive can_delete).
+              Key is slug-checked ([a-z0-9-], unique, friendly error).
+    queries:  paginated list (search on name/key, status filter) — spread the
+              product scope first so partner allow-lists hold everywhere.
+    audit:    PRODUCT_CREATED/UPDATED/STATUS_CHANGED/DELETED — extend
+              AuditAction enum (one migration: catalog_audit_actions, shared
+              with A3-A5's actions below).
+
+    PAGE /admin/products (nav: "Administration" section, gated products.manage
+    like every admin page — permission, not role):
+      Table: thumbnail, name, key, status badge, SKU count, updated. Toolbar:
+      search, status filter. Row: Edit, Activate/Deactivate, Delete (usage-
+      aware dialog), "Variants →" linking to A4's per-product page.
+      Create/Edit dialog via the FormDialog kit; ONE zod schema shared by
+      form and action.
+
+A3. modules/catalog/variants/
+    service:  CRUD identical in shape to products (name, key, status).
+    PAGE /admin/variants: table name/key/status/SKU-usage-count + dialogs.
+    The smallest page in the phase; build it second as the pattern-proof.
+
+A4. modules/catalog/product-variants/   (the SKU + pricing core)
+    BUILT 2026-07-22. Two things resolved while building, both worth knowing:
+
+    · SKU STATUS NOW EXISTS. ProductVariant had no status column, so this
+      spec was unbuildable as written. Added (migration sku_status,
+      ProductStatus default ACTIVE) rather than faked with deletedAt, because
+      the two mean different things and the grid needs both: status INACTIVE
+      retires a SKU that HAS orders behind it (the row must survive them),
+      detach is a REAL delete and is refused once any order points at it.
+      That split is also what lets the unique constraint below land later
+      without a data cleanup — a detached SKU leaves no tombstone to collide
+      with when the same variant is attached again.
+
+    · THE ATTACH RACE IS DEFERRED ON PURPOSE, with the answer scheduled.
+      Two admins attaching the same variant in the same instant can both pass
+      the existence check and create a duplicate row. The real fix is
+      @@unique([productId, variantId]) + createMany({ skipDuplicates: true }),
+      and it is NOT applied because it hangs on one fact nobody can check
+      without legacy prod credentials: whether the old data holds duplicate
+      (product, variant) rows. Adding it blind trades a cosmetic duplicate an
+      admin can detach for a cutover that aborts on real data. The deciding
+      query now sits in migrate-legacy.sql's pre-flight audit with both
+      branches written out; run it the day creds land.
+
+    service:  attachVariants(productId, variantIds[]) — creates the missing
+              Product×Variant SKU rows, skips existing ones (until the unique
+              constraint lands, "existing" = a manual findFirst check).
+              updateSku(id, {sku, position, salePrice, status}) ·
+              setPrices(productVariantId, prices: {tier, price}[]) — UPSERTS
+              the VariantPrice rows in ONE transaction; tier 0 required,
+              1-4 optional · bulkSetPrices(ids[], prices) for the
+              select-many-fill-once flow the legacy grid had.
+    pricing.ts (named file, no utils.ts): effectivePrice(sku, userTier) =
+              VariantPrice[tier] ?? VariantPrice[0] ?? salePrice. This is THE
+              function Phase B charges money through — it gets its own test
+              BEFORE any order code exists (pricing.test.ts: tier hit, tier
+              fallback, missing tier 0, Decimal end to end — no floats).
+    queries:  by-product SKU list with prices; the seller-facing price a
+              catalog page shows is effectivePrice for the VIEWER's tier.
+
+    PAGE /admin/products/[id]/variants:
+      Header: product identity + status. "Attach variants" dialog (multi-
+      select of Variant rows not yet attached). Grid: variant name, sku,
+      position, stock (read-only — inventory is doc 05), tier prices 0-4
+      inline-editable, status. Row selection → BulkSetPrices dialog.
+      This grid is the reason the shared data-table kit exists; no bespoke
+      table code.
+
+A5. modules/catalog/mockups/
+    service:  CRUD (name, url, thumbnail, folderId, status). Normalise
+              status to "active"/"inactive" strings (schema keeps String —
+              not worth a migration until mockups grow real states).
+    PAGE /admin/mockups: table thumbnail/name/url/status + dialogs. Gated
+    mockups.manage.
+
+A6. PAGE /catalog  (seller-facing, read-only — products.read)
+    The legacy "Product Catalog" browse page: card/list toggle, search,
+    details view showing the SELLER'S OWN effective tier prices. Server
+    component + queries from A2/A4; no mutations, so it is an afternoon,
+    and it gives sellers something real on day one of the rebuild.
+
+--------------------------------------------------------------------------------
+PHASE B — ORDERS  (modules/fulfillment/orders/)
+--------------------------------------------------------------------------------
+Build in slices B1→B5; each slice ships working. Do not start B3's modals
+before B2's table renders real scoped data.
+
+B1. PERMISSIONS + SERVICE FOUNDATION.   BUILT 2026-07-22.
+    Note while building: the balance-and-ledger write was EXTRACTED to
+    core/ledger.ts rather than reimplemented here. Three domains move money
+    (identity tops up, fulfillment charges on assign, finance approves in C1)
+    and the repo's rule is that a thing two domains need belongs to neither.
+    applyBalanceMove takes the caller's TRANSACTION CLIENT, which is what lets
+    assignOrders charge a seller and stamp their orders in one atomic unit.
+    Notifications stayed in identity — core may not import a domain, and the
+    ESLint boundary caught the first attempt that did.
+    Additions to permissions.ts (+ role grants + tests, one commit):
+      orders.create          SELLER, ADMIN     (seller = own orders only)
+      orders.update          ADMIN             (full field edit)
+      orders.status.update   WAREHOUSE, WAREHOUSE_ADMIN, ADMIN
+      orders.delete          ADMIN             (soft)
+    service.ts:
+      createOrder(actor, input, owner = actor.id)
+                                     owner is a PARAMETER (0b/O4) but every
+                                     caller in this phase passes the default,
+                                     so behaviour matches legacy: you create
+                                     orders for yourself. The parameter exists
+                                     because 0c's importers will need it; it is
+                                     not exposed in any UI yet, and a non-self
+                                     owner requires orders.update. SKU →
+                                     denormalised productId/variantId copied
+                                     server-side, never trusted from client.
+      updateOrder / deleteOrder      admin; audit with changed-field diff.
+      updateStatus(actor, id, status, note?)
+                                     validates the transition (see below) and
+                                     re-checks the order is inside the actor's
+                                     scope — never authorise on a client id.
+      assignOrders(actor, ids[], warehouseId, idempotencyKey)  ← THE MONEY PATH
+    STATUS TRANSITIONS: model as a plain map in status.ts —
+      PENDING→ASSIGNED→IN_PRODUCTION→FULFILLED→SHIPPED→DELIVERED, any
+      non-terminal →CANCELLED/ON_HOLD, ON_HOLD→back to previous. Reject
+      anything else with a machine-readable code. The map is data so doc 05's
+      scan stations reuse it unchanged.
+
+B2. ASSIGNMENT + MONEY.   BUILT 2026-07-22, orders.money.test.ts green (7
+    cases, mutation-verified: deleting the already-assigned guard fails
+    exactly the test that names it).
+    The part the legacy system got wrong, confirmed at
+    order.service.ts:287-292: `orders.forEach(async order => { ... })` reads a
+    seller's balance and writes `balance - base_cost` back, unawaited and with
+    no transaction. Assign five orders for one seller and all five read the
+    SAME starting balance and overwrite each other, so the seller is charged
+    for roughly one — money lost silently, no ledger row, nothing to audit.
+    Everything below exists to make that failure impossible.
+    assignOrders, in ONE $transaction per seller batch:
+      1. re-read the orders FOR UPDATE, drop any already-assigned;
+      2. charge = Σ effectivePrice(sku, seller.tier) × quantity  (catalog's
+         pricing.ts — imported through catalog/index.ts, the domain rule);
+      3. decrement seller balance + insert Transaction(ORDER_PAYMENT,
+         idempotencyKey) + write baseCost/assignedAt/status on the orders +
+         audit row. The unique idempotencyKey makes a retry credit exactly
+         once — same pattern the phase-2 money tests already prove.
+    orders.money.test.ts (node --test, real DB, same harness as
+    money.test.ts): assign twice with one key charges once · balance and
+    Transaction always move together · already-assigned orders are skipped
+    not re-charged · insufficient balance rejects the whole batch.
+    GREEN BEFORE B3 UI EXISTS.
+
+B3. PAGE /orders — TABLE FIRST.
+    One page, all roles; the SCOPE does the role work (sellers see own,
+    warehouse sees their sites via WarehouseMember, admin/support/designer
+    see all — zero per-role page code).
+    Tabs: All / Processing (PENDING+ASSIGNED+IN_PRODUCTION) / Attention
+      (ON_HOLD, deadline passed, unpaid) — tab = a canned filter, not a fork.
+    Columns (visibility-toggleable, role-pruned by <Can>): placedAt, order id
+      + externalId, marketplace/seller, customer (admin/support), product/
+      variant/SKU, quantity + filled, status badge, latest shipment tracking
+      number + trackingStatus, warehouse, assignee, deadline, baseCost
+      (money-permission only), note. Mockup thumbnail + design imageUrl as a
+      hover preview cell.
+      CODE CELL: legacy rendered a CODE128 BARCODE here (not a QR, despite the
+      shorthand) via JsBarcode, value = the order id, with a preview + print
+      popover — OrderColumns.jsx:98. Reproduce it as a QR instead: it carries
+      more, scans far better off a phone, and doc 05's scan station already
+      reads qr_code through the native BarcodeDetector alongside code_128, so
+      both work on day one. Client-side render, no backend, no new endpoint.
+      Legacy also ships html5-qrcode in package.json and never imports it —
+      do not carry that dependency over.
+    Toolbar: search (order id, externalId, tracking number), status filter,
+      warehouse/customer/product filters (admin), placedAt + fulfilledAt date
+      ranges. Server-side everything via the data-table kit.
+
+B4. MUTATION UI, in order of daily-use value:
+      1. Status actions on selected rows (orders.status.update) → the
+         transition map decides what the menu offers.
+      2. Add/Edit order dialog (SKU picker cascades product→variant, address
+         subform, note vs internalNote).
+      3. Assign dialog (admin: pick warehouse, preview per-seller totals
+         "balance X → Y", REASONless — the charge IS the reason, but show it).
+      4. Spreadsheet import: client parses the file (SheetJS) and maps columns,
+         then POSTS rows in batches to a createOrders action that validates
+         each row with the SAME zod schema and returns per-row errors —
+         partial success, exact failure lines. Template download link.
+         Seller-scoped like createOrder. The ROW LOOP RUNS SERVER-SIDE: legacy
+         looped in the browser and lost rows whenever a tab closed mid-import
+         (0c). Lift legacy's COLUMNS_MAPPING verbatim — ~50 header aliases
+         ("Name" / "Recipient Name" → shipping_name) that encode what sellers
+         actually type; it is the one piece of that importer worth copying.
+         Legacy's required set was order_id, order_date, quantity, product,
+         variant, shipping_name, shipping_zipcode + a mockup link, matched
+         product/variant by TEXT KEY not id, and rejected duplicate order_id.
+         Ignore its "Shipping Type" column: the frontend validated it strictly
+         and the backend had nowhere to store it, so it was silently dropped.
+      5. Bulk soft-delete (admin) with count confirmation.
+
+B5. PUBLIC API.   BUILT 2026-07-22. Routes live at app/api/(public)/v1/ —
+    NOT in a modules/orders/routes.ts. Next's App Router resolves handlers by
+    file path, so that is where they must sit today; the routes.ts convention
+    in modules/README.md is the shape they take WHEN Hono lands at ~20
+    endpoints, at which point one app/api/v1/[[...route]] file mounts each
+    domain's router and the handlers move next to their service. Building
+    routes.ts now would mean a file nothing loads.
+    Order.idempotencyKey was added (migration order_idempotency_key, UNIQUE,
+    same mechanism Transaction uses): requiring an Idempotency-Key header
+    without a constraint behind it is worse than not requiring one, because it
+    promises a guarantee that races. placedAt also became optional-defaulting-
+    to-now — legacy overwrote it anyway, and demanding it produced the
+    validation message "expected date, received Date", which means nothing to
+    the person reading it.
+    The first real /api/v1 surface (doc 03 §2.10 already specs
+    the wrapper): GET /api/v1/orders (cursor pagination, scoped to the key's
+    owner) · POST /api/v1/orders (Idempotency-Key honoured) · GET
+    /api/v1/orders/:id. Money as STRINGS, ISO-8601 UTC, the standard error
+    envelope. ~5 lines per route over the B1 service — if it is more, the
+    service is missing something, fix the service. This is endpoint #1 of
+    the "endpoint ships with the feature" rule; Hono lands at ~20, not now.
+
+NOT in Phase B (doc 05): label purchase/print, barcode printing, mockup sync,
+the fulfillment scan stations, refund-to-balance on cancellation (needs the
+orders.refund flow designed against real usage — the permission is reserved).
+
+--------------------------------------------------------------------------------
+PHASE C — TRANSACTIONS  (modules/finance/transactions/)
+--------------------------------------------------------------------------------
+Smallest phase: the money ENGINE already exists (identity/users money
+services, idempotency, audit) and sellers already have their own history on
+/profile/billing. This phase is the ADMIN view of the same ledger plus the
+approve/reject workflow legacy had.
+
+C1. modules/finance/transactions/   BUILT 2026-07-22, transactions.test.ts
+    green (7 cases). One deviation from the spec below, deliberate:
+    approveTransaction takes NO idempotencyKey. The spec assumed one because
+    topUpBalance needs one — but that CREATES a row, while approval FINISHES a
+    row that already exists, so the guard can be a compare-and-set on the row's
+    own status (updateMany WHERE status='PENDING'). That is strictly stronger
+    than a client key: it needs nothing from the caller and cannot be defeated
+    by sending a fresh one. core/ledger.ts grew settlePendingTransaction beside
+    applyBalanceMove, both over one shiftBalance, so the arithmetic and the
+    negative-balance rule cannot differ between a top-up and an approved
+    top-up.
+    Worth recording how that guard was verified: the obvious test — approve
+    twice in a row — passes even with the database guard DELETED, because the
+    service's status pre-check catches the sequential case. Only a CONCURRENT
+    double-approve (Promise.all) actually exercises the compare-and-set. The
+    first version of this test had no teeth and looked green.
+    queries:  scoped ledger list (transactions scope already in scopes.ts):
+              filters user, type, status, date range, search on publicId/
+              description. TRANSACTION_ADMIN_SELECT in libs/db selects.ts —
+              never the whole row habit stays.
+    service:  approveTransaction(actor, id, idempotencyKey) — PENDING TOPUP/
+              REFUND only: apply the balance change + set COMPLETED +
+              balanceBefore/After + audit, one $transaction, same invariants
+              as topUpBalance (reuse that code path — do NOT write a second
+              credit routine that can drift from the first).
+              rejectTransaction(actor, id, reason) — reason REQUIRED, no
+              balance change, audit row.
+    guard:    transactions.approve (admin only today).
+    test:     approve twice with one key credits once · reject never moves
+              balance · approve on a non-PENDING row fails. Extends the
+              existing money test file's harness.
+
+C2. PAGE /admin/transactions:
+    Table: createdAt, publicId, user (name+email), type badge, linked order
+    (when ORDER_PAYMENT — join via description/publicId), amount signed +
+    coloured, balanceBefore→After, status badge, note (+rejection reason),
+    row actions View / Approve / Reject (<Can permission=
+    "transactions.approve">, pending rows only, per-row pending state).
+    Approve/Reject dialogs show "balance X → Y" before commit; reject
+    requires the reason. Detail drawer: full row + the audit trail for it
+    (audit queries exist — platform/audit).
+    NO evidence-file upload yet: the schema has no evidence field and file
+    storage hasn't been chosen (R3 in doc 03 — S3-compatible interface when
+    it lands). Sellers reference receipts in the note; revisit with storage.
+
+C2b. NOTIFICATIONS — added 2026-07-22, before the frontend rather than after.
+    The backend had grown three events that changed a seller's money and told
+    them nothing: an approved top-up (balance moves in silence), a REJECTED
+    top-up (a refusal with the reason stranded in an admin table), and an
+    order batch assignment (money leaves without the seller acting — the one
+    that most deserves a notice, and the one legacy never sent).
+    Added TRANSACTION_APPROVED, TRANSACTION_REJECTED, ORDER_ASSIGNED
+    (migration notification_money_events) + all 7 locales. Each notify() sits
+    INSIDE the transaction it announces, so a rolled-back credit never sends.
+    ORDER_ASSIGNED is one per seller per batch, not one per order — the charge
+    is a single move.
+    Two things this exercise showed, worth keeping:
+      · NOTIFICATION_META is Record<NotificationType, Meta>, so adding an enum
+        value FAILS THE BUILD until the panel is wired. Keep that shape; it is
+        what stops a backend event existing with no way to render it.
+      · Shipping/delivery notifications are NOT here. Shipment rows are not
+        created until doc 05, so the event has nothing to fire on yet. The
+        panel's "orders" tab and the unused `shipped` locale string are
+        waiting for it.
+    Note for whoever does the i18n sweep: en/notifications.json still carries
+    demo strings from the original design mock (newOrder, lowStock, topup,
+    shipped, restock, maintenance) that no NotificationType maps to. `topup`
+    in particular duplicates `toppedUp`. Delete the dead ones as part of C3
+    rather than translating them into six more languages.
+
+C3. NAV + i18n sweep for all three phases: "Catalog" section (Products,
+    Variants, Mockups — products.manage; Catalog browse for everyone),
+    Orders top-level, Transactions under Administration. Filtered by
+    permission, never role name. Every new string in all 7 locales — the
+    orders table alone adds ~80 keys; budget the tedium, don't skip locales.
+
+--------------------------------------------------------------------------------
+BUILD ORDER (do not reorder — each step leans on the previous)
+--------------------------------------------------------------------------------
+   0. O1/O2/O3/O4 are SETTLED in 0b — nothing to decide before starting.
+      Two questions are out with the team and block NOTHING: the O2
+      own-shipping price (answer wanted before A4 ships) and 0c's VM-4001
+      pipeline (doc 06). Start at step 1.
+   1. A1 permissions + A2 products + A3 variants                  (~1 day)
+   2. A4 SKUs + pricing.ts + pricing.test.ts GREEN                (~1 day)
+   3. A5 mockups + A6 catalog browse                              (~half day)
+   4. B1 order service + status map + permission additions        (~half day)
+   5. B2 assignOrders + orders.money.test.ts GREEN                (~1 day)
+   6. B3 orders table end to end                                  (~1 day)
+   7. B4 mutation UI, slices 1→5                                  (~1-1.5 days)
+   8. B5 /api/v1/orders                                           (~2 hours)
+   9. C1 finance service + tests                                  (~half day)
+  10. C2 transactions page + C3 nav/i18n sweep                    (~1 day)
+
+--------------------------------------------------------------------------------
+THE CHECK THAT MAKES EACH PHASE "DONE"
+--------------------------------------------------------------------------------
+PHASE A: pricing.test.ts green (tier hit / tier-0 fallback / salePrice
+  fallback / Decimal only) · a seller with allow-list rows sees ONLY allowed
+  products on /catalog AND in every picker · products.manage-less users get
+  403 from the actions, not just hidden buttons.
+PHASE B: orders.money.test.ts green (idempotent assign, atomic ledger,
+  skip-already-assigned, batch rejection) · scope isolation asserted through
+  the PAGE query path: seller A cannot read seller B's order by id;
+  warehouse user cannot read an order from another site · every status
+  transition outside the map rejects with a stable code · import of a file
+  with 3 bad rows creates the good rows and names lines 4/9/12.
+PHASE C: approve is idempotent under the unique key · reject without reason
+  rejects · a COMPLETED row cannot be approved again · seller still sees own
+  rows only on /profile/billing (regression check — same scope function).
+
+All plain node --test against the real local DB, wired into the same CI job
+as the phase-2 suites. No new frameworks.
+
+--------------------------------------------------------------------------------
+DELIBERATELY NOT IN THIS DOC (and where it goes)
+--------------------------------------------------------------------------------
+  • Fulfillment stations (scan-by-tracking, fill-and-complete, camera
+    barcode, quick-scan), label purchase + printing, barcode sheets → doc 05.
+    The status-transition map and updateStatus service built here are their
+    entire backend; doc 05 is mostly UI + hardware quirks.
+  • Inventory, BOM, materials, physical stock → doc 05/06, after fulfillment
+    proves which stock numbers the floor actually uses.
+  • TikTok Shop (tts-shops/tts-orders) → own doc; external OAuth + an import
+    pipeline. Legacy is the spec for the DATA MAPPING only — its import loop
+    runs in the browser and drops line items (0c). That doc's job is to move
+    the loop server-side and push through B5, not to reproduce the flow.
+  • Tickets, vendors, expenses, dashboard/home widgets → after the above;
+    all read-mostly assembly on patterns this doc establishes.
+  • Refund-on-cancel automation (orders.refund) — reserved permission;
+    design against real support cases, keep manual refundBalance until then.
+  • Per-user price overrides (O3) and the own-shipping price dimension (O2) —
+    revisit only on a concrete seller case or a "yes" from the team.
+  • Ecommerce connectors (Shopify/Etsy/Amazon/eBay). None exist in legacy and
+    none are built here; when one is wanted it pushes through B5's public API,
+    never into the database directly (0c).
+================================================================================

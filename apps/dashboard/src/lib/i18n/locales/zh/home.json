@@ -1,0 +1,55 @@
+{
+  "title": "仪表盘",
+  "subtitle": "当前的业务概览。",
+  "from": "起始",
+  "to": "结束",
+  "periods": {
+    "today": "今天",
+    "week": "本周",
+    "month": "本月",
+    "year": "今年",
+    "all": "全部时间"
+  },
+  "admin": {
+    "transactions": "交易数",
+    "customers": "客户数",
+    "orders": "订单数",
+    "quantity": "数量",
+    "baseCost": "成本",
+    "topups": "充值",
+    "search": "搜索卖家",
+    "empty": "暂无卖家。",
+    "colSeller": "卖家",
+    "colOrders": "订单",
+    "colQuantity": "数量",
+    "colBaseCost": "成本",
+    "colTopups": "充值",
+    "colBalance": "余额",
+    "colDebt": "欠款"
+  },
+  "seller": {
+    "balance": "余额",
+    "debt": "欠款",
+    "orders": "订单",
+    "quantity": "数量",
+    "statuses": "订单状态分布",
+    "ordersWord": "个订单",
+    "noOrders": "暂无订单。",
+    "recent": "最近交易",
+    "allTransactions": "查看全部",
+    "noTransactions": "暂无交易。",
+    "openTickets": "你有 {count} 个未结工单。",
+    "viewTickets": "查看工单"
+  },
+  "warehouse": {
+    "orders": "订单",
+    "quantity": "件数",
+    "skus": "SKU 数",
+    "mockups": "图案数",
+    "bySku": "SKU 排行",
+    "byMockup": "图案排行",
+    "ordersWord": "个订单",
+    "nothing": "该时间段内没有数据。",
+    "monitor": "打开生产看板"
+  }
+}

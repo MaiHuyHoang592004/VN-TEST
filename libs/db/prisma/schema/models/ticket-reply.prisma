@@ -1,0 +1,27 @@
+/// One message in a ticket thread — the seller's follow-up or support's answer.
+///
+/// Legacy had no replies table at all: a ticket was a single description and
+/// the conversation happened somewhere else (chat, email), which is why nobody
+/// could ever prove what support had told a seller. The thread IS the record.
+model TicketReply {
+  id       Int    @id @default(autoincrement())
+  ticketId Int    @map("ticket_id")
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId String @map("author_id")
+  author   User   @relation(fields: [authorId], references: [id])
+
+  content String
+
+  /// [{url, key, filename, originalFilename, mimeType, size, uploadedAt,
+  /// uploadedById}] — the same evidence-Json shape stock receipts use. Json
+  /// rather than a File table because nothing ever queries ACROSS attachments:
+  /// they are only ever read back with the message they belong to.
+  attachments Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  /// The thread's only query: every reply of one ticket, oldest first.
+  @@index([ticketId])
+  @@map("ticket_replies")
+}

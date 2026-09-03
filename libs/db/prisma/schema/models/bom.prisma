@@ -1,0 +1,74 @@
+/// Bill of materials: what one unit of a SKU is made of. Versioned, because
+/// changing a recipe must not rewrite what past orders actually consumed.
+///
+/// Exactly ONE version per variant may be ACTIVE — enforced in the service,
+/// which deactivates siblings in the same transaction as it activates. Two
+/// active BOMs would make "what does this order need?" ambiguous at the one
+/// moment it must not be: assignment.
+model Bom {
+  id               Int    @id @default(autoincrement())
+  productVariantId Int    @map("product_variant_id")
+  name             String
+  /// Sequential per variant; the server assigns the next one when blank.
+  version          Int    @default(1)
+
+  status BomStatus @default(DRAFT)
+
+  effectiveFrom DateTime? @map("effective_from")
+  effectiveTo   DateTime? @map("effective_to")
+  note          String?
+
+  createdById String? @map("created_by_id")
+  updatedById String? @map("updated_by_id")
+
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id])
+  lines          BomLine[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@unique([productVariantId, version])
+  @@index([productVariantId, status])
+  @@map("boms")
+}
+
+/// One component of a BOM. `materialId` may be NULL — an UNMAPPED line, which
+/// is a first-class state, not a broken row: the cutover produces them where a
+/// legacy component could not be resolved, the Configs page counts them as
+/// "incomplete", and reservation refuses to run until they are fixed. The
+/// alternative (invent a material to satisfy a foreign key) hides the problem
+/// behind data nobody entered.
+model BomLine {
+  id    Int @id @default(autoincrement())
+  bomId Int @map("bom_id")
+
+  materialId Int? @map("material_id")
+  /// Kept even when mapped, so an unmapped line still says what it wanted.
+  componentSku  String  @map("component_sku")
+  componentName String? @map("component_name")
+
+  /// Per finished unit. Decimal because real recipes use 0.15 m of trim.
+  quantityPerUnit Decimal @db.Decimal(12, 4) @map("quantity_per_unit")
+  unit            String  @default("pcs")
+  /// Expected loss as a RATE, not a percent: the UI shows 5%, this stores
+  /// 0.05, and required = qty × perUnit × (1 + rate), rounded up.
+  wastageRate     Decimal @default(0) @db.Decimal(8, 4) @map("wastage_rate")
+
+  stage    BomStage @default(PRODUCTION)
+  /// Optional lines appear in previews but never block an assignment.
+  required Boolean  @default(true)
+
+  sortOrder Int     @default(0) @map("sort_order")
+  note      String?
+
+  bom      Bom       @relation(fields: [bomId], references: [id], onDelete: Cascade)
+  material Material? @relation(fields: [materialId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([bomId])
+  @@index([materialId])
+  @@map("bom_lines")
+}

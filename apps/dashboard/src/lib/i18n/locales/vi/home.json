@@ -1,0 +1,55 @@
+{
+  "title": "Bảng điều khiển",
+  "subtitle": "Tình hình kinh doanh ngay lúc này.",
+  "from": "Từ",
+  "to": "Đến",
+  "periods": {
+    "today": "Hôm nay",
+    "week": "Tuần này",
+    "month": "Tháng này",
+    "year": "Năm nay",
+    "all": "Toàn bộ"
+  },
+  "admin": {
+    "transactions": "Giao dịch",
+    "customers": "Khách hàng",
+    "orders": "Đơn hàng",
+    "quantity": "Số lượng",
+    "baseCost": "Giá vốn",
+    "topups": "Nạp tiền",
+    "search": "Tìm người bán",
+    "empty": "Chưa có người bán nào.",
+    "colSeller": "Người bán",
+    "colOrders": "Đơn",
+    "colQuantity": "Số lượng",
+    "colBaseCost": "Giá vốn",
+    "colTopups": "Nạp tiền",
+    "colBalance": "Số dư",
+    "colDebt": "Công nợ"
+  },
+  "seller": {
+    "balance": "Số dư",
+    "debt": "Công nợ",
+    "orders": "Đơn hàng",
+    "quantity": "Số lượng",
+    "statuses": "Trạng thái đơn của bạn",
+    "ordersWord": "đơn",
+    "noOrders": "Chưa có đơn nào.",
+    "recent": "Giao dịch gần đây",
+    "allTransactions": "Xem tất cả",
+    "noTransactions": "Chưa có giao dịch nào.",
+    "openTickets": "Bạn có {count} yêu cầu hỗ trợ đang mở.",
+    "viewTickets": "Xem yêu cầu"
+  },
+  "warehouse": {
+    "orders": "Đơn hàng",
+    "quantity": "Sản phẩm",
+    "skus": "SKU",
+    "mockups": "Mẫu in",
+    "bySku": "SKU nhiều nhất",
+    "byMockup": "Mẫu in nhiều nhất",
+    "ordersWord": "đơn",
+    "nothing": "Không có dữ liệu trong khoảng này.",
+    "monitor": "Mở màn hình xưởng"
+  }
+}

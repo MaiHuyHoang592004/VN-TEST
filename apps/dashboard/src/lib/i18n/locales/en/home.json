@@ -1,0 +1,55 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Where the business stands right now.",
+  "from": "From",
+  "to": "To",
+  "periods": {
+    "today": "Today",
+    "week": "This week",
+    "month": "This month",
+    "year": "This year",
+    "all": "All time"
+  },
+  "admin": {
+    "transactions": "Transactions",
+    "customers": "Customers",
+    "orders": "Orders",
+    "quantity": "Quantity",
+    "baseCost": "Base cost",
+    "topups": "Top-ups",
+    "search": "Search a seller",
+    "empty": "No sellers yet.",
+    "colSeller": "Seller",
+    "colOrders": "Orders",
+    "colQuantity": "Quantity",
+    "colBaseCost": "Base cost",
+    "colTopups": "Top-ups",
+    "colBalance": "Balance",
+    "colDebt": "Debt"
+  },
+  "seller": {
+    "balance": "Balance",
+    "debt": "Owed",
+    "orders": "Orders",
+    "quantity": "Quantity",
+    "statuses": "Where your orders are",
+    "ordersWord": "orders",
+    "noOrders": "No orders yet.",
+    "recent": "Recent transactions",
+    "allTransactions": "View all",
+    "noTransactions": "No transactions yet.",
+    "openTickets": "You have {count} open support ticket(s).",
+    "viewTickets": "Open tickets"
+  },
+  "warehouse": {
+    "orders": "Orders",
+    "quantity": "Units",
+    "skus": "SKUs",
+    "mockups": "Artworks",
+    "bySku": "Top SKUs",
+    "byMockup": "Top artworks",
+    "ordersWord": "orders",
+    "nothing": "Nothing in this window.",
+    "monitor": "Open the floor monitor"
+  }
+}

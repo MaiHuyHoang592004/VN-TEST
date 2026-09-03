@@ -1,0 +1,27 @@
+/// Which warehouses a staff user works in.
+///
+/// Many-to-many on purpose: the legacy system made "a warehouse" a user
+/// account, so a site's order queue belonged to one person and a manager
+/// could never cover two sites. This is the fix.
+///
+/// Source of truth for "may this user see this warehouse". `User.warehouseId`
+/// stays as a denormalised pointer to the primary membership and is written
+/// in the same transaction.
+// ponytail: two sources of truth is a known smell — ceiling is that they can
+// drift. Upgrade path: once every read goes through WarehouseMember, drop
+// User.warehouseId.
+model WarehouseMember {
+  id          Int      @id @default(autoincrement())
+  userId      String   @map("user_id")
+  warehouseId Int      @map("warehouse_id")
+  /// The user's default site — drives their landing view.
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@unique([userId, warehouseId])
+  @@index([warehouseId])
+  @@map("warehouse_members")
+}

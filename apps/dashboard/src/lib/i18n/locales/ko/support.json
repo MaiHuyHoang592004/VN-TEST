@@ -1,0 +1,104 @@
+{
+  "tickets": {
+    "title": "고객 지원 티켓",
+    "subtitle": "주문, 라벨, 계정에 대해 문의하고 답변 기록을 남기세요.",
+    "new": "새 티켓",
+    "search": "제목, 설명 또는 주문 검색",
+    "empty": "아직 티켓이 없습니다.",
+    "emptyFiltered": "필터에 맞는 티켓이 없습니다.",
+    "allStatuses": "모든 상태",
+    "allPriorities": "모든 우선순위",
+    "allReasons": "모든 사유",
+    "open": "미해결",
+    "col": {
+      "author": "고객",
+      "title": "제목",
+      "order": "주문",
+      "reason": "사유",
+      "status": "상태",
+      "priority": "우선순위",
+      "created": "생성일",
+      "replies": "답변"
+    },
+    "status": {
+      "OPEN": "접수됨",
+      "IN_PROGRESS": "처리 중",
+      "RESOLVED": "해결됨",
+      "CLOSED": "종료됨"
+    },
+    "priority": {
+      "LOW": "낮음",
+      "MEDIUM": "보통",
+      "HIGH": "높음",
+      "URGENT": "긴급"
+    },
+    "reason": {
+      "wrong-item": "잘못된 상품 배송",
+      "quality-return": "품질 문제 또는 반품",
+      "bad-label": "라벨 문제",
+      "wrong-address": "주소 오류",
+      "missing-item": "구성품 누락",
+      "other": "기타"
+    },
+    "form": {
+      "new": "티켓 작성",
+      "description": "무슨 일이 있었는지 알려주세요. 사진이 있으면 더 빨리 해결됩니다.",
+      "title": "제목",
+      "titlePlaceholder": "주문 #1042 셔츠 사이즈 오류",
+      "reason": "사유",
+      "priority": "우선순위",
+      "priorityHint": "사유에 따라 제안됩니다. 필요하면 변경하세요.",
+      "order": "주문",
+      "orderNone": "특정 주문과 무관",
+      "body": "설명",
+      "bodyPlaceholder": "받은 것, 기대한 것, 이미 시도한 조치를 적어 주세요.",
+      "attach": "사진 첨부",
+      "attachHint": "PNG, JPG 또는 WEBP · 최대 10장 · 장당 10MB",
+      "submit": "티켓 등록",
+      "created": "티켓이 등록되었습니다",
+      "orderDropped": "선택한 주문이 이 계정의 주문이 아니어서 주문 연결 없이 등록되었습니다."
+    },
+    "edit": {
+      "title": "티켓 수정",
+      "submit": "변경 사항 저장",
+      "saved": "티켓이 수정되었습니다"
+    },
+    "delete": {
+      "title": "이 티켓을 삭제할까요?",
+      "body": "티켓과 모든 대화가 삭제되며 되돌릴 수 없습니다.",
+      "submit": "티켓 삭제",
+      "deleted": "티켓이 삭제되었습니다"
+    },
+    "detail": {
+      "back": "전체 티켓",
+      "customer": "고객",
+      "order": "주문",
+      "created": "등록일",
+      "replies": "답변",
+      "status": "상태",
+      "reason": "사유",
+      "priority": "우선순위",
+      "statusChanged": "상태가 변경되었습니다",
+      "reply": "답변",
+      "replyPlaceholder": "답변을 입력하세요…",
+      "send": "보내기",
+      "sendHint": "⌘/Ctrl + Enter 로 전송",
+      "sent": "답변을 보냈습니다",
+      "closed": "이 티켓은 종료되었습니다.",
+      "closedHint": "다시 열면 대화를 이어갈 수 있습니다.",
+      "reopen": "티켓 다시 열기",
+      "staff": "지원팀",
+      "attachments": "첨부 파일",
+      "empty": "아직 답변이 없습니다."
+    },
+    "errors": {
+      "not-found": "해당 티켓이 존재하지 않습니다.",
+      "ticket-closed": "종료된 티켓입니다. 다시 열어야 답변할 수 있습니다.",
+      "not-yours": "이 티켓에서는 해당 작업을 할 수 없습니다.",
+      "file-too-large": "이미지는 10MB 이하여야 합니다.",
+      "not-an-image": "PNG, JPG 또는 WEBP 이미지를 첨부하세요.",
+      "too-many-files": "한 번에 최대 10장까지 첨부할 수 있습니다.",
+      "storage-not-configured": "지금은 업로드할 수 없습니다."
+    }
+  }
+}

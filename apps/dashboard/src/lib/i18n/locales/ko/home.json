@@ -1,0 +1,55 @@
+{
+  "title": "대시보드",
+  "subtitle": "지금 사업 현황.",
+  "from": "시작",
+  "to": "종료",
+  "periods": {
+    "today": "오늘",
+    "week": "이번 주",
+    "month": "이번 달",
+    "year": "올해",
+    "all": "전체 기간"
+  },
+  "admin": {
+    "transactions": "거래",
+    "customers": "고객",
+    "orders": "주문",
+    "quantity": "수량",
+    "baseCost": "원가",
+    "topups": "충전",
+    "search": "판매자 검색",
+    "empty": "판매자가 없습니다.",
+    "colSeller": "판매자",
+    "colOrders": "주문",
+    "colQuantity": "수량",
+    "colBaseCost": "원가",
+    "colTopups": "충전",
+    "colBalance": "잔액",
+    "colDebt": "미수금"
+  },
+  "seller": {
+    "balance": "잔액",
+    "debt": "미수금",
+    "orders": "주문",
+    "quantity": "수량",
+    "statuses": "주문 상태",
+    "ordersWord": "건",
+    "noOrders": "주문이 없습니다.",
+    "recent": "최근 거래",
+    "allTransactions": "전체 보기",
+    "noTransactions": "거래가 없습니다.",
+    "openTickets": "미해결 티켓이 {count}건 있습니다.",
+    "viewTickets": "티켓 열기"
+  },
+  "warehouse": {
+    "orders": "주문",
+    "quantity": "수량",
+    "skus": "SKU",
+    "mockups": "디자인",
+    "bySku": "상위 SKU",
+    "byMockup": "상위 디자인",
+    "ordersWord": "건",
+    "nothing": "이 기간에는 데이터가 없습니다.",
+    "monitor": "작업 현황 열기"
+  }
+}

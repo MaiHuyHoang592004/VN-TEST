@@ -1,0 +1,23 @@
+{
+  "home": "Home",
+  "orders": "Orders",
+  "products": "Products",
+  "wallet": "Wallet",
+  "search": "Search",
+  "analytics": "Analytics",
+  "login": "Log In",
+  "signup": "Sign Up",
+  "profile": "Profile",
+  "settings": "Settings",
+  "billing": "Billing",
+  "helpSupport": "Help & Support",
+  "logout": "Log Out",
+  "tools": {
+    "label": "Tools",
+    "analytics": "Analytics",
+    "analyticsDescription": "Store performance & insights",
+    "wallet": "Wallet",
+    "walletDescription": "Balance & top-ups"
+  },
+  "tickets": "Support"
+}

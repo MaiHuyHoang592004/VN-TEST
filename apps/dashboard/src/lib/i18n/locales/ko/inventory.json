@@ -1,0 +1,359 @@
+{
+  "nav": {
+    "section": "재고",
+    "stock": "재고",
+    "movements": "이동 내역",
+    "materials": "자재",
+    "boms": "BOM"
+  },
+  "tabs": {
+    "stock": "재고",
+    "movements": "이동 내역",
+    "receipts": "입고"
+  },
+  "stock": {
+    "title": "재고",
+    "subtitle": "선반에 있는 수량, 주문을 위해 확보한 수량, 그리고 부족한 수량.",
+    "search": "이름 또는 SKU로 검색",
+    "empty": "아직 재고가 없습니다.",
+    "emptyFiltered": "필터에 맞는 품목이 없습니다.",
+    "adjust": "조정",
+    "import": "입고",
+    "allWarehouses": "모든 창고",
+    "types": {
+      "MATERIAL": "자재",
+      "PRODUCT": "완제품"
+    },
+    "tiles": {
+      "items": "품목",
+      "onHand": "보유 수량",
+      "reserved": "예약됨",
+      "shortage": "부족"
+    },
+    "col": {
+      "item": "품목",
+      "kind": "유형",
+      "onHand": "보유 수량",
+      "reserved": "예약됨",
+      "shortage": "부족",
+      "available": "사용 가능",
+      "warehouses": "창고"
+    },
+    "tip": {
+      "reserved": "생산 중인 주문에 배정됨",
+      "shortage": "현재 주문을 충당하려면 추가 입고가 필요합니다",
+      "available": "보유 수량 − 예약됨"
+    }
+  },
+  "adjust": {
+    "title": "재고 조정",
+    "description": "한 창고의 한 품목 수량을 수정합니다. 입력한 사유와 함께 기록됩니다.",
+    "warehouse": "창고",
+    "delta": "조정 수량",
+    "deltaHint": "줄이려면 음수를 입력하세요.",
+    "reason": "사유",
+    "reasonPlaceholder": "재고 실사 보정",
+    "note": "메모",
+    "submit": "조정 적용",
+    "done": "재고를 조정했습니다."
+  },
+  "import": {
+    "title": "입고",
+    "description": "입고 전표 없이 도착한 재고를 등록합니다.",
+    "item": "품목",
+    "itemPlaceholder": "이름 또는 SKU로 자재 검색",
+    "warehouse": "창고",
+    "quantity": "수량",
+    "provider": "공급업체",
+    "note": "메모",
+    "submit": "입고",
+    "done": "입고했습니다.",
+    "noItem": "먼저 품목을 선택하세요."
+  },
+  "movements": {
+    "title": "이동 내역",
+    "subtitle": "모든 수량 변경을 발생한 순서대로 기록합니다.",
+    "search": "품목명 또는 SKU로 검색",
+    "empty": "아직 이동 내역이 없습니다.",
+    "emptyFiltered": "필터에 맞는 내역이 없습니다.",
+    "loadMore": "더 보기",
+    "allTypes": "모든 유형",
+    "col": {
+      "created": "일시",
+      "type": "유형",
+      "item": "품목",
+      "warehouse": "창고",
+      "quantity": "수량",
+      "reference": "참조",
+      "user": "작업자"
+    },
+    "types": {
+      "RECEIPT": "입고 확인",
+      "MANUAL_IMPORT": "수동 입고",
+      "MANUAL_ADJUSTMENT": "수동 조정",
+      "RESERVE": "예약",
+      "RESERVE_RELEASE": "예약 해제",
+      "CONSUME": "소모",
+      "RETURN": "반환",
+      "NEEDED": "부족",
+      "NEEDED_RESOLVED": "부족 해소"
+    },
+    "allItems": "모든 품목"
+  },
+  "materials": {
+    "title": "자재",
+    "subtitle": "원자재, 포장재, 소모품 — 수량이 아니라 그것이 무엇인지를 관리합니다.",
+    "search": "이름, SKU 또는 설명으로 검색",
+    "empty": "아직 자재가 없습니다.",
+    "emptyFiltered": "필터에 맞는 자재가 없습니다.",
+    "new": "자재 추가",
+    "created": "자재를 만들었습니다.",
+    "updated": "자재를 수정했습니다.",
+    "deleted": "자재를 삭제했습니다.",
+    "dialogNewTitle": "새 자재",
+    "dialogEditTitle": "자재 수정",
+    "dialogDesc": "기준 정보만 다룹니다. 수량은 재고 페이지에서 변경합니다.",
+    "col": {
+      "name": "자재",
+      "type": "유형",
+      "uom": "단위",
+      "status": "상태",
+      "available": "사용 가능",
+      "bomLines": "BOM 행"
+    },
+    "field": {
+      "sku": "SKU",
+      "name": "이름",
+      "type": "유형",
+      "uom": "측정 단위",
+      "uomHint": "자유 입력: pcs, m, 롤, kg 등",
+      "description": "설명",
+      "status": "상태",
+      "trackInventory": "재고 추적",
+      "trackInventoryHint": "눈대중으로 세는 품목은 꺼 두세요 — BOM에는 표시되지만 예약이나 부족 보고는 하지 않습니다."
+    },
+    "types": {
+      "RAW_MATERIAL": "원자재",
+      "PACKAGING": "포장재",
+      "SEMI_FINISHED": "반제품",
+      "CONSUMABLE": "소모품",
+      "OTHER": "기타"
+    },
+    "allTypes": "모든 유형",
+    "delete": {
+      "action": "삭제",
+      "title": "자재 삭제",
+      "confirm": "지난 이동 내역과 입고 기록에는 남아 이력을 읽을 수 있습니다.",
+      "blocked": "활성 BOM 행이 아직 이 자재를 필요로 합니다. 먼저 해당 BOM에서 제거하세요.",
+      "submit": "삭제",
+      "pillBomLines": "개의 활성 BOM 행"
+    },
+    "errSkuTaken": "해당 SKU는 다른 자재가 이미 사용 중입니다."
+  },
+  "errors": {
+    "warehouse-not-allowed": "해당 창고의 구성원이 아닙니다.",
+    "item-not-found": "해당 품목이 더 이상 존재하지 않습니다.",
+    "below-zero": "재고를 0 미만으로 줄일 수 없습니다.",
+    "insufficient-stock": "재고가 부족합니다."
+  },
+  "receipts": {
+    "title": "입고",
+    "subtitle": "들어온 물품: 발주 수량, 실제 도착 수량, 그리고 지연된 것.",
+    "search": "전표번호·운송장번호·공급업체로 검색",
+    "empty": "아직 입고 전표가 없습니다.",
+    "emptyFiltered": "필터에 맞는 전표가 없습니다.",
+    "new": "입고 전표 만들기",
+    "created": "입고 전표를 만들었습니다.",
+    "updated": "입고 전표를 수정했습니다.",
+    "received": "입고를 등록했습니다.",
+    "rejected": "입고 전표를 거부했습니다.",
+    "allStatuses": "모든 상태",
+    "uploaded": "사진을 업로드했습니다.",
+    "tiles": {
+      "upcoming": "도착 예정",
+      "overdue": "지연",
+      "partial": "부분 입고",
+      "variance": "수량 차이"
+    },
+    "col": {
+      "code": "전표번호",
+      "itemType": "구분",
+      "warehouse": "창고",
+      "status": "상태",
+      "supplier": "공급업체",
+      "shipments": "배송",
+      "created": "생성일"
+    },
+    "status": {
+      "PENDING": "대기",
+      "PARTIAL": "부분 입고",
+      "COMPLETE": "완료",
+      "REJECTED": "거부"
+    },
+    "shipStatus": {
+      "PENDING": "대기",
+      "PARTIAL_RECEIVED": "부분 입고",
+      "RECEIVED": "입고 완료",
+      "REJECTED": "거부"
+    },
+    "detail": {
+      "title": "입고 전표",
+      "expected": "발주",
+      "unitPrice": "단가",
+      "lineTotal": "금액",
+      "receivedQty": "입고",
+      "rejectedQty": "불량",
+      "note": "메모",
+      "receive": "입고 처리",
+      "eta": "도착 예정",
+      "tracking": "운송장번호",
+      "carrier": "운송사",
+      "vendor": "공급업체",
+      "evidence": "증빙 사진",
+      "upload": "사진 업로드",
+      "reject": "전표 거부",
+      "rejectReason": "사유",
+      "edit": "수정",
+      "noEvidence": "아직 사진이 없습니다."
+    },
+    "form": {
+      "title": "입고 전표 만들기",
+      "editTitle": "입고 전표 수정",
+      "desc": "창고 하나, 배송 하나 이상, 배송마다 자체 품목 행.",
+      "warehouse": "창고",
+      "itemType": "품목 구분",
+      "provider": "공급업체",
+      "note": "메모",
+      "shipment": "배송",
+      "addShipment": "배송 추가",
+      "addLine": "행 추가",
+      "remove": "삭제",
+      "item": "품목",
+      "quantity": "수량",
+      "shipmentCode": "배송 코드",
+      "submit": "만들기",
+      "save": "저장"
+    },
+    "errors": {
+      "not-found": "해당 입고 전표가 더 이상 없습니다.",
+      "not-receivable": "이 전표 또는 배송은 이미 마감되었습니다.",
+      "not-editable": "이미 입고 처리된 전표라 수정할 수 없습니다.",
+      "received-below-current": "입고 수량은 줄일 수 없습니다 — 이미 등록된 물품은 선반에 있습니다.",
+      "too-many-files": "한 번에 최대 10장까지 업로드하세요.",
+      "not-an-image": "PNG, JPG 또는 WEBP 이미지를 업로드하세요.",
+      "file-too-large": "이미지는 10MB 이하여야 합니다."
+    }
+  },
+  "boms": {
+    "section": "BOM",
+    "title": "자재 명세서",
+    "subtitle": "각 SKU가 무엇으로 만들어지는지, 그리고 부품이 선반에 있는지.",
+    "tabs": {
+      "configs": "구성",
+      "coverage": "충족도"
+    },
+    "search": "SKU, 제품 또는 BOM 이름으로 검색",
+    "empty": "아직 BOM이 없습니다.",
+    "emptyFiltered": "필터에 맞는 BOM이 없습니다.",
+    "new": "BOM 만들기",
+    "created": "BOM을 만들었습니다.",
+    "updated": "BOM을 저장했습니다.",
+    "activated": "BOM을 활성화했습니다.",
+    "duplicated": "새 초안 버전을 만들었습니다.",
+    "deleted": "BOM을 삭제했습니다.",
+    "tiles": {
+      "total": "BOM",
+      "active": "활성",
+      "draft": "초안",
+      "incomplete": "미완성 행"
+    },
+    "col": {
+      "variant": "제품 옵션",
+      "bom": "BOM",
+      "status": "상태",
+      "lines": "행",
+      "components": "부품",
+      "manage": "관리"
+    },
+    "status": {
+      "DRAFT": "초안",
+      "ACTIVE": "활성",
+      "INACTIVE": "비활성"
+    },
+    "linesOf": "필수 /",
+    "linked": "연결됨",
+    "incomplete": "미지정",
+    "manage": "관리",
+    "dialog": {
+      "title": "자재 명세서",
+      "versions": "버전",
+      "newDraft": "새 초안",
+      "name": "이름",
+      "version": "버전",
+      "versionAuto": "자동",
+      "status": "상태",
+      "material": "자재",
+      "sku": "SKU",
+      "qtyPerUnit": "단위당 수량",
+      "unit": "단위",
+      "wastage": "손실률 %",
+      "stage": "공정",
+      "required": "필수",
+      "addLine": "행 추가",
+      "save": "저장",
+      "activate": "활성화",
+      "duplicate": "복제",
+      "delete": "삭제",
+      "preview": "미리보기",
+      "previewQty": "수량",
+      "previewWarehouse": "창고",
+      "component": "부품",
+      "requiredQty": "필요",
+      "available": "사용 가능",
+      "shortage": "부족",
+      "mapping": "연결",
+      "unmapped": "미지정",
+      "noLines": "아직 행이 없습니다."
+    },
+    "stage": {
+      "PRODUCTION": "생산",
+      "PACKING": "포장",
+      "SHIPPING": "출고",
+      "OTHER": "기타"
+    },
+    "coverage": {
+      "search": "부품 검색",
+      "empty": "아직 부품이 없습니다.",
+      "tiles": {
+        "components": "부품",
+        "linked": "연결됨",
+        "shortage": "부족",
+        "noStock": "재고 없음"
+      },
+      "col": {
+        "material": "자재",
+        "coverage": "충족도",
+        "qty": "수량",
+        "reserved": "예약됨",
+        "shortage": "부족",
+        "available": "사용 가능",
+        "usedIn": "사용 BOM",
+        "warehouses": "창고"
+      },
+      "badge": {
+        "AVAILABLE": "사용 가능",
+        "NEEDED": "부족",
+        "NO_STOCK": "재고 없음",
+        "UNMAPPED": "미지정"
+      },
+      "boms": "개 BOM",
+      "perUnit": "단위당 필요"
+    },
+    "errors": {
+      "not-found": "해당 BOM이 더 이상 없습니다.",
+      "not-editable": "행이 없는 BOM은 활성화할 수 없습니다.",
+      "item-not-found": "해당 SKU가 더 이상 없습니다.",
+      "bom-line-unmapped": "필수 부품에 자재가 지정되지 않았습니다."
+    }
+  }
+}

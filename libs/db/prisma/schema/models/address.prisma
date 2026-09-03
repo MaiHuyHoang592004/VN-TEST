@@ -1,0 +1,23 @@
+/// A shipping-address snapshot. One per order today; reusable as a customer
+/// address book when the storefront lands. All fields optional — legacy data
+/// is incomplete; validate at the app layer, not here.
+model Address {
+  id      Int     @id @default(autoincrement())
+  name    String?
+  company String?
+  email   String?
+  phone   String?
+  line1   String?
+  line2   String?
+  city    String?
+  state   String?
+  zip     String?
+  country String?
+
+  orders Order[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("addresses")
+}

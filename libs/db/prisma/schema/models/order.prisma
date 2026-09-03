@@ -1,0 +1,101 @@
+/// One fulfillment order. Financials are per-order aggregates; shipping and
+/// carrier tracking live on Shipment (an order can have several shipments).
+model Order {
+  id Int @id @default(autoincrement())
+
+  /// Order id in the source marketplace (Etsy/Amazon/…). Not unique — the
+  /// same external order can split into multiple rows.
+  externalId  String? @map("external_id")
+  marketplace String?
+  source      String?
+  /// Seller/shop label as imported from the marketplace feed.
+  seller      String?
+
+  customerId String? @map("customer_id")
+  customer   User?   @relation("CustomerOrders", fields: [customerId], references: [id])
+
+  /// Warehouse staff member working this order.
+  assignedToId String? @map("assigned_to_id")
+  assignedTo   User?   @relation("AssignedOrders", fields: [assignedToId], references: [id])
+
+  warehouseId Int?       @map("warehouse_id")
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  productId        Int?            @map("product_id")
+  product          Product?        @relation(fields: [productId], references: [id])
+  variantId        Int?            @map("variant_id")
+  variant          Variant?        @relation(fields: [variantId], references: [id])
+  productVariantId Int?            @map("product_variant_id")
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
+  mockupId         Int?            @map("mockup_id")
+  mockup           Mockup?         @relation(fields: [mockupId], references: [id])
+
+  basketPositionId Int?            @map("basket_position_id")
+  basketPosition   BasketPosition? @relation(fields: [basketPositionId], references: [id])
+
+  shippingAddressId Int?     @map("shipping_address_id")
+  shippingAddress   Address? @relation(fields: [shippingAddressId], references: [id])
+
+  quantity Int
+  /// Units already produced/packed (progress toward `quantity`).
+  filled   Int @default(0)
+
+  status      FulfillmentStatus @default(PENDING)
+  placedAt    DateTime          @map("placed_at")
+  assignedAt  DateTime?         @map("assigned_at")
+  fulfilledAt DateTime?         @map("fulfilled_at")
+  deadline    DateTime?
+
+  paid Boolean @default(false)
+
+  baseCost Decimal? @db.Decimal(12, 2) @map("base_cost")
+  fee      Decimal? @db.Decimal(12, 2)
+  revenue  Decimal? @db.Decimal(12, 2)
+  profit   Decimal? @db.Decimal(12, 2)
+
+  /// Customer-visible note.
+  note         String?
+  /// Internal warehouse note — never shown to the customer.
+  internalNote String? @map("internal_note")
+  /// Design/artwork image for production.
+  imageUrl     String? @map("image_url")
+  /// Photo of the PACKED PARCEL, taken at the fulfillment station — evidence
+  /// of what left the building. Deliberately not `imageUrl`: legacy conflated
+  /// artwork and proof into one column, so a dispute about what shipped could
+  /// only be answered with the design file. The storage key lives in
+  /// `configs.proofKey` so a storage-provider move needs no URL parsing.
+  proofImageUrl String? @map("proof_image_url")
+
+  /// Free-form extras. Migrated legacy fields live under configs.legacy
+  /// (leatherShape, productType, variants[], month, basketPosition).
+  configs Json?
+
+  /// Dedupe key for API creates. Same reasoning as Transaction: a UNIQUE
+  /// constraint is what actually makes a retried POST create one order rather
+  /// than two, because an app-level "does it exist yet" check races. Null for
+  /// orders created in the UI and for legacy rows; Postgres allows many nulls
+  /// under UNIQUE.
+  idempotencyKey String? @unique @map("idempotency_key")
+
+  shipments    Shipment[]
+  tickets      Ticket[]
+  reservations InventoryReservation[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@index([customerId])
+  @@index([assignedToId])
+  @@index([warehouseId])
+  @@index([productId])
+  @@index([variantId])
+  @@index([productVariantId])
+  @@index([mockupId])
+  @@index([basketPositionId])
+  @@index([shippingAddressId])
+  @@index([status])
+  @@index([placedAt])
+  @@index([externalId])
+  @@map("orders")
+}

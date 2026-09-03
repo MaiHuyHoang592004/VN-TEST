@@ -8,5 +8,8 @@
  *
  * Pages import from "@/components/ds", never from a file inside it.
  */
+export { KeyValueRow, type KeyValueRowProps } from "./key-value-row";
+export { SectionHeading, type SectionHeadingProps } from "./section-heading";
 export { StatusBadge, type StatusBadgeProps } from "./status-badge";
 export { STATUS_TONES, toneFor, type StatusTone } from "./status-tones";
+export { Surface, type SurfaceProps } from "./surface";

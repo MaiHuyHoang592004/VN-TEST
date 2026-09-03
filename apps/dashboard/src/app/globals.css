@@ -228,10 +228,21 @@
    same light tokens: the class becomes a no-op rather than a broken
    half-theme.
 
-   Nothing is deleted. next-themes, ThemeToggle and the 90 `dark:`
-   utilities across src/ still compile; they simply have no effect. When
-   the DS publishes a dark palette, it drops into this one block.
-   Task 17 removes the toggle from the shell. */
+   Nothing is deleted. next-themes, ThemeProvider, ThemeToggle and the
+   `dark:` utilities across src/ all still compile.
+
+   BUT THIS BLOCK ALONE IS NOT ENOUGH, and it is worth knowing why. It
+   neutralises only the TOKEN-derived `dark:` utilities. Fourteen
+   hard-valued ones (`dark:bg-black` on five popovers, three
+   `dark:hidden`/`dark:block` logo swaps, avatar's mix-blend) would still
+   fire and render black panels under navy text. They are inert only
+   because `.dark` is now UNREACHABLE: AppProviders passes next-themes
+   `forcedTheme="light"` with `enableSystem={false}`, which also overrides
+   a `theme=dark` a returning user still has in localStorage. The shell
+   toggle was removed in the same change.
+
+   So: to bring dark back, this block is step one and lifting forcedTheme
+   is step two — and those fourteen sites need real dark values first. */
 .dark {
   color-scheme: light;
 }

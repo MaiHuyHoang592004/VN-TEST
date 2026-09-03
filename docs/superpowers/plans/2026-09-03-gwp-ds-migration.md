@@ -1092,6 +1092,48 @@ In `apps/dashboard/src/components/ui/badge.tsx`, replace only the `variants.vari
 
 In the same file's base string, make two colour-free corrections so badges sit on the GWP type and focus contract: replace `text-xs font-medium` with `text-(length:--fs-meta) font-semibold tracking-(--ls-label)`, and replace `focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50` with `focus-visible:shadow-(--shadow-focus)`. Leave `h-5 rounded-full px-2 py-0.5` alone — the geometry is already right.
 
+- [ ] **Step 1b: Close the enum-coverage gap BEFORE building the badge**
+
+Task 2 scoped its map to `FulfillmentStatus` and `TicketStatus`, which are the
+only two enums the app renders as badges today. That was correct then. It stops
+being correct the moment `StatusBadge` becomes the app's single colour
+authority — because **nine other status enums exist**, and every value in them
+will fall through to `neutral` *by accident* rather than by decision.
+
+Several of those are exactly the "status a reader must not miss" case that
+justified the tone map in the first place:
+
+| Enum value | Falls to | Should be | Rendered at |
+|---|---|---|---|
+| `UserStatus.BANNED` | neutral | `critical` | `users-table.tsx:119` |
+| `TransactionStatus.FAILED` | neutral | `critical` | `transactions-table.tsx:101` |
+| `ReceiptStatus.REJECTED` | neutral | `critical` | `receipt-detail-dialog.tsx:95` |
+| `ReceiptShipmentStatus.REJECTED` | neutral | `critical` | `receipt-detail-dialog.tsx:200` |
+| `BasketPositionStatus.BROKEN` | neutral | `critical` | — |
+
+Two more are pure tense-twins of DS entries, bridgeable by exactly the argument
+already recorded in `status-tones.ts`'s APP BLOCK — restatement, not invention:
+
+| Enum value | DS entry | Tone |
+|---|---|---|
+| `ReservationStatus.RETURNED` | `Return` | `attention` |
+| `ReceiptStatus.COMPLETE` | `Completed` | `success` |
+
+Do this before Step 2:
+
+1. Enumerate every status-shaped enum in `libs/db/prisma/schema/enums/` and
+   every value in it.
+2. For each value, decide one of exactly three things and **write the reason in
+   the map**: restated from a DS entry (give the DS spelling), inferred and
+   therefore *awaiting DS ratification* (say so, as `RESOLVED` does), or
+   deliberately left to `neutral` (say why, as `ASSIGNED` does).
+3. Add a test that fails if any value of any of those enums is unmapped without
+   an explicit assertion pinning it — the pattern `status-tones.test.ts` already
+   uses for `ASSIGNED`. A silent neutral must be impossible to introduce.
+4. Anything you cannot justify from the DS or the schema stays neutral **and
+   goes in the report** for the design system to rule on. Do not invent a tone
+   to make a table look finished.
+
 - [ ] **Step 2: Create the StatusBadge**
 
 Create `apps/dashboard/src/components/ds/status-badge.tsx`:

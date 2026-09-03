@@ -31,7 +31,7 @@ report "hex / rgb / oklch literals in components (must be empty)"
 # hover-lift glow uses a real space) - not a literal, wherever it appears.
 # The last filter drops whole-comment lines (a hex value mentioned in prose
 # documentation is not an applied style).
-if grep -rnE '#[0-9a-fA-F]{3,8}\b|rgba?\(|oklch\(' \
+if grep -rnE '#[0-9a-fA-F]{3,8}|rgba?\(|oklch\(|color-mix\(|:[[:space:]]*(white|black|red|blue|green|yellow|orange|purple|pink|gray|grey)' \
      --include='*.tsx' --include='*.ts' --include='*.css' src \
      | grep -v '\.test\.' \
      | grep -E -v '/gwp\.theme\.css:' \
@@ -43,6 +43,9 @@ if grep -rnE '#[0-9a-fA-F]{3,8}\b|rgba?\(|oklch\(' \
      | grep -E -v '/chart\.tsx:' \
      | grep -F -v 'oklch(from_var(' \
      | grep -F -v 'oklch(from var(' \
+     | grep -E -v 'color-mix\([^)]*var\(' \
+     | grep -F -v 'color-mix(in srgb, white 35%, transparent)' \
+     | grep -E -v '(mask|mask-image|mask-composite):' \
      | grep -E -v '^[^:]+:[0-9]+: *(//|\*|/\*)'; then
   echo "FAIL: colour literal outside the token layer"; fail=1
 else echo "ok"; fi
@@ -58,7 +61,7 @@ report "Tailwind default palette next to GWP ramps (must be empty)"
 # neutral are all GWP ramp names and must NOT appear in this list - GWP owns
 # them. Only names GWP defines no ramp for are forbidden here.
 if grep -rnE '\b(bg|text|border|ring|fill|stroke|divide)-(slate|gray|zinc|stone|amber|lime|emerald|teal|cyan|indigo|violet|purple|fuchsia|rose|blue)-[0-9]{2,3}\b' \
-     --include='*.tsx' --include='*.ts' src; then
+     --include='*.tsx' --include='*.ts' --include='*.css' src; then
   echo "FAIL: non-GWP palette utility"; fail=1
 else echo "ok"; fi
 
@@ -66,7 +69,7 @@ report "neutral steps GWP does not define (only 50 and 100 exist)"
 # -P (not -E) for the negative lookahead; combining -E and -P errors out on
 # some grep builds and would silently no-op this check.
 if grep -rnP '\b(bg|text|border|ring|fill|stroke|divide)-neutral-(?!50\b|100\b)[0-9]{2,3}\b' \
-     --include='*.tsx' --include='*.ts' src; then
+     --include='*.tsx' --include='*.ts' --include='*.css' src; then
   echo "FAIL: neutral step outside GWP's 50/100"; fail=1
 else echo "ok"; fi
 

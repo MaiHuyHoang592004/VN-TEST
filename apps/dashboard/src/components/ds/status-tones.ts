@@ -9,8 +9,16 @@
  * them for chrome; never hand-pick a badge colour at a call site.
  *
  * Tones resolve to colour through the `--status-<tone>-{bg,fg,dot}` tokens in
- * gwp.theme.css. Adding a key here is a design-system change: mirror it back
- * into the DS's status-tones.json rather than diverging.
+ * gwp.theme.css.
+ *
+ * THE DS BLOCK BELOW IS VERBATIM AND CLOSED. Do not add, rename or re-tone an
+ * entry in it — mirror any change back into the design system first.
+ *
+ * The APP BLOCK after it is a sanctioned, enumerated divergence: the DS map was
+ * read from a different backend's ORDER_STATUS vocabulary, so it does not cover
+ * this app's Prisma enums. Every entry there is listed with its justification
+ * and its status (restated from the DS / awaiting DS ratification). Adding one
+ * means adding a justification too.
  *
  * DOMAIN-BOUND (per StatusBadge.d.ts): the transitions between statuses, the
  * production lifecycle, the shipping lifecycle, and the value set of the
@@ -54,10 +62,12 @@ export const STATUS_TONES: Readonly<Record<string, StatusTone>> = Object.freeze(
   open: "attention",
   in_progress: "progress",
   closed: "success",
-  // Prisma FulfillmentStatus values with no prose twin in the DS map. Not new
-  // vocabulary — they are the existing DB enum, tone-assigned by the same
-  // rules the DS applies to its own list.
-  // ── App enum values whose DS twin exists under a different tense ──────
+  // ══ APP BLOCK ═══════════════════════════════════════════════════════
+  // (a) RESTATED FROM THE DS — same concept, different tense.
+  // The DS map came from a different backend's vocabulary ("Cancel",
+  // "Refund"); this app's Prisma enum is past participle. normalise()
+  // folds case and separators but deliberately does not stem, so the
+  // twins never meet. These assign no new meaning.
   // The DS map was read from a DIFFERENT backend's ORDER_STATUS vocabulary
   // ("Cancel", "Refund"), while this app's Prisma `FulfillmentStatus` is past
   // participle ("CANCELLED", "REFUNDED"). normalise() lowercases and collapses
@@ -70,11 +80,18 @@ export const STATUS_TONES: Readonly<Record<string, StatusTone>> = Object.freeze(
   // the ~319 legacy "Refund" orders must stay reportable as refunds rather
   // than plain cancellations, and the DS gives Refund its own tone.
   REFUNDED: "info", // DS: Refund -> info
+  // (b) NO DS TWIN AT ANY TENSE — awaiting design-system ratification.
+  // ON_HOLD was sanctioned by the migration plan, but note it is no less an
+  // addition than RESOLVED: the DS has no equivalent concept for either.
   ON_HOLD: "attention",
-  // TicketStatus.RESOLVED has no DS twin — the DS's ticket vocabulary is
-  // open/in_progress/closed. It is mapped to the same tone as `closed`
-  // because both are terminal positive outcomes; a grey "resolved" badge
-  // would read as "nothing happened".
+  // TicketStatus.RESOLVED has no DS twin — the DS's ticket vocabulary is a
+  // three-state model (open/in_progress/closed) and this app's is four-state.
+  // Mapped to `closed`'s tone because both are terminal positive outcomes and
+  // a grey "resolved" badge next to a green "closed" one reads as "nothing
+  // happened". This IS inference, not restatement: it is the weakest entry in
+  // this file, and it collapses two states the schema keeps distinct — the
+  // same distinctness argument that keeps REFUNDED apart from CANCELLED.
+  // RAISE WITH THE DESIGN SYSTEM alongside ASSIGNED.
   RESOLVED: "success",
   // NOT MAPPED, deliberately: FulfillmentStatus.ASSIGNED. The DS has no
   // equivalent concept (assigned to a warehouse, not yet in production) and

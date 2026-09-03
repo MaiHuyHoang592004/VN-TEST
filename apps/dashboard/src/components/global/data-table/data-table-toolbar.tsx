@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { SearchField } from "@/components/ds";
 
 /**
  * Search + filters + bulk actions above a table.
@@ -59,19 +59,18 @@ export function DataTableToolbar({
   }, [draft, search, onSearchChange]);
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div
+      data-slot="data-table-toolbar"
+      className="flex flex-col gap-3 rounded-(--radius-card) bg-(--surface-shell) p-3 sm:flex-row sm:items-center sm:justify-between"
+    >
       <div className="flex flex-1 flex-wrap items-center gap-2">
         {onSearchChange && (
-          <div className="relative w-full sm:max-w-xs">
-            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-            <Input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder={searchPlaceholder}
-              className="pl-8"
-              aria-label={searchPlaceholder}
-            />
-          </div>
+          <SearchField
+            value={draft}
+            onChange={setDraft}
+            placeholder={searchPlaceholder}
+            className="w-full sm:max-w-xs"
+          />
         )}
 
         {selectedCount > 0 && bulkActions ? bulkActions : filters}

@@ -8,8 +8,10 @@
  *
  * Pages import from "@/components/ds", never from a file inside it.
  */
+export { FilterChip, type FilterChipProps } from "./filter-chip";
 export { KeyValueRow, type KeyValueRowProps } from "./key-value-row";
 export { MetricCard, type MetricCardProps } from "./metric-card";
+export { SearchField, type SearchFieldProps } from "./search-field";
 export { SectionHeading, type SectionHeadingProps } from "./section-heading";
 export { StatusBadge, type StatusBadgeProps } from "./status-badge";
 export { STATUS_TONES, toneFor, type StatusTone } from "./status-tones";

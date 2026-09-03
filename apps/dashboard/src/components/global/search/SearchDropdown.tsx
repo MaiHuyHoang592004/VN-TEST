@@ -51,8 +51,8 @@ export function SearchDropdown({
   // Styling based on variant — Vercel panel: popover tokens, blue-tinted glow, entrance animation
   const containerClass =
     variant === "modal"
-      ? "text-foreground bg-popover border-border shadow-ds-4 animate-in fade-in slide-in-from-top-2 absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-lg border duration-200"
-      : `text-foreground bg-popover border-border shadow-ds-4 animate-in fade-in slide-in-from-top-2 absolute top-full z-50 mt-2 overflow-hidden rounded-lg border duration-200 ${anchor === "left" ? "left-0 w-full sm:w-96" : "right-0 w-full sm:w-96"}`;
+      ? "animate-in fade-in slide-in-from-top-2 absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-(--radius-card) border border-(--border-hairline) bg-(--surface-raised) text-(--text-body) shadow-(--shadow-md) duration-200"
+      : `animate-in fade-in slide-in-from-top-2 absolute top-full z-50 mt-2 overflow-hidden rounded-(--radius-card) border border-(--border-hairline) bg-(--surface-raised) text-(--text-body) shadow-(--shadow-md) duration-200 ${anchor === "left" ? "left-0 w-full sm:w-96" : "right-0 w-full sm:w-96"}`;
 
   const listClass = variant === "modal" ? "max-h-[400px]" : "max-h-[300px]";
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -128,7 +128,7 @@ export function SearchDropdown({
       onTouchMove={(e) => e.stopPropagation()}
     >
       <Command
-        className="bg-popover border-0"
+        className="border-0 bg-(--surface-raised)"
         shouldFilter={false}
         loop={false}
       >

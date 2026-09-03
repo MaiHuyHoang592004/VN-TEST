@@ -72,13 +72,13 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     // Modal variant (landing page) — Vercel focus treatment: blue border + ring + soft glow
     if (variant === "modal") {
       return (
-        <div className="border-border hover:border-foreground/30 focus-within:border-action-500/60 focus-within:ring-2 focus-within:ring-action-500/20 focus-within:shadow-lg focus-within:shadow-action-500/10 bg-background relative flex h-12 items-center gap-3 rounded-lg border px-4 transition-all sm:h-14 sm:px-6">
-          <SearchIcon className="text-muted-foreground h-5 w-5 shrink-0" />
+        <div className="relative flex h-12 items-center gap-3 rounded-(--radius-card) border border-(--border-soft) bg-(--surface-inset) px-4 transition-[background-color,border-color,box-shadow] duration-(--dur-fast) ease-(--ease-out) hover:border-(--border-strong) focus-within:border-(--border-focus) focus-within:shadow-(--shadow-focus) motion-reduce:transition-none sm:h-14 sm:px-6">
+          <SearchIcon className="h-5 w-5 shrink-0 text-(--text-muted)" />
           <input
             ref={ref}
             type="text"
             placeholder={placeholder}
-            className="text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-base outline-none"
+            className="flex-1 bg-transparent font-sans text-(length:--fs-body-lg) text-(--text-body) outline-none placeholder:text-(--text-muted)"
             style={inputStyle}
             value={value}
             onChange={handleChange}
@@ -89,7 +89,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
             spellCheck={false}
           />
           {showLoading && (
-            <div className="text-muted-foreground h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent text-(--text-muted)" />
           )}
         </div>
       );
@@ -100,16 +100,16 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     // as THE focus treatment, and controls are rounded-sm at every size.
     return (
       <div
-        className={`border-border hover:border-foreground/30 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background bg-background relative inline-flex items-center gap-2 rounded-sm border px-3 text-sm transition-all ${mobileExpanded ? "h-10 w-full" : fullWidth ? "h-9 w-full" : "h-9 w-full sm:w-72"}`}
+        className={`relative inline-flex items-center gap-2 rounded-(--radius-control) border border-(--border-soft) bg-(--surface-inset) px-3 font-sans text-(length:--fs-body) transition-[background-color,border-color,box-shadow] duration-(--dur-fast) ease-(--ease-out) hover:border-(--border-strong) focus-within:border-(--border-focus) focus-within:shadow-(--shadow-focus) motion-reduce:transition-none ${mobileExpanded ? "h-(--control-height) w-full" : fullWidth ? "h-(--control-height) w-full" : "h-(--control-height) w-full sm:w-72"}`}
       >
         <SearchIcon
-          className={`text-muted-foreground shrink-0 ${mobileExpanded ? "h-5 w-5" : "h-4 w-4"}`}
+          className={`shrink-0 text-(--text-muted) ${mobileExpanded ? "h-5 w-5" : "h-4 w-4"}`}
         />
         <input
           ref={ref}
           type="text"
           placeholder={placeholder}
-          className="text-foreground placeholder:text-muted-foreground m-0 w-full min-w-0 flex-1 bg-transparent outline-none placeholder:truncate"
+          className="m-0 w-full min-w-0 flex-1 bg-transparent text-(--text-body) outline-none placeholder:truncate placeholder:text-(--text-muted)"
           style={inputStyle}
           value={value}
           onChange={handleChange}
@@ -120,7 +120,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           spellCheck={false}
         />
         {showLoading && (
-          <div className="text-muted-foreground h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent text-(--text-muted)" />
         )}
         {mobileExpanded ? (
           <button
@@ -128,7 +128,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
               onChange("");
               onMobileClose?.();
             }}
-            className="text-muted-foreground hover:text-foreground flex items-center justify-center"
+            className="flex items-center justify-center text-(--text-muted) transition-colors duration-(--dur-fast) hover:text-(--text-body) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             aria-label="Close search"
           >
             <svg
@@ -149,10 +149,10 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
           </button>
         ) : (
           <div className={`pointer-events-none items-center gap-1 select-none ${fullWidth ? "flex" : "hidden sm:flex"}`}>
-            <kbd className="text-muted-foreground border-border inline-flex h-5 w-fit min-w-5 shrink-0 items-center justify-center rounded-[4px] border bg-transparent px-1 font-sans text-xs font-medium">
+            <kbd className="inline-flex h-5 w-fit min-w-5 shrink-0 items-center justify-center rounded-(--radius-xs) border border-(--border-soft) bg-transparent px-1 font-sans text-(length:--fs-micro) font-semibold text-(--text-muted)">
               ⌘
             </kbd>
-            <kbd className="text-muted-foreground border-border inline-flex h-5 w-fit min-w-5 shrink-0 items-center justify-center rounded-[4px] border bg-transparent px-1 font-sans text-xs font-medium">
+            <kbd className="inline-flex h-5 w-fit min-w-5 shrink-0 items-center justify-center rounded-(--radius-xs) border border-(--border-soft) bg-transparent px-1 font-sans text-(length:--fs-micro) font-semibold text-(--text-muted)">
               K
             </kbd>
           </div>

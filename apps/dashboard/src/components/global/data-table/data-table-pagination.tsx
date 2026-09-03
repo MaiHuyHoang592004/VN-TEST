@@ -43,7 +43,7 @@ export function DataTablePagination({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-muted-foreground text-sm">
+      <p className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">
         {selectedCount > 0
           ? `${selectedCount} selected`
           : total === 0
@@ -57,7 +57,11 @@ export function DataTablePagination({
             value={String(pageSize)}
             onValueChange={(v) => v && onPageSizeChange(Number(v))}
           >
-            <SelectTrigger size="sm" className="w-[4.5rem]" aria-label="Rows per page">
+            {/* 40px, matching the two arrow buttons beside it and the
+                SearchField in the toolbar above — one --control-height rung
+                across the whole table chrome. `size` stays explicit so the
+                prop keeps emitting a real data-size. */}
+            <SelectTrigger size="default" className="w-[4.5rem]" aria-label="Rows per page">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -70,7 +74,7 @@ export function DataTablePagination({
           </Select>
         )}
 
-        <span className="text-muted-foreground px-1 text-sm whitespace-nowrap">
+        <span className="px-1 font-mono text-(length:--fs-body-sm) whitespace-nowrap text-(--text-body)">
           {page} / {pageCount}
         </span>
 

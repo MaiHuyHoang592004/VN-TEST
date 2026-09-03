@@ -48,7 +48,16 @@ function PaginationLink({
     <Button
       variant={isActive ? "outline" : "ghost"}
       size={size}
-      className={cn(className)}
+      // GWP: page links are pills, and the current page is Action Blue ink on
+      // a white pill — never a grey fill. `data-highlighted` is the Base UI
+      // keyboard-cursor state and gets the same pale-sky wash as every other
+      // list item in the system.
+      className={cn(
+        "rounded-(--radius-pill) font-mono tracking-(--ls-mono)",
+        "data-highlighted:bg-sky-100 data-highlighted:text-navy-700",
+        "aria-[current=page]:text-action-600",
+        className
+      )}
       nativeButton={false}
       render={
         <a
@@ -107,7 +116,7 @@ function PaginationEllipsis({
       aria-hidden
       data-slot="pagination-ellipsis"
       className={cn(
-        "flex size-8 items-center justify-center [&_svg:not([class*='size-'])]:size-4",
+        "flex size-8 items-center justify-center text-(--text-muted) [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

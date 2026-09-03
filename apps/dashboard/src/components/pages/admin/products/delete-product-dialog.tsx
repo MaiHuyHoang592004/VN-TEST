@@ -17,19 +17,19 @@ import type { ProductRow } from "./product-dialog";
 type Usage = { skus: number; orders: number; allowedUsers: number; canDelete: boolean };
 
 /**
- * Delete, or archive when the variant is in use.
+ * Delete, or archive when the product is in use.
  *
- * Asks the server what references the variant BEFORE offering delete, and
+ * Asks the server what references the product BEFORE offering delete, and
  * switches itself to "Archive" when the answer isn't zero — showing the counts,
- * so the refusal is explained rather than merely enforced. A variant with
+ * so the refusal is explained rather than merely enforced. A product with
  * orders behind it must keep resolving its name on those orders forever.
  */
 export function DeleteProductDialog({
-  variant,
+  product,
   open,
   onOpenChange,
 }: {
-  variant: ProductRow;
+  product: ProductRow;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -40,21 +40,21 @@ export function DeleteProductDialog({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    getProductUsageAction(variant.id).then((u) => {
+    getProductUsageAction(product.id).then((u) => {
       if (!cancelled) setUsage(u as Usage);
     });
     return () => {
       cancelled = true;
     };
-  }, [open, variant.id]);
+  }, [open, product.id]);
 
   const canDelete = usage?.canDelete ?? false;
 
   const { submit, pending, formError } = useFormAction({
     action: () =>
       canDelete
-        ? deleteProductAction(variant.id)
-        : setProductStatusAction(variant.id, "ARCHIVED"),
+        ? deleteProductAction(product.id)
+        : setProductStatusAction(product.id, "ARCHIVED"),
     successMessage: t(canDelete ? "catalog.products.delDeleted" : "catalog.products.delArchived"),
     errorMessages: { "in-use": t("catalog.products.delInUse") },
     onSuccess: () => {
@@ -76,7 +76,7 @@ export function DeleteProductDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={t(canDelete ? "catalog.products.delTitle" : "catalog.products.delArchiveTitle")}
-      description={`${variant.name} — ${variant.key}`}
+      description={`${product.name} — ${product.key}`}
       submitLabel={t(canDelete ? "admin.actions.delete" : "catalog.products.archive")}
       destructive
       pending={pending || !usage}

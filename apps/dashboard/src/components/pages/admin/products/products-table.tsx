@@ -209,11 +209,11 @@ export function ProductsTable({ rows, total }: { rows: ProductRow[]; total: numb
 
       {creating && <ProductDialog open onOpenChange={(o) => !o && setCreating(false)} />}
       {editing && (
-        <ProductDialog variant={editing} open onOpenChange={(o) => !o && setEditing(null)} />
+        <ProductDialog product={editing} open onOpenChange={(o) => !o && setEditing(null)} />
       )}
       {deleting && (
         <DeleteProductDialog
-          variant={deleting}
+          product={deleting}
           open
           onOpenChange={(o) => !o && setDeleting(null)}
         />

@@ -37,7 +37,7 @@ import { DeleteVariantDialog } from "./delete-variant-dialog";
 const STATUSES = ["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const;
 
 /**
- * The smallest screen in the phase — a product is just a name, a key and a
+ * The smallest screen in the phase — a variant is just a name, a key and a
  * status. Same shape as products deliberately: two near-identical tables are
  * easier to work on than one abstraction covering both, because the next
  * row either page needs will not be needed by the other.
@@ -73,7 +73,7 @@ export function VariantsTable({ rows, total }: { rows: VariantRow[]; total: numb
       id: "skus",
       header: t("catalog.variants.colSkus"),
       className: "text-right tabular-nums",
-      // Not a link, unlike the products table: a product spans many products,
+      // Not a link, unlike the products table: a variant spans many products,
       // so there is no single page to send someone to.
       cell: (v) => <span className="text-muted-foreground">{v.skus}</span>,
     },
@@ -183,11 +183,11 @@ export function VariantsTable({ rows, total }: { rows: VariantRow[]; total: numb
 
       {creating && <VariantDialog open onOpenChange={(o) => !o && setCreating(false)} />}
       {editing && (
-        <VariantDialog product={editing} open onOpenChange={(o) => !o && setEditing(null)} />
+        <VariantDialog variant={editing} open onOpenChange={(o) => !o && setEditing(null)} />
       )}
       {deleting && (
         <DeleteVariantDialog
-          product={deleting}
+          variant={deleting}
           open
           onOpenChange={(o) => !o && setDeleting(null)}
         />

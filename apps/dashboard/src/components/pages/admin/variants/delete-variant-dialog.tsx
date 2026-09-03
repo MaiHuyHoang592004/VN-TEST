@@ -16,13 +16,13 @@ import type { VariantRow } from "./variant-dialog";
 
 type Usage = { skus: number; orders: number; canDelete: boolean };
 
-/** Delete, or archive when SKUs or orders still point at the product. */
+/** Delete, or archive when SKUs or orders still point at the variant. */
 export function DeleteVariantDialog({
-  product,
+  variant,
   open,
   onOpenChange,
 }: {
-  product: VariantRow;
+  variant: VariantRow;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -33,21 +33,21 @@ export function DeleteVariantDialog({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    getVariantUsageAction(product.id).then((u) => {
+    getVariantUsageAction(variant.id).then((u) => {
       if (!cancelled) setUsage(u as Usage);
     });
     return () => {
       cancelled = true;
     };
-  }, [open, product.id]);
+  }, [open, variant.id]);
 
   const canDelete = usage?.canDelete ?? false;
 
   const { submit, pending, formError } = useFormAction({
     action: () =>
       canDelete
-        ? deleteVariantAction(product.id)
-        : setVariantStatusAction(product.id, "ARCHIVED"),
+        ? deleteVariantAction(variant.id)
+        : setVariantStatusAction(variant.id, "ARCHIVED"),
     successMessage: t(canDelete ? "catalog.variants.delDeleted" : "catalog.variants.delArchived"),
     errorMessages: { "in-use": t("catalog.variants.delInUse") },
     onSuccess: () => {
@@ -68,7 +68,7 @@ export function DeleteVariantDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={t(canDelete ? "catalog.variants.delTitle" : "catalog.variants.delArchiveTitle")}
-      description={`${product.name} — ${product.key}`}
+      description={`${variant.name} — ${variant.key}`}
       submitLabel={t(canDelete ? "admin.actions.delete" : "catalog.products.archive")}
       destructive
       pending={pending || !usage}

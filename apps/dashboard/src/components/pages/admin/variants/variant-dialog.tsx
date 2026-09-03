@@ -37,28 +37,28 @@ const slugify = (name: string) =>
     .slice(0, 64);
 
 export function VariantDialog({
-  product,
+  variant,
   open,
   onOpenChange,
 }: {
   /** Omit to create. */
-  product?: VariantRow;
+  variant?: VariantRow;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
   const { t } = useTranslation();
   const [values, setValues] = useState(
-    product ? { name: product.name, key: product.key, status: product.status } : EMPTY,
+    variant ? { name: variant.name, key: variant.key, status: variant.status } : EMPTY,
   );
-  const [keyTouched, setKeyTouched] = useState(Boolean(product));
+  const [keyTouched, setKeyTouched] = useState(Boolean(variant));
 
   const set = (k: keyof typeof EMPTY, v: string) => setValues((s) => ({ ...s, [k]: v }));
 
   const { submit, pending, formError, fieldErrors } = useFormAction({
     action: (input: typeof EMPTY) =>
-      product ? updateVariantAction(product.id, input) : createVariantAction(input),
-    successMessage: t(product ? "catalog.variants.updated" : "catalog.variants.created"),
+      variant ? updateVariantAction(variant.id, input) : createVariantAction(input),
+    successMessage: t(variant ? "catalog.variants.updated" : "catalog.variants.created"),
     errorMessages: { "key-taken": t("catalog.variants.errKeyTaken") },
     onSuccess: () => {
       onOpenChange(false);
@@ -70,7 +70,7 @@ export function VariantDialog({
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t(product ? "catalog.variants.dialogEditTitle" : "catalog.variants.dialogNewTitle")}
+      title={t(variant ? "catalog.variants.dialogEditTitle" : "catalog.variants.dialogNewTitle")}
       description={t("catalog.variants.dialogDesc")}
       pending={pending}
       submitDisabled={!values.name.trim() || !values.key.trim()}
@@ -94,7 +94,7 @@ export function VariantDialog({
       <FormField
         label={t("catalog.variants.fKey")}
         required
-        hint={t(product ? "catalog.variants.fKeyHintLocked" : "catalog.variants.fKeyHint")}
+        hint={t(variant ? "catalog.variants.fKeyHintLocked" : "catalog.variants.fKeyHint")}
         error={fieldErrors.key}
       >
         {(props) => (

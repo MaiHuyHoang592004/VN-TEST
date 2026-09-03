@@ -41,37 +41,37 @@ const slugify = (name: string) =>
     .slice(0, 64);
 
 export function ProductDialog({
-  variant,
+  product,
   open,
   onOpenChange,
 }: {
   /** Omit to create. */
-  variant?: ProductRow;
+  product?: ProductRow;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
   const { t } = useTranslation();
   const [values, setValues] = useState(
-    variant
+    product
       ? {
-          name: variant.name,
-          key: variant.key,
-          thumbnail: variant.thumbnail ?? "",
-          status: variant.status,
+          name: product.name,
+          key: product.key,
+          thumbnail: product.thumbnail ?? "",
+          status: product.status,
         }
       : EMPTY,
   );
   // Stop auto-filling the key the moment someone types their own, so their
   // edit isn't overwritten by the next keystroke in the name field.
-  const [keyTouched, setKeyTouched] = useState(Boolean(variant));
+  const [keyTouched, setKeyTouched] = useState(Boolean(product));
 
   const set = (k: keyof typeof EMPTY, v: string) => setValues((s) => ({ ...s, [k]: v }));
 
   const { submit, pending, formError, fieldErrors } = useFormAction({
     action: (input: typeof EMPTY) =>
-      variant ? updateProductAction(variant.id, input) : createProductAction(input),
-    successMessage: t(variant ? "catalog.products.updated" : "catalog.products.created"),
+      product ? updateProductAction(product.id, input) : createProductAction(input),
+    successMessage: t(product ? "catalog.products.updated" : "catalog.products.created"),
     errorMessages: { "key-taken": t("catalog.products.errKeyTaken") },
     onSuccess: () => {
       onOpenChange(false);
@@ -83,7 +83,7 @@ export function ProductDialog({
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t(variant ? "catalog.products.dialogEditTitle" : "catalog.products.dialogNewTitle")}
+      title={t(product ? "catalog.products.dialogEditTitle" : "catalog.products.dialogNewTitle")}
       description={t("catalog.products.dialogDesc")}
       pending={pending}
       submitDisabled={!values.name.trim() || !values.key.trim()}
@@ -111,7 +111,7 @@ export function ProductDialog({
       <FormField
         label={t("catalog.products.fKey")}
         required
-        hint={t(variant ? "catalog.products.fKeyHintLocked" : "catalog.products.fKeyHint")}
+        hint={t(product ? "catalog.products.fKeyHintLocked" : "catalog.products.fKeyHint")}
         error={fieldErrors.key}
       >
         {(props) => (

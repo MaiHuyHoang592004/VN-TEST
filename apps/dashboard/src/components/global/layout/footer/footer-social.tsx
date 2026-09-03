@@ -67,7 +67,7 @@ const SOCIAL_LINKS: SocialLink[] = [
   { label: "Reddit", href: "https://reddit.com/r/opcreative", Icon: SiReddit, brand: "#FF4500" },
   { label: "Discord", href: "https://discord.gg/opcreative", Icon: SiDiscord, brand: "#5865F2" },
   { label: "LinkedIn", href: "https://linkedin.com/company/opcreative", Icon: LinkedInIcon, brand: "#0A66C2" },
-  { label: "Email", href: "mailto:support@opcreative.com", Icon: Mail, brand: "var(--vercel-blue)" },
+  { label: "Email", href: "mailto:support@opcreative.com", Icon: Mail, brand: "var(--action-500)" },
 ];
 
 export function FooterSocial() {

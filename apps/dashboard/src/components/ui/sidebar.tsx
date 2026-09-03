@@ -381,7 +381,7 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
         // Setting scrollbar-color opts out of the OS overlay scrollbar, which
         // hides itself until you scroll and fattens on hover. Thin, always
         // there, transparent track (Tailwind defaults it to #0000).
-        "scrollbar-thin scrollbar-thumb-gray-alpha-500 flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "scrollbar-thin scrollbar-thumb-(--border-strong) flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
         className
       )}
       {...props}

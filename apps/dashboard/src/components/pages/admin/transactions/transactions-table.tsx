@@ -108,7 +108,7 @@ export function TransactionsTable({
         return (
           <span
             className={`font-mono text-sm font-medium ${
-              negative ? "text-destructive" : "text-vercel-green"
+              negative ? "text-destructive" : "text-green-600"
             }`}
           >
             {negative ? "" : "+"}${r.amount.replace("-", "")}

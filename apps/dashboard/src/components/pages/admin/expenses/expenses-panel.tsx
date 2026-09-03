@@ -182,7 +182,7 @@ function EntriesTab({
       cell: (e) => (
         <span
           className={`font-mono text-sm font-medium ${
-            e.type === "INCOME" ? "text-vercel-green" : "text-destructive"
+            e.type === "INCOME" ? "text-green-600" : "text-destructive"
           }`}
         >
           {e.type === "INCOME" ? "+" : "−"}

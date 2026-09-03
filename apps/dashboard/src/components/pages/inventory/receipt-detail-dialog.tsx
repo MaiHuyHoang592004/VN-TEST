@@ -99,7 +99,7 @@ export function ReceiptDetailDialog({
               <span className="text-muted-foreground text-sm">{receipt.provider}</span>
             )}
             {receipt.rejectReason && (
-              <span className="text-vercel-red text-sm">{receipt.rejectReason}</span>
+              <span className="text-red-600 text-sm">{receipt.rejectReason}</span>
             )}
           </div>
 

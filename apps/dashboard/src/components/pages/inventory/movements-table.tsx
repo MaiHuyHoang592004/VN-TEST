@@ -104,7 +104,7 @@ export function MovementsTable({
         <span
           className={cn(
             "font-medium",
-            m.quantity < 0 ? "text-vercel-red" : "text-vercel-green",
+            m.quantity < 0 ? "text-red-600" : "text-green-600",
           )}
         >
           {m.quantity > 0 ? `+${m.quantity}` : m.quantity}

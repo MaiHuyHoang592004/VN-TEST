@@ -165,7 +165,7 @@ function TeamSwitcher() {
           <button className="border-border hover:bg-accent/50 flex w-full items-center gap-2 rounded-lg border p-2 text-left transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1" />
         }
       >
-        <span className="from-vercel-blue to-vercel-pink flex size-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-xs font-semibold text-white">
+        <span className="from-action-500 to-orange-500 flex size-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-xs font-semibold text-white">
           {team.name[0]}
         </span>
         <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
@@ -185,12 +185,12 @@ function TeamSwitcher() {
         <DropdownMenuGroup>
           {TEAMS.map(({ id, name, plan }) => (
             <DropdownMenuItem key={id} onClick={() => setTeamId(id)}>
-              <span className="from-vercel-blue to-vercel-pink mr-1 flex size-5 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-white">
+              <span className="from-action-500 to-orange-500 mr-1 flex size-5 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-white">
                 {name[0]}
               </span>
               <span className="flex-1 truncate">{name}</span>
               <span className="text-muted-foreground text-xs">{plan}</span>
-              {id === teamId && <Check className="stroke-vercel-blue size-4" />}
+              {id === teamId && <Check className="stroke-action-500 size-4" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>

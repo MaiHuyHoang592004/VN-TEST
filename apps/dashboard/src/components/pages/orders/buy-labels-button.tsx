@@ -121,7 +121,7 @@ export function BuyLabelsButton({ orderIds, onDone }: { orderIds: number[]; onDo
                         {g.to ? `${g.to.name} · ${g.to.city} ${g.to.zip}` : t("orders.labels.noAddress")}
                       </span>
                       {g.willPurchase ? (
-                        <Badge className="bg-vercel-green/15 text-vercel-green">
+                        <Badge className="bg-green-600/15 text-green-600">
                           {t("orders.labels.willBuy")}
                         </Badge>
                       ) : (

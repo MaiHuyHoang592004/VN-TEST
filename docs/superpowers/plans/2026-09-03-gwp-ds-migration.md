@@ -35,7 +35,7 @@ Every task's requirements implicitly include this section.
 
 - **Never edit anything under `src/modules/`.** That is the business layer (queries, server actions, guards). Out of scope for all 27 tasks.
 - **Never edit** `src/hooks/use-permissions.ts`, `src/components/global/permission-gate/can.tsx`, `libs/shared/src/access/*`, any `zod` schema, or any `src/app/**/page.tsx` data-fetching body. A Layer 4 task may change a page's returned JSX wrapper (container / header / toolbar) only — never its `await`s, its `searchParams` parsing, or its props construction.
-- **Keep every export name and prop name.** This shadcn build names the variant prop **`product`**, not `variant` (see `src/components/ui/button.tsx`). Do not "fix" it — 68 files pass `product="outline"`. Add new variant *values*; never rename the prop.
+- **Keep every export name and prop name**, with ONE documented exception. The UI kit's variant prop was called `product` because the upstream mangle renamed it (`product`↔`variant` was one of the four swapped pairs); Task 0b restores it to shadcn's real name, `variant`, across 27 components, 14 `data-variant` attributes and ~132 call sites. From Task 1 onward the prop is **`variant`**. Add new variant *values*; never rename the prop again.
 - **Base UI, not Radix.** Compose with `render={<El />}`, never `asChild`. Non-button renders on `Button` need `nativeButton={false}`. Menu item hover/keyboard state is `data-highlighted`. No `!important`, ever.
 - **Port, don't import.** The DS `.jsx` files run only inside the design sandbox (`_ds_bundle.js`) and use inline styles. Port their markup, token values and prop contracts into Tailwind classes on our own components. Never add the DS as a dependency; never copy a `.jsx` file into `src/`.
 - **No new colours.** Every colour comes from `docs/design-system/gwp.theme.css`. A hex literal in a component is a task failure.
@@ -145,7 +145,7 @@ This table is the contract for Layers 1–2. Files under `src/components/ui/` ar
 | `global/data-table/data-table-pagination.tsx` | `navigation/Pagination.jsx` | reskin in place, keep props | 11 |
 | `global/form/form-dialog.tsx`, `responsive-dialog.tsx` | `feedback/Modal.jsx`, `feedback/Drawer.jsx` | reskin in place; `use-form-action.ts` untouched | 12 |
 | KPI tiles: `pages/inventory/stat-tiles.tsx`, `pages/home/*` | `components/data/MetricCard.jsx` | new `ds/metric-card.tsx`; adopted in Layer 4 | 9, 19, 23 |
-| Status rendering (`<Badge product={statusVariant(o.status)}>`) | `core/StatusBadge` + `STATUS_TONES` | new `ds/status-badge.tsx` + `ds/status-tones.ts` | 2, 4 |
+| Status rendering (`<Badge variant={statusVariant(o.status)}>`) | `core/StatusBadge` + `STATUS_TONES` | new `ds/status-badge.tsx` + `ds/status-tones.ts` | 2, 4 |
 | `global/layout/navbar/*`, `global/layout/sidebar/app-sidebar.tsx` | `navigation/TopNav.jsx`, `Sidebar.jsx`, `AdminBar.jsx` | reskin in place; root layout drops the persistent rail | 16, 17, 18 |
 | `global/search/*` | `forms/SearchField.jsx`, `feedback/CommandPalette.jsx` | reskin; `useHybridSearch` untouched | 11 |
 | `pages/support/ticket-thread.tsx` | `feedback/TicketConversation.jsx` | reskin in place | 21 |
@@ -411,7 +411,7 @@ Replace the entire `:root { … }` block (globals.css:156-261) with the followin
 
   /* Action Blue is the ONE fill that clears 4.5:1 with white text. It is
      reserved for the single most important action in a region — the
-     `product="default"` button, and nothing else. */
+     `variant="default"` button, and nothing else. */
   --primary: var(--action-500);
   --primary-foreground: var(--text-on-action);
   --secondary: var(--sky-200);
@@ -860,12 +860,12 @@ Control heights are unchanged because GWP's ladder already matches the app's: `-
 
 **Interfaces:**
 - Consumes: the token layer from Task 1.
-- Produces: `Button` and `buttonVariants` at the same path with the same signature — `product` (not `variant`) ∈ `default | outline | secondary | ghost | destructive | link`, **plus three new values** `cream | inverse | accent` for Layer 3's shell and marketing surfaces, and a new optional `shape` ∈ `pill | rounded` defaulting to `pill`. `size` values are unchanged: `default | xs | sm | lg | icon | icon-xs | icon-sm | icon-lg`. Tasks 11, 12, 16, 17 and every Layer 4 task consume it.
+- Produces: `Button` and `buttonVariants` at the same path with the same signature — `variant` ∈ `default | outline | secondary | ghost | destructive | link`, **plus three new values** `cream | inverse | accent` for Layer 3's shell and marketing surfaces, and a new optional `shape` ∈ `pill | rounded` defaulting to `pill`. `size` values are unchanged: `default | xs | sm | lg | icon | icon-xs | icon-sm | icon-lg`. Tasks 11, 12, 16, 17 and every Layer 4 task consume it.
 
 **Two deliberate visual changes to expect and not "fix" later:**
 
 1. **Buttons become pills.** GWP buttons are soft pills by default, borderless, carried by their fill and one quiet shadow. `shape="rounded"` (10px) stays available for dense operational toolbars only.
-2. **`product="destructive"` stops being a filled red button.** The DS's `danger` variant is a white pill with `red-600` ink and a `red-200` hairline — there is no filled-red button anywhere in the system, and inventing one would breach the "no new colours / never invent" rule. Destructive actions stay unmistakable through ink and the confirm dialog they already open, not through a red slab.
+2. **`variant="destructive"` stops being a filled red button.** The DS's `danger` variant is a white pill with `red-600` ink and a `red-200` hairline — there is no filled-red button anywhere in the system, and inventing one would breach the "no new colours / never invent" rule. Destructive actions stay unmistakable through ink and the confirm dialog they already open, not through a red slab.
 
 - [ ] **Step 1: Replace the file**
 
@@ -879,15 +879,15 @@ import { cn } from "@/lib/utils"
  * The GWP button — a soft PILL by default, borderless, carried by its fill and
  * one quiet shadow. Ported from the design system's `components/core/Button`.
  *
- * Action Blue (`product="default"`) is reserved for the single most important
+ * Action Blue (`variant="default"`) is reserved for the single most important
  * action in a region: one per toolbar, one per dialog footer. Everything else
  * is `outline` (white pill, blue ink — the DS's `secondary`), `secondary`
  * (pale sky fill, navy ink — the DS's `soft`) or `ghost`.
  *
- * The prop is `product`, not `variant`, because 68 files already pass it that
- * way. Do not rename it.
+ * The prop is `variant` — shadcn's real name, restored in Task 0b after the
+ * upstream mangle had renamed it to `product`.
  *
- * `product="inverse"` is for NAVY-class grounds only — cream ink on navy-700
+ * `variant="inverse"` is for NAVY-class grounds only — cream ink on navy-700
  * clears 4.5:1. It is NOT valid on `--surface-hero-deep` (sky-600), where cream
  * is 3.65:1 and therefore large-text only; use `cream` or `outline` there.
  * `ghost` is LIGHT GROUNDS ONLY: its hover swaps in a pale sky fill, so a
@@ -913,7 +913,7 @@ const buttonVariants = cva(
   ],
   {
     variants: {
-      product: {
+      variant: {
         // Action Blue fill, white label — one per region.
         default:
           "bg-primary text-primary-foreground shadow-(--shadow-sm) hover:bg-action-600",
@@ -968,7 +968,7 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      product: "default",
+      variant: "default",
       shape: "pill",
       size: "default",
     },
@@ -977,7 +977,7 @@ const buttonVariants = cva(
 
 function Button({
   className,
-  product = "default",
+  variant = "default",
   shape = "pill",
   size = "default",
   ...props
@@ -985,7 +985,7 @@ function Button({
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ product, shape, size, className }))}
+      className={cn(buttonVariants({ variant, shape, size, className }))}
       {...props}
     />
   )
@@ -1048,7 +1048,8 @@ git commit -m "refactor(ds): GWP pill buttons
 Ports components/core/Button: pill by default, borderless, Action Blue
 reserved for one action per region, press-scale instead of the 1px nudge,
 DS focus glow. Adds cream/inverse/accent for the Layer 3 shell and a shape
-prop for dense toolbars. Prop name stays 'product' — 68 call sites use it.
+prop for dense toolbars. Uses the real shadcn prop name 'variant', restored
+in Task 0b.
 
 destructive is now the DS's danger (white pill, red ink): the system has no
 filled-red button and adding one would be a new colour.
@@ -1068,14 +1069,14 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Interfaces:**
 - Consumes: `toneFor`, `StatusTone` from `./status-tones.ts` (Task 2); `Badge` from `@/components/ui/badge`.
-- Produces: `Badge` / `badgeVariants` unchanged in signature (`product` ∈ `default | secondary | destructive | outline | ghost | link`). New: `StatusBadge` with props `{ status: string; tone?: StatusTone; dot?: boolean; size?: "sm" | "md"; pulse?: boolean; className?: string; children?: React.ReactNode }` — `children` overrides the rendered label so a caller can keep passing its own `t()`-translated string while the *colour* comes from `status`. Tasks 20–26 consume it; Task 20 deletes `orders-table.tsx`'s local `statusVariant()`.
+- Produces: `Badge` / `badgeVariants` unchanged in signature (`variant` ∈ `default | secondary | destructive | outline | ghost | link`). New: `StatusBadge` with props `{ status: string; tone?: StatusTone; dot?: boolean; size?: "sm" | "md"; pulse?: boolean; className?: string; children?: React.ReactNode }` — `children` overrides the rendered label so a caller can keep passing its own `t()`-translated string while the *colour* comes from `status`. Tasks 20–26 consume it; Task 20 deletes `orders-table.tsx`'s local `statusVariant()`.
 
 - [ ] **Step 1: Repoint the Badge variants**
 
-In `apps/dashboard/src/components/ui/badge.tsx`, replace only the `variants.product` object (keep the base string, `useRender` body and exports byte-for-byte, apart from the base string's colour-free tweaks noted below):
+In `apps/dashboard/src/components/ui/badge.tsx`, replace only the `variants.variant` object (keep the base string, `useRender` body and exports byte-for-byte, apart from the base string's colour-free tweaks noted below):
 
 ```tsx
-      product: {
+      variant: {
         // GWP badges are soft pills — a filled Action Blue chip competes with
         // the one primary button a region is allowed.
         default: "bg-navy-100 text-navy-700 [a]:hover:bg-navy-200",
@@ -1631,7 +1632,14 @@ That is a **deliberate use of the display face** — DS rule 4 permits Baloo 2 f
 
 `CardFooter`: replace `rounded-b-xl border-t bg-muted/50` with `rounded-b-(--radius-card) border-t border-(--border-hairline) bg-(--surface-content-alt)`. An opacity-tinted footer breaches the "no opacity-based de-emphasis" floor.
 
-While in this file, fix two invalid Tailwind classes that predate the migration and have never done anything: `CardAction`'s `column-span-2 column-start-1` should be `col-span-2 col-start-1`. Leave the `col-start-2` that precedes them.
+`CardAction`'s class string is **already correct** — do not touch it. It reads
+`col-start-2 row-span-2 row-start-1 self-start justify-self-end`, which is
+verbatim upstream shadcn. Task 0 restored it: the upstream mangle had written
+`column-span-2 column-start-1`, and because the swap was the whole word `row`
+↔ `column`, the pre-image is `row-span-2 row-start-1` — not `col-*`. The
+untouched `col-start-2` on the same line is the proof: `col` was never part of
+the swap. If you "fix" this to `col-span-2 col-start-1` you will put two
+contradictory `col-start-*` classes on one element.
 
 - [ ] **Step 2: Create `Surface`**
 
@@ -2443,7 +2451,7 @@ In `data-table-toolbar.tsx`, keep the entire component body above the `return` b
         {selectedCount > 0 && bulkActions ? bulkActions : filters}
 
         {hasFilters && onClearFilters && selectedCount === 0 && (
-          <Button product="ghost" size="sm" onClick={onClearFilters}>
+          <Button variant="ghost" size="sm" onClick={onClearFilters}>
             <X className="size-4" />
             Clear
           </Button>
@@ -2488,7 +2496,7 @@ The page indicator — page numbers are figures, so they take mono:
         <span className="px-1 font-mono text-(length:--fs-body-sm) whitespace-nowrap text-(--text-body)">
 ```
 
-The two arrow buttons already use `product="outline" size="icon"` and pick up GWP from Task 3. Leave them.
+The two arrow buttons already use `variant="outline" size="icon"` and pick up GWP from Task 3. Leave them.
 
 Then give `apps/dashboard/src/components/ui/pagination.tsx` the same treatment as Task 7's Group C sweep (its link items become `rounded-(--radius-pill)` with `data-highlighted`/`aria-current` states in Action Blue). It has zero call sites today, so this is future-proofing; do not spend long on it.
 
@@ -2622,7 +2630,7 @@ The drag handle on the mobile drawer becomes `bg-(--border-strong)`.
 
 These three are Group B adapters that already exist and already do the right thing structurally. Class-string changes only:
 
-- `form-dialog.tsx` — the footer's action row: the confirm button stays `product="default"` (one Action Blue per region — a dialog is a region), the cancel stays `product="ghost"`. If the file hard-codes a width like `sm:max-w-lg`, leave it: dialog sizing is layout the pages depend on.
+- `form-dialog.tsx` — the footer's action row: the confirm button stays `variant="default"` (one Action Blue per region — a dialog is a region), the cancel stays `variant="ghost"`. If the file hard-codes a width like `sm:max-w-lg`, leave it: dialog sizing is layout the pages depend on.
 - `responsive-dialog.tsx` — it switches between `Dialog` and `Drawer` at a breakpoint. Do not change the breakpoint or the switch logic; it inherits Steps 2 and 3 automatically. Verify by reading it that nothing else needs touching.
 - `form-field.tsx` — the label becomes `font-sans text-(length:--fs-body-sm) font-semibold text-(--text-body)`; the error message becomes `font-sans text-(length:--fs-meta) text-(--status-critical-fg)`; any helper text becomes `text-(--text-muted)`. Do **not** touch how it reads errors from the form state (rule 6).
 
@@ -2979,7 +2987,7 @@ export function DateRangeField({
       <PopoverTrigger
         render={
           <Button
-            product="outline"
+            variant="outline"
             shape="rounded"
             aria-label={typeof label === "string" ? label : "Date range"}
             className={cn("justify-start gap-2 font-normal", className)}
@@ -3002,7 +3010,7 @@ export function DateRangeField({
         />
         <div className="mt-2 flex justify-end gap-2 border-t border-(--border-hairline) pt-2">
           <Button
-            product="ghost"
+            variant="ghost"
             size="sm"
             onClick={() => {
               onChange({ from: undefined, to: undefined });
@@ -3011,7 +3019,7 @@ export function DateRangeField({
           >
             Clear
           </Button>
-          <Button product="default" size="sm" onClick={() => setOpen(false)}>
+          <Button variant="default" size="sm" onClick={() => setOpen(false)}>
             Done
           </Button>
         </div>
@@ -3687,7 +3695,7 @@ The signed-out nav links currently use an animated underline (`after:w-0 hover:a
 "inline-flex h-9 items-center rounded-(--radius-pill) px-3 font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none aria-[current=page]:bg-sky-200 aria-[current=page]:text-navy-700"
 ```
 
-The signed-out "Login" and "Signup" links become real `Button`s so the nav has exactly one Action Blue element: `<Button product="ghost" size="sm" render={<Link href="/" />} nativeButton={false}>` for login and `<Button product="default" size="sm" render={<Link href="/?signup=1" />} nativeButton={false}>` for signup. The `nativeButton={false}` is required when rendering a non-button on `Button` in this Base UI build — omitting it is the documented trap.
+The signed-out "Login" and "Signup" links become real `Button`s so the nav has exactly one Action Blue element: `<Button variant="ghost" size="sm" render={<Link href="/" />} nativeButton={false}>` for login and `<Button variant="default" size="sm" render={<Link href="/?signup=1" />} nativeButton={false}>` for signup. The `nativeButton={false}` is required when rendering a non-button on `Button` in this Base UI build — omitting it is the documented trap.
 
 - [ ] **Step 4: `NavTabs` becomes the DS `TabBar`**
 
@@ -3922,7 +3930,7 @@ If it does not, **do not add middleware for this** — a middleware file changes
 
 - `station.tsx`, `quick-scan.tsx` — wrap the workstation in `<Surface level="data">`; the scan target sits on `--surface-inset`; the primary scan action is the one Action Blue button, at `size="lg"` (48px) because it is hit with a glove or a scanner trigger.
 - `scan-input.tsx` — the field is `size="lg"`, `font-mono` (it receives barcodes and order IDs), and keeps its autofocus and its keyboard handling exactly as they are.
-- `station-actions.tsx` — actions are `size="lg"`; destructive ones use `product="destructive"` (white pill, red ink) so a mis-hit at speed is not a filled red target next to a filled blue one.
+- `station-actions.tsx` — actions are `size="lg"`; destructive ones use `variant="destructive"` (white pill, red ink) so a mis-hit at speed is not a filled red target next to a filled blue one.
 - `group-summary.tsx`, `order-card-grid.tsx` — cards become `<Surface level="data">`; order IDs and SKUs `font-mono`; every status is a `<StatusBadge>` (Task 4) rather than coloured text or a hand-picked badge variant.
 - `camera-panel.tsx` — the viewport keeps its aspect ratio and its stream logic; only the frame becomes `rounded-(--radius-card) border border-(--border-soft)`.
 
@@ -4099,7 +4107,7 @@ Wrap each `recharts` chart in `<ChartFrame title={…} height={…}>`, deleting 
 
 - [ ] **Step 5: Sections get `SectionHeading`**
 
-Each block below the KPI row ("Recent orders", "Production status") takes `<SectionHeading title={t(…)} action={…}>` inside a `<PageSection>`. The `action` slot is where a "View all" link goes — as `product="link"`, not a second Action Blue button.
+Each block below the KPI row ("Recent orders", "Production status") takes `<SectionHeading title={t(…)} action={…}>` inside a `<PageSection>`. The `action` slot is where a "View all" link goes — as `variant="link"`, not a second Action Blue button.
 
 - [ ] **Step 6: Verify lint, build, adherence**
 
@@ -4279,7 +4287,7 @@ Replace only the returned `<main>`. The entire body above `return` — `searchPa
 `orders-table.tsx` line ~227 renders:
 
 ```tsx
-<Badge product={statusVariant(o.status)}>{t(`orders.statuses.${o.status}`)}</Badge>
+<Badge variant={statusVariant(o.status)}>{t(`orders.statuses.${o.status}`)}</Badge>
 ```
 
 That local `statusVariant` helper is exactly the drift the DS's `STATUS_TONES` exists to end. Replace with:
@@ -4330,11 +4338,11 @@ Do **not** change how any of these values are produced. `baseCost` arrives as an
 
 - [ ] **Step 7: Row actions become ghost icon buttons in the last column**
 
-The DS: *"Row actions are ghost IconButtons in the last column."* Lines ~287-310 already render `Button`s in a row-action cell; give them `product="ghost" size="icon-sm"` and an `aria-label`, and keep every `onClick` and its `e.stopPropagation()` exactly as written — the `stopPropagation` is what stops a row action also firing the row click.
+The DS: *"Row actions are ghost IconButtons in the last column."* Lines ~287-310 already render `Button`s in a row-action cell; give them `variant="ghost" size="icon-sm"` and an `aria-label`, and keep every `onClick` and its `e.stopPropagation()` exactly as written — the `stopPropagation` is what stops a row action also firing the row click.
 
 - [ ] **Step 8: The six dialogs — layout only**
 
-`order-dialog`, `import-dialog`, `assign-dialog`, `artwork-dialog`, `refund-dialog`, `delete-orders-dialog` all render through the Task 12 primitives, so they are already reskinned. Touch them only to: group related fields into `<PageSection>`-style stacks with a consistent `gap-4`, put money and IDs in `font-mono`, and ensure each footer has exactly one `product="default"` button. **No field, no validation, no submit handler and no schema may change** (rules 1, 6, 7).
+`order-dialog`, `import-dialog`, `assign-dialog`, `artwork-dialog`, `refund-dialog`, `delete-orders-dialog` all render through the Task 12 primitives, so they are already reskinned. Touch them only to: group related fields into `<PageSection>`-style stacks with a consistent `gap-4`, put money and IDs in `font-mono`, and ensure each footer has exactly one `variant="default"` button. **No field, no validation, no submit handler and no schema may change** (rules 1, 6, 7).
 
 `DOMAIN_RESOLVED.md` lists the order form fields and actions **per role**, read verbatim from the source. Check the dialogs against it: if a field it lists is missing, that is a finding to report — not something to add, because adding a field means inventing a payload.
 
@@ -4430,7 +4438,7 @@ Ticket status (`open` / `in_progress` / `closed`) is already in `STATUS_TONES`. 
 
 - [ ] **Step 4: `ticket-thread.tsx` becomes the `TicketConversation` look**
 
-Reskin in place: each message is a `<Surface level={isStaff ? "inset" : "data"}>` block with the author, the role label (one of the seven real roles) and a mono timestamp; the reply composer is a `Textarea` plus one `product="default"` button. Keep the send handler, the optimistic update if there is one, and the attachment upload exactly as they are. Ticket metadata (id, order reference, reason, created) goes into a `<Surface>` of `<KeyValueRow>`s beside the thread, with ids in mono.
+Reskin in place: each message is a `<Surface level={isStaff ? "inset" : "data"}>` block with the author, the role label (one of the seven real roles) and a mono timestamp; the reply composer is a `Textarea` plus one `variant="default"` button. Keep the send handler, the optimistic update if there is one, and the attachment upload exactly as they are. Ticket metadata (id, order reference, reason, created) goes into a `<Surface>` of `<KeyValueRow>`s beside the thread, with ids in mono.
 
 If the thread shape is flagged unconfirmed anywhere in the DS docs, keep the placeholder visible rather than promoting it — `CLAUDE_CODE_HANDOFF.md` lists "the ticket thread shape" among the things to leave unconfirmed.
 
@@ -4658,11 +4666,11 @@ Work them in this order, committing after every three so a bad route is easy to 
 1. Every status, state or active/inactive flag → `<StatusBadge>` (`Active` is in `STATUS_TONES`; for a boolean flag pass an explicit `tone`).
 2. Every id, code, SKU and money figure → `font-mono`; money right-aligned. Product rows → `<ProductCell>`.
 3. Row actions → ghost icon buttons in the last column, each with an `aria-label`, each keeping its `stopPropagation`.
-4. The toolbar's primary action → exactly one `product="default"` button, on the right.
+4. The toolbar's primary action → exactly one `variant="default"` button, on the right.
 
 - [ ] **Step 4: The 22 dialogs — layout only**
 
-Group fields into stacks with a uniform `gap-4`; one `product="default"` per footer; the delete confirms use `product="destructive"` (white pill, red ink). Where a dialog shows a summary before acting (`approve-dialog`, `balance-dialog`, `bulk-prices-dialog`), that summary becomes `<KeyValueRow>`s with mono figures. Where one warns (`delete-*-dialog`), the warning becomes a `<Callout tone="critical">`.
+Group fields into stacks with a uniform `gap-4`; one `variant="default"` per footer; the delete confirms use `variant="destructive"` (white pill, red ink). Where a dialog shows a summary before acting (`approve-dialog`, `balance-dialog`, `bulk-prices-dialog`), that summary becomes `<KeyValueRow>`s with mono figures. Where one warns (`delete-*-dialog`), the warning becomes a `<Callout tone="critical">`.
 
 **No field, validation rule, schema or submit handler changes.** Check each dialog's fields against `docs/design-system/DOMAIN_RESOLVED.md` and `types/domain.d.ts`: report a mismatch, never reconcile it by adding a field. `BACKEND_GAPS.md` §E lists models left as placeholders — a dialog for one of those keeps its placeholder.
 
@@ -4752,7 +4760,7 @@ The wallet is money, so it is the strictest surface in the app for DS rule 4: **
 
 - `notifications-list.tsx` — each row a `<Surface level="data">`; unread marked with an `--status-attention-dot`, not a background tint; timestamps in body type; type icons in the tone's stroke colour. Keep every mark-read handler.
 - `accept-invite.tsx` — a single centred `<Surface level="data">` on the sky ground, with `GwpMark` above it.
-- `login-screen.tsx` — the app's front door and its second brand moment. `SystemAuth.html` in the DS is the reference. Sky ground, a centred white or cream card, `GwpMark` above the form, one `CraftCut` in the composition, and the three sign-ins each as a clearly separate action: email+password as the `product="default"` submit, Google as `product="outline"` with its existing `google-icon.tsx`, and the OTP path as `product="link"`. `password-input.tsx` keeps its reveal toggle; `input-otp` keeps its slot behaviour. **`auth-actions.ts` is not touched.**
+- `login-screen.tsx` — the app's front door and its second brand moment. `SystemAuth.html` in the DS is the reference. Sky ground, a centred white or cream card, `GwpMark` above the form, one `CraftCut` in the composition, and the three sign-ins each as a clearly separate action: email+password as the `variant="default"` submit, Google as `variant="outline"` with its existing `google-icon.tsx`, and the OTP path as `variant="link"`. `password-input.tsx` keeps its reveal toggle; `input-otp` keeps its slot behaviour. **`auth-actions.ts` is not touched.**
 
 - [ ] **Step 5: Verify and walk all four sign-in paths**
 
@@ -4954,4 +4962,4 @@ Gaps found and closed while reviewing: the spec names "Wallet" and "System" as p
 
 **2. Placeholder scan.** No "TBD", no "add appropriate error handling", no "similar to Task N". Three places deliberately instruct *investigation* rather than prescribing code, each with the check to run and both branches spelled out: Task 13's Base UI state-attribute names (`data-[selected]` / `data-pressed` — must be read from the file, because guessing yields a tab bar with no active state), Task 16 Step 2's `SidebarProvider` dependency, and Task 18 Step 2's `x-pathname` header. Those are not placeholders — prescribing an unverified selector would be worse than telling the implementer which line to read.
 
-**3. Type consistency.** `toneFor` / `STATUS_TONES` / `StatusTone` (Task 2) are used under exactly those names in Tasks 4, 20, 21, 23. `Page` / `PageHeader` / `PageToolbar` / `PageSection` (Task 15) match every Layer 4 usage. `MetricCard`'s `tone` union (`action | progress | success | critical | attention | pending | neutral`) is a superset of `StatusTone` by one member (`action`) and short by none — deliberate, since `action` is a surface duty rather than a status, and the two types are never assigned to each other. `Surface`'s `level` union matches `surfaces.css`. `ProductCell` is created in Task 20 and consumed in 22, 23, 25 with the same three props. `Button`'s prop is `product` everywhere, never `variant`.
+**3. Type consistency.** `toneFor` / `STATUS_TONES` / `StatusTone` (Task 2) are used under exactly those names in Tasks 4, 20, 21, 23. `Page` / `PageHeader` / `PageToolbar` / `PageSection` (Task 15) match every Layer 4 usage. `MetricCard`'s `tone` union (`action | progress | success | critical | attention | pending | neutral`) is a superset of `StatusTone` by one member (`action`) and short by none — deliberate, since `action` is a surface duty rather than a status, and the two types are never assigned to each other. `Surface`'s `level` union matches `surfaces.css`. `ProductCell` is created in Task 20 and consumed in 22, 23, 25 with the same three props. `Button`'s prop is `variant` everywhere — shadcn's real name, restored by Task 0b after the upstream mangle had renamed it to `product`. The plan originally enshrined `product` as a fact of the codebase; that was reading the vandalism as intent.

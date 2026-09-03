@@ -179,9 +179,9 @@ export function LoginScreen({
               block itself stays centered under the headline on mobile. */}
           <ul className="mx-auto flex w-fit flex-col gap-3 text-left lg:mx-0 lg:mt-2 lg:gap-4">
             {[
-              { icon: Package, key: "orders", tone: "stroke-vercel-blue" },
-              { icon: Wallet, key: "wallet", tone: "stroke-vercel-purple" },
-              { icon: ShieldCheck, key: "secure", tone: "stroke-vercel-green" },
+              { icon: Package, key: "orders", tone: "stroke-action-500" },
+              { icon: Wallet, key: "wallet", tone: "stroke-sky-500" },
+              { icon: ShieldCheck, key: "secure", tone: "stroke-green-600" },
             ].map(({ icon: Icon, key, tone }) => (
               <li key={key} className="flex items-center gap-3 text-sm">
                 <span className="bg-background/60 flex size-8 shrink-0 items-center justify-center rounded-md border">
@@ -261,7 +261,7 @@ export function LoginScreen({
                   <Label htmlFor="password">{t("auth.password")}</Label>
                   <button
                     type="button"
-                    className="text-vercel-blue text-xs underline-offset-4 transition-colors hover:underline"
+                    className="text-action-500 text-xs underline-offset-4 transition-colors hover:underline"
                     disabled={busy}
                     onClick={async () => {
                       if (!email) {
@@ -396,7 +396,7 @@ export function LoginScreen({
               {mode === "login" ? t("auth.noAccount") : t("auth.haveAccount")}{" "}
               <button
                 type="button"
-                className="text-vercel-blue font-medium underline-offset-4 hover:underline"
+                className="text-action-500 font-medium underline-offset-4 hover:underline"
                 onClick={() =>
                   switchMode(mode === "login" ? "signup" : "login")
                 }

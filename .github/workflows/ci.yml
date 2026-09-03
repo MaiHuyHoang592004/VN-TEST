@@ -23,6 +23,7 @@ jobs:
       - run: npm run db:generate -w @opcreative/db
       # The authorization gate — pure, no DB. Must pass before anything ships.
       - run: node --test libs/shared/src/access/permissions.test.ts
+      - run: apps/dashboard/scripts/check-ds-adherence.sh
       - run: npx turbo run lint --filter=@opcreative/dashboard
       - run: npx turbo run build --filter=@opcreative/dashboard
         env:

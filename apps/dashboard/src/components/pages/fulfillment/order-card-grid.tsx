@@ -144,7 +144,7 @@ function OrderCard({
           {t(`orders.statuses.${order.status}`)}
         </Badge>
         {complete && (
-          <Badge className="bg-vercel-green/15 text-vercel-green gap-1">
+          <Badge className="bg-green-600/15 text-green-600 gap-1">
             <Check className="size-3" />
             {t("fulfillment.card.filled")}
           </Badge>
@@ -164,7 +164,7 @@ function OrderCard({
         </div>
         <div className="bg-muted h-1.5 overflow-hidden rounded-full">
           <div
-            className={`h-full rounded-full transition-all ${complete ? "bg-vercel-green" : "bg-vercel-blue"}`}
+            className={`h-full rounded-full transition-all ${complete ? "bg-green-600" : "bg-action-500"}`}
             style={{ width: `${Math.min(100, (order.filled / order.quantity) * 100)}%` }}
           />
         </div>
@@ -174,7 +174,7 @@ function OrderCard({
         <div className="space-y-1 text-xs">
           {order.note && <p className="text-muted-foreground">{order.note}</p>}
           {order.internalNote && (
-            <p className="text-vercel-orange">{order.internalNote}</p>
+            <p className="text-orange-500">{order.internalNote}</p>
           )}
         </div>
       )}

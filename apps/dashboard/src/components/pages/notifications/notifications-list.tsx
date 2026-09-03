@@ -151,7 +151,7 @@ export function NotificationsList({
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">{t("notifications.title")}</h1>
           {unread > 0 && (
-            <span className="bg-vercel-blue/15 text-vercel-blue rounded-full px-1.5 py-0.5 text-[11px] font-medium">
+            <span className="bg-action-500/15 text-action-500 rounded-full px-1.5 py-0.5 text-[11px] font-medium">
               {unread} {t("notifications.unread")}
             </span>
           )}
@@ -374,7 +374,7 @@ function Row({
             <>
               <span
                 aria-hidden="true"
-                className="bg-vercel-blue mt-1.5 size-2 shrink-0 rounded-full"
+                className="bg-action-500 mt-1.5 size-2 shrink-0 rounded-full"
               />
               <span className="sr-only">{t("notifications.unread")}</span>
             </>

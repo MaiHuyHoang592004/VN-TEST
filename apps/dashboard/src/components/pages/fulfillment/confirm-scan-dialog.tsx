@@ -38,7 +38,7 @@ export function ConfirmScanDialog({
       onSubmit={onConfirm}
     >
       <p className="text-muted-foreground flex items-start gap-2 text-sm">
-        <AlertTriangle className="stroke-vercel-yellow mt-0.5 size-4 shrink-0" />
+        <AlertTriangle className="stroke-yellow-600 mt-0.5 size-4 shrink-0" />
         {t("fulfillment.scan.confirmBody")}
       </p>
     </FormDialog>

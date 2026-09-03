@@ -98,7 +98,7 @@ export function MonitorTable({
                       <div className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
                         <div
                           className={`h-full rounded-full ${
-                            g.totalFilled >= g.totalQuantity ? "bg-vercel-green" : "bg-vercel-blue"
+                            g.totalFilled >= g.totalQuantity ? "bg-green-600" : "bg-action-500"
                           }`}
                           style={{
                             width: `${Math.min(100, (g.totalFilled / Math.max(1, g.totalQuantity)) * 100)}%`,
@@ -122,7 +122,7 @@ export function MonitorTable({
                   <td className="px-3 py-2">
                     {g.basket ? (
                       <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
-                        <MapPin className="stroke-vercel-blue size-3.5" />
+                        <MapPin className="stroke-action-500 size-3.5" />
                         {g.basket}
                       </span>
                     ) : (
@@ -135,7 +135,7 @@ export function MonitorTable({
                         href={g.labelUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-vercel-blue inline-flex items-center gap-1 text-xs hover:underline"
+                        className="text-action-500 inline-flex items-center gap-1 text-xs hover:underline"
                       >
                         <ExternalLink className="size-3.5" />
                         {t("fulfillment.monitor.label")}

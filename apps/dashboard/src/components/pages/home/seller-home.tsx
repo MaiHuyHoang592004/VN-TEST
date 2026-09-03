@@ -118,7 +118,7 @@ export function SellerHome({ data }: { data: SellerHomeData }) {
                     </div>
                     <span
                       className={`font-mono tabular-nums ${
-                        negative ? "text-destructive" : "text-vercel-green"
+                        negative ? "text-destructive" : "text-green-600"
                       }`}
                     >
                       {negative ? "" : "+"}

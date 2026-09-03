@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import { Geist_Mono } from "next/font/google";
+import { Baloo_2, Nunito_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
 import { auth } from "@opcreative/auth";
@@ -11,19 +10,29 @@ import { Footer } from "@/components/global/layout/footer";
 import { AppSidebar } from "@/components/global/layout/sidebar/app-sidebar";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
-// Self-hosted Geist Variable pulled from vercel.com (OFL — see fonts/LICENSE.txt).
-// Google Fonts' Geist ships without the ss01–ss12 stylistic sets, so the
-// font-feature-settings in globals.css only take effect on this binary.
-const geistSans = localFont({
-  src: "./fonts/Geist-Variable.woff2",
-  variable: "--font-sans",
-  weight: "100 900",
+// GWP type rationing (DS SKILL.md rule 4): Baloo 2 is brand moments, page
+// titles and KPI numerals ONLY; Nunito Sans runs the UI; IBM Plex Mono carries
+// order IDs, SKUs, tracking numbers and money. Loading all three through
+// next/font keeps them self-hosted — the DS's own sheet uses a Google Fonts
+// @import, which we strip in gwp.theme.css.
+const displayFont = Baloo_2({
+  variable: "--font-display-face",
+  subsets: ["latin", "vietnamese"],
+  weight: ["500", "600", "700", "800"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const bodyFont = Nunito_Sans({
+  variable: "--font-body-face",
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+});
+
+const monoFont = IBM_Plex_Mono({
+  variable: "--font-mono-face",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -52,7 +61,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable} h-full antialiased`}
     >
       {/* pb: clearance for the floating mobile dock */}
       <body className="flex min-h-full flex-col pb-24 md:pb-0">

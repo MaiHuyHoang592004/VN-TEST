@@ -33,9 +33,9 @@ export const CATEGORY_ICON: Record<NotificationCategory, LucideIcon> = {
 };
 
 export const CATEGORY_COLOR: Record<NotificationCategory, string> = {
-  orders: "stroke-vercel-blue",
-  warehouse: "stroke-vercel-purple",
-  payments: "stroke-vercel-green",
+  orders: "stroke-action-500",
+  warehouse: "stroke-sky-500",
+  payments: "stroke-green-600",
   system: "stroke-muted-foreground",
 };
 

@@ -88,7 +88,7 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
           {t(`orders.statuses.${order.status}`)}
         </Badge>
         {complete && order.filled > 0 && (
-          <Badge className="bg-vercel-green/15 text-vercel-green">
+          <Badge className="bg-green-600/15 text-green-600">
             {t("fulfillment.card.filled")}
           </Badge>
         )}
@@ -146,7 +146,7 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
                   <img
                     src={order.proofImageUrl}
                     alt={t("orders.proof.thumb")}
-                    className="ring-vercel-green/60 size-8 rounded-md object-cover ring-2"
+                    className="ring-green-600/60 size-8 rounded-md object-cover ring-2"
                   />
                 )}
                 <span className="text-muted-foreground ml-auto">{order.warehouseCode ?? "—"}</span>

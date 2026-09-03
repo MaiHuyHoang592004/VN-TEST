@@ -70,8 +70,8 @@ function StatTile({ label, value, display, tone }: Tile) {
       <p
         className={cn(
           "truncate text-lg leading-tight font-semibold tabular-nums sm:text-xl",
-          alert && tone === "danger" && "text-vercel-red",
-          alert && tone === "warning" && "text-vercel-orange",
+          alert && tone === "danger" && "text-red-600",
+          alert && tone === "warning" && "text-orange-500",
         )}
       >
         {display ?? value.toLocaleString()}

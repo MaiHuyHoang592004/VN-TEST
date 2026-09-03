@@ -79,7 +79,7 @@ export function BillingPanel({
       cell: (tx) => {
         const n = Number(tx.amount);
         return (
-          <span className={n < 0 ? "text-vercel-red" : "text-vercel-green"}>
+          <span className={n < 0 ? "text-red-600" : "text-green-600"}>
             {n >= 0 ? "+" : ""}
             {money(tx.amount)}
           </span>
@@ -132,7 +132,7 @@ export function BillingPanel({
               <p className="text-muted-foreground text-xs uppercase">
                 {t("profile.billing.owed")}
               </p>
-              <p className="text-vercel-red mt-1 text-3xl font-medium tabular-nums">
+              <p className="text-red-600 mt-1 text-3xl font-medium tabular-nums">
                 {money(debt)}
               </p>
             </div>

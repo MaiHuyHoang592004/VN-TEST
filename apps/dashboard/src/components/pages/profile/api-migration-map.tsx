@@ -100,7 +100,7 @@ export function ApiMigrationMap() {
                 </td>
                 <td className="text-muted-foreground py-2 text-xs">
                   {column.breaking && (
-                    <span className="text-vercel-orange mr-1.5 inline-flex items-center gap-1 font-medium">
+                    <span className="text-orange-500 mr-1.5 inline-flex items-center gap-1 font-medium">
                       <AlertTriangle className="size-3" />
                       {t("profile.api.migration.breaking")}
                     </span>

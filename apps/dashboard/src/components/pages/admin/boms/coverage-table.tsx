@@ -106,7 +106,7 @@ export function CoverageTable({
       header: t("inventory.boms.coverage.col.shortage"),
       className: "text-right tabular-nums",
       cell: (r) => (
-        <span className={cn(r.needed > 0 && "text-vercel-red font-medium")}>{r.needed}</span>
+        <span className={cn(r.needed > 0 && "text-red-600 font-medium")}>{r.needed}</span>
       ),
     },
     {

@@ -119,7 +119,7 @@ export function BomsTable({
             {b.summary.mappedLineCount} {t("inventory.boms.linked")}
           </span>
           {b.summary.unmappedLineCount > 0 && (
-            <span className="text-vercel-red ml-2 font-medium">
+            <span className="text-red-600 ml-2 font-medium">
               {b.summary.unmappedLineCount} {t("inventory.boms.incomplete")}
             </span>
           )}

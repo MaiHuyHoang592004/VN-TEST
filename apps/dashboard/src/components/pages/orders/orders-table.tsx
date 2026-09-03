@@ -178,7 +178,7 @@ export function OrdersTable({
               src={o.proofImageUrl}
               alt=""
               title={t("orders.proof.thumb")}
-              className="ring-vercel-green/60 size-8 shrink-0 rounded-md object-cover ring-2"
+              className="ring-green-600/60 size-8 shrink-0 rounded-md object-cover ring-2"
             />
           )}
           <div className="min-w-0">

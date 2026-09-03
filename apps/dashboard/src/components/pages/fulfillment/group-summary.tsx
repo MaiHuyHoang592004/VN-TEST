@@ -53,7 +53,7 @@ export function GroupSummary({ group }: { group: StationGroup }) {
         <div className="flex flex-wrap items-center gap-2">
           {group.basket && (
             <Badge variant="secondary" className="gap-1">
-              <MapPin className="stroke-vercel-blue size-3.5" />
+              <MapPin className="stroke-action-500 size-3.5" />
               {group.basket.name}
             </Badge>
           )}

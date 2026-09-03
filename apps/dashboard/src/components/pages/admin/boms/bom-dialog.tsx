@@ -436,7 +436,7 @@ export function BomDialog({
                   <td
                     className={cn(
                       "py-1 text-right tabular-nums",
-                      column.shortage > 0 && "text-vercel-red font-medium",
+                      column.shortage > 0 && "text-red-600 font-medium",
                     )}
                   >
                     {column.shortage}

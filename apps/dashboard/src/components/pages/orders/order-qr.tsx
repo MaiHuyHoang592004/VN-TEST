@@ -237,7 +237,7 @@ function OrderCodePanel({
               <span className="block truncate font-mono text-sm">{value}</span>
             </span>
             {copied ? (
-              <Check className="stroke-vercel-green size-3.5 shrink-0" />
+              <Check className="stroke-green-600 size-3.5 shrink-0" />
             ) : (
               <Copy className="text-muted-foreground size-3.5 shrink-0" />
             )}
@@ -261,7 +261,7 @@ function OrderCodePanel({
                 {t(`orders.statuses.${order.status}`)}
               </Badge>
               {complete && order.filled > 0 && (
-                <Badge className="bg-vercel-green/15 text-vercel-green">
+                <Badge className="bg-green-600/15 text-green-600">
                   {t("fulfillment.card.filled")}
                 </Badge>
               )}
@@ -330,7 +330,7 @@ function OrderCodePanel({
                   src={order.proofImageUrl}
                   alt={t("orders.proof.thumb")}
                   title={t("orders.proof.thumb")}
-                  className="ring-vercel-green/60 size-14 rounded-md object-cover ring-2"
+                  className="ring-green-600/60 size-14 rounded-md object-cover ring-2"
                 />
               </a>
             )}

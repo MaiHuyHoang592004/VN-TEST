@@ -134,7 +134,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span
             aria-label={`${unreadCount} ${t("notifications.unread")}`}
-            className="bg-vercel-blue absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
+            className="bg-action-500 absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
@@ -166,7 +166,7 @@ export function NotificationBell() {
             </PopoverClose>
             <h3 className="text-sm font-semibold">{t("notifications.title")}</h3>
             {unreadCount > 0 && (
-              <span className="bg-vercel-blue/15 text-vercel-blue rounded-full px-1.5 py-0.5 text-[11px] font-medium">
+              <span className="bg-action-500/15 text-action-500 rounded-full px-1.5 py-0.5 text-[11px] font-medium">
                 {unreadCount} {t("notifications.unread")}
               </span>
             )}
@@ -204,7 +204,7 @@ export function NotificationBell() {
             onClick={toggleUnreadOnly}
             className={`rounded-full border px-2 py-0.5 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
               unreadOnly
-                ? "border-vercel-blue/40 bg-vercel-blue/10 text-vercel-blue"
+                ? "border-action-500/40 bg-action-500/10 text-action-500"
                 : "border-border text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -248,7 +248,7 @@ export function NotificationBell() {
                     <>
                       <span
                         aria-hidden="true"
-                        className="bg-vercel-blue mt-1.5 size-2 shrink-0 rounded-full"
+                        className="bg-action-500 mt-1.5 size-2 shrink-0 rounded-full"
                       />
                       <span className="sr-only">{t("notifications.unread")}</span>
                     </>

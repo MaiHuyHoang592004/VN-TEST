@@ -61,8 +61,8 @@ export function ToolsDropdown() {
             }
           >
             {/* Vercel-style neon icon: brand color + glow on highlight. Colored via stroke (not text color), which the base item's focus:** color rule never touches — no specificity fight, no !important */}
-            <div className="border-border bg-background group-data-[highlighted]/item:border-vercel-blue/50 group-data-[highlighted]/item:bg-vercel-blue/10 group-data-[highlighted]/item:shadow-lg group-data-[highlighted]/item:shadow-vercel-blue/25 flex h-8 w-8 items-center justify-center rounded-md border transition-all duration-200">
-              <LineChart className="stroke-muted-foreground group-data-[highlighted]/item:stroke-vercel-blue h-4 w-4 transition-colors" />
+            <div className="border-border bg-background group-data-[highlighted]/item:border-action-500/50 group-data-[highlighted]/item:bg-action-500/10 group-data-[highlighted]/item:shadow-lg group-data-[highlighted]/item:shadow-action-500/25 flex h-8 w-8 items-center justify-center rounded-md border transition-all duration-200">
+              <LineChart className="stroke-muted-foreground group-data-[highlighted]/item:stroke-action-500 h-4 w-4 transition-colors" />
             </div>
             <div className="flex flex-col">
               <span className="text-muted-foreground group-data-[highlighted]/item:text-foreground text-sm font-medium transition-colors">
@@ -82,8 +82,8 @@ export function ToolsDropdown() {
               />
             }
           >
-            <div className="border-border bg-background group-data-[highlighted]/item:border-vercel-purple/50 group-data-[highlighted]/item:bg-vercel-purple/10 group-data-[highlighted]/item:shadow-lg group-data-[highlighted]/item:shadow-vercel-purple/25 flex h-8 w-8 items-center justify-center rounded-md border transition-all duration-200">
-              <Wallet className="stroke-muted-foreground group-data-[highlighted]/item:stroke-vercel-purple h-4 w-4 transition-colors" />
+            <div className="border-border bg-background group-data-[highlighted]/item:border-sky-500/50 group-data-[highlighted]/item:bg-sky-500/10 group-data-[highlighted]/item:shadow-lg group-data-[highlighted]/item:shadow-sky-500/25 flex h-8 w-8 items-center justify-center rounded-md border transition-all duration-200">
+              <Wallet className="stroke-muted-foreground group-data-[highlighted]/item:stroke-sky-500 h-4 w-4 transition-colors" />
             </div>
             <div className="flex flex-col">
               <span className="text-muted-foreground group-data-[highlighted]/item:text-foreground text-sm font-medium transition-colors">

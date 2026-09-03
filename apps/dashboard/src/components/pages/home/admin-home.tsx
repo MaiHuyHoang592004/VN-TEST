@@ -108,7 +108,7 @@ export function AdminHome({
       hideOnMobile: true,
       cell: (r) =>
         Number(r.debt) > 0 ? (
-          <span className="text-vercel-red font-mono text-sm">{money(r.debt)}</span>
+          <span className="text-red-600 font-mono text-sm">{money(r.debt)}</span>
         ) : (
           <span className="text-muted-foreground">—</span>
         ),

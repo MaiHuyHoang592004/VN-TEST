@@ -72,7 +72,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     // Modal variant (landing page) — Vercel focus treatment: blue border + ring + soft glow
     if (variant === "modal") {
       return (
-        <div className="border-border hover:border-foreground/30 focus-within:border-vercel-blue/60 focus-within:ring-2 focus-within:ring-vercel-blue/20 focus-within:shadow-lg focus-within:shadow-vercel-blue/10 bg-background relative flex h-12 items-center gap-3 rounded-lg border px-4 transition-all sm:h-14 sm:px-6">
+        <div className="border-border hover:border-foreground/30 focus-within:border-action-500/60 focus-within:ring-2 focus-within:ring-action-500/20 focus-within:shadow-lg focus-within:shadow-action-500/10 bg-background relative flex h-12 items-center gap-3 rounded-lg border px-4 transition-all sm:h-14 sm:px-6">
           <SearchIcon className="text-muted-foreground h-5 w-5 shrink-0" />
           <input
             ref={ref}

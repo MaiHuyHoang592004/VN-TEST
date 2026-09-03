@@ -47,15 +47,15 @@ export default function ComingSoon() {
       {/* aurora orbs — brand colors, slow drift */}
       <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
         <div
-          className="bg-vercel-blue/25 absolute -top-24 left-1/4 size-96 rounded-full blur-[120px]"
+          className="bg-action-500/25 absolute -top-24 left-1/4 size-96 rounded-full blur-[120px]"
           style={{ animation: "cs-drift 14s ease-in-out infinite" }}
         />
         <div
-          className="bg-vercel-purple/20 absolute top-1/3 -right-24 size-96 rounded-full blur-[120px]"
+          className="bg-sky-500/20 absolute top-1/3 -right-24 size-96 rounded-full blur-[120px]"
           style={{ animation: "cs-drift 18s ease-in-out infinite reverse" }}
         />
         <div
-          className="bg-vercel-pink/15 absolute -bottom-32 left-1/3 size-96 rounded-full blur-[120px]"
+          className="bg-orange-500/15 absolute -bottom-32 left-1/3 size-96 rounded-full blur-[120px]"
           style={{ animation: "cs-drift 16s ease-in-out infinite", animationDelay: "-6s" }}
         />
       </div>
@@ -63,7 +63,7 @@ export default function ComingSoon() {
       {/* floating logo cube with glow */}
       <div className="animate-in fade-in zoom-in-75 fill-mode-both relative duration-700">
         <div
-          className="drop-shadow-[0_0_24px_var(--vercel-blue)]"
+          className="drop-shadow-[0_0_24px_var(--action-500)]"
           style={{ animation: "cs-float 6s ease-in-out infinite" }}
         >
           <Image
@@ -98,7 +98,7 @@ export default function ComingSoon() {
         className="max-w-2xl bg-clip-text text-4xl font-semibold tracking-tighter text-balance text-transparent sm:text-5xl lg:text-7xl"
         style={{
           backgroundImage:
-            "linear-gradient(110deg, var(--vercel-blue), var(--vercel-purple) 30%, var(--vercel-pink) 50%, var(--vercel-purple) 70%, var(--vercel-blue))",
+            "linear-gradient(110deg, var(--action-500), var(--sky-500) 30%, var(--orange-500) 50%, var(--sky-500) 70%, var(--action-500))",
           backgroundSize: "200% auto",
           animation: "cs-shimmer 5s linear infinite",
         }}
@@ -115,9 +115,9 @@ export default function ComingSoon() {
         aria-hidden
         className="animate-in fade-in fill-mode-both flex items-center gap-1.5 delay-300 duration-500"
       >
-        <span className="bg-vercel-blue size-1.5 animate-bounce rounded-full" />
-        <span className="bg-vercel-purple size-1.5 animate-bounce rounded-full [animation-delay:150ms]" />
-        <span className="bg-vercel-pink size-1.5 animate-bounce rounded-full [animation-delay:300ms]" />
+        <span className="bg-action-500 size-1.5 animate-bounce rounded-full" />
+        <span className="bg-sky-500 size-1.5 animate-bounce rounded-full [animation-delay:150ms]" />
+        <span className="bg-orange-500 size-1.5 animate-bounce rounded-full [animation-delay:300ms]" />
       </div>
 
       <div className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both delay-400 duration-500">

@@ -76,7 +76,7 @@ export function OrderProofAction({
         title={t(hasProof ? "orders.proof.replace" : "orders.proof.upload")}
         onClick={() => fileRef.current?.click()}
       >
-        <Camera className={`size-4 ${hasProof ? "stroke-vercel-green" : ""}`} />
+        <Camera className={`size-4 ${hasProof ? "stroke-green-600" : ""}`} />
       </Button>
 
       {confirming && (

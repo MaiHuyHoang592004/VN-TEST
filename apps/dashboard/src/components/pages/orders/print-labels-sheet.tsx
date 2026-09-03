@@ -62,12 +62,12 @@ export function PrintLabelsSheet({ orders }: { orders: PrintRow[] }) {
 
       <main className="mx-auto w-full max-w-3xl bg-white p-8 text-black">
         <div className="no-print mb-6 flex items-center justify-between">
-          <p className="text-sm text-neutral-600">
+          <p className="text-sm text-navy-500">
             {t("orders.qr.printCount").replace("{count}", String(orders.length))}
           </p>
           <button
             onClick={() => window.print()}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm"
+            className="rounded-md border border-(--border-soft) px-3 py-1.5 text-sm"
           >
             {t("orders.qr.print")}
           </button>
@@ -77,20 +77,20 @@ export function PrintLabelsSheet({ orders }: { orders: PrintRow[] }) {
           {orders.map((o) => (
             <article
               key={o.id}
-              className="print-block flex gap-4 rounded-md border border-neutral-300 p-4"
+              className="print-block flex gap-4 rounded-md border border-(--border-soft) p-4"
             >
               <PrintQr value={String(o.id)} />
               <div className="min-w-0 flex-1 text-sm leading-tight">
                 <p className="font-mono font-semibold">{o.externalId ?? `#${o.id}`}</p>
                 <p className="mt-1">{o.productName ?? "—"}</p>
-                <p className="text-neutral-600">
+                <p className="text-navy-500">
                   {[o.variantName, o.sku].filter(Boolean).join(" · ") || "—"}
                 </p>
                 <p className="mt-1 text-lg font-semibold tabular-nums">
                   {t("orders.colQty")}: {o.quantity}
                 </p>
                 {o.tracking && <p className="mt-1 font-mono text-xs">{o.tracking}</p>}
-                <p className="mt-1 text-xs text-neutral-600">
+                <p className="mt-1 text-xs text-navy-500">
                   {[o.customerName, o.warehouseCode].filter(Boolean).join(" · ")}
                 </p>
                 {/* CODE128 as well as the QR: the floor's laser scanners read

@@ -1,15 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./gwp.theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-body-face), "Nunito Sans", system-ui, sans-serif;
+  --font-display: var(--font-display-face), "Baloo 2", "Nunito Sans", system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  --font-heading: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,35 +41,6 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-vercel-blue: var(--vercel-blue);
-  --color-vercel-purple: var(--vercel-purple);
-  --color-vercel-pink: var(--vercel-pink);
-  --color-vercel-cyan: var(--vercel-cyan);
-  --color-vercel-green: var(--vercel-green);
-  --color-vercel-yellow: var(--vercel-yellow);
-  --color-vercel-red: var(--vercel-red);
-  --color-vercel-orange: var(--vercel-orange);
-  --color-vercel-violet: var(--vercel-violet);
-  --color-vercel-magenta: var(--vercel-magenta);
-  --color-vercel-amber: var(--vercel-amber);
-  --color-vercel-coral: var(--vercel-coral);
-  --color-vercel-teal: var(--vercel-teal);
-
-  /* Geist gray-alpha scale (official design.md) — translucent, layers over any
-     surface. Hover ramp: rest 100 → hover 200 → active 300; 400 = default border. */
-  --color-gray-alpha-100: var(--gray-alpha-100);
-  --color-gray-alpha-200: var(--gray-alpha-200);
-  --color-gray-alpha-300: var(--gray-alpha-300);
-  --color-gray-alpha-400: var(--gray-alpha-400);
-  --color-gray-alpha-500: var(--gray-alpha-500);
-  --color-gray-alpha-600: var(--gray-alpha-600);
-  --color-gray-alpha-700: var(--gray-alpha-700);
-  --color-gray-alpha-800: var(--gray-alpha-800);
-  --color-gray-alpha-900: var(--gray-alpha-900);
-  --color-gray-alpha-1000: var(--gray-alpha-1000);
-
-  /* Geist motion — 150ms state / 200ms popover / 300ms overlay, this easing */
-  --ease-geist: cubic-bezier(0.175, 0.885, 0.32, 1.1);
 
   /* Semantic scale — DESIGN-VERCEL.md "Semantic" + soft/deep pairs */
   --color-link: var(--link);
@@ -93,52 +66,24 @@
   --color-body-text: var(--body-text);
   --color-mute: var(--mute);
 
-  /* Radii — exact Geist values, not a multiplier chain */
-  --radius-xs: 4px;
-  --radius-sm: 6px;  /* --geist-radius */
-  --radius-md: 8px;  /* --geist-marketing-radius */
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
-  --radius-3xl: 24px;
-  --radius-4xl: 32px;
-  --radius-pill-sm: 64px;
-  --radius-pill: 100px;
+  /* Radii and the --shadow-ds-* ramp are GWP's now (gwp.theme.css /
+     globals.css :root); the Geist radius chain and shadow-ds recipes are
+     deleted here rather than left to collide. */
 
-  /* Elevation — official Geist recipes (design.md): card / popover / modal.
-     The trailing inset ring is ours, not spec: panels here draw no border of
-     their own, so it stands in for the panel edge (dark mode needs it). */
-  --shadow-ds-1: inset 0 0 0 1px var(--ds-ring);
-  --shadow-ds-2: var(--shadow-card);
-  --shadow-ds-3: 0 1px 1px rgb(0 0 0 / 0.02), 0 4px 8px -4px rgb(0 0 0 / 0.04), 0 16px 24px -8px rgb(0 0 0 / 0.06), inset 0 0 0 1px var(--ds-ring);
-  --shadow-ds-4: 0 1px 1px rgb(0 0 0 / 0.02), 0 4px 8px -4px rgb(0 0 0 / 0.04), 0 16px 24px -8px rgb(0 0 0 / 0.06), inset 0 0 0 1px var(--ds-ring);
-  --shadow-ds-5: 0 1px 1px rgb(0 0 0 / 0.02), 0 8px 16px -4px rgb(0 0 0 / 0.04), 0 24px 32px -8px rgb(0 0 0 / 0.06), inset 0 0 0 1px var(--ds-ring);
-
-  /* Type scale — official Geist metrics (design.md). display-xl/lg/md/sm map
-     to heading-48/32/24/20; body-* to copy-18/16/14. Negative tracking only on
-     headings (600) — body text carries none. */
-  --text-display-xl: 48px;
-  --text-display-xl--line-height: 56px;
-  --text-display-xl--letter-spacing: -2.88px;
-  --text-display-xl--font-weight: 600;
-  --text-display-lg: 32px;
-  --text-display-lg--line-height: 40px;
-  --text-display-lg--letter-spacing: -1.28px;
-  --text-display-lg--font-weight: 600;
-  --text-display-md: 24px;
-  --text-display-md--line-height: 32px;
-  --text-display-md--letter-spacing: -0.96px;
-  --text-display-md--font-weight: 600;
-  --text-display-sm: 20px;
-  --text-display-sm--line-height: 26px;
-  --text-display-sm--letter-spacing: -0.4px;
-  --text-display-sm--font-weight: 600;
-  --text-body-lg: 18px;
-  --text-body-lg--line-height: 28px;
-  --text-body-md: 16px;
-  --text-body-md--line-height: 24px;
-  --text-body-sm: 14px;
-  --text-body-sm--line-height: 20px;
+  /* Type scale — repointed to GWP's --fs-* ladder (readme.md type-scale).
+     29 live call sites use these utilities (text-display-xl ×4, -lg ×7, -md
+     ×7, -sm ×5, text-body-lg ×2, -md ×2, -sm ×2); Tailwind v4 drops an
+     undefined utility silently rather than failing the build, so the keys
+     are repointed, not deleted. The negative tracking sub-properties are a
+     Geist signature and are dropped — GWP sets tracking via --ls-display /
+     --ls-body instead. */
+  --text-display-xl: var(--fs-display-xl);
+  --text-display-lg: var(--fs-display-lg);
+  --text-display-md: var(--fs-display-md);
+  --text-display-sm: var(--fs-display-sm);
+  --text-body-lg: var(--fs-body-lg);
+  --text-body-md: var(--fs-body);
+  --text-body-sm: var(--fs-body-sm);
   --text-caption: 12px;
   --text-caption--line-height: 16px;
   --text-code: 13px;
@@ -151,190 +96,141 @@
   --spacing-section: 192px;
 }
 
-/* ---- Vercel / Geist palette (light) — exact hexes from vercel.com/design.md.
-   Ink #171717 (gray-1000) is the brand primary, never pure black. ---- */
+/* ── The semantic layer, repointed at GWP ──────────────────────────
+   Nothing below is a new colour: each value is a token from
+   gwp.theme.css. Repointing here is what re-skins all 223 component
+   files without editing one of them.
+
+   Surface ladder (DS surfaces.css): SKY is the page, --surface-shell
+   (#FBFCFA) is the default floating operational surface, WHITE nests
+   inside it for data. Cream is a BRAND surface — nav, marketing,
+   product wells — never the default operational fill, so `--card` is
+   shell, not cream. */
 :root {
-  --background: #ffffff; /* background-100 */
-  --foreground: #171717; /* gray-1000 */
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --popover: #ffffff;
-  --popover-foreground: #171717;
-  --primary: #171717;
-  --primary-foreground: #ffffff;
-  --secondary: #f2f2f2; /* gray-100 */
-  --secondary-foreground: #171717;
-  --muted: #f2f2f2;
-  --muted-foreground: #4d4d4d; /* gray-900, secondary text */
-  --accent: #ebebeb; /* gray-200, the hover step */
-  --accent-foreground: #171717;
-  --destructive: #ea001d; /* red-800, the error-button fill */
-  --border: #eaeaea; /* gray-400 — official default border */
-  --input: #eaeaea; /* gray-400, default border */
-  --ring: #006bff; /* blue-700 — official focus */
-  --chart-1: oklch(0.62 0.2 253);
-  --chart-2: oklch(0.5 0.25 300);
-  --chart-3: oklch(0.65 0.27 8);
-  --chart-4: oklch(0.84 0.13 178);
-  --chart-5: oklch(0.77 0.15 70);
-  --radius: 0.5rem;
-  --sidebar: #ffffff; /* match --background: sidebar is not a separate surface */
-  --sidebar-foreground: #171717;
-  --sidebar-primary: #171717;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #ebebeb;
-  --sidebar-accent-foreground: #171717;
-  --sidebar-border: #eaeaea;
-  --sidebar-ring: #006bff;
+  --background: var(--surface-canvas);        /* #ABDAEF — sky IS the page */
+  --foreground: var(--text-strong);           /* navy-900 */
+  --card: var(--surface-shell);               /* #FBFCFA, the default surface */
+  --card-foreground: var(--text-body);        /* navy-700 */
+  --popover: var(--surface-raised);           /* white — menus, drawers */
+  --popover-foreground: var(--text-body);
 
-  /* Geist gray-alpha (light) — official values */
-  --gray-alpha-100: #0000000d;
-  --gray-alpha-200: #00000015;
-  --gray-alpha-300: #0000001a;
-  --gray-alpha-400: #00000014;
-  --gray-alpha-500: #00000036;
-  --gray-alpha-600: #0000003d;
-  --gray-alpha-700: #00000070;
-  --gray-alpha-800: #00000082;
-  --gray-alpha-900: #000000b3;
-  --gray-alpha-1000: #000000e8;
+  /* Action Blue is the ONE fill that clears 4.5:1 with white text. It is
+     reserved for the single most important action in a region — the
+     `product="default"` button, and nothing else. */
+  --primary: var(--action-500);
+  --primary-foreground: var(--text-on-action);
+  --secondary: var(--sky-200);
+  --secondary-foreground: var(--navy-700);
 
-  /* Vercel brand — exact Geist hexes */
-  --vercel-blue: #007cf0;
-  --vercel-purple: #7928ca;
-  --vercel-pink: #ff0080;
-  --vercel-cyan: #50e3c2;
-  --vercel-green: oklch(0.78 0.22 150);
-  --vercel-yellow: #f9cb28;
-  --vercel-red: #ff4d4d;
-  --vercel-orange: #f5a623;
-  --vercel-violet: #7928ca;
-  --vercel-magenta: #eb367f;
-  --vercel-amber: #f9cb28;
-  --vercel-coral: #ff4d4d;
-  --vercel-teal: #00dfd8;
+  --muted: var(--neutral-100);
+  /* Contrast floor (readme.md §7): navy-500 is the LIGHTEST permitted text
+     on a light ground. `text-muted-foreground` is the app's most-used
+     secondary text utility, so it sits exactly on the floor — never below. */
+  --muted-foreground: var(--text-muted);      /* navy-500 */
+  --accent: var(--sky-100);                   /* the hover step */
+  --accent-foreground: var(--navy-700);
+  --destructive: var(--red-600);
 
-  /* Semantic — official steps: base = solid fill, soft = 100 bg, deep = readable text/hover */
-  --link: #006bff; /* blue-700 */
-  --link-deep: #0059ec; /* blue-800 */
-  --link-soft: #f0f7ff; /* blue-100 */
-  --error: #ea001d; /* red-800 */
-  --error-soft: #ffeeef; /* red-100 */
-  --error-deep: #d8001b; /* red-900 */
-  --warning: #ffae00; /* amber-700 */
-  --warning-soft: #fff6de; /* amber-100 */
-  --warning-deep: #aa4d00; /* amber-900, the readable amber text */
-  --violet-soft: #d8ccf1;
-  --violet-deep: #4c2889;
-  --cyan-soft: #aaffec;
-  --cyan-deep: #29bc9b;
+  --border: var(--border-hairline);           /* rgba(15,58,95,0.08) */
+  --input: var(--border-soft);                /* rgba(15,58,95,0.12) */
+  --ring: var(--border-focus);                /* action-500 */
 
-  /* Surface ladder + text ladder */
-  --canvas: #ffffff;
-  --canvas-soft: #fafafa;
-  --canvas-soft-2: #f5f5f5;
-  --hairline: #ebebeb;
-  --hairline-strong: #a1a1a1;
-  --body-text: #4d4d4d; /* gray-900 */
-  --mute: #8f8f8f; /* gray-700, disabled tier */
+  /* Charts: the DS gives no chart palette, so these are the brand accents in
+     the order the DS permits them — action, sky, orange, green, yellow. Not a
+     new palette; five existing tokens. */
+  --chart-1: var(--action-500);
+  --chart-2: var(--sky-500);
+  --chart-3: var(--orange-500);
+  --chart-4: var(--green-600);
+  --chart-5: var(--yellow-600);
 
-  /* Elevation ingredients (flipped in dark) */
-  --ds-ring: #00000014; /* = gray-alpha-400, the official default border */
-  --shadow-card: 0 2px 2px rgb(0 0 0 / 0.04); /* official raised-card, light */
+  --radius: var(--radius-card);               /* 14px */
 
-  /* The three gradient pairs, and the mesh they fuse into */
-  --gradient-develop: linear-gradient(90deg, #007cf0, #00dfd8);
-  --gradient-preview: linear-gradient(90deg, #7928ca, #ff0080);
-  --gradient-ship: linear-gradient(90deg, #ff4d4d, #f9cb28);
-  --brand-gradient: linear-gradient(120deg, var(--vercel-blue), var(--vercel-purple) 45%, var(--vercel-pink));
+  /* The sidebar is no longer a separate surface: Task 17 turns it into a
+     sheet over the cream nav shell. Cream here, matching --surface-nav. */
+  --sidebar: var(--surface-nav);
+  --sidebar-foreground: var(--text-body);
+  --sidebar-primary: var(--action-500);
+  --sidebar-primary-foreground: var(--text-on-action);
+  --sidebar-accent: var(--cream-200);
+  --sidebar-accent-foreground: var(--navy-700);
+  --sidebar-border: var(--border-hairline);
+  --sidebar-ring: var(--border-focus);
+
+  /* Semantic pairs — base fill / soft bg / readable deep text. Mapped onto
+     the GWP status tones so a component using `bg-error-soft text-error-deep`
+     lands on the same colours as a StatusBadge with tone="critical". */
+  --link: var(--text-link);
+  --link-deep: var(--text-link-hover);
+  --link-soft: var(--action-100);
+  --error: var(--red-600);
+  --error-soft: var(--status-critical-bg);
+  --error-deep: var(--status-critical-fg);
+  --warning: var(--orange-500);
+  --warning-soft: var(--status-attention-bg);
+  --warning-deep: var(--status-attention-fg);
+  --violet-soft: var(--sky-100);
+  --violet-deep: var(--navy-600);
+  --cyan-soft: var(--sky-100);
+  --cyan-deep: var(--sky-600);
+
+  /* Surface + text ladder aliases (used directly by ~a dozen components) */
+  --canvas: var(--surface-data);
+  --canvas-soft: var(--surface-shell);
+  --canvas-soft-2: var(--surface-content-alt);
+  --hairline: var(--border-hairline);
+  --hairline-strong: var(--border-strong);
+  --body-text: var(--text-body);
+  --mute: var(--text-muted);                  /* navy-500, the floor */
+
+  /* Elevation. GWP shadows are blue-tinted, wide and faint — they read as
+     light, never as elevation drama. The Geist inset-ring trick is dropped:
+     GWP separates surfaces by a change of surface plus a hairline. */
+  --ds-ring: var(--border-hairline);
+  --shadow-card: var(--shadow-sm);
+
+  /* Decorative gradients/mesh (marketing "coming soon" page, spotlight-card,
+     brand text-gradient utilities below) previously keyed off the Vercel
+     brand hexes. No Vercel colour survives the migration, so these now
+     compose from GWP's brand accents instead of inventing a new hue. */
+  --gradient-develop: linear-gradient(90deg, var(--action-500), var(--sky-400));
+  --gradient-preview: linear-gradient(90deg, var(--orange-500), var(--yellow-500));
+  --gradient-ship: linear-gradient(90deg, var(--red-600), var(--orange-500));
+  --brand-gradient: linear-gradient(120deg, var(--action-500), var(--sky-500) 45%, var(--orange-500));
   --brand-mesh:
-    radial-gradient(60% 60% at 15% 20%, #00dfd8 0%, transparent 60%),
-    radial-gradient(60% 60% at 40% 0%, #007cf0 0%, transparent 60%),
-    radial-gradient(55% 65% at 70% 25%, #ff0080 0%, transparent 60%),
-    radial-gradient(50% 60% at 90% 5%, #f9cb28 0%, transparent 60%);
+    radial-gradient(60% 60% at 15% 20%, var(--sky-400) 0%, transparent 60%),
+    radial-gradient(60% 60% at 40% 0%, var(--action-500) 0%, transparent 60%),
+    radial-gradient(55% 65% at 70% 25%, var(--orange-500) 0%, transparent 60%),
+    radial-gradient(50% 60% at 90% 5%, var(--yellow-500) 0%, transparent 60%);
   --grid-line: oklch(0 0 0 / 0.05);
-  --selection-bg: #171717;
-  --selection-fg: #f2f2f2;
+
+  --selection-bg: var(--sky-200);
+  --selection-fg: var(--navy-900);
 }
 
-/* ---- Vercel / Geist palette (dark — the signature look) — exact hexes from
-   vercel.com/design.dark.md. Text is #ededed, never pure white. ---- */
+/* Shadow aliases some components still reference by name (e.g. `shadow-ds-4`
+   in the mobile dock) — repointed to GWP's elevation ladder. */
+@theme inline {
+  --shadow-ds-1: var(--shadow-xs);
+  --shadow-ds-2: var(--shadow-sm);
+  --shadow-ds-3: var(--shadow-sm);
+  --shadow-ds-4: var(--shadow-md);
+  --shadow-ds-5: var(--shadow-lg);
+}
+
+/* ── DARK MODE IS NEUTRALISED ───────────────────────────────────────
+   The GWP design system is light-first by construction — "sky IS the
+   page" — and ships no dark palette. Inventing one would break the
+   system's "never invent" rule, so `.dark` deliberately resolves to the
+   same light tokens: the class becomes a no-op rather than a broken
+   half-theme.
+
+   Nothing is deleted. next-themes, ThemeToggle and the 90 `dark:`
+   utilities across src/ still compile; they simply have no effect. When
+   the DS publishes a dark palette, it drops into this one block.
+   Task 17 removes the toggle from the shell. */
 .dark {
-  --background: #000000; /* background-100 AND background-200 — both black */
-  --foreground: #ededed; /* gray-1000 dark */
-  /* Geist background-100 — the page AND card surface. A lifted card step
-     does not exist in this system; the hairline border separates them. */
-  --card: #000000;
-  --card-foreground: #ededed;
-  --popover: #000000;
-  --popover-foreground: #ededed;
-  --primary: #ededed;
-  --primary-foreground: #000000;
-  --secondary: #1a1a1a; /* gray-100 dark */
-  --secondary-foreground: #ededed;
-  --muted: #1a1a1a;
-  --muted-foreground: #a0a0a0; /* gray-900 dark, secondary text */
-  --accent: #1f1f1f; /* gray-200 dark, the hover step */
-  --accent-foreground: #ededed;
-  --destructive: #ff565f; /* red-900 dark — readable on black */
-  --border: #ffffff24; /* gray-alpha-400 dark — official default border */
-  --input: #ffffff24; /* gray-alpha-400 dark, default border */
-  --ring: #47a8ff; /* blue-900 dark — official focus */
-  --chart-1: oklch(0.62 0.2 253);
-  --chart-2: oklch(0.5 0.25 300);
-  --chart-3: oklch(0.65 0.27 8);
-  --chart-4: oklch(0.84 0.13 178);
-  --chart-5: oklch(0.77 0.15 70);
-  --sidebar: #000000; /* match --background: sidebar is not a separate surface */
-  --sidebar-foreground: #ededed;
-  --sidebar-primary: #ededed;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #1f1f1f;
-  --sidebar-accent-foreground: #ededed;
-  --sidebar-border: #ffffff24;
-  --sidebar-ring: #47a8ff;
-  --grid-line: oklch(1 0 0 / 0.06);
-
-  /* Geist gray-alpha (dark) — official values */
-  --gray-alpha-100: #ffffff12;
-  --gray-alpha-200: #ffffff17;
-  --gray-alpha-300: #ffffff21;
-  --gray-alpha-400: #ffffff24;
-  --gray-alpha-500: #ffffff3d;
-  --gray-alpha-600: #ffffff82;
-  --gray-alpha-700: #ffffff8a;
-  --gray-alpha-800: #ffffff78;
-  --gray-alpha-900: #ffffff9c;
-  --gray-alpha-1000: #ffffffeb;
-
-  /* Surface + text ladder flips; brand/semantic hues stay put, softs deepen */
-  --canvas: oklch(0.16 0 0);
-  --canvas-soft: oklch(0.11 0 0);
-  --canvas-soft-2: oklch(0.2 0 0);
-  --hairline: oklch(1 0 0 / 12%);
-  --hairline-strong: oklch(1 0 0 / 28%);
-  --body-text: #a0a0a0; /* gray-900 dark */
-  --mute: #8f8f8f; /* gray-700 dark */
-
-  --link: #47a8ff; /* blue-900 dark */
-  --link-deep: #0090ff; /* blue-600 dark */
-  --link-soft: #06193a; /* blue-100 dark */
-  --error: #ff565f; /* red-900 dark */
-  --error-soft: #330a11; /* red-100 dark */
-  --error-deep: #e2162a; /* red-800 dark */
-  --warning: #ffae00; /* amber-700 dark */
-  --warning-soft: #2a1700; /* amber-100 dark */
-  --warning-deep: #ff9300; /* amber-900 dark */
-  --violet-soft: oklch(0.5 0.25 300 / 26%);
-  --violet-deep: #8a63d2;
-  --cyan-soft: oklch(0.84 0.13 178 / 22%);
-  --cyan-deep: #79ffe1;
-
-  --ds-ring: #ffffff24; /* = gray-alpha-400 dark — the panel edge on black */
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.16); /* official raised-card, dark */
-
-  --selection-bg: #f2f2f2;
-  --selection-fg: #171717;
+  color-scheme: light;
 }
 
 @layer base {
@@ -346,10 +242,9 @@
   }
   html {
     @apply font-sans;
-    /* Measured off vercel.com: contextual alternates off, required ligatures
-       on, stylistic set 11. Needs the self-hosted Geist binary — the Google
-       Fonts build has no ss* sets and silently ignores this. */
-    font-feature-settings: "calt" 0, "rlig", "ss11";
+    /* The Geist-specific stylistic-set tuning ("ss11") that lived here is
+       gone with the Geist binary — Nunito Sans has no ss* sets, so it would
+       be silently ignored anyway. */
   }
   ::selection {
     background: var(--selection-bg);
@@ -505,7 +400,7 @@
 .spotlight-card {
   position: relative;
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   background: var(--card);
   transition: transform 0.3s ease, border-color 0.3s ease;
 }
@@ -517,7 +412,7 @@
   padding: 1px;
   background: radial-gradient(
     240px circle at var(--mx, 50%) var(--my, 0%),
-    var(--vercel-blue),
+    var(--action-500),
     transparent 65%
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);

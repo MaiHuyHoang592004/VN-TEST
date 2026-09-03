@@ -95,7 +95,7 @@ export function ApiMigrationMap() {
                   {column.now ? (
                     <code className="font-mono text-xs">{column.now}</code>
                   ) : (
-                    <Badge product="secondary">{t("profile.api.migration.retired")}</Badge>
+                    <Badge variant="secondary">{t("profile.api.migration.retired")}</Badge>
                   )}
                 </td>
                 <td className="text-muted-foreground py-2 text-xs">

@@ -81,7 +81,7 @@ export function VariantsTable({ rows, total }: { rows: VariantRow[]; total: numb
       id: "status",
       header: t("catalog.variants.colStatus"),
       cell: (v) => (
-        <Badge product={v.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={v.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`catalog.statuses.${v.status}`)}
         </Badge>
       ),
@@ -104,7 +104,7 @@ export function VariantsTable({ rows, total }: { rows: VariantRow[]; total: numb
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button product="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${v.name}`}>
+              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${v.name}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }
@@ -118,7 +118,7 @@ export function VariantsTable({ rows, total }: { rows: VariantRow[]; total: numb
                 {t(v.status === "ACTIVE" ? "catalog.products.deactivate" : "catalog.products.activate")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem product="destructive" onClick={() => setDeleting(v)}>
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleting(v)}>
                 {t("catalog.variants.deleteAction")}
               </DropdownMenuItem>
             </Can>

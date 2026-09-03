@@ -47,7 +47,7 @@ export function AlreadyScannedDialog({
             }`}
           >
             <span className="truncate font-mono text-xs">{o.externalId ?? `#${o.id}`}</span>
-            <Badge product="secondary">{t(`orders.statuses.${o.status}`)}</Badge>
+            <Badge variant="secondary">{t(`orders.statuses.${o.status}`)}</Badge>
           </li>
         ))}
       </ul>

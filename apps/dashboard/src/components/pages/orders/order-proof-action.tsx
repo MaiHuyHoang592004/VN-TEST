@@ -69,7 +69,7 @@ export function OrderProofAction({
         }}
       />
       <Button
-        product="ghost"
+        variant="ghost"
         size="icon"
         disabled={pending}
         aria-label={t(hasProof ? "orders.proof.replace" : "orders.proof.upload")}

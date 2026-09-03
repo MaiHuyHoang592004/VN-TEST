@@ -119,7 +119,7 @@ export function VendorsTable({
       id: "status",
       header: t("finance.vendors.colStatus"),
       cell: (v) => (
-        <Badge product={v.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={v.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`finance.vendors.status.${v.status}`)}
         </Badge>
       ),
@@ -141,7 +141,7 @@ export function VendorsTable({
       cell: (v) => (
         <div className="flex justify-end">
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("admin.actions.edit")}
             onClick={(e) => {
@@ -152,7 +152,7 @@ export function VendorsTable({
             <Pencil className="size-4" />
           </Button>
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("admin.actions.delete")}
             onClick={(e) => {

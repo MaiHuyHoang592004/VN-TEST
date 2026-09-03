@@ -77,7 +77,7 @@ export function DataTableToolbar({
         {selectedCount > 0 && bulkActions ? bulkActions : filters}
 
         {hasFilters && onClearFilters && selectedCount === 0 && (
-          <Button product="ghost" size="sm" onClick={onClearFilters}>
+          <Button variant="ghost" size="sm" onClick={onClearFilters}>
             <X className="size-4" />
             Clear
           </Button>

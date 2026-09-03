@@ -64,7 +64,7 @@ export function AcceptInvite({
         <p className="text-muted-foreground text-sm">
           Sign out and sign back in with the invited address to accept it.
         </p>
-        <Button product="outline" render={<Link href="/api/auth/signout" />}>
+        <Button variant="outline" render={<Link href="/api/auth/signout" />}>
           Sign out
         </Button>
       </div>

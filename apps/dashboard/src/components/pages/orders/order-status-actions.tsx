@@ -90,7 +90,7 @@ export function OrderStatusActions({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button product="outline" disabled={pending || options.length === 0}>
+            <Button variant="outline" disabled={pending || options.length === 0}>
               {t("orders.moveTo")} ({selected.length})
               <ChevronDown className="ml-1 size-4" />
             </Button>
@@ -103,7 +103,7 @@ export function OrderStatusActions({
             options.map((s) => (
               <DropdownMenuItem
                 key={s}
-                product={s === "CANCELLED" ? "destructive" : undefined}
+                variant={s === "CANCELLED" ? "destructive" : undefined}
                 onClick={() => move(s)}
               >
                 {t(`orders.statuses.${s}`)}

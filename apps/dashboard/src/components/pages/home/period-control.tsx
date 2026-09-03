@@ -35,7 +35,7 @@ export function PeriodControl({ period }: { period: TimePeriod }) {
           <Button
             key={p}
             size="sm"
-            product={period === p ? "secondary" : "ghost"}
+            variant={period === p ? "secondary" : "ghost"}
             onClick={() => setParams({ period: p, from: "", to: "" })}
           >
             {t(`home.periods.${p}`)}

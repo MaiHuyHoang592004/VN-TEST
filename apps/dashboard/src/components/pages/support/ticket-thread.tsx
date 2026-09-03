@@ -121,7 +121,7 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
                 </p>
               </div>
               <Button
-                product="outline"
+                variant="outline"
                 disabled={statusPending}
                 onClick={() => submitStatus("OPEN")}
               >
@@ -157,7 +157,7 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
           </div>
 
           <Field label={t("support.tickets.detail.priority")}>
-            <Badge product={priorityVariant(ticket.priority)}>
+            <Badge variant={priorityVariant(ticket.priority)}>
               {t(`support.tickets.priority.${ticket.priority}`)}
             </Badge>
           </Field>
@@ -338,7 +338,7 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
           />
           <Button
             type="button"
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("support.tickets.form.attach")}
             onClick={() => fileInput.current?.click()}

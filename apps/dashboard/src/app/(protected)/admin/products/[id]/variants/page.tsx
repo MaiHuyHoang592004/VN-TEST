@@ -47,7 +47,7 @@ export default async function ProductVariantsPage({
         </Link>
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-semibold tracking-tight">{variant.name}</h1>
-          <Badge product={variant.status === "ACTIVE" ? "default" : "secondary"}>
+          <Badge variant={variant.status === "ACTIVE" ? "default" : "secondary"}>
             {variant.status}
           </Badge>
           <span className="text-muted-foreground font-mono text-sm">{variant.key}</span>

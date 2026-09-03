@@ -53,7 +53,7 @@ export function DownloadLabelsButton({ orderIds }: { orderIds: number[] }) {
   };
 
   return (
-    <Button product="outline" onClick={run} disabled={pending}>
+    <Button variant="outline" onClick={run} disabled={pending}>
       {pending ? <Spinner className="size-4" /> : <Download className="size-4" />}
       {orderIds.length
         ? `${t("orders.labels.download")} (${orderIds.length})`

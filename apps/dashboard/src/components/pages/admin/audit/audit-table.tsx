@@ -107,7 +107,7 @@ export function AuditTable({ rows, total }: { rows: AuditRow[]; total: number })
       id: "action",
       header: t("admin.audit.colAction"),
       cell: (r) => (
-        <Badge product={isSensitive(r.action) ? "default" : "secondary"}>
+        <Badge variant={isSensitive(r.action) ? "default" : "secondary"}>
           {pretty(r.action)}
         </Badge>
       ),
@@ -136,7 +136,7 @@ export function AuditTable({ rows, total }: { rows: AuditRow[]; total: number })
       className: "w-10",
       cell: (r) => (
         <Button
-          product="ghost"
+          variant="ghost"
           size="icon"
           aria-label={t("admin.audit.showChanges")}
           aria-expanded={expanded === r.id}

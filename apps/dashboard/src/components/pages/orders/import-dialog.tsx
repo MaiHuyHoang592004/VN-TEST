@@ -155,7 +155,7 @@ export function ImportDialog({
             </p>
           )}
 
-          <Button type="button" product="ghost" size="sm" onClick={downloadTemplate} className="w-fit">
+          <Button type="button" variant="ghost" size="sm" onClick={downloadTemplate} className="w-fit">
             <Download className="mr-1.5 size-4" />
             {t("orders.importTemplate")}
           </Button>
@@ -165,7 +165,7 @@ export function ImportDialog({
           <div className="flex gap-2">
             <Badge>{t("orders.importCreated").replace("{count}", String(created))}</Badge>
             {failed.length > 0 && (
-              <Badge product="destructive">
+              <Badge variant="destructive">
                 {t("orders.importFailed").replace("{count}", String(failed.length))}
               </Badge>
             )}

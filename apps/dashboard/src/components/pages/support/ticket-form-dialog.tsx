@@ -238,7 +238,7 @@ export function TicketFormDialog({
             />
             <Button
               type="button"
-              product="outline"
+              variant="outline"
               size="sm"
               className="w-fit"
               onClick={() => fileInput.current?.click()}

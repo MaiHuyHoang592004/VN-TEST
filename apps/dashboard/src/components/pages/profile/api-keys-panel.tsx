@@ -31,7 +31,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
   return (
     <Button
       type="button"
-      product="outline"
+      variant="outline"
       size="sm"
       aria-label={label}
       onClick={async () => {
@@ -123,7 +123,7 @@ export function ApiKeysPanel({
                       : t("profile.api.neverUsed")}
                   </span>
                   <Button
-                    product="outline"
+                    variant="outline"
                     size="sm"
                     disabled={pending}
                     onClick={() => revoke(k.id)}
@@ -158,7 +158,7 @@ export function ApiKeysPanel({
             <code className="bg-muted min-w-0 flex-1 truncate rounded-md px-3 py-2 font-mono text-xs">
               x-api-key: opc_live_…
             </code>
-            <Badge product="secondary">{t("profile.api.header")}</Badge>
+            <Badge variant="secondary">{t("profile.api.header")}</Badge>
           </div>
         </div>
       </SettingsCard>

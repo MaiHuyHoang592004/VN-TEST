@@ -137,7 +137,7 @@ export function ScanInput({
           </Button>
           <Button
             type="button"
-            product="ghost"
+            variant="ghost"
             onClick={() => {
               setValue("");
               setError(null);

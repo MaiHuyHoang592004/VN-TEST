@@ -39,7 +39,7 @@ export function WarehouseHome({ data }: { data: WarehouseHomeData }) {
 
       <div className="mb-4 flex flex-wrap gap-2">
         {data.byStatus.map((s) => (
-          <Badge key={s.status} product="secondary" className="gap-1.5">
+          <Badge key={s.status} variant="secondary" className="gap-1.5">
             {t(`orders.statuses.${s.status}`)}
             <span className="tabular-nums">{s.orders}</span>
           </Badge>
@@ -53,7 +53,7 @@ export function WarehouseHome({ data }: { data: WarehouseHomeData }) {
 
       <div className="mt-4 flex justify-end">
         <Button
-          product="outline"
+          variant="outline"
           nativeButton={false}
           render={<Link href="/fulfillment/monitor" />}
         >

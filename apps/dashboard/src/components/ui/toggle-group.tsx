@@ -15,14 +15,14 @@ const ToggleGroupContext = React.createContext<
   }
 >({
   size: "default",
-  product: "default",
+  variant: "default",
   spacing: 2,
   orientation: "horizontal",
 })
 
 function ToggleGroup({
   className,
-  product,
+  variant,
   size,
   spacing = 2,
   orientation = "horizontal",
@@ -36,7 +36,7 @@ function ToggleGroup({
   return (
     <ToggleGroupPrimitive
       data-slot="toggle-group"
-      data-product={product}
+      data-variant={variant}
       data-size={size}
       data-spacing={spacing}
       data-orientation={orientation}
@@ -48,7 +48,7 @@ function ToggleGroup({
       {...props}
     >
       <ToggleGroupContext.Provider
-        value={{ product, size, spacing, orientation }}
+        value={{ variant, size, spacing, orientation }}
       >
         {children}
       </ToggleGroupContext.Provider>
@@ -59,7 +59,7 @@ function ToggleGroup({
 function ToggleGroupItem({
   className,
   children,
-  product = "default",
+  variant = "default",
   size = "default",
   ...props
 }: TogglePrimitive.Props & VariantProps<typeof toggleVariants>) {
@@ -68,13 +68,13 @@ function ToggleGroupItem({
   return (
     <TogglePrimitive
       data-slot="toggle-group-item"
-      data-product={context.product || product}
+      data-variant={context.variant || variant}
       data-size={context.size || size}
       data-spacing={context.spacing}
       className={cn(
-        "shrink-0 group-data-[spacing=0]/toggle-group:rounded-none group-data-[spacing=0]/toggle-group:px-2 focus:z-10 focus-visible:z-10 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-end]:pr-1.5 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-start]:pl-1.5 group-data-horizontal/toggle-group:data-[spacing=0]:first:rounded-l-lg group-data-vertical/toggle-group:data-[spacing=0]:first:rounded-t-lg group-data-horizontal/toggle-group:data-[spacing=0]:last:rounded-r-lg group-data-vertical/toggle-group:data-[spacing=0]:last:rounded-b-lg group-data-horizontal/toggle-group:data-[spacing=0]:data-[product=outline]:border-l-0 group-data-vertical/toggle-group:data-[spacing=0]:data-[product=outline]:border-t-0 group-data-horizontal/toggle-group:data-[spacing=0]:data-[product=outline]:first:border-l group-data-vertical/toggle-group:data-[spacing=0]:data-[product=outline]:first:border-t",
+        "shrink-0 group-data-[spacing=0]/toggle-group:rounded-none group-data-[spacing=0]/toggle-group:px-2 focus:z-10 focus-visible:z-10 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-end]:pr-1.5 group-data-[spacing=0]/toggle-group:has-data-[icon=inline-start]:pl-1.5 group-data-horizontal/toggle-group:data-[spacing=0]:first:rounded-l-lg group-data-vertical/toggle-group:data-[spacing=0]:first:rounded-t-lg group-data-horizontal/toggle-group:data-[spacing=0]:last:rounded-r-lg group-data-vertical/toggle-group:data-[spacing=0]:last:rounded-b-lg group-data-horizontal/toggle-group:data-[spacing=0]:data-[variant=outline]:border-l-0 group-data-vertical/toggle-group:data-[spacing=0]:data-[variant=outline]:border-t-0 group-data-horizontal/toggle-group:data-[spacing=0]:data-[variant=outline]:first:border-l group-data-vertical/toggle-group:data-[spacing=0]:data-[variant=outline]:first:border-t",
         toggleVariants({
-          product: context.product || product,
+          variant: context.variant || variant,
           size: context.size || size,
         }),
         className

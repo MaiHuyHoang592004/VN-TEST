@@ -174,7 +174,7 @@ function TeamSwitcher() {
           </span>
         </span>
         <Badge
-          product="secondary"
+          variant="secondary"
           className="shrink-0 group-data-[collapsible=icon]:hidden"
         >
           {team.plan}
@@ -317,7 +317,7 @@ export function AppSidebar() {
         {/* Search: real box when open; icon that pins open when collapsed.
             pb-1 opens a breath between the box and the nav list below. */}
         <div className="pb-1 group-data-[collapsible=icon]:hidden">
-          <Search product="dropdown" fullWidth anchor="left" />
+          <Search variant="dropdown" fullWidth anchor="left" />
         </div>
         <button
           aria-label={t("nav.search")}

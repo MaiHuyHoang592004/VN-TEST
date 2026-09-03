@@ -81,7 +81,7 @@ export function DeleteMaterialDialog({
               : t("inventory.materials.delete.blocked")}
         </p>
         {usage && !canDelete && (
-          <Badge product="secondary" className="self-start">
+          <Badge variant="secondary" className="self-start">
             {usage.activeBomLines} {t("inventory.materials.delete.pillBomLines")}
           </Badge>
         )}

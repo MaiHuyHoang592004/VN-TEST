@@ -74,7 +74,7 @@ export function SellerHome({ data }: { data: SellerHomeData }) {
                 return (
                   <li key={s.status} className="flex flex-col gap-1">
                     <div className="flex items-center justify-between gap-2 text-sm">
-                      <Badge product="secondary">{t(`orders.statuses.${s.status}`)}</Badge>
+                      <Badge variant="secondary">{t(`orders.statuses.${s.status}`)}</Badge>
                       <span className="tabular-nums">
                         {s.count.toLocaleString()}
                         <span className="text-muted-foreground ml-2 text-xs">
@@ -141,7 +141,7 @@ export function SellerHome({ data }: { data: SellerHomeData }) {
           {/* A link that looks like a button: Base UI needs to be told it is not a
               native <button>, or it strips the semantics (CLAUDE.md). */}
           <Button
-            product="outline"
+            variant="outline"
             size="sm"
             nativeButton={false}
             render={<Link href="/tickets" />}

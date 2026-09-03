@@ -60,7 +60,7 @@ export default async function InvitePage({
 
       <div className="flex flex-wrap gap-1.5">
         {invite.roles.map((r) => (
-          <Badge key={r} product="secondary">
+          <Badge key={r} variant="secondary">
             {r.toLowerCase().replace("_", " ")}
           </Badge>
         ))}

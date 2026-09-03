@@ -88,7 +88,7 @@ export function StationActions({
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button product="outline" disabled={pending || options.length === 0}>
+                <Button variant="outline" disabled={pending || options.length === 0}>
                   {t("fulfillment.actions.updateAll")}
                   <ChevronDown className="ml-1 size-4" />
                 </Button>
@@ -101,7 +101,7 @@ export function StationActions({
                 options.map((s) => (
                   <DropdownMenuItem
                     key={s}
-                    product={s === "CANCELLED" ? "destructive" : undefined}
+                    variant={s === "CANCELLED" ? "destructive" : undefined}
                     onClick={() => moveAll(s)}
                   >
                     {t(`orders.statuses.${s}`)}
@@ -112,7 +112,7 @@ export function StationActions({
           </DropdownMenu>
 
           <Can permission="orders.labels.manage">
-            <Button product="outline" onClick={() => setLinking(true)} disabled={pending}>
+            <Button variant="outline" onClick={() => setLinking(true)} disabled={pending}>
               <Tag className="size-4" />
               {t("fulfillment.actions.linkLabel")}
             </Button>
@@ -133,7 +133,7 @@ export function StationActions({
               if (file) await upload(file);
             }}
           />
-          <Button product="outline" onClick={() => fileRef.current?.click()} disabled={pending}>
+          <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={pending}>
             <Camera className="size-4" />
             {t("fulfillment.actions.proof")}
           </Button>

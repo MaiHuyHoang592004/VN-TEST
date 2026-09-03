@@ -84,14 +84,14 @@ export function TicketsTable({
       id: "status",
       header: t("support.tickets.col.status"),
       cell: (r) => (
-        <Badge product={statusVariant(r.status)}>{t(`support.tickets.status.${r.status}`)}</Badge>
+        <Badge variant={statusVariant(r.status)}>{t(`support.tickets.status.${r.status}`)}</Badge>
       ),
     },
     {
       id: "priority",
       header: t("support.tickets.col.priority"),
       cell: (r) => (
-        <Badge product={priorityVariant(r.priority)}>
+        <Badge variant={priorityVariant(r.priority)}>
           {t(`support.tickets.priority.${r.priority}`)}
         </Badge>
       ),
@@ -150,7 +150,7 @@ export function TicketsTable({
           {/* Shown to everyone: a seller only ever sees their own rows, and the
               server refuses an edit that is not theirs to make. */}
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("support.tickets.edit.title")}
             onClick={(e) => {
@@ -162,7 +162,7 @@ export function TicketsTable({
           </Button>
         <Can permission="tickets.manage">
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("support.tickets.delete.submit")}
             onClick={async (e) => {

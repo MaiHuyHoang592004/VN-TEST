@@ -38,7 +38,7 @@ const itemVariants = cva(
   "group/item flex w-full flex-wrap items-center rounded-lg border text-sm transition-colors duration-100 outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 [a]:transition-colors [a]:hover:bg-muted",
   {
     variants: {
-      product: {
+      variant: {
         default: "border-transparent",
         outline: "border-border",
         muted: "border-transparent bg-muted/50",
@@ -50,7 +50,7 @@ const itemVariants = cva(
       },
     },
     defaultVariants: {
-      product: "default",
+      variant: "default",
       size: "default",
     },
   }
@@ -58,7 +58,7 @@ const itemVariants = cva(
 
 function Item({
   className,
-  product = "default",
+  variant = "default",
   size = "default",
   render,
   ...props
@@ -67,14 +67,14 @@ function Item({
     defaultTagName: "div",
     props: mergeProps<"div">(
       {
-        className: cn(itemVariants({ product, size, className })),
+        className: cn(itemVariants({ variant, size, className })),
       },
       props
     ),
     render,
     state: {
       slot: "item",
-      product,
+      variant,
       size,
     },
   })
@@ -84,7 +84,7 @@ const itemMediaVariants = cva(
   "flex shrink-0 items-center justify-center gap-2 group-has-data-[slot=item-description]/item:translate-y-0.5 group-has-data-[slot=item-description]/item:self-start [&_svg]:pointer-events-none",
   {
     variants: {
-      product: {
+      variant: {
         default: "bg-transparent",
         icon: "[&_svg:not([class*='size-'])]:size-4",
         image:
@@ -92,21 +92,21 @@ const itemMediaVariants = cva(
       },
     },
     defaultVariants: {
-      product: "default",
+      variant: "default",
     },
   }
 )
 
 function ItemMedia({
   className,
-  product = "default",
+  variant = "default",
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof itemMediaVariants>) {
   return (
     <div
       data-slot="item-media"
-      data-product={product}
-      className={cn(itemMediaVariants({ product, className }))}
+      data-variant={variant}
+      className={cn(itemMediaVariants({ variant, className }))}
       {...props}
     />
   )

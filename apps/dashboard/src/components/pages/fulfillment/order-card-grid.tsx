@@ -140,7 +140,7 @@ function OrderCard({
       </div>
 
       <div className="flex items-center gap-2">
-        <Badge product={order.status === "ON_HOLD" ? "destructive" : "secondary"}>
+        <Badge variant={order.status === "ON_HOLD" ? "destructive" : "secondary"}>
           {t(`orders.statuses.${order.status}`)}
         </Badge>
         {complete && (
@@ -201,7 +201,7 @@ function OrderCard({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button product="outline" size="icon" disabled={pending || options.length === 0} />
+              <Button variant="outline" size="icon" disabled={pending || options.length === 0} />
             }
           >
             <ChevronDown className="size-4" />
@@ -210,7 +210,7 @@ function OrderCard({
             {options.map((s) => (
               <DropdownMenuItem
                 key={s}
-                product={s === "CANCELLED" ? "destructive" : undefined}
+                variant={s === "CANCELLED" ? "destructive" : undefined}
                 onClick={() => move(s)}
               >
                 {t(`orders.statuses.${s}`)}

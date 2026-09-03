@@ -12,7 +12,7 @@ export interface SearchProps {
    * - "dropdown": Shows results below search box in navbar context (default)
    * - "modal": Shows full-page command palette modal
    */
-  product?: "dropdown" | "modal";
+  variant?: "dropdown" | "modal";
   /**
    * For mobile: Controls if search is visible
    */

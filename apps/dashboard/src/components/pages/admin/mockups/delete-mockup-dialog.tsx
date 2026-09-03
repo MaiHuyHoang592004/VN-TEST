@@ -86,7 +86,7 @@ export function DeleteMockupDialog({
       ) : (
         <div className="flex flex-col gap-3">
           <p className="text-muted-foreground text-sm">{t("catalog.mockups.delInUse")}</p>
-          <Badge product="secondary">
+          <Badge variant="secondary">
             {usage.orders} {t("catalog.mockups.pillOrders")}
           </Badge>
         </div>

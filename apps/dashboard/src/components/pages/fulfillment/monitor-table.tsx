@@ -113,7 +113,7 @@ export function MonitorTable({
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-1">
                       {g.statuses.map((s) => (
-                        <Badge key={s} product={s === "ON_HOLD" ? "destructive" : "secondary"}>
+                        <Badge key={s} variant={s === "ON_HOLD" ? "destructive" : "secondary"}>
                           {t(`orders.statuses.${s}`)}
                         </Badge>
                       ))}
@@ -156,7 +156,7 @@ export function MonitorTable({
 
       {cursor && (
         <div className="flex justify-center">
-          <Button product="outline" onClick={loadMore} disabled={loading}>
+          <Button variant="outline" onClick={loadMore} disabled={loading}>
             {t("fulfillment.monitor.loadMore")}
           </Button>
         </div>

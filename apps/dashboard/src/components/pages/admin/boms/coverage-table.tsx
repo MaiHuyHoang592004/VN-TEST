@@ -83,7 +83,7 @@ export function CoverageTable({
       id: "coverage",
       header: t("inventory.boms.coverage.col.coverage"),
       cell: (r) => (
-        <Badge product={BADGE_VARIANT[r.coverage]}>
+        <Badge variant={BADGE_VARIANT[r.coverage]}>
           {t(`inventory.boms.coverage.badge.${r.coverage}`)}
         </Badge>
       ),
@@ -143,12 +143,12 @@ export function CoverageTable({
               {/* Four chips then a count: a material stocked at a dozen sites
                   would otherwise push every other row off the column. */}
               {r.warehouses.slice(0, 4).map((w) => (
-                <Badge key={w.id} product="secondary" className="font-normal">
+                <Badge key={w.id} variant="secondary" className="font-normal">
                   {w.name}: {w.quantity}
                 </Badge>
               ))}
               {r.warehouses.length > 4 && (
-                <Badge product="secondary">+{r.warehouses.length - 4}</Badge>
+                <Badge variant="secondary">+{r.warehouses.length - 4}</Badge>
               )}
             </>
           )}

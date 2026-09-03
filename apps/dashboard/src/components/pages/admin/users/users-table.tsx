@@ -105,7 +105,7 @@ export function UsersTable({
       cell: (u) => (
         <div className="flex flex-wrap gap-1">
           {u.roles.map((r) => (
-            <Badge key={r} product="secondary" className="text-[11px]">
+            <Badge key={r} variant="secondary" className="text-[11px]">
               {roleLabel(r)}
             </Badge>
           ))}
@@ -116,7 +116,7 @@ export function UsersTable({
       id: "status",
       header: t("admin.users.colStatus"),
       cell: (u) => (
-        <Badge product={u.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={u.status === "ACTIVE" ? "default" : "secondary"}>
           {statusLabel(u.status)}
         </Badge>
       ),
@@ -163,7 +163,7 @@ export function UsersTable({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button product="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${u.email}`}>
+              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${u.email}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }
@@ -199,7 +199,7 @@ export function UsersTable({
             </Can>
             <Can permission="users.delete">
               <DropdownMenuItem
-                product="destructive"
+                variant="destructive"
                 onClick={() => setStatusChange({ user: u, action: "DELETE" })}
               >
                 {t("admin.actions.delete")}

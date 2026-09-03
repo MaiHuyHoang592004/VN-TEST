@@ -49,7 +49,7 @@ export function ExportButton({ orderIds }: { orderIds: number[] }) {
   };
 
   return (
-    <Button product="outline" onClick={run} disabled={pending}>
+    <Button variant="outline" onClick={run} disabled={pending}>
       {pending ? <Spinner className="size-4" /> : <Download className="size-4" />}
       {t("orders.export.action")}
       {orderIds.length > 0 ? ` (${orderIds.length})` : ""}

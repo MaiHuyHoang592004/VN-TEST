@@ -93,7 +93,7 @@ export function BomsTable({
       id: "status",
       header: t("inventory.boms.col.status"),
       cell: (b) => (
-        <Badge product={b.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={b.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`inventory.boms.status.${b.status}`)}
         </Badge>
       ),
@@ -131,7 +131,7 @@ export function BomsTable({
       header: <span className="sr-only">{t("inventory.boms.col.manage")}</span>,
       className: "w-20",
       cell: (b) => (
-        <Button product="ghost" size="sm" onClick={() => setEditing(b)}>
+        <Button variant="ghost" size="sm" onClick={() => setEditing(b)}>
           {t("inventory.boms.manage")}
         </Button>
       ),

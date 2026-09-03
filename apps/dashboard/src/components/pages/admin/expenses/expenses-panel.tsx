@@ -87,7 +87,7 @@ export function ExpensesPanel({
             <Button
               key={key}
               size="sm"
-              product={tab === key ? "secondary" : "ghost"}
+              variant={tab === key ? "secondary" : "ghost"}
               onClick={() => params.setFilter("tab", key === "entries" ? "" : key)}
             >
               {t(`finance.expenses.tabs.${key}`)}
@@ -157,7 +157,7 @@ function EntriesTab({
       id: "type",
       header: t("finance.expenses.colType"),
       cell: (e) => (
-        <Badge product={e.type === "INCOME" ? "default" : "secondary"}>
+        <Badge variant={e.type === "INCOME" ? "default" : "secondary"}>
           {t(`finance.expenses.types.${e.type}`)}
         </Badge>
       ),
@@ -213,7 +213,7 @@ function EntriesTab({
       cell: (e) => (
         <div className="flex justify-end">
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("admin.actions.edit")}
             onClick={(event) => {
@@ -224,7 +224,7 @@ function EntriesTab({
             <Pencil className="size-4" />
           </Button>
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("admin.actions.delete")}
             onClick={(event) => {
@@ -414,7 +414,7 @@ function CategoriesTab({ categories }: { categories: CategoryRow[] }) {
       id: "type",
       header: t("finance.expenses.colType"),
       cell: (c) => (
-        <Badge product={c.type === "INCOME" ? "default" : "secondary"}>
+        <Badge variant={c.type === "INCOME" ? "default" : "secondary"}>
           {t(`finance.expenses.types.${c.type}`)}
         </Badge>
       ),
@@ -452,7 +452,7 @@ function CategoriesTab({ categories }: { categories: CategoryRow[] }) {
       cell: (c) => (
         <div className="flex justify-end">
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("admin.actions.edit")}
             onClick={(e) => {
@@ -463,7 +463,7 @@ function CategoriesTab({ categories }: { categories: CategoryRow[] }) {
             <Pencil className="size-4" />
           </Button>
           <Button
-            product="ghost"
+            variant="ghost"
             size="icon"
             aria-label={t("admin.actions.delete")}
             onClick={(e) => {

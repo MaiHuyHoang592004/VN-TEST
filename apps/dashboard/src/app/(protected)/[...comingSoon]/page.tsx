@@ -86,7 +86,7 @@ export default function ComingSoon() {
       </div>
 
       <Badge
-        product="secondary"
+        variant="secondary"
         className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both gap-1.5 delay-100 duration-500"
       >
         <Hammer className="size-3" />
@@ -123,7 +123,7 @@ export default function ComingSoon() {
       <div className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both delay-400 duration-500">
         <Button
           size="lg"
-          product="outline"
+          variant="outline"
           className="hover-lift"
           nativeButton={false}
           render={<Link href="/" />}

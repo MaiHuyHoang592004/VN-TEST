@@ -15,7 +15,7 @@ interface SearchResultItemProps {
   isSelected: boolean;
   isRecent?: boolean;
   onSelect: () => void;
-  product?: "dropdown" | "modal";
+  variant?: "dropdown" | "modal";
 }
 
 export function SearchResultItem({
@@ -23,7 +23,7 @@ export function SearchResultItem({
   isSelected,
   isRecent = false,
   onSelect,
-  product = "dropdown",
+  variant = "dropdown",
 }: SearchResultItemProps) {
   // Four kinds now that search reads the real database: orders, catalogue
   // rows, people, and the app's own pages.
@@ -37,8 +37,8 @@ export function SearchResultItem({
           ? ArrowRight
           : ShoppingBag;
 
-  // Modal product layout (horizontal)
-  if (product === "modal") {
+  // Modal variant layout (horizontal)
+  if (variant === "modal") {
     return (
       <CommandItem
         onSelect={onSelect}
@@ -58,7 +58,7 @@ export function SearchResultItem({
     );
   }
 
-  // Dropdown product layout (vertical)
+  // Dropdown variant layout (vertical)
   return (
     <CommandItem
       onSelect={onSelect}

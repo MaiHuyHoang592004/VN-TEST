@@ -22,15 +22,15 @@ function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
 
 function FieldLegend({
   className,
-  product = "legend",
+  variant = "legend",
   ...props
-}: React.ComponentProps<"legend"> & { product?: "legend" | "label" }) {
+}: React.ComponentProps<"legend"> & { variant?: "legend" | "label" }) {
   return (
     <legend
       data-slot="field-legend"
-      data-product={product}
+      data-variant={variant}
       className={cn(
-        "mb-1.5 font-medium data-[product=label]:text-sm data-[product=legend]:text-base",
+        "mb-1.5 font-medium data-[variant=label]:text-sm data-[variant=legend]:text-base",
         className
       )}
       {...props}
@@ -133,7 +133,7 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="field-description"
       className={cn(
-        "text-left text-sm leading-normal font-normal text-muted-foreground group-has-data-horizontal/field:text-balance [[data-product=legend]+&]:-mt-1.5",
+        "text-left text-sm leading-normal font-normal text-muted-foreground group-has-data-horizontal/field:text-balance [[data-variant=legend]+&]:-mt-1.5",
         "last:mt-0 nth-last-2:-mt-1",
         "[&>a]:underline [&>a]:underline-offset-4 [&>a:hover]:text-primary",
         className
@@ -155,7 +155,7 @@ function FieldSeparator({
       data-slot="field-separator"
       data-content={!!children}
       className={cn(
-        "relative -my-2 h-5 text-sm group-data-[product=outline]/field-group:-mb-2",
+        "relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
         className
       )}
       {...props}

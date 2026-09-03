@@ -133,7 +133,7 @@ export function Navbar() {
             {/* Search — signed-out only; the sidebar owns it once signed in */}
             {!user && (
               <div className="hidden lg:block">
-                <Search product="dropdown" />
+                <Search variant="dropdown" />
               </div>
             )}
 

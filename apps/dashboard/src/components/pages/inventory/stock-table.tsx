@@ -125,7 +125,7 @@ export function StockTable({
             <span className="text-muted-foreground text-sm">—</span>
           ) : (
             r.warehouses.map((w) => (
-              <Badge key={w.id} product="secondary" className="font-normal">
+              <Badge key={w.id} variant="secondary" className="font-normal">
                 {w.name}: {w.quantity}
               </Badge>
             ))
@@ -139,7 +139,7 @@ export function StockTable({
       className: "w-24",
       cell: (r) => (
         <Can permission="inventory.adjust">
-          <Button product="ghost" size="sm" onClick={() => setAdjusting(r)}>
+          <Button variant="ghost" size="sm" onClick={() => setAdjusting(r)}>
             {t("inventory.stock.adjust")}
           </Button>
         </Can>
@@ -154,7 +154,7 @@ export function StockTable({
         subtitle={t("inventory.stock.subtitle")}
         actions={
           <Can permission="inventory.adjust">
-            <Button product="outline" onClick={() => setImporting(true)}>
+            <Button variant="outline" onClick={() => setImporting(true)}>
               {t("inventory.stock.import")}
             </Button>
           </Can>

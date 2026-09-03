@@ -79,7 +79,7 @@ export function ReceiptsTable({
       header: t("inventory.receipts.col.status"),
       cell: (r) => (
         <Badge
-          product={
+          variant={
             r.status === "COMPLETE"
               ? "default"
               : r.status === "REJECTED"

@@ -224,7 +224,7 @@ export function OrdersTable({
       id: "status",
       header: t("orders.colStatus"),
       cell: (o) => (
-        <Badge product={statusVariant(o.status)}>{t(`orders.statuses.${o.status}`)}</Badge>
+        <Badge variant={statusVariant(o.status)}>{t(`orders.statuses.${o.status}`)}</Badge>
       ),
     },
     {
@@ -285,7 +285,7 @@ export function OrdersTable({
                 {o.status === "PENDING" && (
                   <Can permission="orders.update">
                     <Button
-                      product="ghost"
+                      variant="ghost"
                       size="icon"
                       aria-label={t("orders.artwork.title")}
                       onClick={(e) => {
@@ -299,7 +299,7 @@ export function OrdersTable({
                         call — this is for the single order somebody is
                         looking at, which is how it is used in practice. */}
                     <Button
-                      product="ghost"
+                      variant="ghost"
                       size="icon"
                       aria-label={t("orders.recalc.action")}
                       disabled={recalcPending}
@@ -401,7 +401,7 @@ export function OrdersTable({
                           itself, and the operator keeps their place in the
                           table behind it. */}
                       <Button
-                        product="outline"
+                        variant="outline"
                         onClick={() =>
                           window.open(`/orders/print?ids=${selectedIds.join(",")}`, "_blank", "noopener")
                         }
@@ -413,13 +413,13 @@ export function OrdersTable({
                       <BuyLabelsButton orderIds={selectedIds} onDone={clearSelection} />
                     </Can>
                     <Can permission="orders.assign">
-                      <Button product="outline" onClick={() => setAssigning(true)}>
+                      <Button variant="outline" onClick={() => setAssigning(true)}>
                         {t("orders.assign")} ({selectedIds.length})
                       </Button>
                     </Can>
                     <Can permission="orders.update">
                       <Button
-                        product="outline"
+                        variant="outline"
                         disabled={recalcPending}
                         onClick={() => void recalc(selectedIds)}
                       >
@@ -427,12 +427,12 @@ export function OrdersTable({
                       </Button>
                     </Can>
                     <Can permission="orders.refund">
-                      <Button product="outline" onClick={() => setRefunding(true)}>
+                      <Button variant="outline" onClick={() => setRefunding(true)}>
                         {t("orders.refund")}
                       </Button>
                     </Can>
                     <Can permission="orders.delete">
-                      <Button product="outline" onClick={() => setDeleting(true)}>
+                      <Button variant="outline" onClick={() => setDeleting(true)}>
                         {t("orders.delete")}
                       </Button>
                     </Can>
@@ -443,7 +443,7 @@ export function OrdersTable({
                 </Can>
                 <ExportButton orderIds={selectedIds} />
                 <Can permission="orders.create">
-                  <Button product="outline" onClick={() => setImporting(true)}>
+                  <Button variant="outline" onClick={() => setImporting(true)}>
                     {t("orders.import")}
                   </Button>
                   <Button onClick={() => setCreating(true)}>{t("orders.new")}</Button>

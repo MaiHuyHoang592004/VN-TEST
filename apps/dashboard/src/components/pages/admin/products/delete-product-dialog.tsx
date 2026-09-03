@@ -92,7 +92,7 @@ export function DeleteProductDialog({
           <p className="text-muted-foreground text-sm">{t("catalog.products.delInUse")}</p>
           <div className="flex flex-wrap gap-1.5">
             {pills.map(([label, n]) => (
-              <Badge key={label} product="secondary">
+              <Badge key={label} variant="secondary">
                 {n} {label}
               </Badge>
             ))}

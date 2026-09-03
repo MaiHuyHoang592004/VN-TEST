@@ -70,7 +70,7 @@ export function BillingPanel({
     {
       id: "type",
       header: t("profile.billing.colType"),
-      cell: (tx) => <Badge product="secondary">{tx.type.toLowerCase().replace("_", " ")}</Badge>,
+      cell: (tx) => <Badge variant="secondary">{tx.type.toLowerCase().replace("_", " ")}</Badge>,
     },
     {
       id: "amount",
@@ -98,7 +98,7 @@ export function BillingPanel({
       header: t("profile.billing.colStatus"),
       hideOnMobile: true,
       cell: (tx) => (
-        <Badge product={tx.status === "COMPLETED" ? "default" : "secondary"}>
+        <Badge variant={tx.status === "COMPLETED" ? "default" : "secondary"}>
           {tx.status.toLowerCase()}
         </Badge>
       ),
@@ -144,7 +144,7 @@ export function BillingPanel({
             <Button onClick={() => setAsking("topup")}>
               {t("profile.billing.requestTopUp")}
             </Button>
-            <Button product="outline" onClick={() => setAsking("refund")}>
+            <Button variant="outline" onClick={() => setAsking("refund")}>
               {t("profile.billing.requestRefund")}
             </Button>
           </div>

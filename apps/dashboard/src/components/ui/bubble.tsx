@@ -16,10 +16,10 @@ function BubbleGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const bubbleVariants = cva(
-  "group/bubble relative flex w-fit max-w-[80%] min-w-0 flex-col gap-1 group-data-[align=end]/message:self-end data-[align=end]:self-end data-[product=ghost]:max-w-full",
+  "group/bubble relative flex w-fit max-w-[80%] min-w-0 flex-col gap-1 group-data-[align=end]/message:self-end data-[align=end]:self-end data-[variant=ghost]:max-w-full",
   {
     variants: {
-      product: {
+      variant: {
         default:
           "*:data-[slot=bubble-content]:bg-primary *:data-[slot=bubble-content]:text-primary-foreground [&>[data-slot=bubble-content]:is(button,a):hover]:bg-primary/80",
         secondary:
@@ -37,13 +37,13 @@ const bubbleVariants = cva(
       },
     },
     defaultVariants: {
-      product: "default",
+      variant: "default",
     },
   }
 )
 
 function Bubble({
-  product = "default",
+  variant = "default",
   align = "start",
   className,
   ...props
@@ -54,9 +54,9 @@ function Bubble({
   return (
     <div
       data-slot="bubble"
-      data-product={product}
+      data-variant={variant}
       data-align={align}
-      className={cn(bubbleVariants({ product }), className)}
+      className={cn(bubbleVariants({ variant }), className)}
       {...props}
     />
   )

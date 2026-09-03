@@ -208,14 +208,14 @@ export function BomDialog({
               )}
             >
               <span>v{v.version}</span>
-              <Badge product={v.status === "ACTIVE" ? "default" : "secondary"}>
+              <Badge variant={v.status === "ACTIVE" ? "default" : "secondary"}>
                 {t(`inventory.boms.status.${v.status}`)}
               </Badge>
             </button>
           ))}
           <Button
             type="button"
-            product="outline"
+            variant="outline"
             size="sm"
             className="mt-1"
             onClick={() => {
@@ -323,7 +323,7 @@ export function BomDialog({
                   />
                   <Button
                     type="button"
-                    product="ghost"
+                    variant="ghost"
                     size="icon"
                     disabled={lines.length === 1}
                     onClick={() => setLines((ls) => ls.filter((_, i) => i !== index))}
@@ -335,7 +335,7 @@ export function BomDialog({
             ))}
             <Button
               type="button"
-              product="outline"
+              variant="outline"
               size="sm"
               className="self-start"
               onClick={() => setLines((ls) => [...ls, emptyLine()])}
@@ -349,7 +349,7 @@ export function BomDialog({
               {t("inventory.boms.dialog.save")}
             </Button>
             <Button
-              product="outline"
+              variant="outline"
               disabled={pending || !currentId || status === "ACTIVE"}
               onClick={() =>
                 currentId &&
@@ -359,7 +359,7 @@ export function BomDialog({
               {t("inventory.boms.dialog.activate")}
             </Button>
             <Button
-              product="outline"
+              variant="outline"
               disabled={pending || !currentId}
               onClick={() =>
                 currentId &&
@@ -369,7 +369,7 @@ export function BomDialog({
               {t("inventory.boms.dialog.duplicate")}
             </Button>
             <Button
-              product="destructive"
+              variant="destructive"
               disabled={pending || !currentId}
               onClick={() =>
                 currentId && run(() => deleteBomAction(currentId), t("inventory.boms.deleted"))
@@ -409,7 +409,7 @@ export function BomDialog({
               </SelectContent>
             </Select>
           </div>
-          <Button product="outline" size="sm" disabled={pending} onClick={runPreview}>
+          <Button variant="outline" size="sm" disabled={pending} onClick={runPreview}>
             {t("inventory.boms.dialog.preview")}
           </Button>
 
@@ -427,7 +427,7 @@ export function BomDialog({
                   <td className="py-1">
                     <span className="font-mono">{column.sku}</span>
                     {column.mappingStatus === "UNMAPPED" && (
-                      <Badge product="secondary" className="ml-1">
+                      <Badge variant="secondary" className="ml-1">
                         {t("inventory.boms.dialog.unmapped")}
                       </Badge>
                     )}

@@ -95,7 +95,7 @@ export function TransactionsTable({
     {
       id: "type",
       header: t("finance.colType"),
-      cell: (r) => <Badge product="secondary">{t(`finance.types.${r.type}`)}</Badge>,
+      cell: (r) => <Badge variant="secondary">{t(`finance.types.${r.type}`)}</Badge>,
     },
     {
       id: "amount",
@@ -135,7 +135,7 @@ export function TransactionsTable({
       header: t("finance.colStatus"),
       cell: (r) => (
         <Badge
-          product={
+          variant={
             r.status === "COMPLETED"
               ? "default"
               : r.status === "PENDING"
@@ -208,7 +208,7 @@ export function TransactionsTable({
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button product="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${r.publicId}`}>
+                  <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${r.publicId}`}>
                     <MoreHorizontal className="size-4" />
                   </Button>
                 }
@@ -218,7 +218,7 @@ export function TransactionsTable({
                   {t("finance.approve")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  product="destructive"
+                  variant="destructive"
                   onClick={() => setActing({ column: r, mode: "reject" })}
                 >
                   {t("finance.reject")}

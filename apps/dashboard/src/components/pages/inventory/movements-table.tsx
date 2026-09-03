@@ -75,7 +75,7 @@ export function MovementsTable({
     {
       id: "type",
       header: t("inventory.movements.col.type"),
-      cell: (m) => <Badge product="secondary">{t(`inventory.movements.types.${m.type}`)}</Badge>,
+      cell: (m) => <Badge variant="secondary">{t(`inventory.movements.types.${m.type}`)}</Badge>,
     },
     {
       id: "item",
@@ -209,7 +209,7 @@ export function MovementsTable({
         footer={
           nextCursor ? (
             <div className="flex justify-center">
-              <Button product="outline" onClick={() => params.setFilter("cursor", nextCursor)}>
+              <Button variant="outline" onClick={() => params.setFilter("cursor", nextCursor)}>
                 {t("inventory.movements.loadMore")}
               </Button>
             </div>

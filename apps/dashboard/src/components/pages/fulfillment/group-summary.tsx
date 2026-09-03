@@ -36,7 +36,7 @@ export function GroupSummary({ group }: { group: StationGroup }) {
             </p>
             {(group.trackingNumber ?? group.externalIdPrefix) && (
               <Button
-                product="ghost"
+                variant="ghost"
                 size="icon"
                 aria-label={t("fulfillment.group.copy")}
                 onClick={() => copy(group.trackingNumber ?? group.externalIdPrefix ?? "")}
@@ -52,14 +52,14 @@ export function GroupSummary({ group }: { group: StationGroup }) {
 
         <div className="flex flex-wrap items-center gap-2">
           {group.basket && (
-            <Badge product="secondary" className="gap-1">
+            <Badge variant="secondary" className="gap-1">
               <MapPin className="stroke-vercel-blue size-3.5" />
               {group.basket.name}
             </Badge>
           )}
           {group.labelUrl && (
             <Button
-              product="outline"
+              variant="outline"
               size="sm"
               onClick={() => window.open(group.labelUrl!, "_blank", "noopener")}
             >

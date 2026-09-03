@@ -76,7 +76,7 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
       id: "status",
       header: t("inventory.materials.col.status"),
       cell: (m) => (
-        <Badge product={m.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={m.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`catalog.statuses.${m.status}`)}
         </Badge>
       ),
@@ -103,7 +103,7 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
           <DropdownMenuTrigger
             render={
               <Button
-                product="ghost"
+                variant="ghost"
                 size="icon"
                 aria-label={`${t("admin.actions.for")} ${m.sku}`}
               >
@@ -117,7 +117,7 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
                 {t("admin.actions.edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem product="destructive" onClick={() => setDeleting(m)}>
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleting(m)}>
                 {t("inventory.materials.delete.action")}
               </DropdownMenuItem>
             </Can>

@@ -235,7 +235,7 @@ function QuickLog({ log }: { log: LogEntry[] }) {
                 <td className="px-3 py-2">{entry.customer ?? "—"}</td>
                 <td className="px-3 py-2 font-mono text-xs">{entry.tracking}</td>
                 <td className="px-3 py-2">
-                  <Badge product="secondary">{t(`orders.statuses.${entry.status}`)}</Badge>
+                  <Badge variant="secondary">{t(`orders.statuses.${entry.status}`)}</Badge>
                 </td>
                 <td className="px-3 py-2 text-right tabular-nums">{column.quantity}</td>
                 <td className="px-3 py-2">

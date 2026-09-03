@@ -23,7 +23,7 @@ function Calendar({
   components,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
-  buttonVariant?: React.ComponentProps<typeof Button>["product"]
+  buttonVariant?: React.ComponentProps<typeof Button>["variant"]
 }) {
   const defaultClassNames = getDefaultClassNames()
 
@@ -55,12 +55,12 @@ function Calendar({
           defaultClassNames.nav
         ),
         button_previous: cn(
-          buttonVariants({ product: buttonVariant }),
+          buttonVariants({ variant: buttonVariant }),
           "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
           defaultClassNames.button_previous
         ),
         button_next: cn(
-          buttonVariants({ product: buttonVariant }),
+          buttonVariants({ variant: buttonVariant }),
           "size-(--cell-size) p-0 select-none aria-disabled:opacity-50",
           defaultClassNames.button_next
         ),
@@ -196,7 +196,7 @@ function CalendarDayButton({
 
   return (
     <Button
-      product="ghost"
+      variant="ghost"
       size="icon"
       data-day={day.date.toLocaleDateString(locale?.code)}
       data-selected-single={

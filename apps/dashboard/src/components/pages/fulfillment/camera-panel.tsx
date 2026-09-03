@@ -231,7 +231,7 @@ export function CameraPanel({
         <div className="border-border space-y-3 rounded-md border border-dashed p-4 text-center">
           <CameraOff className="text-muted-foreground mx-auto size-6" />
           <p className="text-muted-foreground text-sm">{error}</p>
-          <Button product="outline" size="sm" onClick={() => window.location.reload()}>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             {t("fulfillment.camera.retry")}
           </Button>
         </div>

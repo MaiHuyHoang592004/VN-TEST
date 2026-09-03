@@ -6,7 +6,7 @@
 import { useEffect } from "react";
 
 interface UseSearchKeyboardProps {
-  product: "dropdown" | "modal";
+  variant: "dropdown" | "modal";
   open: boolean;
   mobileExpanded: boolean;
   selectableItemsCount: number;
@@ -21,7 +21,7 @@ interface UseSearchKeyboardProps {
 }
 
 export function useSearchKeyboard({
-  product,
+  variant,
   open,
   mobileExpanded,
   selectableItemsCount,
@@ -100,7 +100,7 @@ export function useSearchKeyboard({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [
-    product,
+    variant,
     open,
     mobileExpanded,
     selectableItemsCount,

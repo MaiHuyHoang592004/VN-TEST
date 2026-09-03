@@ -59,7 +59,7 @@ export function WebhooksPanel({
         action={
           <>
             <Button
-              product="outline"
+              variant="outline"
               onClick={test}
               disabled={pending || !webhookUrl}
             >
@@ -100,7 +100,7 @@ export function WebhooksPanel({
               />
               <Button
                 type="button"
-                product="outline"
+                variant="outline"
                 onClick={() => setSecret(randomSecret())}
               >
                 {t("profile.webhooks.generate")}

@@ -143,12 +143,12 @@ export function WarehouseMembersDialog({
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     {m.isPrimary ? (
-                      <Badge product="secondary" className="gap-1">
+                      <Badge variant="secondary" className="gap-1">
                         <Star className="size-3" /> {t("admin.warehouses.staffPrimary")}
                       </Badge>
                     ) : (
                       <Button
-                        product="ghost"
+                        variant="ghost"
                         size="sm"
                         disabled={busy}
                         onClick={() =>
@@ -162,7 +162,7 @@ export function WarehouseMembersDialog({
                       </Button>
                     )}
                     <Button
-                      product="ghost"
+                      variant="ghost"
                       size="icon"
                       aria-label={`${t("admin.warehouses.staffRemove")} ${m.email}`}
                       disabled={busy}

@@ -60,7 +60,7 @@ function EvidenceField({
           />
           <Button
             type="button"
-            product="outline"
+            variant="outline"
             size="sm"
             className="w-fit"
             onClick={() => input.current?.click()}

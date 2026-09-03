@@ -86,7 +86,7 @@ const inputGroupButtonVariants = cva(
 function InputGroupButton({
   className,
   type = "button",
-  product = "ghost",
+  variant = "ghost",
   size = "xs",
   ...props
 }: Omit<React.ComponentProps<typeof Button>, "size" | "type"> &
@@ -97,7 +97,7 @@ function InputGroupButton({
     <Button
       type={type}
       data-size={size}
-      product={product}
+      variant={variant}
       className={cn(inputGroupButtonVariants({ size }), className)}
       {...props}
     />

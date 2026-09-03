@@ -69,7 +69,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
           </div>
           <div className="flex gap-1">
             <Button
-              product={view === "grid" ? "secondary" : "ghost"}
+              variant={view === "grid" ? "secondary" : "ghost"}
               size="icon"
               aria-label={t("catalog.browse.gridView")}
               aria-pressed={view === "grid"}
@@ -78,7 +78,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
               <LayoutGrid className="size-4" />
             </Button>
             <Button
-              product={view === "list" ? "secondary" : "ghost"}
+              variant={view === "list" ? "secondary" : "ghost"}
               size="icon"
               aria-label={t("catalog.browse.listView")}
               aria-pressed={view === "list"}
@@ -161,7 +161,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {p.skus.map((s) => (
-                  <Badge key={s.id} product="secondary" className="font-normal">
+                  <Badge key={s.id} variant="secondary" className="font-normal">
                     {s.variantName}
                     <span className="ml-1.5 font-mono tabular-nums">${s.price}</span>
                   </Badge>

@@ -82,13 +82,13 @@ export function SecurityPanel({
       >
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap gap-2">
-            <Badge product={hasGoogle ? "default" : "secondary"}>
+            <Badge variant={hasGoogle ? "default" : "secondary"}>
               Google {hasGoogle ? "✓" : "—"}
             </Badge>
-            <Badge product={hasPassword ? "default" : "secondary"}>
+            <Badge variant={hasPassword ? "default" : "secondary"}>
               {t("profile.security.password")} {hasPassword ? "✓" : "—"}
             </Badge>
-            <Badge product="default">{t("profile.security.emailCode")} ✓</Badge>
+            <Badge variant="default">{t("profile.security.emailCode")} ✓</Badge>
           </div>
 
           {/* A password user can add Google as a second way in. Auth.js links
@@ -98,7 +98,7 @@ export function SecurityPanel({
           {!hasGoogle && (
             <div className="flex flex-col gap-2">
               <Button
-                product="outline"
+                variant="outline"
                 className="hover-lift w-full sm:w-auto"
                 disabled={pending}
                 onClick={() => signIn("google", { redirectTo: "/profile/security" })}
@@ -246,7 +246,7 @@ export function SecurityPanel({
         description={t("profile.security.signOutAllHint")}
         action={
           <Button
-            product="destructive"
+            variant="destructive"
             disabled={pending}
             onClick={() =>
               run(

@@ -75,7 +75,7 @@ export function WarehousesTable({ rows }: { rows: WarehouseRow[] }) {
       id: "status",
       header: t("admin.warehouses.colStatus"),
       cell: (w) => (
-        <Badge product={w.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={w.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`admin.statuses.${w.status}`)}
         </Badge>
       ),
@@ -88,7 +88,7 @@ export function WarehousesTable({ rows }: { rows: WarehouseRow[] }) {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button product="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${w.code}`}>
+              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${w.code}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }
@@ -102,7 +102,7 @@ export function WarehousesTable({ rows }: { rows: WarehouseRow[] }) {
             </Can>
             <Can permission="warehouses.manage">
               <DropdownMenuSeparator />
-              <DropdownMenuItem product="destructive" onClick={() => setDeleting(w)}>
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleting(w)}>
                 {t("admin.warehouses.deleteAction")}
               </DropdownMenuItem>
             </Can>

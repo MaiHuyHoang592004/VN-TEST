@@ -99,7 +99,7 @@ export function ProductsTable({ rows, total }: { rows: ProductRow[]; total: numb
       id: "status",
       header: t("catalog.products.colStatus"),
       cell: (p) => (
-        <Badge product={p.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={p.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`catalog.statuses.${p.status}`)}
         </Badge>
       ),
@@ -122,7 +122,7 @@ export function ProductsTable({ rows, total }: { rows: ProductRow[]; total: numb
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button product="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${p.name}`}>
+              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${p.name}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }
@@ -142,7 +142,7 @@ export function ProductsTable({ rows, total }: { rows: ProductRow[]; total: numb
                 {t(p.status === "ACTIVE" ? "catalog.products.deactivate" : "catalog.products.activate")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem product="destructive" onClick={() => setDeleting(p)}>
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleting(p)}>
                 {t("catalog.products.deleteAction")}
               </DropdownMenuItem>
             </Can>

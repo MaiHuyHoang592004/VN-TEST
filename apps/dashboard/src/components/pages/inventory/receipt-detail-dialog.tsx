@@ -92,7 +92,7 @@ export function ReceiptDetailDialog({
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge product={receipt.status === "COMPLETE" ? "default" : "secondary"}>
+            <Badge variant={receipt.status === "COMPLETE" ? "default" : "secondary"}>
               {t(`inventory.receipts.status.${receipt.status}`)}
             </Badge>
             {receipt.provider && (
@@ -197,7 +197,7 @@ function ShipmentPanel({
             <p className="text-muted-foreground text-xs">{meta.join(" · ")}</p>
           )}
         </div>
-        <Badge product={shipment.status === "RECEIVED" ? "default" : "secondary"}>
+        <Badge variant={shipment.status === "RECEIVED" ? "default" : "secondary"}>
           {t(`inventory.receipts.shipStatus.${shipment.status}`)}
         </Badge>
       </div>
@@ -264,7 +264,7 @@ function ShipmentPanel({
           />
           <Button
             size="sm"
-            product="outline"
+            variant="outline"
             disabled={pending}
             onClick={() => fileInput.current?.click()}
           >
@@ -371,7 +371,7 @@ function RejectRow({
         placeholder={t("inventory.receipts.detail.rejectReason")}
         className="max-w-xs"
       />
-      <Button product="destructive" size="sm" disabled={pending} onClick={() => onReject(reason)}>
+      <Button variant="destructive" size="sm" disabled={pending} onClick={() => onReject(reason)}>
         {t("inventory.receipts.detail.reject")}
       </Button>
     </div>

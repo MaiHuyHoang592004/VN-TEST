@@ -75,7 +75,7 @@ export function DataTablePagination({
         </span>
 
         <Button
-          product="outline"
+          variant="outline"
           size="icon"
           aria-label="Previous page"
           disabled={page <= 1}
@@ -84,7 +84,7 @@ export function DataTablePagination({
           <ChevronLeft className="size-4" />
         </Button>
         <Button
-          product="outline"
+          variant="outline"
           size="icon"
           aria-label="Next page"
           disabled={page >= pageCount}

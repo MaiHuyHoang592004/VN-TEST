@@ -77,7 +77,7 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
 
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge
-          product={
+          variant={
             order.status === "CANCELLED" || order.status === "ON_HOLD"
               ? "destructive"
               : order.status === "DELIVERED"

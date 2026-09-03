@@ -27,7 +27,7 @@ interface SearchDropdownProps {
   isError: boolean;
   selectedIndex: number;
   onSelectItem: (item: SearchResult | RecentSearch) => void;
-  product?: "dropdown" | "modal";
+  variant?: "dropdown" | "modal";
 }
 
 export function SearchDropdown({
@@ -38,7 +38,7 @@ export function SearchDropdown({
   isError,
   selectedIndex,
   onSelectItem,
-  product = "dropdown",
+  variant = "dropdown",
   anchor = "right",
 }: SearchDropdownProps) {
   const { t } = useTranslation();
@@ -48,13 +48,13 @@ export function SearchDropdown({
   const showResults = results.length > 0;
   const showSeparator = false; // No separator needed
 
-  // Styling based on product — Vercel panel: popover tokens, blue-tinted glow, entrance animation
+  // Styling based on variant — Vercel panel: popover tokens, blue-tinted glow, entrance animation
   const containerClass =
-    product === "modal"
+    variant === "modal"
       ? "text-foreground bg-popover border-border shadow-ds-4 animate-in fade-in slide-in-from-top-2 absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-lg border duration-200"
       : `text-foreground bg-popover border-border shadow-ds-4 animate-in fade-in slide-in-from-top-2 absolute top-full z-50 mt-2 overflow-hidden rounded-lg border duration-200 ${anchor === "left" ? "left-0 w-full sm:w-96" : "right-0 w-full sm:w-96"}`;
 
-  const listClass = product === "modal" ? "max-h-[400px]" : "max-h-[300px]";
+  const listClass = variant === "modal" ? "max-h-[400px]" : "max-h-[300px]";
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Globally prevent scrollIntoView from affecting page scroll
@@ -146,7 +146,7 @@ export function SearchDropdown({
                   isSelected={selectedIndex === index}
                   isRecent
                   onSelect={() => onSelectItem(item)}
-                  product={product}
+                  variant={variant}
                 />
               ))}
             </CommandGroup>
@@ -170,7 +170,7 @@ export function SearchDropdown({
                     item={item}
                     isSelected={selectedIndex === index}
                     onSelect={() => onSelectItem(item)}
-                    product={product}
+                    variant={variant}
                   />
                 ))}
               </CommandGroup>

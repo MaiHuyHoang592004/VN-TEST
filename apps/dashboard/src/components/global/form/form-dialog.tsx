@@ -83,7 +83,7 @@ export function FormDialog({
     <>
       <Button
         type="button"
-        product="outline"
+        variant="outline"
         onClick={() => onOpenChange(false)}
         disabled={pending}
       >
@@ -91,7 +91,7 @@ export function FormDialog({
       </Button>
       <Button
         type="submit"
-        product={destructive ? "destructive" : "default"}
+        variant={destructive ? "destructive" : "default"}
         disabled={pending || submitDisabled}
       >
         {pending ? "Working…" : submitLabel}

@@ -93,7 +93,7 @@ export function MockupsTable({ rows, total }: { rows: MockupRow[]; total: number
       id: "status",
       header: t("catalog.mockups.colStatus"),
       cell: (m) => (
-        <Badge product={m.status === "active" ? "default" : "secondary"}>
+        <Badge variant={m.status === "active" ? "default" : "secondary"}>
           {t(`catalog.mockupStatuses.${m.status}`)}
         </Badge>
       ),
@@ -106,7 +106,7 @@ export function MockupsTable({ rows, total }: { rows: MockupRow[]; total: number
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button product="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${m.name}`}>
+              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${m.name}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }
@@ -117,7 +117,7 @@ export function MockupsTable({ rows, total }: { rows: MockupRow[]; total: number
                 {t("admin.actions.edit")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem product="destructive" onClick={() => setDeleting(m)}>
+              <DropdownMenuItem variant="destructive" onClick={() => setDeleting(m)}>
                 {t("catalog.mockups.deleteAction")}
               </DropdownMenuItem>
             </Can>

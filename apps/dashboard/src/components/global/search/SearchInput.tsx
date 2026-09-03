@@ -16,7 +16,7 @@ interface SearchInputProps {
   onFocus: () => void;
   placeholder?: string;
   showLoading?: boolean;
-  product?: "dropdown" | "modal";
+  variant?: "dropdown" | "modal";
   mobileExpanded?: boolean;
   onMobileClose?: () => void;
 }
@@ -29,7 +29,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       onFocus,
       placeholder = "Search…",
       showLoading = false,
-      product = "dropdown",
+      variant = "dropdown",
       mobileExpanded = false,
       onMobileClose,
       fullWidth = false,
@@ -69,8 +69,8 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       scrollPadding: 0,
     };
 
-    // Modal product (landing page) — Vercel focus treatment: blue border + ring + soft glow
-    if (product === "modal") {
+    // Modal variant (landing page) — Vercel focus treatment: blue border + ring + soft glow
+    if (variant === "modal") {
       return (
         <div className="border-border hover:border-foreground/30 focus-within:border-vercel-blue/60 focus-within:ring-2 focus-within:ring-vercel-blue/20 focus-within:shadow-lg focus-within:shadow-vercel-blue/10 bg-background relative flex h-12 items-center gap-3 rounded-lg border px-4 transition-all sm:h-14 sm:px-6">
           <SearchIcon className="text-muted-foreground h-5 w-5 shrink-0" />
@@ -95,7 +95,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
       );
     }
 
-    // Dropdown product (navbar/sidebar) — the spec's two-layer focus ring, not
+    // Dropdown variant (navbar/sidebar) — the spec's two-layer focus ring, not
     // a blue glow: DESIGN-VERCEL.md appendix names ring-2 ring-ring offset-2
     // as THE focus treatment, and controls are rounded-sm at every size.
     return (

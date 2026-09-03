@@ -50,28 +50,28 @@ const attachmentMediaVariants = cva(
   "relative flex aspect-square w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-foreground group-data-[orientation=vertical]/attachment:w-full group-data-[size=sm]/attachment:w-8 group-data-[size=xs]/attachment:w-7 group-data-[size=xs]/attachment:rounded-md group-data-[state=error]/attachment:bg-destructive/10 group-data-[state=error]/attachment:text-destructive group-data-[orientation=vertical]/attachment:*:data-[slot=spinner]:size-6! [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 group-data-[orientation=vertical]/attachment:[&_svg:not([class*='size-'])]:size-6 group-data-[size=xs]/attachment:[&_svg:not([class*='size-'])]:size-3.5",
   {
     variants: {
-      product: {
+      variant: {
         icon: "",
         image:
           "opacity-60 group-data-[state=done]/attachment:opacity-100 group-data-[state=idle]/attachment:opacity-100 *:[img]:aspect-square *:[img]:w-full *:[img]:object-cover",
       },
     },
     defaultVariants: {
-      product: "icon",
+      variant: "icon",
     },
   }
 )
 
 function AttachmentMedia({
   className,
-  product = "icon",
+  variant = "icon",
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof attachmentMediaVariants>) {
   return (
     <div
       data-slot="attachment-media"
-      data-product={product}
-      className={cn(attachmentMediaVariants({ product }), className)}
+      data-variant={variant}
+      className={cn(attachmentMediaVariants({ variant }), className)}
       {...props}
     />
   )
@@ -144,14 +144,14 @@ function AttachmentActions({
 
 function AttachmentAction({
   className,
-  product,
+  variant,
   size = "icon-xs",
   ...props
 }: React.ComponentProps<typeof Button>) {
   return (
     <Button
       data-slot="attachment-action"
-      product={product ?? "ghost"}
+      variant={variant ?? "ghost"}
       size={size}
       className={cn(className)}
       {...props}

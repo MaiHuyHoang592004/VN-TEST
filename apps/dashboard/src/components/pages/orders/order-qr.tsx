@@ -252,7 +252,7 @@ function OrderCodePanel({
             <Label>{t("orders.colStatus")}</Label>
             <dd className="mt-0.5 flex flex-wrap items-center gap-1">
               <Badge
-                product={
+                variant={
                   order.status === "CANCELLED" || order.status === "ON_HOLD"
                     ? "destructive"
                     : "secondary"
@@ -339,7 +339,7 @@ function OrderCodePanel({
       </div>
 
       <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button product="outline" size="sm" onClick={onClose}>
+        <Button variant="outline" size="sm" onClick={onClose}>
           {t("common.close")}
         </Button>
         {/* Reuses the print sheet rather than hand-rolling a print window: one

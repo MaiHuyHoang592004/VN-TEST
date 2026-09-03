@@ -17,7 +17,7 @@ export type TransitionVariant =
 
 interface AnimatedThemeTogglerProps extends React.ComponentPropsWithoutRef<"button"> {
   duration?: number
-  product?: TransitionVariant
+  variant?: TransitionVariant
   /** When true, the transition expands from the viewport center instead of the button center. */
   fromCenter?: boolean
   /**
@@ -38,14 +38,14 @@ function polygonCollapsed(cx: number, cy: number, vertexCount: number): string {
 }
 
 function getThemeTransitionClipPaths(
-  product: TransitionVariant,
+  variant: TransitionVariant,
   cx: number,
   cy: number,
   maxRadius: number,
   viewportWidth: number,
   viewportHeight: number
 ): [string, string] {
-  switch (product) {
+  switch (variant) {
     case "circle":
       return [
         `circle(0px at ${cx}px ${cy}px)`,
@@ -136,13 +136,13 @@ function getThemeTransitionClipPaths(
 export const AnimatedThemeToggler = ({
   className,
   duration = 400,
-  product,
+  variant,
   fromCenter = false,
   theme,
   onThemeChange,
   ...props
 }: AnimatedThemeTogglerProps) => {
-  const shape = product ?? "circle"
+  const shape = variant ?? "circle"
   const isControlled = theme !== undefined
   const [internalIsDark, setInternalIsDark] = useState(false)
   const isDark = isControlled ? theme === "dark" : internalIsDark

@@ -99,14 +99,14 @@ export function ArtworkDialog({
             <div className="flex gap-2">
               <Button
                 type="button"
-                product="outline"
+                variant="outline"
                 size="sm"
                 onClick={() => designInput.current?.click()}
               >
                 {t("orders.artwork.upload")}
               </Button>
               {designFile && (
-                <Button type="button" product="ghost" size="sm" onClick={() => setDesignFile(null)}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setDesignFile(null)}>
                   {t("orders.artwork.clearFile")}
                 </Button>
               )}
@@ -135,14 +135,14 @@ export function ArtworkDialog({
             <div className="flex gap-2">
               <Button
                 type="button"
-                product="outline"
+                variant="outline"
                 size="sm"
                 onClick={() => mockupInput.current?.click()}
               >
                 {t("orders.artwork.upload")}
               </Button>
               {mockupFile && (
-                <Button type="button" product="ghost" size="sm" onClick={() => setMockupFile(null)}>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setMockupFile(null)}>
                   {t("orders.artwork.clearFile")}
                 </Button>
               )}

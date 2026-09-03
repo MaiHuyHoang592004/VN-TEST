@@ -204,7 +204,7 @@ export function NotificationsList({
 
       {cursor && (
         <div className="mt-4 flex justify-center">
-          <Button product="outline" size="sm" onClick={() => void loadMore()} disabled={loading}>
+          <Button variant="outline" size="sm" onClick={() => void loadMore()} disabled={loading}>
             {t("notifications.loadMore")}
           </Button>
         </div>

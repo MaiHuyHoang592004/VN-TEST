@@ -31,7 +31,7 @@ function resultHref(item: SearchResult | RecentSearch): string {
 }
 
 export function Search({
-  product = "dropdown",
+  variant = "dropdown",
   mobileExpanded = false,
   onMobileClose,
   fullWidth = false,
@@ -134,16 +134,16 @@ export function Search({
 
   // Handle focus from keyboard shortcuts (Cmd+K, F key)
   const handleFocus = useCallback(() => {
-    if (product === "dropdown") {
+    if (variant === "dropdown") {
       inputRef.current?.focus({ preventScroll: true });
     } else {
       setOpen((prev) => !prev);
     }
-  }, [product]);
+  }, [variant]);
 
   // Keyboard shortcuts and navigation (Cmd+K, F, arrows, enter, escape)
   useSearchKeyboard({
-    product,
+    variant,
     open,
     mobileExpanded,
     selectableItemsCount: selectableItems.length,
@@ -176,7 +176,7 @@ export function Search({
         }}
         placeholder={t(fullWidth ? "search.placeholderShort" : "search.placeholder")}
         showLoading={showLoading}
-        product={product}
+        variant={variant}
         mobileExpanded={mobileExpanded}
         onMobileClose={onMobileClose}
       />
@@ -190,7 +190,7 @@ export function Search({
           isError={isError}
           selectedIndex={clampedSelectedIndex}
           onSelectItem={handleSelectItem}
-          product={product}
+          variant={variant}
           anchor={anchor}
         />
       )}

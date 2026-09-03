@@ -29,27 +29,27 @@ const emptyMediaVariants = cva(
   "mb-2 flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
-      product: {
+      variant: {
         default: "bg-transparent",
         icon: "flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground [&_svg:not([class*='size-'])]:size-4",
       },
     },
     defaultVariants: {
-      product: "default",
+      variant: "default",
     },
   }
 )
 
 function EmptyMedia({
   className,
-  product = "default",
+  variant = "default",
   ...props
 }: React.ComponentProps<"div"> & VariantProps<typeof emptyMediaVariants>) {
   return (
     <div
       data-slot="empty-icon"
-      data-product={product}
-      className={cn(emptyMediaVariants({ product, className }))}
+      data-variant={variant}
+      className={cn(emptyMediaVariants({ variant, className }))}
       {...props}
     />
   )

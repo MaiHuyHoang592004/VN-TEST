@@ -173,7 +173,7 @@ export function ReceiptFormDialog({
             </p>
             <Button
               type="button"
-              product="ghost"
+              variant="ghost"
               size="sm"
               disabled={shipments.length === 1}
               onClick={() => setShipments((s) => s.filter((_, i) => i !== si))}
@@ -266,7 +266,7 @@ export function ReceiptFormDialog({
 
               <Button
                 type="button"
-                product="ghost"
+                variant="ghost"
                 size="icon"
                 disabled={shipment.lines.length === 1}
                 aria-label={t("inventory.receipts.form.remove")}
@@ -281,7 +281,7 @@ export function ReceiptFormDialog({
 
           <Button
             type="button"
-            product="outline"
+            variant="outline"
             size="sm"
             className="self-start"
             onClick={() => patchShipment(si, { lines: [...shipment.lines, emptyLine()] })}
@@ -293,7 +293,7 @@ export function ReceiptFormDialog({
 
       <Button
         type="button"
-        product="outline"
+        variant="outline"
         size="sm"
         className="self-start"
         onClick={() => setShipments((s) => [...s, emptyShipment()])}

@@ -220,7 +220,7 @@ export function LoginScreen({
           {mode !== "code" && (
             <>
               <Button
-                product="outline"
+                variant="outline"
                 className="hover-lift w-full"
                 disabled={busy}
                 onClick={() => {

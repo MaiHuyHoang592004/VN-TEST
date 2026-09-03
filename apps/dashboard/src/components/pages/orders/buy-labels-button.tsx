@@ -82,7 +82,7 @@ export function BuyLabelsButton({ orderIds, onDone }: { orderIds: number[]; onDo
   return (
     <>
       <Button
-        product="outline"
+        variant="outline"
         onClick={() => {
           setPreview(null);
           setOpen(true);
@@ -125,7 +125,7 @@ export function BuyLabelsButton({ orderIds, onDone }: { orderIds: number[]; onDo
                           {t("orders.labels.willBuy")}
                         </Badge>
                       ) : (
-                        <Badge product="secondary">
+                        <Badge variant="secondary">
                           {t(`orders.labels.skip.${g.skipReason ?? "not-ready"}`)}
                         </Badge>
                       )}

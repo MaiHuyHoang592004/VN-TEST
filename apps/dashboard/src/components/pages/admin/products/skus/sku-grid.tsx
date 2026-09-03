@@ -194,7 +194,7 @@ export function SkuGrid({
       id: "status",
       header: t("catalog.skus.colStatus"),
       cell: (column) => (
-        <Badge product={column.status === "ACTIVE" ? "default" : "secondary"}>
+        <Badge variant={column.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`catalog.statuses.${column.status}`)}
         </Badge>
       ),
@@ -218,7 +218,7 @@ export function SkuGrid({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button product="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${column.variantName}`}>
+              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${column.variantName}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }
@@ -232,7 +232,7 @@ export function SkuGrid({
               {t(column.status === "ACTIVE" ? "catalog.products.deactivate" : "catalog.products.activate")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem product="destructive" onClick={() => detach(column)}>
+            <DropdownMenuItem variant="destructive" onClick={() => detach(column)}>
               {t("catalog.skus.detach")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -256,7 +256,7 @@ export function SkuGrid({
               <Can permission="products.manage">
                 <div className="flex gap-2">
                   {selected.size > 0 && (
-                    <Button product="outline" onClick={() => setBulk(true)}>
+                    <Button variant="outline" onClick={() => setBulk(true)}>
                       {t("catalog.skus.bulkPrices")} ({selected.size})
                     </Button>
                   )}

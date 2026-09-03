@@ -42,7 +42,10 @@ export function FormField({
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <Label htmlFor={id}>
+      <Label
+        htmlFor={id}
+        className="font-sans text-(length:--fs-body-sm) font-semibold text-(--text-body)"
+      >
         {label}
         {required && (
           <span className="text-destructive ml-0.5" aria-hidden>
@@ -58,14 +61,18 @@ export function FormField({
       })}
 
       {hint && !error && (
-        <p id={hintId} className="text-muted-foreground text-xs">
+        <p id={hintId} className="text-xs text-(--text-muted)">
           {hint}
         </p>
       )}
       {/* role=alert so a screen reader announces a validation failure the user
           didn't scroll to. */}
       {error && (
-        <p id={errorId} role="alert" className="text-destructive text-xs">
+        <p
+          id={errorId}
+          role="alert"
+          className="font-sans text-(length:--fs-meta) text-(--status-critical-fg)"
+        >
           {error}
         </p>
       )}

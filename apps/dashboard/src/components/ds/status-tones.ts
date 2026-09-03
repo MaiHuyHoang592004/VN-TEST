@@ -20,6 +20,21 @@
  * and its status (restated from the DS / awaiting DS ratification). Adding one
  * means adding a justification too.
  *
+ * COVERAGE. Because toneFor() is the app's single authority for status colour,
+ * a value that is not here does not render "no opinion" — it renders a neutral
+ * pill that looks exactly like a decision. So every value of every `*Status`
+ * enum in libs/db/prisma/schema/enums/ has been walked, and each got exactly
+ * one of three outcomes, written down where the value is:
+ *   1. restated from the DS  — same concept, different spelling or tense;
+ *      the DS spelling is cited (CANCELLED/Cancel, RETURNED/Return).
+ *   2. inferred, awaiting DS ratification — no DS twin at any spelling, but a
+ *      neutral pill would actively mislead (BANNED, FAILED, REJECTED).
+ *   3. deliberately neutral — the DS has no view and neutral is honest; the
+ *      reason is written out (ASSIGNED, and the block listing the rest).
+ * status-tones.test.ts reads the .prisma schema and fails if any value of any
+ * `*Status` enum lacks an explicit assertion, so a silent neutral cannot be
+ * introduced by adding an enum value.
+ *
  * DOMAIN-BOUND (per StatusBadge.d.ts): the transitions between statuses, the
  * production lifecycle, the shipping lifecycle, and the value set of the
  * separate `tracking_status` field are NOT modelled here. `tracking_status`
@@ -80,6 +95,14 @@ export const STATUS_TONES: Readonly<Record<string, StatusTone>> = Object.freeze(
   // the ~319 legacy "Refund" orders must stay reportable as refunds rather
   // than plain cancellations, and the DS gives Refund its own tone.
   REFUNDED: "info", // DS: Refund -> info
+  // ReservationStatus.RETURNED — the same bridge as CANCELLED/Cancel: the DS
+  // spells the concept "Return" (present tense, a different backend's noun),
+  // this app's enum is the past participle. normalise() does not stem, so the
+  // twins never meet on their own. No new meaning is assigned.
+  RETURNED: "attention", // DS: Return -> attention
+  // ReceiptStatus.COMPLETE — the DS spells it "Completed". Same word, same
+  // concept, one suffix apart; restatement, not inference.
+  COMPLETE: "success", // DS: Completed -> success
   // (b) NO DS TWIN AT ANY TENSE — awaiting design-system ratification.
   // ON_HOLD was sanctioned by the migration plan, but note it is no less an
   // addition than RESOLVED: the DS has no equivalent concept for either.
@@ -93,6 +116,74 @@ export const STATUS_TONES: Readonly<Record<string, StatusTone>> = Object.freeze(
   // same distinctness argument that keeps REFUNDED apart from CANCELLED.
   // RAISE WITH THE DESIGN SYSTEM alongside ASSIGNED.
   RESOLVED: "success",
+  // TransactionStatus.FAILED — a failed money movement. The DS has no bare
+  // "Failed"; its nearest entry is the unrelated "Asset processing failed",
+  // so this is NOT a restatement. Mapped anyway because a failed top-up or
+  // refund rendering the same neutral pill as "Processing" tells the reader
+  // nothing happened when in fact money did not move. INFERRED — RAISE WITH
+  // THE DESIGN SYSTEM.
+  FAILED: "critical",
+  // UserStatus.BANNED — an account deliberately barred. No DS twin (the DS
+  // vocabulary is order-shaped and has no account lifecycle at all). A banned
+  // user reading as the same neutral pill as "Inactive" hides the one user
+  // state that changes what an operator may do. INFERRED — RAISE WITH THE
+  // DESIGN SYSTEM.
+  BANNED: "critical",
+  // ReceiptStatus.REJECTED and ReceiptShipmentStatus.REJECTED — one key serves
+  // both; the two enums use the value for the same event (goods refused at
+  // receiving). No DS twin. Mapped because a rejected receipt is an unresolved
+  // physical discrepancy on the floor: stock that is not there and money that
+  // may already have been paid. INFERRED — RAISE WITH THE DESIGN SYSTEM.
+  REJECTED: "critical",
+  // BasketPositionStatus.BROKEN — a physical basket position that cannot hold
+  // stock. No DS twin. Mapped because it is the only value in that enum that
+  // requires somebody to walk to the rack; the other three are ordinary
+  // occupancy states. INFERRED — RAISE WITH THE DESIGN SYSTEM.
+  BROKEN: "critical",
+  // ── DELIBERATELY NOT MAPPED ──────────────────────────────────────────
+  // Every value below was considered and left to toneFor()'s neutral default
+  // on purpose. The rule applied, and the reason each entry above clears it:
+  // a value is mapped only when the DS already names the concept, or when a
+  // neutral pill would actively mislead about risk or about work outstanding.
+  // A benign resting or terminal state is not misleading in neutral — neutral
+  // correctly says "nothing to act on". Inventing a tone to make a table look
+  // finished is the failure this file exists to prevent. All of these are
+  // listed in the Task 4 report for the design system to rule on, and each is
+  // pinned by an explicit assertion in status-tones.test.ts so that changing
+  // one is a decision rather than an accident.
+  //
+  //   FulfillmentStatus.ASSIGNED  — assigned to a warehouse, not yet in
+  //     production. The DS has no equivalent concept; choosing between
+  //     `pending`, `progress` and `neutral` would be inventing vocabulary.
+  //   UserStatus.INACTIVE, ProductStatus.INACTIVE, WarehouseStatus.INACTIVE,
+  //   BomStatus.INACTIVE — a deliberate resting state, the exact opposite of
+  //     the DS's `Active`. The DS gives no tone for the negative pole, and
+  //     nothing is outstanding, so neutral is honest.
+  //   ProductStatus.DRAFT, BomStatus.DRAFT — pre-publication working state.
+  //   ProductStatus.ARCHIVED — retired on purpose; nothing to act on.
+  //   InviteStatus.ACCEPTED — benign terminal success, but with no DS twin at
+  //     any tense. `Completed`/`Fulfilled` are order words, not invitation
+  //     words; borrowing one would be inference with no reader harm to
+  //     justify it. Best candidate for DS ratification as `success`.
+  //   InviteStatus.REVOKED, InviteStatus.EXPIRED — the invite is simply no
+  //     longer usable, and the remedy is to send another. Neither is a
+  //     failure a reader must not miss, so neither earns `critical`.
+  //   TransactionStatus.CANCELLED, FulfillmentStatus.CANCELLED share the
+  //     CANCELLED key above and therefore both render `critical` — see the
+  //     report; this is a consequence of one flat map, not a second decision.
+  //   ReceiptStatus.PARTIAL, ReceiptShipmentStatus.PARTIAL_RECEIVED — genuinely
+  //     in flight, so `progress` is tempting, but the DS's `progress` entries
+  //     (`In Production`, `Filled`) are production-line states and a partial
+  //     receipt is not one. Awaiting a DS ruling rather than a guess.
+  //   ReceiptShipmentStatus.RECEIVED — terminal positive, no DS twin;
+  //     ReceiptStatus.COMPLETE is mapped only because the DS spells it
+  //     `Completed`, and no such spelling exists for RECEIVED.
+  //   ReservationStatus.RESERVED, CONSUMED, RELEASED — the ordinary path of a
+  //     reservation through its life. None is an outcome a reader must not
+  //     miss, and the DS models no reservation lifecycle.
+  //   BasketPositionStatus.AVAILABLE, RESERVED, OCCUPIED — ordinary occupancy.
+  //     `In Stock` -> success is about stock levels, not rack occupancy, so it
+  //     is not a twin.
   // NOT MAPPED, deliberately: FulfillmentStatus.ASSIGNED. The DS has no
   // equivalent concept (assigned to a warehouse, not yet in production) and
   // guessing between `pending`, `progress` and `neutral` would be inventing

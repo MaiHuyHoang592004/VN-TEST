@@ -41,7 +41,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex items-center justify-between gap-2 h-(--control-height) w-full rounded-(--radius-control) border border-(--border-soft) bg-(--surface-inset) px-3 font-sans text-(length:--fs-body) text-(--text-body) transition-[background-color,border-color,box-shadow] duration-(--dur-fast) ease-(--ease-out) outline-none hover:border-(--border-strong) focus-visible:border-(--border-focus) focus-visible:shadow-(--shadow-focus) disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-(--status-critical-fg) data-[placeholder]:text-(--text-muted) *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex items-center justify-between gap-2 h-(--control-height) data-[size=sm]:h-(--control-height-sm) w-full rounded-(--radius-control) border border-(--border-soft) bg-(--surface-inset) px-3 font-sans text-(length:--fs-body) text-(--text-body) transition-[background-color,border-color,box-shadow] duration-(--dur-fast) ease-(--ease-out) outline-none hover:border-(--border-strong) focus-visible:border-(--border-focus) focus-visible:shadow-(--shadow-focus) disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-(--status-critical-fg) data-[placeholder]:text-(--text-muted) *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

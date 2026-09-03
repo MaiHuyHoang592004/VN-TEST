@@ -24,7 +24,7 @@ function NativeSelect({
       <select
         data-slot="native-select"
         data-size={size}
-        className="h-(--control-height) w-full min-w-0 appearance-none rounded-(--radius-control) border border-(--border-soft) bg-(--surface-inset) pl-3 pr-8 font-sans text-(length:--fs-body) text-(--text-body) transition-[background-color,border-color,box-shadow] duration-(--dur-fast) ease-(--ease-out) outline-none select-none selection:bg-primary selection:text-primary-foreground placeholder:text-(--text-muted) hover:border-(--border-strong) focus-visible:border-(--border-focus) focus-visible:shadow-(--shadow-focus) disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-(--status-critical-fg)"
+        className="h-(--control-height) data-[size=sm]:h-(--control-height-sm) w-full min-w-0 appearance-none rounded-(--radius-control) border border-(--border-soft) bg-(--surface-inset) pl-3 pr-8 font-sans text-(length:--fs-body) text-(--text-body) transition-[background-color,border-color,box-shadow] duration-(--dur-fast) ease-(--ease-out) outline-none select-none selection:bg-primary selection:text-primary-foreground placeholder:text-(--text-muted) hover:border-(--border-strong) focus-visible:border-(--border-focus) focus-visible:shadow-(--shadow-focus) disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-45 aria-invalid:border-(--status-critical-fg)"
         {...props}
       />
       <ChevronDownIcon className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground select-none" aria-hidden="true" data-slot="native-select-icon" />

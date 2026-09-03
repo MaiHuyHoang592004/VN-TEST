@@ -91,7 +91,7 @@ export function MonitorTable({
               {groups.map((g) => (
                 <tr key={g.key} className="hover:bg-muted/30">
                   <td className="px-3 py-2 font-mono text-xs">{g.trackingNumber ?? g.key}</td>
-                  <td className="px-3 py-2">{g.warehouse ?? "—"}</td>
+                  <td className="px-3 py-2">{g.customer ?? "—"}</td>
                   <td className="px-3 py-2 text-right tabular-nums">{g.orderCount}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">

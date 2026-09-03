@@ -56,14 +56,14 @@ before(async () => {
   sellerId = se.id;
   packerId = p.id;
 
-  const wh = await prisma.customer.create({
+  const wh = await prisma.warehouse.create({
     data: { code: "NTTEST", name: "Notify Site", timezone: "UTC", status: "ACTIVE" },
   });
   warehouseId = wh.id;
   await prisma.warehouseMember.create({ data: { userId: packerId, warehouseId } });
 
-  const prod = await prisma.variant.create({ data: { name: "Notify Wallet", key: "nt-wallet", status: "ACTIVE" } });
-  const v = await prisma.product.create({ data: { name: "Notify Brown", key: "nt-brown" } });
+  const prod = await prisma.product.create({ data: { name: "Notify Wallet", key: "nt-wallet", status: "ACTIVE" } });
+  const v = await prisma.variant.create({ data: { name: "Notify Brown", key: "nt-brown" } });
   productId = prod.id;
   variantId = v.id;
   const sku = await prisma.productVariant.create({
@@ -90,7 +90,7 @@ after(async () => {
   await prisma.productVariant.deleteMany({ where: { id: skuId } });
   await prisma.variant.deleteMany({ where: { id: productId } });
   await prisma.product.deleteMany({ where: { id: variantId } });
-  await prisma.customer.deleteMany({ where: { id: warehouseId } });
+  await prisma.warehouse.deleteMany({ where: { id: warehouseId } });
   await prisma.user.deleteMany({ where: { id: { in: ids } } });
   await prisma.$disconnect();
 });

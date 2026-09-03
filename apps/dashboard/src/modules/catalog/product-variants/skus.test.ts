@@ -24,11 +24,11 @@ const ctx = () => ({ actor: admin(), ip: null, userAgent: null });
 before(async () => {
   const a = await prisma.user.create({ data: { email: "sku-admin@test.local", roles: ["ADMIN"] } });
   adminId = a.id;
-  const p = await prisma.variant.create({ data: { name: "Sku Wallet", key: "sku-wallet", status: "ACTIVE" } });
+  const p = await prisma.product.create({ data: { name: "Sku Wallet", key: "sku-wallet", status: "ACTIVE" } });
   productId = p.id;
   const [va, vb] = await Promise.all([
-    prisma.product.create({ data: { name: "Sku Brown", key: "sku-brown" } }),
-    prisma.product.create({ data: { name: "Sku Large", key: "sku-large" } }),
+    prisma.variant.create({ data: { name: "Sku Brown", key: "sku-brown" } }),
+    prisma.variant.create({ data: { name: "Sku Large", key: "sku-large" } }),
   ]);
   variantA = va.id;
   variantB = vb.id;

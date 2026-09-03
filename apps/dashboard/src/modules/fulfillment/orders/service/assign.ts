@@ -33,7 +33,7 @@ import { assignSchema } from "../schema.ts";
 import { type Actor } from "./shared.ts";
 
 /**
- * Assign orders to a customer and charge their sellers.
+ * Assign orders to a warehouse and charge their sellers.
  *
  * This is the function the legacy system got wrong, and it is worth being
  * precise about how. It charged inside `orders.forEach(async order => …)`:
@@ -64,11 +64,11 @@ import { type Actor } from "./shared.ts";
 export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext) {
   const { orderIds, warehouseId, idempotencyKey } = assignSchema.parse(raw);
 
-  const customer = await prisma.customer.findFirst({
+  const warehouse = await prisma.warehouse.findFirst({
     where: { id: warehouseId, deletedAt: null, status: "ACTIVE" },
     select: { id: true, code: true },
   });
-  if (!customer) return { ok: false as const, error: "unknown-customer" as const };
+  if (!warehouse) return { ok: false as const, error: "unknown-customer" as const };
 
   // Only orders this actor may act on, and only ones still awaiting assignment.
   const candidates = await prisma.order.findMany({
@@ -135,11 +135,11 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
         // eventually disagree, and the one that disagrees bills people.
         let total = new Prisma.Decimal(0);
         const lines: Array<{ id: number; cost: Prisma.Decimal }> = [];
-        for (const column of rows) {
-          if (!column.productVariant) continue;
-          const unit = effectivePrice(column.productVariant, seller.tier);
-          const cost = unit.mul(column.quantity);
-          lines.push({ id: column.id, cost });
+        for (const row of rows) {
+          if (!row.productVariant) continue;
+          const unit = effectivePrice(row.productVariant, seller.tier);
+          const cost = unit.mul(row.quantity);
+          lines.push({ id: row.id, cost });
           total = total.add(cost);
         }
         if (!lines.length) return null;
@@ -148,7 +148,7 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
           userId: sellerId,
           kind: "ORDER_PAYMENT",
           amount: total.negated(),
-          reason: `Assigned ${lines.length} order(s) to ${customer.code}`,
+          reason: `Assigned ${lines.length} order(s) to ${warehouse.code}`,
           idempotencyKey: key,
           description: `orders:${lines.map((l) => l.id).join(",")}`,
         });
@@ -211,7 +211,7 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
         // business, and the panel renders only what it is given.
         await notifyMany(tx, warehouseStaff, {
           type: "WORK_ASSIGNED",
-          data: { count: String(lines.length), customer: customer.code },
+          data: { count: String(lines.length), warehouse: warehouse.code },
           href: "/orders?tab=processing",
         });
         return { lines: lines.length, total, before: move.before, after: move.after };
@@ -282,7 +282,7 @@ export async function previewAssignment(actor: Actor, orderIds: number[]) {
       id: true,
       quantity: true,
       customerId: true,
-      warehouse: { select: { id: true, name: true, email: true, balance: true, tier: true } },
+      customer: { select: { id: true, name: true, email: true, balance: true, tier: true } },
       productVariant: { select: { salePrice: true, prices: { select: { tier: true, price: true } } } },
     },
   });
@@ -291,18 +291,18 @@ export async function previewAssignment(actor: Actor, orderIds: number[]) {
     string,
     { sellerId: string; name: string; balance: Prisma.Decimal; charge: Prisma.Decimal; orders: number }
   >();
-  for (const column of rows) {
-    if (!column.warehouse || !column.productVariant) continue;
-    const key = column.warehouse.id;
+  for (const row of rows) {
+    if (!row.customer || !row.productVariant) continue;
+    const key = row.customer.id;
     const entry = bySeller.get(key) ?? {
       sellerId: key,
-      name: column.warehouse.name ?? column.warehouse.email ?? key,
-      balance: column.warehouse.balance,
+      name: row.customer.name ?? row.customer.email ?? key,
+      balance: row.customer.balance,
       charge: new Prisma.Decimal(0),
       orders: 0,
     };
     entry.charge = entry.charge.add(
-      effectivePrice(column.productVariant, column.warehouse.tier).mul(column.quantity),
+      effectivePrice(row.productVariant, row.customer.tier).mul(row.quantity),
     );
     entry.orders += 1;
     bySeller.set(key, entry);

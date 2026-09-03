@@ -9,21 +9,21 @@ import * as suppliers from "./service.ts";
 export async function createMaterialAction(input: unknown) {
   const actor = await requirePermission("suppliers.manage");
   const result = await suppliers.createMaterial(actor, input, await auditContext(actor));
-  revalidatePath("/admin/suppliers");
+  revalidatePath("/admin/materials");
   return result;
 }
 
 export async function updateMaterialAction(id: number, input: unknown) {
   const actor = await requirePermission("suppliers.manage");
   const result = await suppliers.updateMaterial(actor, id, input, await auditContext(actor));
-  revalidatePath("/admin/suppliers");
+  revalidatePath("/admin/materials");
   return result;
 }
 
 export async function deleteMaterialAction(id: number) {
   const actor = await requirePermission("suppliers.manage");
   const result = await suppliers.deleteMaterial(actor, id, await auditContext(actor));
-  revalidatePath("/admin/suppliers");
+  revalidatePath("/admin/materials");
   return result;
 }
 

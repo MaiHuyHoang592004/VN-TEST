@@ -49,7 +49,7 @@ before(async () => {
   sellerId = s.id;
   packerId = p.id;
 
-  const site = await prisma.customer.create({ data: { code: "LFT-1", name: "Leftovers site" } });
+  const site = await prisma.warehouse.create({ data: { code: "LFT-1", name: "Leftovers site" } });
   siteId = site.id;
   await prisma.warehouseMember.create({
     data: { userId: packerId, warehouseId: siteId, isPrimary: true },

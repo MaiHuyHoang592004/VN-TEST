@@ -1,7 +1,7 @@
 /**
  * Every page reachable from a nav must land in a section that lights ITSELF up.
  *
- * This exists because /admin/suppliers shipped without a tab: the page rendered
+ * This exists because /admin/materials shipped without a tab: the page rendered
  * the Administration column with nothing highlighted, and there was no way to
  * reach it from that column at all. Nothing failed — no type error, no crash, no
  * test — because a missing tab is missing DATA, not broken code.
@@ -52,14 +52,14 @@ test("a deeper route highlights the deeper tab, not its prefix sibling", () => {
   assert.equal(activeTabHref("/inventory", inventory.tabs), "/inventory");
 });
 
-test("suppliers is reachable from the column its own route renders", () => {
+test("materials is reachable from the column its own route renders", () => {
   // The exact bug: the page lives under /admin, so it renders the
   // Administration tabs — and therefore has to BE one of them.
-  const section = sectionFor("/admin/suppliers");
+  const section = sectionFor("/admin/materials");
   assert.equal(section?.prefix, "/admin");
   assert.ok(
-    section.tabs.some((t) => t.href === "/admin/suppliers"),
-    "/admin/suppliers must appear in the Administration tabs",
+    section.tabs.some((t) => t.href === "/admin/materials"),
+    "/admin/materials must appear in the Administration tabs",
   );
 });
 
@@ -133,7 +133,7 @@ test("every page is reachable from a nav, or says why not", () => {
   // The LAST hole in the nav story. Deriving the sidebar from NAV_SECTIONS
   // made "a section route missing from one nav" unrepresentable — but nothing
   // yet caught a page that no nav mentions AT ALL, which is how
-  // /admin/suppliers shipped unreachable from the column its own route renders.
+  // /admin/materials shipped unreachable from the column its own route renders.
   const appDir = new URL("../app/(protected)/", import.meta.url);
   const routes: string[] = [];
   const walk = (dir: URL, prefix: string) => {
@@ -195,7 +195,7 @@ test("isRouteActive stays a prefix test — it is the primitive, not the rule", 
   // highlight.
   assert.equal(isRouteActive("/inventory/movements", "/inventory"), true);
   assert.equal(isRouteActive("/inventory", "/inventory/movements"), false);
-  assert.equal(isRouteActive("/admin/suppliers", "/admin/suppliers"), true);
+  assert.equal(isRouteActive("/admin/materials", "/admin/materials"), true);
   // "/" is exact, or Home would be lit on every page in the app.
   assert.equal(isRouteActive("/inventory", "/"), false);
   assert.equal(activeHref("/orders/print", ["/", "/orders"]), "/orders", "and Home stays dark");

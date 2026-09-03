@@ -65,13 +65,13 @@ export async function listSkuOptionsAction(productId: number) {
  * Resolve spreadsheet SKU references to ids, in one round trip for the whole
  * file.
  *
- * A sheet names a SKU by its code, or by variant+product KEYS (which is what
+ * A sheet names a SKU by its code, or by product+variant KEYS (which is what
  * the legacy importer matched on). Resolving server-side keeps the client from
- * ever choosing an id, and returning nulls lets the importer say "column 4: no
+ * ever choosing an id, and returning nulls lets the importer say "row 4: no
  * such SKU" instead of failing the batch.
  */
 export async function resolveSkusAction(
-  refs: { sku?: string; variant?: string; product?: string }[],
+  refs: { sku?: string; product?: string; variant?: string }[],
 ) {
   const actor = await requirePermission("products.read");
   return skus.resolveSkuRefs(actor, refs);

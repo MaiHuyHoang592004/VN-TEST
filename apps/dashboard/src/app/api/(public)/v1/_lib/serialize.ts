@@ -33,7 +33,7 @@ export function orderToApi(o: OrderRow) {
     variant: o.variant && { id: o.variant.id, name: o.variant.name, key: o.variant.key },
     product: o.product && { id: o.product.id, name: o.product.name, key: o.product.key },
     sku: o.productVariant && { id: o.productVariant.id, code: o.productVariant.sku },
-    customer: o.customer && { id: o.customer.id, code: o.customer.code, name: o.customer.name },
+    warehouse: o.warehouse && { id: o.warehouse.id, code: o.warehouse.code, name: o.warehouse.name },
     // Only the latest shipment: an order can have several, and a list endpoint
     // returning all of them makes the payload unbounded.
     tracking: shipment

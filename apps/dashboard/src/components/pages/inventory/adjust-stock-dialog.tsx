@@ -92,7 +92,7 @@ export function AdjustStockDialog({
     >
       <p className="text-muted-foreground text-sm">{t("inventory.adjust.description")}</p>
 
-      <FormField label={t("inventory.adjust.customer")} required error={fieldErrors.warehouseId}>
+      <FormField label={t("inventory.adjust.warehouse")} required error={fieldErrors.warehouseId}>
         {(props) => (
           <Select value={warehouseId} onValueChange={(v) => v && setWarehouseId(v)}>
             <SelectTrigger {...props}>

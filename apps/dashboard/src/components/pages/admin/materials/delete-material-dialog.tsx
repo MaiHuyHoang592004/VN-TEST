@@ -51,8 +51,8 @@ export function DeleteMaterialDialog({
 
   const { submit, pending, formError } = useFormAction({
     action: () => deleteMaterialAction(material.id),
-    successMessage: t("inventory.suppliers.deleted"),
-    errorMessages: { "in-use": t("inventory.suppliers.delete.blocked") },
+    successMessage: t("inventory.materials.deleted"),
+    errorMessages: { "in-use": t("inventory.materials.delete.blocked") },
     onSuccess: () => {
       onOpenChange(false);
       router.refresh();
@@ -63,9 +63,9 @@ export function DeleteMaterialDialog({
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t("inventory.suppliers.delete.title")}
+      title={t("inventory.materials.delete.title")}
       description={`${material.sku} — ${material.name}`}
-      submitLabel={t("inventory.suppliers.delete.submit")}
+      submitLabel={t("inventory.materials.delete.submit")}
       destructive
       pending={pending || !usage}
       submitDisabled={Boolean(usage) && !canDelete}
@@ -77,12 +77,12 @@ export function DeleteMaterialDialog({
           {!usage
             ? "…"
             : canDelete
-              ? t("inventory.suppliers.delete.confirm")
-              : t("inventory.suppliers.delete.blocked")}
+              ? t("inventory.materials.delete.confirm")
+              : t("inventory.materials.delete.blocked")}
         </p>
         {usage && !canDelete && (
           <Badge product="secondary" className="self-start">
-            {usage.activeBomLines} {t("inventory.suppliers.delete.pillBomLines")}
+            {usage.activeBomLines} {t("inventory.materials.delete.pillBomLines")}
           </Badge>
         )}
       </div>

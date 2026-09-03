@@ -59,7 +59,7 @@ export default async function ReceiptsPage({
           itemType: r.itemType,
           status: r.status,
           supplier: r.supplier,
-          customer: r.customer.name,
+          warehouse: r.warehouse.name,
           shipmentCount: r.shipmentCount,
           createdAt: r.createdAt.toISOString(),
         }))}

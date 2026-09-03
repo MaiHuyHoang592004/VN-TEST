@@ -31,7 +31,7 @@ export const GET = withApiKey(async (req, actor) => {
     select: { tier: true },
   });
 
-  const products = await prisma.variant.findMany({
+  const products = await prisma.product.findMany({
     where: {
       // The allow-list a restricted seller is bound to — same clause the
       // catalogue page spreads, so the API cannot show more than the UI.
@@ -61,12 +61,12 @@ export const GET = withApiKey(async (req, actor) => {
     take: limit,
   });
 
-  const data = products.map((variant) => ({
-    id: variant.id,
-    name: variant.name,
-    key: variant.key,
-    thumbnail: variant.thumbnail,
-    skus: variant.variants.map((sku) => ({
+  const data = products.map((product) => ({
+    id: product.id,
+    name: product.name,
+    key: product.key,
+    thumbnail: product.thumbnail,
+    skus: product.variants.map((sku) => ({
       // `id` is what POST /orders wants as product_variant_id.
       id: sku.id,
       code: sku.sku,

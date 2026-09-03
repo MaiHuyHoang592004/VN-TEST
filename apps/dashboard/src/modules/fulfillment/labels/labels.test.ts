@@ -80,7 +80,7 @@ before(async () => {
   sellerId = s.id;
 
   // The box rules live on the PRODUCT as data — a customer fact, not code.
-  const boxed = await prisma.variant.create({
+  const boxed = await prisma.product.create({
     data: {
       name: "Boxed Wallet",
       key: "lb-boxed",
@@ -95,10 +95,10 @@ before(async () => {
       },
     },
   });
-  const bare = await prisma.variant.create({
+  const bare = await prisma.product.create({
     data: { name: "Unboxed Wallet", key: "lb-bare", status: "ACTIVE" },
   });
-  const v = await prisma.product.create({ data: { name: "Label Black", key: "lb-black" } });
+  const v = await prisma.variant.create({ data: { name: "Label Black", key: "lb-black" } });
   productWithBox = boxed.id;
   productNoBox = bare.id;
   variantId = v.id;

@@ -50,7 +50,7 @@ export async function listReceipts(actor: Actor, filter: ReceiptFilter = {}) {
         status: true,
         provider: true,
         createdAt: true,
-        customer: { select: { id: true, name: true } },
+        warehouse: { select: { id: true, name: true } },
         shipments: { select: { vendor: { select: { name: true } } } },
         _count: { select: { shipments: true, lines: true } },
       },
@@ -66,7 +66,7 @@ export async function listReceipts(actor: Actor, filter: ReceiptFilter = {}) {
     rows: rows.map(({ shipments, _count, ...r }) => ({
       ...r,
       // Distinct vendor names across the shipments, falling back to the typed
-      // provider — a receipt can be split across two materials.
+      // provider — a receipt can be split across two suppliers.
       supplier:
         [...new Set(shipments.map((s) => s.vendor?.name).filter((n) => n != null))].join(", ") ||
         r.provider,
@@ -90,7 +90,7 @@ export async function getReceipt(actor: Actor, id: number) {
       rejectReason: true,
       createdAt: true,
       approvedAt: true,
-      customer: { select: { id: true, name: true } },
+      warehouse: { select: { id: true, name: true } },
       createdBy: { select: { name: true, email: true } },
       approvedBy: { select: { name: true, email: true } },
       shipments: {

@@ -25,7 +25,7 @@ export type QuickUpdateResult = {
   skipped: Array<{ id: number; externalId: string | null; reason: string }>;
   rows: TrackingGroup["orders"];
   trackingNumber: string | null;
-  warehouse: string | null;
+  customer: string | null;
 };
 
 export async function quickUpdate(
@@ -63,6 +63,6 @@ export async function quickUpdate(
     skipped,
     rows: group.orders,
     trackingNumber: group.trackingNumber,
-    warehouse: group.warehouse.name,
+    customer: group.customer.name,
   };
 }

@@ -41,7 +41,7 @@ type ParsedInput = ReturnType<typeof createReceiptSchema.parse>;
  * receipt never exists even for the length of a transaction.
  */
 async function assertReferencesExist(input: ParsedInput) {
-  const customer = await prisma.customer.findFirst({
+  const customer = await prisma.warehouse.findFirst({
     where: { id: input.warehouseId, deletedAt: null },
     select: { id: true },
   });

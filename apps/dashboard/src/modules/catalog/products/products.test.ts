@@ -45,18 +45,18 @@ before(async () => {
   openSellerId = o.id;
 
   const [allowed, hidden] = await Promise.all([
-    prisma.variant.create({ data: { name: "Allowed Wallet", key: "cat-allowed", status: "ACTIVE" } }),
-    prisma.variant.create({ data: { name: "Hidden Tote", key: "cat-hidden", status: "ACTIVE" } }),
+    prisma.product.create({ data: { name: "Allowed Wallet", key: "cat-allowed", status: "ACTIVE" } }),
+    prisma.product.create({ data: { name: "Hidden Tote", key: "cat-hidden", status: "ACTIVE" } }),
   ]);
   allowedProductId = allowed.id;
   hiddenProductId = hidden.id;
 
-  // Exactly one allow-list column → this partner is restricted to one variant.
+  // Exactly one allow-list row → this partner is restricted to one product.
   await prisma.userAllowedProduct.create({
     data: { userId: restrictedId, productId: allowedProductId },
   });
 
-  const v = await prisma.product.create({ data: { name: "Brown", key: "cat-brown" } });
+  const v = await prisma.variant.create({ data: { name: "Brown", key: "cat-brown" } });
   variantId = v.id;
 });
 

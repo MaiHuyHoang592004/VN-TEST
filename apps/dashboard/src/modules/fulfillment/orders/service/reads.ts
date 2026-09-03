@@ -75,11 +75,11 @@ const ORDER_LIST_SELECT = {
   note: true,
   imageUrl: true,
   proofImageUrl: true,
-  warehouse: { select: { id: true, name: true, email: true } },
+  warehouse: { select: { id: true, code: true, name: true } },
   // Where it is going — the check a packer makes against the box in their
   // hand before trusting the code they just scanned.
   shippingAddress: { select: { name: true, city: true, state: true, zip: true, country: true } },
-  customer: { select: { id: true, code: true, name: true } },
+  customer: { select: { id: true, name: true, email: true } },
   variant: { select: { id: true, name: true, key: true } },
   product: { select: { id: true, name: true, key: true } },
   productVariant: { select: { id: true, sku: true } },

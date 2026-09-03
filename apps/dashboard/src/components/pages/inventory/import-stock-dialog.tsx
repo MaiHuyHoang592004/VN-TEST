@@ -130,7 +130,7 @@ export function ImportStockDialog({
         )}
       </FormField>
 
-      <FormField label={t("inventory.import.customer")} required error={fieldErrors.warehouseId}>
+      <FormField label={t("inventory.import.warehouse")} required error={fieldErrors.warehouseId}>
         {(props) => (
           <Select value={warehouseId} onValueChange={(v) => v && setWarehouseId(v)}>
             <SelectTrigger {...props}>

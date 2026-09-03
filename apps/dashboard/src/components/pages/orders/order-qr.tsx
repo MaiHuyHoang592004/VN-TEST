@@ -270,7 +270,7 @@ function OrderCodePanel({
 
           <Detail label={t("orders.colProduct")} value={order.productName} />
           <Detail
-            label={t("orders.qr.product")}
+            label={t("orders.qr.variant")}
             value={[order.variantName, order.sku].filter(Boolean).join(" · ")}
           />
 
@@ -338,7 +338,7 @@ function OrderCodePanel({
         </dl>
       </div>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-column sm:justify-end">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button product="outline" size="sm" onClick={onClose}>
           {t("common.close")}
         </Button>

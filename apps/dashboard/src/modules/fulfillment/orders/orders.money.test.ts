@@ -61,13 +61,13 @@ before(async () => {
   sellerA = s1.id;
   sellerB = s2.id;
 
-  const wh = await prisma.customer.create({
+  const wh = await prisma.warehouse.create({
     data: { code: "OMTEST", name: "Money Test Site", timezone: "UTC", status: "ACTIVE" },
   });
   warehouseId = wh.id;
 
-  const p = await prisma.variant.create({ data: { name: "Money Wallet", key: "om-wallet", status: "ACTIVE" } });
-  const v = await prisma.product.create({ data: { name: "Money Brown", key: "om-brown" } });
+  const p = await prisma.product.create({ data: { name: "Money Wallet", key: "om-wallet", status: "ACTIVE" } });
+  const v = await prisma.variant.create({ data: { name: "Money Brown", key: "om-brown" } });
   productId = p.id;
   variantId = v.id;
   const sku = await prisma.productVariant.create({
@@ -97,7 +97,7 @@ after(async () => {
   await prisma.productVariant.deleteMany({ where: { id: skuId } });
   await prisma.variant.deleteMany({ where: { id: productId } });
   await prisma.product.deleteMany({ where: { id: variantId } });
-  await prisma.customer.deleteMany({ where: { id: warehouseId } });
+  await prisma.warehouse.deleteMany({ where: { id: warehouseId } });
   await prisma.user.deleteMany({ where: { id: { in: ids } } });
   await prisma.$disconnect();
 });

@@ -34,7 +34,7 @@ const STATUSES: FulfillmentStatus[] = [
 
 type LogEntry = {
   tracking: string;
-  warehouse: string | null;
+  customer: string | null;
   status: FulfillmentStatus;
   rows: Array<{ id: number; externalId: string | null; quantity: number; variant: string | null; product: string | null }>;
   skipped: Array<{ id: number; externalId: string | null; reason: string }>;
@@ -85,7 +85,7 @@ export function QuickScan() {
 
     const entry: LogEntry = {
       tracking: result.trackingNumber ?? keyword,
-      warehouse: result.warehouse,
+      customer: result.customer,
       status,
       rows: result.rows.map((r) => ({
         id: r.id,
@@ -232,7 +232,7 @@ function QuickLog({ log }: { log: LogEntry[] }) {
           {log.flatMap((entry) => [
             ...entry.rows.map((column) => (
               <tr key={`${entry.tracking}-${column.id}`}>
-                <td className="px-3 py-2">{entry.warehouse ?? "—"}</td>
+                <td className="px-3 py-2">{entry.customer ?? "—"}</td>
                 <td className="px-3 py-2 font-mono text-xs">{entry.tracking}</td>
                 <td className="px-3 py-2">
                   <Badge product="secondary">{t(`orders.statuses.${entry.status}`)}</Badge>

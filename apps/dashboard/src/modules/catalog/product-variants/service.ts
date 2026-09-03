@@ -20,13 +20,13 @@ type Actor = NonNullable<AuditContext["actor"]>;
 const blankToNull = (v?: string) => (v && v.length ? v : null);
 
 /**
- * The SKUs of one variant, with their tier prices, scoped through the variant
+ * The SKUs of one product, with their tier prices, scoped through the product
  * so a restricted partner cannot enumerate a catalogue they were not granted.
- * Throws if the variant is outside their allow-list — the same guarantee
+ * Throws if the product is outside their allow-list — the same guarantee
  * getProduct gives.
  */
 export async function listSkusForProduct(actor: Actor, productId: number) {
-  await prisma.variant.findFirstOrThrow({
+  await prisma.product.findFirstOrThrow({
     where: { ...(await productScope(actor)), id: productId, deletedAt: null },
     select: { id: true },
   });
@@ -38,11 +38,11 @@ export async function listSkusForProduct(actor: Actor, productId: number) {
 }
 
 /**
- * A flat list of SKUs for a picker — the BOM dialog's "which product is this
+ * A flat list of SKUs for a picker — the BOM dialog's "which variant is this
  * recipe for?", and anything else that needs to name one without knowing its
- * variant first.
+ * product first.
  *
- * Scoped through the variant like every other catalogue read, so a restricted
+ * Scoped through the product like every other catalogue read, so a restricted
  * partner cannot enumerate SKUs they were never granted. Capped at 50 with a
  * search rather than paged: a picker that returns everything is a picker
  * nobody can use.
@@ -52,13 +52,13 @@ export async function listSkuOptions(actor: Actor, search?: string) {
     where: {
       deletedAt: null,
       status: "ACTIVE",
-      variant: { ...(await productScope(actor)), deletedAt: null },
+      product: { ...(await productScope(actor)), deletedAt: null },
       ...(search
         ? {
             OR: [
               { sku: { contains: search, mode: "insensitive" as const } },
-              { variant: { name: { contains: search, mode: "insensitive" as const } } },
               { product: { name: { contains: search, mode: "insensitive" as const } } },
+              { variant: { name: { contains: search, mode: "insensitive" as const } } },
             ],
           }
         : {}),
@@ -66,8 +66,8 @@ export async function listSkuOptions(actor: Actor, search?: string) {
     select: {
       id: true,
       sku: true,
-      variant: { select: { name: true } },
       product: { select: { name: true } },
+      variant: { select: { name: true } },
     },
     orderBy: { id: "asc" },
     take: 50,
@@ -75,7 +75,7 @@ export async function listSkuOptions(actor: Actor, search?: string) {
   return rows.map((r) => ({
     id: r.id,
     sku: r.sku,
-    name: `${r.variant.name} · ${r.product.name}`,
+    name: `${r.product.name} · ${r.variant.name}`,
   }));
 }
 
@@ -89,13 +89,13 @@ export async function tierOf(actor: Actor): Promise<number | null> {
   return u?.tier ?? null;
 }
 
-/** Variants not yet attached to this variant — the "attach" dialog's list. */
+/** Variants not yet attached to this product — the "attach" dialog's list. */
 export async function listAttachableVariants(_actor: Actor, productId: number) {
   const attached = await prisma.productVariant.findMany({
     where: { productId, deletedAt: null },
     select: { variantId: true },
   });
-  return prisma.product.findMany({
+  return prisma.variant.findMany({
     where: {
       deletedAt: null,
       status: "ACTIVE",
@@ -112,7 +112,7 @@ export async function listAttachableVariants(_actor: Actor, productId: number) {
  * ponytail: "already exists" is a read-then-write check, not a unique
  * constraint — ProductVariant deliberately has no @@unique([productId,
  * variantId]) yet because legacy data may contain duplicates (see the model).
- * Ceiling: two admins attaching the same product at the same instant can both
+ * Ceiling: two admins attaching the same variant at the same instant can both
  * pass the check and create a duplicate. Upgrade path is the unique constraint
  * after the cutover audit, at which point this becomes a plain skipDuplicates
  * createMany and the check goes away.
@@ -133,7 +133,7 @@ export async function attachVariants(actor: Actor, raw: unknown, ctx: AuditConte
     });
     await writeAudit(tx, ctx, {
       action: "SKU_ATTACHED",
-      targetType: "variant",
+      targetType: "product",
       targetId: String(productId),
       after: { variantIds: toCreate },
     });
@@ -189,11 +189,11 @@ export async function setPrices(actor: Actor, productVariantId: number, raw: unk
     orderBy: { tier: "asc" },
   });
   await prisma.$transaction(async (tx) => {
-    for (const column of rows) {
-      const price = new Prisma.Decimal(column.price);
+    for (const row of rows) {
+      const price = new Prisma.Decimal(row.price);
       await tx.variantPrice.upsert({
-        where: { productVariantId_tier: { productVariantId, tier: column.tier } },
-        create: { productVariantId, tier: column.tier, price },
+        where: { productVariantId_tier: { productVariantId, tier: row.tier } },
+        create: { productVariantId, tier: row.tier, price },
         update: { price },
       });
     }
@@ -232,11 +232,11 @@ export async function bulkSetPrices(
 
   await prisma.$transaction(async (tx) => {
     for (const productVariantId of ids) {
-      for (const column of rows) {
-        const price = new Prisma.Decimal(column.price);
+      for (const row of rows) {
+        const price = new Prisma.Decimal(row.price);
         await tx.variantPrice.upsert({
-          where: { productVariantId_tier: { productVariantId, tier: column.tier } },
-          create: { productVariantId, tier: column.tier, price },
+          where: { productVariantId_tier: { productVariantId, tier: row.tier } },
+          create: { productVariantId, tier: row.tier, price },
           update: { price },
         });
       }
@@ -258,7 +258,7 @@ export async function bulkSetPrices(
  * Detach a SKU that was never ordered — a real delete, and only then.
  *
  * Retiring a SKU with orders behind it is `status: INACTIVE`, not this: those
- * orders point at the column and must keep resolving. That split is what lets
+ * orders point at the row and must keep resolving. That split is what lets
  * @@unique([productId, variantId]) be added later without a data cleanup —
  * a detached SKU leaves nothing behind to collide with when the same product
  * is attached again, which a soft-delete tombstone would.
@@ -280,24 +280,24 @@ export async function detachSku(actor: Actor, id: number, ctx: AuditContext) {
 }
 
 /**
- * Map spreadsheet references to SKU ids. Scoped through the variant, so a
- * restricted partner cannot import against a variant they were never granted —
+ * Map spreadsheet references to SKU ids. Scoped through the product, so a
+ * restricted partner cannot import against a product they were never granted —
  * the importer is not a way around the allow-list.
  */
 export async function resolveSkuRefs(
   actor: Actor,
-  refs: { sku?: string; variant?: string; product?: string }[],
+  refs: { sku?: string; product?: string; variant?: string }[],
 ): Promise<(number | null)[]> {
   const scope = await productScope(actor);
   const codes = refs.map((r) => r.sku?.trim()).filter((c): c is string => !!c);
   const pairs = refs
-    .filter((r) => !r.sku?.trim() && r.variant?.trim() && r.product?.trim())
-    .map((r) => ({ variant: r.variant!.trim().toLowerCase(), product: r.product!.trim().toLowerCase() }));
+    .filter((r) => !r.sku?.trim() && r.product?.trim() && r.variant?.trim())
+    .map((r) => ({ product: r.product!.trim().toLowerCase(), variant: r.variant!.trim().toLowerCase() }));
 
   const [byCode, byPair] = await Promise.all([
     codes.length
       ? prisma.productVariant.findMany({
-          where: { sku: { in: codes }, deletedAt: null, status: "ACTIVE", variant: { ...scope, deletedAt: null } },
+          where: { sku: { in: codes }, deletedAt: null, status: "ACTIVE", product: { ...scope, deletedAt: null } },
           select: { id: true, sku: true },
         })
       : [],
@@ -306,22 +306,22 @@ export async function resolveSkuRefs(
           where: {
             deletedAt: null,
             status: "ACTIVE",
-            variant: { ...scope, deletedAt: null, key: { in: pairs.map((p) => p.variant) } },
-            product: { key: { in: pairs.map((p) => p.product) } },
+            product: { ...scope, deletedAt: null, key: { in: pairs.map((p) => p.product) } },
+            variant: { key: { in: pairs.map((p) => p.variant) } },
           },
-          select: { id: true, variant: { select: { key: true } }, product: { select: { key: true } } },
+          select: { id: true, product: { select: { key: true } }, variant: { select: { key: true } } },
         })
       : [],
   ]);
 
   const codeMap = new Map(byCode.map((r) => [r.sku, r.id]));
-  const pairMap = new Map(byPair.map((r) => [`${r.variant.key}::${r.product.key}`, r.id]));
+  const pairMap = new Map(byPair.map((r) => [`${r.product.key}::${r.variant.key}`, r.id]));
 
   return refs.map((r) => {
     const code = r.sku?.trim();
     if (code) return codeMap.get(code) ?? null;
-    const p = r.variant?.trim().toLowerCase();
-    const v = r.product?.trim().toLowerCase();
+    const p = r.product?.trim().toLowerCase();
+    const v = r.variant?.trim().toLowerCase();
     return p && v ? (pairMap.get(`${p}::${v}`) ?? null) : null;
   });
 }

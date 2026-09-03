@@ -58,7 +58,7 @@ export async function recalcOrders(actor: Actor, ids: number[], ctx: AuditContex
       paid: true,
       status: true,
       baseCost: true,
-      warehouse: { select: { tier: true } },
+      customer: { select: { tier: true } },
       productVariant: {
         select: { salePrice: true, prices: { select: { tier: true, price: true } } },
       },
@@ -83,7 +83,7 @@ export async function recalcOrders(actor: Actor, ids: number[], ctx: AuditContex
 
   await prisma.$transaction(async (tx) => {
     for (const order of priceable) {
-      const unit = effectivePrice(order.productVariant!, order.warehouse?.tier);
+      const unit = effectivePrice(order.productVariant!, order.customer?.tier);
       const cost = unit.mul(order.quantity);
       const before = order.baseCost ?? new Prisma.Decimal(0);
       if (cost.equals(before)) {

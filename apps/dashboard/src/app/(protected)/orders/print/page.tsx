@@ -41,13 +41,13 @@ export default async function PrintOrdersPage({
       orders={orders.map((o) => ({
         id: o.id,
         externalId: o.externalId,
-        productName: o.variant?.name ?? null,
-        variantName: o.product?.name ?? null,
+        productName: o.product?.name ?? null,
+        variantName: o.variant?.name ?? null,
         sku: o.productVariant?.sku ?? null,
         quantity: o.quantity,
         tracking: o.shipments[0]?.trackingNumber ?? null,
-        customerName: o.warehouse?.name ?? o.warehouse?.email ?? null,
-        warehouseCode: o.customer?.code ?? null,
+        customerName: o.customer?.name ?? o.customer?.email ?? null,
+        warehouseCode: o.warehouse?.code ?? null,
       }))}
     />
   );

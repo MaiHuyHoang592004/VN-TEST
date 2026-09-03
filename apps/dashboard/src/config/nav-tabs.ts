@@ -80,8 +80,8 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: "/admin/mockups", labelKey: "catalog.mockups.title", permission: "mockups.manage" },
       // Master data, next to the other master data. It is gated on
       // inventory.read rather than an admin permission, so a customer admin
-      // who maintains suppliers can reach them from here too.
-      { href: "/admin/suppliers", labelKey: "inventory.nav.suppliers", permission: "inventory.read" },
+      // who maintains materials can reach them from here too.
+      { href: "/admin/materials", labelKey: "inventory.nav.materials", permission: "inventory.read" },
       { href: "/admin/boms", labelKey: "inventory.nav.boms", permission: "inventory.read" },
       { href: "/admin/transactions", labelKey: "finance.title", permission: "transactions.read.all" },
       { href: "/admin/vendors", labelKey: "finance.vendors.title", permission: "vendors.manage" },
@@ -154,7 +154,7 @@ export function activeTabHref(pathname: string, tabs: NavTab[]): string | null {
  * The tabs of one section, for the SIDEBAR to render as a group.
  *
  * The sidebar used to keep its own copies of these lists, and they drifted
- * exactly as you would expect: /admin/suppliers shipped in the sidebar but not
+ * exactly as you would expect: /admin/materials shipped in the sidebar but not
  * the tab column, then /inventory/receipts shipped in the tab column but not the
  * sidebar. Two hand-maintained lists of the same routes have no mechanism to
  * agree, so there is now one list and the sidebar reads it.

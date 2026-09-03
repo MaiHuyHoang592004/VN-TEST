@@ -58,11 +58,11 @@ async function newMaterial(sku: string, stock: number) {
 /** A SKU with an ACTIVE recipe of `perUnit` of one material. */
 async function newSkuWithBom(sku: string, materialId: number, perUnit: number) {
   seq += 1;
-  const product = await prisma.product.create({
-    data: { name: `OF product ${seq}`, key: `of-product-${seq}` },
+  const variant = await prisma.variant.create({
+    data: { name: `OF variant ${seq}`, key: `of-variant-${seq}` },
   });
   const pv = await prisma.productVariant.create({
-    data: { productId, variantId: product.id, sku },
+    data: { productId, variantId: variant.id, sku },
   });
   await createBom(
     admin(),
@@ -117,10 +117,10 @@ before(async () => {
   adminId = a.id;
   sellerId = s.id;
 
-  const w = await prisma.customer.create({ data: { code: "OF-A", name: "Order flow site" } });
+  const w = await prisma.warehouse.create({ data: { code: "OF-A", name: "Order flow site" } });
   warehouseId = w.id;
 
-  const p = await prisma.variant.create({ data: { name: "OF variant", key: "of-variant" } });
+  const p = await prisma.product.create({ data: { name: "OF product", key: "of-product" } });
   productId = p.id;
 });
 
@@ -419,11 +419,11 @@ test("releasing twice is a no-op", async () => {
 
 test("a SKU with no BOM reserves ITSELF — the finished-goods path", async () => {
   seq += 1;
-  const product = await prisma.product.create({
+  const variant = await prisma.variant.create({
     data: { name: "OF plain", key: `of-plain-${seq}` },
   });
   const pv = await prisma.productVariant.create({
-    data: { productId, variantId: product.id, sku: "OF-SKU-PLAIN" },
+    data: { productId, variantId: variant.id, sku: "OF-SKU-PLAIN" },
   });
   await prisma.warehouseInventory.create({
     data: { warehouseId, productVariantId: pv.id, quantity: 10 },
@@ -444,11 +444,11 @@ test("a SKU with no BOM reserves ITSELF — the finished-goods path", async () =
 test("an unmapped required component blocks reservation with its own code", async () => {
   const m = await newMaterial("OF-UNMAPPED", 100);
   seq += 1;
-  const product = await prisma.product.create({
+  const variant = await prisma.variant.create({
     data: { name: "OF unmapped", key: `of-unmapped-${seq}` },
   });
   const pv = await prisma.productVariant.create({
-    data: { productId, variantId: product.id, sku: "OF-SKU-UNMAPPED" },
+    data: { productId, variantId: variant.id, sku: "OF-SKU-UNMAPPED" },
   });
   await createBom(
     admin(),

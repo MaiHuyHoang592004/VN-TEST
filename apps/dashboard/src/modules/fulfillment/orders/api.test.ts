@@ -38,8 +38,8 @@ before(async () => {
   ]);
   sellerA = a.id;
   sellerB = b.id;
-  const p = await prisma.variant.create({ data: { name: "Api Wallet", key: "api-wallet", status: "ACTIVE" } });
-  const v = await prisma.product.create({ data: { name: "Api Brown", key: "api-brown" } });
+  const p = await prisma.product.create({ data: { name: "Api Wallet", key: "api-wallet", status: "ACTIVE" } });
+  const v = await prisma.variant.create({ data: { name: "Api Brown", key: "api-brown" } });
   productId = p.id;
   variantId = v.id;
   const sku = await prisma.productVariant.create({
@@ -121,7 +121,7 @@ test("the cursor walk stays inside the caller's scope", async () => {
   const { rows } = await listOrdersCursor(asB(), { limit: 100 });
   assert.ok(rows.length > 0, "B has its own orders");
   assert.ok(
-    rows.every((r) => r.warehouse?.id === sellerB),
+    rows.every((r) => r.customer?.id === sellerB),
     "and not one of A's appears in them",
   );
 });

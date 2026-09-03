@@ -84,10 +84,10 @@ export function MaterialDialog({
   const { submit, pending, formError, fieldErrors } = useFormAction({
     action: (input: typeof EMPTY) =>
       material ? updateMaterialAction(material.id, input) : createMaterialAction(input),
-    successMessage: t(material ? "inventory.suppliers.updated" : "inventory.suppliers.created"),
+    successMessage: t(material ? "inventory.materials.updated" : "inventory.materials.created"),
     errorMessages: {
       // A raw unique-constraint dump is useless to whoever hits it.
-      "sku-taken": t("inventory.suppliers.errSkuTaken"),
+      "sku-taken": t("inventory.materials.errSkuTaken"),
     },
     onSuccess: () => {
       onOpenChange(false);
@@ -100,15 +100,15 @@ export function MaterialDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={t(
-        material ? "inventory.suppliers.dialogEditTitle" : "inventory.suppliers.dialogNewTitle",
+        material ? "inventory.materials.dialogEditTitle" : "inventory.materials.dialogNewTitle",
       )}
-      description={t("inventory.suppliers.dialogDesc")}
+      description={t("inventory.materials.dialogDesc")}
       pending={pending}
       formError={formError}
       onSubmit={() => submit(values)}
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t("inventory.suppliers.field.sku")} required error={fieldErrors.sku}>
+        <FormField label={t("inventory.materials.field.sku")} required error={fieldErrors.sku}>
           {(props) => (
             <Input
               {...props}
@@ -120,13 +120,13 @@ export function MaterialDialog({
           )}
         </FormField>
 
-        <FormField label={t("inventory.suppliers.field.name")} required error={fieldErrors.name}>
+        <FormField label={t("inventory.materials.field.name")} required error={fieldErrors.name}>
           {(props) => (
             <Input {...props} value={values.name} onChange={(e) => set("name", e.target.value)} />
           )}
         </FormField>
 
-        <FormField label={t("inventory.suppliers.field.type")} error={fieldErrors.type}>
+        <FormField label={t("inventory.materials.field.type")} error={fieldErrors.type}>
           {(props) => (
             <Select value={values.type} onValueChange={(v) => v && set("type", v)}>
               <SelectTrigger {...props}>
@@ -135,7 +135,7 @@ export function MaterialDialog({
               <SelectContent>
                 {MATERIAL_TYPES.map((type) => (
                   <SelectItem key={type} value={type}>
-                    {t(`inventory.suppliers.types.${type}`)}
+                    {t(`inventory.materials.types.${type}`)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -144,8 +144,8 @@ export function MaterialDialog({
         </FormField>
 
         <FormField
-          label={t("inventory.suppliers.field.uom")}
-          hint={t("inventory.suppliers.field.uomHint")}
+          label={t("inventory.materials.field.uom")}
+          hint={t("inventory.materials.field.uomHint")}
           error={fieldErrors.uom}
         >
           {(props) => (
@@ -155,7 +155,7 @@ export function MaterialDialog({
       </div>
 
       <FormField
-        label={t("inventory.suppliers.field.description")}
+        label={t("inventory.materials.field.description")}
         error={fieldErrors.description}
       >
         {(props) => (
@@ -168,7 +168,7 @@ export function MaterialDialog({
         )}
       </FormField>
 
-      <FormField label={t("inventory.suppliers.field.status")} error={fieldErrors.status}>
+      <FormField label={t("inventory.materials.field.status")} error={fieldErrors.status}>
         {(props) => (
           <Select value={values.status} onValueChange={(v) => v && set("status", v)}>
             <SelectTrigger {...props}>
@@ -194,10 +194,10 @@ export function MaterialDialog({
         />
         <div className="flex flex-col gap-0.5">
           <Label htmlFor="material-track-inventory">
-            {t("inventory.suppliers.field.trackInventory")}
+            {t("inventory.materials.field.trackInventory")}
           </Label>
           <p className="text-muted-foreground text-xs">
-            {t("inventory.suppliers.field.trackInventoryHint")}
+            {t("inventory.materials.field.trackInventoryHint")}
           </p>
         </div>
       </div>

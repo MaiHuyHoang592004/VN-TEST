@@ -55,7 +55,7 @@ before(async () => {
   sellerBId = b.id;
   warehouseUserId = w.id;
 
-  const site = await prisma.customer.create({ data: { code: "REP-1", name: "Report site" } });
+  const site = await prisma.warehouse.create({ data: { code: "REP-1", name: "Report site" } });
   siteId = site.id;
   await prisma.warehouseMember.create({
     data: { userId: warehouseUserId, warehouseId: siteId, isPrimary: true },

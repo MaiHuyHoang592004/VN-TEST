@@ -38,7 +38,7 @@ export const GROUP_SELECT = {
   customerId: true,
   assignedToId: true,
   basketPositionId: true,
-  warehouse: { select: { id: true, name: true, email: true } },
+  customer: { select: { id: true, name: true, email: true } },
   variant: { select: { id: true, name: true, key: true } },
   product: { select: { id: true, name: true, key: true } },
   productVariant: { select: { id: true, sku: true } },
@@ -56,7 +56,7 @@ export type GroupRow = Prisma.OrderGetPayload<{ select: typeof GROUP_SELECT }>;
 export type TrackingGroup = {
   trackingNumber: string | null;
   externalIdPrefix: string | null;
-  warehouse: { id: string | null; name: string | null };
+  customer: { id: string | null; name: string | null };
   isMultiUnit: boolean;
   labelUrl: string | null;
   basket: { name: string } | null;
@@ -83,9 +83,9 @@ export type TrackingGroup = {
 /** What a basket slot is called on the shelf. Falls back to its coordinates so
  * an unnamed position is still findable by a human. */
 export const basketName = (
-  b: { name: string | null; shelfName: string | null; column: number; row: string } | null,
+  b: { name: string | null; shelfName: string | null; row: number; column: string } | null,
 ): { name: string } | null =>
-  b ? { name: b.name ?? `${b.shelfName ?? ""}${b.column}${b.row}`.trim() } : null;
+  b ? { name: b.name ?? `${b.shelfName ?? ""}${b.row}${b.column}`.trim() } : null;
 
 /** The external-order prefix: everything before the final "-suffix". A
  * marketplace order that split into three rows shares it. */
@@ -104,9 +104,9 @@ export function toGroup(rows: GroupRow[], wasScanned: Set<number>): TrackingGrou
   return {
     trackingNumber: tracking,
     externalIdPrefix: !tracking && first?.externalId ? externalIdPrefix(first.externalId) : null,
-    warehouse: {
+    customer: {
       id: first?.customerId ?? null,
-      name: first?.warehouse?.name ?? first?.warehouse?.email ?? null,
+      name: first?.customer?.name ?? first?.customer?.email ?? null,
     },
     isMultiUnit: rows.some((r) => r.quantity > 1),
     labelUrl: withLabel,

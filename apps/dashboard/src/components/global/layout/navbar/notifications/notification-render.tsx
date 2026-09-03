@@ -20,21 +20,21 @@ import type { NotificationCategory } from "./notification-data";
 export const TABS: Array<"all" | NotificationCategory> = [
   "all",
   "orders",
-  "customer",
+  "warehouse",
   "payments",
   "system",
 ];
 
 export const CATEGORY_ICON: Record<NotificationCategory, LucideIcon> = {
   orders: Package,
-  customer: Boxes,
+  warehouse: Boxes,
   payments: Wallet,
   system: Info,
 };
 
 export const CATEGORY_COLOR: Record<NotificationCategory, string> = {
   orders: "stroke-vercel-blue",
-  customer: "stroke-vercel-purple",
+  warehouse: "stroke-vercel-purple",
   payments: "stroke-vercel-green",
   system: "stroke-muted-foreground",
 };

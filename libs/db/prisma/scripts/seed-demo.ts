@@ -171,30 +171,30 @@ async function wipe(loud = true) {
   await prisma.basketPosition.deleteMany({ where: { shelfName: { in: DEMO_SHELVES } } });
 
   for (const key of DEMO_PRODUCT_KEYS) {
-    const variant = await prisma.variant.findUnique({
+    const product = await prisma.product.findUnique({
       where: { key },
       select: { id: true, _count: { select: { orders: true } }, variants: { select: { id: true } } },
     });
-    if (!variant) continue;
-    if (variant._count.orders > 0) { say(`→ KEPT variant ${key}: non-demo orders reference it`); continue; }
-    const skuIds = variant.variants.map((v) => v.id);
+    if (!product) continue;
+    if (product._count.orders > 0) { say(`→ KEPT product ${key}: non-demo orders reference it`); continue; }
+    const skuIds = product.variants.map((v) => v.id);
     await prisma.inventoryMovement.deleteMany({ where: { productVariantId: { in: skuIds } } });
     await prisma.inventoryReservation.deleteMany({ where: { productVariantId: { in: skuIds } } });
     await prisma.warehouseInventory.deleteMany({ where: { productVariantId: { in: skuIds } } });
     await prisma.stockReceiptLine.deleteMany({ where: { productVariantId: { in: skuIds } } });
     await prisma.bom.deleteMany({ where: { productVariantId: { in: skuIds } } });
-    await prisma.productVariant.deleteMany({ where: { productId: variant.id } }); // VariantPrice cascades
-    await prisma.variant.delete({ where: { id: variant.id } });
+    await prisma.productVariant.deleteMany({ where: { productId: product.id } }); // VariantPrice cascades
+    await prisma.product.delete({ where: { id: product.id } });
   }
   await prisma.mockup.deleteMany({ where: { name: { endsWith: "— demo" } } });
 
   for (const code of DEMO_WAREHOUSES) {
-    const wh = await prisma.customer.findUnique({ where: { code }, select: { id: true } });
+    const wh = await prisma.warehouse.findUnique({ where: { code }, select: { id: true } });
     if (!wh) continue;
     await prisma.materialStock.deleteMany({ where: { warehouseId: wh.id } });
     // Deletable only when NOTHING references it any more. Non-demo data (a
-    // smoke-test order, inventory of a KEPT variant) legitimately survives the
-    // demo wipe — the customer then stays too, instead of an FK crash that
+    // smoke-test order, inventory of a KEPT product) legitimately survives the
+    // demo wipe — the warehouse then stays too, instead of an FK crash that
     // aborts the whole wipe halfway (learned the hard way on the second run).
     const usage = {
       orders: await prisma.order.count({ where: { warehouseId: wh.id } }),
@@ -210,7 +210,7 @@ async function wipe(loud = true) {
     }
     await prisma.warehouseMember.deleteMany({ where: { warehouseId: wh.id } });
     try {
-      await prisma.customer.delete({ where: { id: wh.id } });
+      await prisma.warehouse.delete({ where: { id: wh.id } });
     } catch {
       say(`→ KEPT customer ${code}: something referenced it mid-wipe`);
     }
@@ -297,18 +297,18 @@ async function main() {
   });
 
   // ── Sites, shelves, staff assignments ─────────────────────────────────────
-  const nyc = await prisma.customer.upsert({
+  const nyc = await prisma.warehouse.upsert({
     where: { code: "NYC1" }, update: {},
     create: { code: "NYC1", name: "New York Fulfillment", timezone: "America/New_York", status: "ACTIVE" },
   });
-  const lax = await prisma.customer.upsert({
+  const lax = await prisma.warehouse.upsert({
     where: { code: "LAX1" }, update: {},
     create: { code: "LAX1", name: "Los Angeles Fulfillment", timezone: "America/Los_Angeles", status: "ACTIVE" },
   });
   for (const [shelf, wh] of [["A", nyc], ["B", lax]] as const) {
-    for (const row of ["A", "B", "C", "D", "E", "F"]) {
+    for (const column of ["A", "B", "C", "D", "E", "F"]) {
       await prisma.basketPosition.create({
-        data: { shelfName: shelf, column: 1, row, name: `${shelf}1${row}`, status: "AVAILABLE" },
+        data: { shelfName: shelf, row: 1, column, name: `${shelf}1${column}`, status: "AVAILABLE" },
       });
     }
   }
@@ -362,22 +362,22 @@ async function main() {
     mockupByProduct.set(p.key, mockup.id);
   }
 
-  type Sku = { id: number; productId: number; variantId: number; variant: string; key: string; mockupId: number; image: string; price: number };
+  type Sku = { id: number; productId: number; variantId: number; product: string; key: string; mockupId: number; image: string; price: number };
   const skus: Sku[] = [];
   for (const p of products) {
-    const variant = await prisma.variant.upsert({
+    const product = await prisma.product.upsert({
       where: { key: p.key },
       update: { configs: { parcel: { ...p.parcel, distanceUnit: "in", massUnit: "oz" } }, thumbnail: p.image },
       create: { key: p.key, name: p.name, status: "ACTIVE", thumbnail: p.image,
         configs: { parcel: { ...p.parcel, distanceUnit: "in", massUnit: "oz" } } },
     });
     for (const [name, key] of p.variants) {
-      const product = await prisma.product.upsert({ where: { key }, update: {}, create: { key, name } });
+      const variant = await prisma.variant.upsert({ where: { key }, update: {}, create: { key, name } });
       const existing = await prisma.productVariant.findFirst({
-        where: { productId: variant.id, variantId: product.id }, select: { id: true },
+        where: { productId: product.id, variantId: variant.id }, select: { id: true },
       });
-      const column = existing ?? (await prisma.productVariant.create({
-        data: { productId: variant.id, variantId: product.id,
+      const row = existing ?? (await prisma.productVariant.create({
+        data: { productId: product.id, variantId: variant.id,
           sku: `${p.key.slice(0, 3).toUpperCase()}-${key.replace(/[^a-z0-9]+/gi, "").toUpperCase()}`,
           salePrice: D(p.price), status: "ACTIVE" },
         select: { id: true },
@@ -385,12 +385,12 @@ async function main() {
       // Tier prices: 0 = public, 1 = −10%, 2 = −15%. What assignment charges.
       for (const [tier, mult] of [[0, 1], [1, 0.9], [2, 0.85]] as const) {
         await prisma.variantPrice.upsert({
-          where: { productVariantId_tier: { productVariantId: column.id, tier } },
+          where: { productVariantId_tier: { productVariantId: row.id, tier } },
           update: { price: D(p.price * mult) },
-          create: { productVariantId: column.id, tier, price: D(p.price * mult) },
+          create: { productVariantId: row.id, tier, price: D(p.price * mult) },
         });
       }
-      skus.push({ id: column.id, productId: variant.id, variantId: product.id, variant: p.name, key: p.key,
+      skus.push({ id: row.id, productId: product.id, variantId: variant.id, product: p.name, key: p.key,
         mockupId: mockupByProduct.get(p.key)!, image: p.alt, price: p.price });
     }
   }
@@ -925,7 +925,7 @@ async function main() {
     const sku = skus.find((s) => s.key === skuKey)!;
     await prisma.bom.create({
       data: {
-        productVariantId: sku.id, name: `${BOM_MARK}${sku.variant} BOM`, version: 1, status,
+        productVariantId: sku.id, name: `${BOM_MARK}${sku.product} BOM`, version: 1, status,
         createdById: admin.id,
         lines: { create: lines.map(([suffix, compSku, compName, qty, uom, wastage], i) => ({
           materialId: suffix ? materialRows.get(suffix)!.id : null,

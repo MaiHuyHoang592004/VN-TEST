@@ -1,8 +1,8 @@
 /**
  * Product catalogue logic. Transport-agnostic — takes an explicit actor.
  *
- * A variant referenced by orders or SKUs is NEVER hard-deleted: it is
- * soft-deleted so historical orders keep resolving their variant name, and the
+ * A product referenced by orders or SKUs is NEVER hard-deleted: it is
+ * soft-deleted so historical orders keep resolving their product name, and the
  * usage counts below drive the same "deactivate instead" dialog warehouses use.
  */
 import {
@@ -47,22 +47,22 @@ export async function listProducts(actor: Actor, query: ProductListQuery = {}) {
       : {}),
   };
   const [rows, total] = await Promise.all([
-    prisma.variant.findMany({
+    prisma.product.findMany({
       where,
       select: { ...PRODUCT_SELECT, _count: { select: { variants: true } } },
       orderBy: { updatedAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.variant.count({ where }),
+    prisma.product.count({ where }),
   ]);
   return { rows, total, page, pageSize };
 }
 
-/** One variant, scoped — so a restricted partner cannot read a variant they
+/** One product, scoped — so a restricted partner cannot read a product they
  * were never granted by guessing its id. */
 export async function getProduct(actor: Actor, id: number) {
-  return prisma.variant.findFirstOrThrow({
+  return prisma.product.findFirstOrThrow({
     where: { ...(await productScope(actor)), id, deletedAt: null },
     select: PRODUCT_SELECT,
   });
@@ -80,17 +80,17 @@ function toData(input: ReturnType<typeof productSchema.parse>) {
 export async function createProduct(actor: Actor, raw: unknown, ctx: AuditContext) {
   const data = toData(productSchema.parse(raw));
   try {
-    const variant = await prisma.$transaction(async (tx) => {
-      const created = await tx.variant.create({ data, select: { id: true, name: true, key: true } });
+    const product = await prisma.$transaction(async (tx) => {
+      const created = await tx.product.create({ data, select: { id: true, name: true, key: true } });
       await writeAudit(tx, ctx, {
         action: "PRODUCT_CREATED",
-        targetType: "variant",
+        targetType: "product",
         targetId: String(created.id),
         after: { name: created.name, key: created.key },
       });
       return created;
     });
-    return { ok: true as const, id: variant.id };
+    return { ok: true as const, id: product.id };
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return { ok: false as const, error: "key-taken" as const };
@@ -101,16 +101,16 @@ export async function createProduct(actor: Actor, raw: unknown, ctx: AuditContex
 
 export async function updateProduct(actor: Actor, id: number, raw: unknown, ctx: AuditContext) {
   const data = toData(productSchema.parse(raw));
-  const before = await prisma.variant.findFirstOrThrow({
+  const before = await prisma.product.findFirstOrThrow({
     where: { id, deletedAt: null },
     select: PRODUCT_SELECT,
   });
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.variant.update({ where: { id }, data });
+      await tx.product.update({ where: { id }, data });
       await writeAudit(tx, ctx, {
         action: "PRODUCT_UPDATED",
-        targetType: "variant",
+        targetType: "product",
         targetId: String(id),
         before,
         after: data,
@@ -132,10 +132,10 @@ export async function setProductStatus(
   ctx: AuditContext,
 ) {
   await prisma.$transaction(async (tx) => {
-    await tx.variant.update({ where: { id }, data: { status } });
+    await tx.product.update({ where: { id }, data: { status } });
     await writeAudit(tx, ctx, {
       action: "PRODUCT_STATUS_CHANGED",
-      targetType: "variant",
+      targetType: "product",
       targetId: String(id),
       after: { status },
     });
@@ -143,7 +143,7 @@ export async function setProductStatus(
   return { ok: true as const };
 }
 
-/** Counts of everything pointing at the variant — drives canDelete and the
+/** Counts of everything pointing at the product — drives canDelete and the
  * "used by" pills in the delete dialog. */
 export async function getProductUsage(_actor: Actor, id: number) {
   const [skus, orders, allowedUsers] = await Promise.all([
@@ -155,7 +155,7 @@ export async function getProductUsage(_actor: Actor, id: number) {
 }
 
 /**
- * Soft delete. Even an unused variant keeps its column: `key` is unique, and a
+ * Soft delete. Even an unused product keeps its row: `key` is unique, and a
  * hard delete would let someone recreate the key and silently inherit the
  * identity of the old one in the audit trail.
  */
@@ -163,13 +163,13 @@ export async function deleteProduct(actor: Actor, id: number, ctx: AuditContext)
   const usage = await getProductUsage(actor, id);
   if (!usage.canDelete) return { ok: false as const, error: "in-use" as const, usage };
   await prisma.$transaction(async (tx) => {
-    await tx.variant.update({
+    await tx.product.update({
       where: { id },
       data: { deletedAt: new Date(), status: "ARCHIVED" },
     });
     await writeAudit(tx, ctx, {
       action: "PRODUCT_DELETED",
-      targetType: "variant",
+      targetType: "product",
       targetId: String(id),
       after: { deleted: true },
     });

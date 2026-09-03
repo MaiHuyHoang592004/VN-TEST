@@ -42,7 +42,7 @@ export function DataTablePagination({
   const last = Math.min(page * pageSize, total);
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-column sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-muted-foreground text-sm">
         {selectedCount > 0
           ? `${selectedCount} selected`

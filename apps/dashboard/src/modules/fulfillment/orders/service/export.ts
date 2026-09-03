@@ -120,8 +120,8 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
       ...(withMoney
         ? { paid: true, baseCost: true, fee: true, revenue: true, profit: true }
         : {}),
-      warehouse: { select: { name: true, email: true } },
-      customer: { select: { code: true } },
+      customer: { select: { name: true, email: true } },
+      warehouse: { select: { code: true } },
       variant: { select: { name: true } },
       product: { select: { name: true } },
       productVariant: { select: { sku: true } },
@@ -144,7 +144,7 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
   const filters = [
     query.search ? `search: ${query.search}` : null,
     query.status?.length ? `status: ${query.status.join(", ")}` : null,
-    query.warehouseId ? `customer: ${query.warehouseId}` : null,
+    query.warehouseId ? `warehouse: ${query.warehouseId}` : null,
     query.ids?.length ? `selection: ${query.ids.length} order(s)` : null,
   ].filter(Boolean);
 
@@ -164,14 +164,14 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
     const line: unknown[] = [
       order.externalId ?? `#${order.id}`,
       order.marketplace ?? "",
-      order.warehouse?.name ?? order.warehouse?.email ?? "",
-      order.variant?.name ?? "",
+      order.customer?.name ?? order.customer?.email ?? "",
       order.product?.name ?? "",
+      order.variant?.name ?? "",
       order.productVariant?.sku ?? "",
       order.quantity,
       order.filled,
       order.status,
-      order.customer?.code ?? "",
+      order.warehouse?.code ?? "",
       date(order.placedAt),
       date(order.assignedAt),
       date(order.deadline),

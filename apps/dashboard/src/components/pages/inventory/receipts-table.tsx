@@ -34,7 +34,7 @@ export type ReceiptRowView = {
   itemType: string;
   status: string;
   supplier: string | null;
-  customer: string;
+  warehouse: string;
   shipmentCount: number;
   createdAt: string;
 };
@@ -69,10 +69,10 @@ export function ReceiptsTable({
       cell: (r) => <span className="font-mono text-xs font-medium">{r.code}</span>,
     },
     {
-      id: "customer",
-      header: t("inventory.receipts.col.customer"),
+      id: "warehouse",
+      header: t("inventory.receipts.col.warehouse"),
       hideOnMobile: true,
-      cell: (r) => <span className="text-muted-foreground text-sm">{r.customer}</span>,
+      cell: (r) => <span className="text-muted-foreground text-sm">{r.warehouse}</span>,
     },
     {
       id: "status",

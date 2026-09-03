@@ -95,7 +95,7 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
         {t("support.tickets.detail.back")}
       </Link>
 
-      <div className="flex flex-col gap-6 lg:flex-column lg:items-start">
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
           <h1 className="text-2xl font-semibold tracking-tight">{ticket.title}</h1>
 
@@ -168,7 +168,7 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
             </Field>
           )}
 
-          <Field label={t("support.tickets.detail.warehouse")}>
+          <Field label={t("support.tickets.detail.customer")}>
             <span className="text-sm">{ticket.author.name}</span>
           </Field>
 

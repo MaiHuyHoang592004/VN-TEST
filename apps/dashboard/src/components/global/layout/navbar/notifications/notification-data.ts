@@ -11,7 +11,7 @@ import type { NotificationType } from "@opcreative/db";
 
 export type NotificationCategory =
   | "orders"
-  | "customer"
+  | "warehouse"
   | "payments"
   | "system";
 
@@ -41,7 +41,7 @@ export const NOTIFICATION_META: Record<NotificationType, Meta> = {
   ORDER_CREATED: { category: "orders", key: "orderCreated" },
   ORDER_STATUS_CHANGED: { category: "orders", key: "orderStatusChanged" },
   // Warehouse-facing: work landed at a site the reader staffs.
-  WORK_ASSIGNED: { category: "customer", key: "workAssigned" },
+  WORK_ASSIGNED: { category: "warehouse", key: "workAssigned" },
   // Admin/support-facing: an order stalled and someone has to look at it.
   ORDER_ON_HOLD: { category: "orders", key: "orderOnHold" },
   // Seller-facing: their parcel has a label and a tracking number, which is
@@ -51,9 +51,9 @@ export const NOTIFICATION_META: Record<NotificationType, Meta> = {
   // scan along the route would be a bell nobody reads.
   TRACKING_UPDATED: { category: "orders", key: "trackingUpdated" },
   // Warehouse-facing: the floor is stopped and only a human can clear it.
-  FULFILLMENT_BLOCKED: { category: "customer", key: "fulfillmentBlocked" },
+  FULFILLMENT_BLOCKED: { category: "warehouse", key: "fulfillmentBlocked" },
   // Money-adjacent failure, so it is never silent.
-  LABEL_PURCHASE_FAILED: { category: "customer", key: "labelPurchaseFailed" },
+  LABEL_PURCHASE_FAILED: { category: "warehouse", key: "labelPurchaseFailed" },
   // A seller asked for money to move. Goes to whoever holds the approve grant
   // — the queue they work from, rather than a page they have to remember to
   // check.

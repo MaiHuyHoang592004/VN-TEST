@@ -39,7 +39,7 @@ export type MovementRowView = {
   note: string | null;
   reference: string | null;
   createdAt: string;
-  customer: string;
+  warehouse: string;
   user: string | null;
   sku: string | null;
   name: string | null;
@@ -88,10 +88,10 @@ export function MovementsTable({
       ),
     },
     {
-      id: "customer",
-      header: t("inventory.movements.col.customer"),
+      id: "warehouse",
+      header: t("inventory.movements.col.warehouse"),
       hideOnMobile: true,
-      cell: (m) => <span className="text-muted-foreground text-sm">{m.customer}</span>,
+      cell: (m) => <span className="text-muted-foreground text-sm">{m.warehouse}</span>,
     },
     {
       id: "quantity",

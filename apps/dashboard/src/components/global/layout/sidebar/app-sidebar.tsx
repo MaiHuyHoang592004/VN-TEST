@@ -112,7 +112,7 @@ const MAIN_NAV = [
  * The routes themselves come from config/nav-tabs.ts, so a page added to a
  * section appears in BOTH the tab column and this sidebar or in neither. The
  * sidebar used to keep parallel lists and they drifted exactly as you would
- * expect — /admin/suppliers landed in one, /inventory/receipts in the other.
+ * expect — /admin/materials landed in one, /inventory/receipts in the other.
  *
  * A route with no icon here still renders (with the fallback); the nav test
  * fails first, which is the point.
@@ -128,7 +128,7 @@ const NAV_ICONS: Record<string, LucideIcon> = {
   "/admin/products": Boxes,
   "/admin/variants": Layers,
   "/admin/mockups": ImageIcon,
-  "/admin/suppliers": Shapes,
+  "/admin/materials": Shapes,
   "/admin/boms": ListTree,
   "/admin/transactions": CreditCard,
   "/admin/vendors": Truck,

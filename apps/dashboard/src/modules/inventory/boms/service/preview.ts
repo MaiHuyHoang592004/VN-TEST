@@ -133,7 +133,7 @@ export async function bomCoverage(actor: Actor, filter: { search?: string; wareh
               quantity: true,
               reserved: true,
               needed: true,
-              customer: { select: { id: true, name: true } },
+              warehouse: { select: { id: true, name: true } },
             },
           },
         },
@@ -142,7 +142,7 @@ export async function bomCoverage(actor: Actor, filter: { search?: string; wareh
   });
 
   // Group by material — or by componentSku when there is no material, so an
-  // unmapped component still gets one column instead of one per BOM that wants it.
+  // unmapped component still gets one row instead of one per BOM that wants it.
   type Row = {
     key: string;
     materialId: number | null;
@@ -193,8 +193,8 @@ export async function bomCoverage(actor: Actor, filter: { search?: string; wareh
       bomCount: 0,
       perUnit: Number(line.quantityPerUnit),
       warehouses: stock.map((r) => ({
-        id: r.customer.id,
-        name: r.customer.name,
+        id: r.warehouse.id,
+        name: r.warehouse.name,
         quantity: r.quantity,
       })),
       coverage:

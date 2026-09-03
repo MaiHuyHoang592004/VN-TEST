@@ -35,11 +35,11 @@ const codeOf = (e: unknown) => (e as { code?: string }).code;
 
 async function newVariant(sku: string) {
   variantSeq += 1;
-  const product = await prisma.product.create({
-    data: { name: `BOM product ${variantSeq}`, key: `bom-product-${variantSeq}` },
+  const variant = await prisma.variant.create({
+    data: { name: `BOM variant ${variantSeq}`, key: `bom-variant-${variantSeq}` },
   });
   const pv = await prisma.productVariant.create({
-    data: { productId, variantId: product.id, sku },
+    data: { productId, variantId: variant.id, sku },
   });
   return pv.id;
 }
@@ -73,10 +73,10 @@ before(async () => {
   });
   adminId = a.id;
 
-  const w = await prisma.customer.create({ data: { code: "BOM-A", name: "BOM site" } });
+  const w = await prisma.warehouse.create({ data: { code: "BOM-A", name: "BOM site" } });
   warehouseId = w.id;
 
-  const p = await prisma.variant.create({ data: { name: "BOM variant", key: "bom-variant" } });
+  const p = await prisma.product.create({ data: { name: "BOM product", key: "bom-product" } });
   productId = p.id;
 });
 

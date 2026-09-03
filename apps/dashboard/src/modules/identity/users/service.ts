@@ -100,7 +100,7 @@ export async function updateUser(actor: Actor, id: string, raw: unknown, ctx: Au
     roles: { set: input.roles },
     status: input.status,
     tier: input.tier ?? null,
-    customer: input.warehouseId ? { connect: { id: input.warehouseId } } : { disconnect: true },
+    warehouse: input.warehouseId ? { connect: { id: input.warehouseId } } : { disconnect: true },
     adminNote: input.adminNote || null,
   };
   // Deactivating or banning revokes their sessions right away.

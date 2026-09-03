@@ -84,7 +84,7 @@ export function ReceiptDetailDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={receipt ? receipt.code : t("inventory.receipts.detail.title")}
-      description={receipt ? `${receipt.customer.name} · ${receipt.shipments.length}` : undefined}
+      description={receipt ? `${receipt.warehouse.name} · ${receipt.shipments.length}` : undefined}
       className="sm:max-w-3xl"
     >
       {!receipt ? (

@@ -49,7 +49,7 @@ export default async function MovementsPage({
               ? `${m.referenceType} ${m.referenceId}`
               : (m.referenceType ?? (m.orderId ? `order ${m.orderId}` : null)),
           createdAt: m.createdAt.toISOString(),
-          customer: m.customer.name,
+          warehouse: m.warehouse.name,
           user: m.user,
           sku: m.sku,
           name: m.name,

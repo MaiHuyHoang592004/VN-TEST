@@ -191,7 +191,7 @@ export function BomDialog({
       description={variantLabel}
       className="sm:max-w-5xl"
     >
-      <div className="flex flex-col gap-4 lg:flex-column">
+      <div className="flex flex-col gap-4 lg:flex-row">
         {/* Versions */}
         <aside className="flex shrink-0 flex-col gap-1 lg:w-40">
           <p className="text-muted-foreground text-xs font-medium">

@@ -106,24 +106,24 @@ before(async () => {
   otherPackerId = p2.id;
 
   const [wa, wb] = await Promise.all([
-    prisma.customer.create({ data: { code: "STA", name: "Station Site A", timezone: "UTC", status: "ACTIVE" } }),
-    prisma.customer.create({ data: { code: "STB", name: "Station Site B", timezone: "UTC", status: "ACTIVE" } }),
+    prisma.warehouse.create({ data: { code: "STA", name: "Station Site A", timezone: "UTC", status: "ACTIVE" } }),
+    prisma.warehouse.create({ data: { code: "STB", name: "Station Site B", timezone: "UTC", status: "ACTIVE" } }),
   ]);
   siteA = wa.id;
   siteB = wb.id;
   // The packer works site A. Site B is the isolation control.
   await prisma.warehouseMember.create({ data: { warehouseId: siteA, userId: packerId } });
 
-  const pr = await prisma.variant.create({ data: { name: "Station Wallet", key: "st-wallet", status: "ACTIVE" } });
-  const va = await prisma.product.create({ data: { name: "Station Black", key: "st-black" } });
+  const pr = await prisma.product.create({ data: { name: "Station Wallet", key: "st-wallet", status: "ACTIVE" } });
+  const va = await prisma.variant.create({ data: { name: "Station Black", key: "st-black" } });
   productId = pr.id;
   variantId = va.id;
   const sku = await prisma.productVariant.create({ data: { productId: pr.id, variantId: va.id } });
   skuId = sku.id;
 
-  for (const row of ["A", "B", "C"]) {
+  for (const column of ["A", "B", "C"]) {
     const slot = await prisma.basketPosition.create({
-      data: { shelfName: "ST", column: 1, row, status: "AVAILABLE" },
+      data: { shelfName: "ST", row: 1, column, status: "AVAILABLE" },
     });
     basketIds.push(slot.id);
   }
@@ -141,7 +141,7 @@ after(async () => {
   await prisma.variant.deleteMany({ where: { id: productId } });
   await prisma.product.deleteMany({ where: { id: variantId } });
   await prisma.warehouseMember.deleteMany({ where: { warehouseId: { in: [siteA, siteB] } } });
-  await prisma.customer.deleteMany({ where: { id: { in: [siteA, siteB] } } });
+  await prisma.warehouse.deleteMany({ where: { id: { in: [siteA, siteB] } } });
   await prisma.user.deleteMany({ where: { id: { in: users } } });
   await rm(UPLOAD_DIR, { recursive: true, force: true });
   await prisma.$disconnect();

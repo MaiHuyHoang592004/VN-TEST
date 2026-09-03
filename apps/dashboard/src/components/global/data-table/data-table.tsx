@@ -24,7 +24,7 @@ import {
  * Server-driven by design: sorting, filtering and paging are URL state handled
  * by the page, not hidden client state. That keeps a filtered list linkable and
  * shareable, lets each page server-render exactly the rows it needs, and means
- * a 50k-column table never ships to the browser.
+ * a 50k-row table never ships to the browser.
  *
  * Deliberately NOT a wrapper around a table library: what we need is row
  * definitions, selection and the three empty/loading/error states. A library
@@ -37,7 +37,7 @@ export type Column<T> = {
   header: ReactNode;
   /** Cell renderer. Kept explicit rather than magic key access so a cell can
    * combine fields (name + avatar) without a special case. */
-  cell: (column: T) => ReactNode;
+  cell: (row: T) => ReactNode;
   sortable?: boolean;
   /** Tailwind classes for both the header and its cells — alignment, width. */
   className?: string;
@@ -52,7 +52,7 @@ export type DataTableProps<T> = {
   rows: T[];
   columns: Column<T>[];
   /** Stable identity — used for React keys and selection. */
-  rowId: (column: T) => string;
+  rowId: (row: T) => string;
 
   loading?: boolean;
   /** Shown when there are no rows and we're not loading. */
@@ -72,21 +72,21 @@ export type DataTableProps<T> = {
   /** Rendered below — usually <DataTablePagination />. */
   footer?: ReactNode;
 
-  onRowClick?: (column: T) => void;
+  onRowClick?: (row: T) => void;
 
   /**
-   * Render each column as a CARD on phones instead of a table.
+   * Render each row as a CARD on phones instead of a table.
    *
    * A table on a 390px screen is a horizontal scroll with most of its columns
    * hidden, which is how the information a phone user needs ends up being the
-   * information they cannot reach. A card shows the same column as a block, and
+   * information they cannot reach. A card shows the same row as a block, and
    * the app is going into a Capacitor shell where "phone" is the primary
    * surface rather than a fallback.
    *
    * Optional: a list without one keeps the (scrolling) table, so adopting this
    * is per-page rather than a flag day.
    */
-  mobileCard?: (column: T) => ReactNode;
+  mobileCard?: (row: T) => ReactNode;
 };
 
 export function DataTable<T>({
@@ -157,8 +157,8 @@ export function DataTable<T>({
           <p className="text-muted-foreground py-10 text-center text-sm">{empty}</p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {rows.map((column) => {
-              const id = rowId(column);
+            {rows.map((row) => {
+              const id = rowId(row);
               return (
                 <li
                   key={id}
@@ -172,15 +172,15 @@ export function DataTable<T>({
                       <Checkbox
                         checked={selected!.has(id)}
                         onCheckedChange={() => toggleOne(id)}
-                        aria-label="Select column"
+                        aria-label="Select row"
                         className="mt-1 shrink-0"
                       />
                     )}
                     <div
                       className="min-w-0 flex-1"
-                      onClick={onRowClick ? () => onRowClick(column) : undefined}
+                      onClick={onRowClick ? () => onRowClick(row) : undefined}
                     >
-                      {mobileCard(column)}
+                      {mobileCard(row)}
                     </div>
                   </div>
                 </li>
@@ -287,26 +287,26 @@ export function DataTable<T>({
                 </TableCell>
               </TableRow>
             ) : (
-              rows.map((column) => {
-                const id = rowId(column);
+              rows.map((row) => {
+                const id = rowId(row);
                 const isSelected = selectable && selected!.has(id);
                 return (
                   <TableRow
                     key={id}
                     data-state={isSelected ? "selected" : undefined}
                     aria-labelledby={headingId}
-                    onClick={onRowClick ? () => onRowClick(column) : undefined}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
                     className={cn(onRowClick && "cursor-pointer")}
                   >
                     {selectable && (
                       <TableCell
-                        // The checkbox must not trigger the column's own click.
+                        // The checkbox must not trigger the row's own click.
                         onClick={(e) => e.stopPropagation()}
                       >
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => toggleOne(id)}
-                          aria-label="Select column"
+                          aria-label="Select row"
                         />
                       </TableCell>
                     )}
@@ -318,7 +318,7 @@ export function DataTable<T>({
                           col.hideOnMobile && "hidden sm:table-cell",
                         )}
                       >
-                        {col.cell(column)}
+                        {col.cell(row)}
                       </TableCell>
                     ))}
                   </TableRow>

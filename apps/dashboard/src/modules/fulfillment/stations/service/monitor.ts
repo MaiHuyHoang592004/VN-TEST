@@ -21,7 +21,7 @@ export type MonitorFilter = "open" | "ready" | "all";
 export type TrackingGroupSummary = {
   key: string;
   trackingNumber: string | null;
-  warehouse: string | null;
+  customer: string | null;
   orderCount: number;
   totalQuantity: number;
   totalFilled: number;
@@ -35,7 +35,7 @@ type Row = {
   key: string;
   anchor_id: number;
   tracking_number: string | null;
-  warehouse: string | null;
+  customer: string | null;
   order_count: number;
   total_quantity: number;
   total_filled: number;
@@ -79,13 +79,13 @@ export async function listTrackingGroups(
       COALESCE(l.tracking_number, regexp_replace(o.external_id, '-[^-]*$', ''), 'order:' || o.id::text) AS key,
       MIN(o.id)::int                                        AS anchor_id,
       MAX(l.tracking_number)                                AS tracking_number,
-      MIN(COALESCE(u.name, u.email))                        AS warehouse,
+      MIN(COALESCE(u.name, u.email))                        AS customer,
       COUNT(*)::int                                         AS order_count,
       SUM(o.quantity)::int                                  AS total_quantity,
       SUM(o.filled)::int                                    AS total_filled,
       ARRAY_AGG(DISTINCT o.status::text)                    AS statuses,
       MAX(l.label_url)                                      AS label_url,
-      MIN(COALESCE(b.name, CONCAT(b.shelf_name, b.column, b.row))) AS basket,
+      MIN(COALESCE(b.name, CONCAT(b.shelf_name, b.row, b.column))) AS basket,
       MIN(o.placed_at)                                      AS oldest_placed_at
     FROM orders o
     LEFT JOIN latest l           ON l.order_id = o.id
@@ -98,14 +98,14 @@ export async function listTrackingGroups(
     LIMIT ${limit + 1}
   `;
 
-  // One extra column answers "is there more?" without a second aggregate query.
+  // One extra row answers "is there more?" without a second aggregate query.
   const hasMore = rows.length > limit;
   const page = hasMore ? rows.slice(0, limit) : rows;
   return {
     groups: page.map((r) => ({
       key: r.key,
       trackingNumber: r.tracking_number,
-      warehouse: r.warehouse,
+      customer: r.customer,
       orderCount: r.order_count,
       totalQuantity: r.total_quantity,
       totalFilled: r.total_filled,

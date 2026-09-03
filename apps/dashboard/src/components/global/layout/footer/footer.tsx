@@ -18,7 +18,7 @@ export function Footer() {
 
   const columns = [
     {
-      heading: t("footer.variant"),
+      heading: t("footer.product"),
       links: [
         { label: t("nav.orders"), href: "/orders" },
         { label: t("catalog.browse.title"), href: "/catalog" },
@@ -47,7 +47,7 @@ export function Footer() {
     <footer className="border-border border-t">
       <div className="mx-auto w-full max-w-6xl px-6 py-12 lg:px-8">
         {/* Top: brand + link columns */}
-        <div className="flex flex-col gap-10 md:flex-column md:justify-between">
+        <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           {/* Brand block */}
           <div className="flex max-w-xs flex-col gap-4">
             <Link href="/" className="flex items-center gap-2 font-semibold">

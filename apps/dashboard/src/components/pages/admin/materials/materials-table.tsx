@@ -48,7 +48,7 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
   const columns: Column<MaterialRow>[] = [
     {
       id: "name",
-      header: t("inventory.suppliers.col.name"),
+      header: t("inventory.materials.col.name"),
       cell: (m) => (
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{m.name}</p>
@@ -58,23 +58,23 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
     },
     {
       id: "type",
-      header: t("inventory.suppliers.col.type"),
+      header: t("inventory.materials.col.type"),
       hideOnMobile: true,
       cell: (m) => (
         <span className="text-muted-foreground text-sm">
-          {t(`inventory.suppliers.types.${m.type}`)}
+          {t(`inventory.materials.types.${m.type}`)}
         </span>
       ),
     },
     {
       id: "uom",
-      header: t("inventory.suppliers.col.uom"),
+      header: t("inventory.materials.col.uom"),
       hideOnMobile: true,
       cell: (m) => <span className="text-muted-foreground text-sm">{m.uom}</span>,
     },
     {
       id: "status",
-      header: t("inventory.suppliers.col.status"),
+      header: t("inventory.materials.col.status"),
       cell: (m) => (
         <Badge product={m.status === "ACTIVE" ? "default" : "secondary"}>
           {t(`catalog.statuses.${m.status}`)}
@@ -83,13 +83,13 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
     },
     {
       id: "available",
-      header: t("inventory.suppliers.col.available"),
+      header: t("inventory.materials.col.available"),
       className: "text-right tabular-nums",
       cell: (m) => m.available,
     },
     {
       id: "bomLines",
-      header: t("inventory.suppliers.col.bomLines"),
+      header: t("inventory.materials.col.bomLines"),
       className: "text-right tabular-nums",
       hideOnMobile: true,
       cell: (m) => m.bomLines,
@@ -118,7 +118,7 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem product="destructive" onClick={() => setDeleting(m)}>
-                {t("inventory.suppliers.delete.action")}
+                {t("inventory.materials.delete.action")}
               </DropdownMenuItem>
             </Can>
           </DropdownMenuContent>
@@ -131,9 +131,9 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
     <>
       <header className="mb-6 flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {t("inventory.suppliers.title")}
+          {t("inventory.materials.title")}
         </h1>
-        <p className="text-muted-foreground text-sm">{t("inventory.suppliers.subtitle")}</p>
+        <p className="text-muted-foreground text-sm">{t("inventory.materials.subtitle")}</p>
       </header>
 
       <DataTable
@@ -143,14 +143,14 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
         loading={params.pending}
         empty={
           hasFilters
-            ? t("inventory.suppliers.emptyFiltered")
-            : t("inventory.suppliers.empty")
+            ? t("inventory.materials.emptyFiltered")
+            : t("inventory.materials.empty")
         }
         toolbar={
           <DataTableToolbar
             search={params.get("q")}
             onSearchChange={(v) => params.setFilter("q", v)}
-            searchPlaceholder={t("inventory.suppliers.search")}
+            searchPlaceholder={t("inventory.materials.search")}
             hasFilters={hasFilters}
             onClearFilters={() => params.clearFilters(["q", "type", "status"])}
             filters={
@@ -163,10 +163,10 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="ALL">{t("inventory.suppliers.allTypes")}</SelectItem>
+                    <SelectItem value="ALL">{t("inventory.materials.allTypes")}</SelectItem>
                     {MATERIAL_TYPES.map((mt) => (
                       <SelectItem key={mt} value={mt}>
-                        {t(`inventory.suppliers.types.${mt}`)}
+                        {t(`inventory.materials.types.${mt}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -190,7 +190,7 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
             actions={
               <Can permission="suppliers.manage">
                 <Button onClick={() => setCreating(true)}>
-                  {t("inventory.suppliers.new")}
+                  {t("inventory.materials.new")}
                 </Button>
               </Can>
             }

@@ -107,8 +107,8 @@ export async function searchFor(
     OR: [
       { externalId: like },
       { shipments: { some: { trackingNumber: like } } },
-      { warehouse: { is: { name: like } } },
-      { warehouse: { is: { email: like } } },
+      { customer: { is: { name: like } } },
+      { customer: { is: { email: like } } },
     ],
   };
 
@@ -119,7 +119,7 @@ export async function searchFor(
         id: true,
         externalId: true,
         status: true,
-        warehouse: { select: { name: true, email: true } },
+        customer: { select: { name: true, email: true } },
         variant: { select: { name: true } },
       },
       orderBy: { placedAt: "desc" },
@@ -130,7 +130,7 @@ export async function searchFor(
         deletedAt: null,
         // The allow-list a restricted seller is bound to — the same clause the
         // catalogue page spreads.
-        variant: { is: { ...(await productScope(actor)), deletedAt: null } },
+        product: { is: { ...(await productScope(actor)), deletedAt: null } },
         OR: [
           { sku: like },
           { variant: { is: { name: like } } },
@@ -160,7 +160,7 @@ export async function searchFor(
     ...orders.map((order) => ({
       id: `order-${order.id}`,
       code: order.externalId ?? `#${order.id}`,
-      name: [order.variant?.name, order.warehouse?.name ?? order.warehouse?.email]
+      name: [order.variant?.name, order.customer?.name ?? order.customer?.email]
         .filter(Boolean)
         .join(" · ") || `Order ${order.externalId ?? order.id}`,
       type: "order" as const,

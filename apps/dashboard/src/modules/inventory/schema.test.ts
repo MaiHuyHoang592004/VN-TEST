@@ -24,7 +24,7 @@ let receiptId: number;
 let variantId: number;
 
 before(async () => {
-  const customer = await prisma.customer.create({
+  const customer = await prisma.warehouse.create({
     data: { code: "XOR-01", name: "XOR test site" },
   });
   warehouseId = customer.id;

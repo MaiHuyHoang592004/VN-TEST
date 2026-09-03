@@ -46,7 +46,7 @@ export function GroupSummary({ group }: { group: StationGroup }) {
             )}
           </div>
           <p className="text-muted-foreground mt-1 text-sm">
-            {group.warehouse.name ?? t("fulfillment.group.noCustomer")}
+            {group.customer.name ?? t("fulfillment.group.noCustomer")}
           </p>
         </div>
 

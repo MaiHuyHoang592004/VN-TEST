@@ -30,10 +30,10 @@ export function WarehouseHome({ data }: { data: WarehouseHomeData }) {
     <>
       <StatTiles
         tiles={[
-          { label: t("home.customer.orders"), value: totalOrders },
-          { label: t("home.customer.quantity"), value: totalQuantity },
-          { label: t("home.customer.skus"), value: data.bySku.length },
-          { label: t("home.customer.mockups"), value: data.byMockup.length },
+          { label: t("home.warehouse.orders"), value: totalOrders },
+          { label: t("home.warehouse.quantity"), value: totalQuantity },
+          { label: t("home.warehouse.skus"), value: data.bySku.length },
+          { label: t("home.warehouse.mockups"), value: data.byMockup.length },
         ]}
       />
 
@@ -47,8 +47,8 @@ export function WarehouseHome({ data }: { data: WarehouseHomeData }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <RankedList title={t("home.customer.bySku")} rows={data.bySku} />
-        <RankedList title={t("home.customer.byMockup")} rows={data.byMockup} />
+        <RankedList title={t("home.warehouse.bySku")} rows={data.bySku} />
+        <RankedList title={t("home.warehouse.byMockup")} rows={data.byMockup} />
       </div>
 
       <div className="mt-4 flex justify-end">
@@ -57,7 +57,7 @@ export function WarehouseHome({ data }: { data: WarehouseHomeData }) {
           nativeButton={false}
           render={<Link href="/fulfillment/monitor" />}
         >
-          {t("home.customer.monitor")}
+          {t("home.warehouse.monitor")}
           <ArrowRight data-icon="inline-end" />
         </Button>
       </div>
@@ -79,7 +79,7 @@ function RankedList({
     <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
       <h2 className="text-sm font-medium">{title}</h2>
       {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("home.customer.nothing")}</p>
+        <p className="text-muted-foreground text-sm">{t("home.warehouse.nothing")}</p>
       ) : (
         <ul className="flex flex-col gap-2">
           {rows.map((column) => (
@@ -89,7 +89,7 @@ function RankedList({
                 <span className="tabular-nums">
                   {column.quantity.toLocaleString()}
                   <span className="text-muted-foreground ml-2 text-xs">
-                    {column.orders} {t("home.customer.ordersWord")}
+                    {column.orders} {t("home.warehouse.ordersWord")}
                   </span>
                 </span>
               </div>

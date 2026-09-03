@@ -68,7 +68,7 @@ export async function listStock(actor: Actor, filter: StockFilter) {
           uom: true,
           stockRows: {
             where: scope,
-            select: { ...COUNTERS, customer: { select: { id: true, name: true } } },
+            select: { ...COUNTERS, warehouse: { select: { id: true, name: true } } },
           },
         },
         orderBy: { name: "asc" },
@@ -108,7 +108,7 @@ export async function listStock(actor: Actor, filter: StockFilter) {
         product: { select: { name: true } },
         inventory: {
           where: scope,
-          select: { ...COUNTERS, customer: { select: { id: true, name: true } } },
+          select: { ...COUNTERS, warehouse: { select: { id: true, name: true } } },
         },
       },
       orderBy: { id: "asc" },
@@ -145,7 +145,7 @@ type RawCounters = { quantity: number; reserved: number; needed: number; badQuan
 
 function toRow(
   item: Omit<StockRow, "onHand" | "reserved" | "needed" | "bad" | "available" | "warehouses">,
-  rows: (RawCounters & { customer: { id: number; name: string } })[],
+  rows: (RawCounters & { warehouse: { id: number; name: string } })[],
 ): StockRow {
   const sum = rows.reduce(
     (a, r) => ({
@@ -164,8 +164,8 @@ function toRow(
     bad: sum.badQuantity,
     available: availableOf(sum),
     warehouses: rows.map((r) => ({
-      id: r.customer.id,
-      name: r.customer.name,
+      id: r.warehouse.id,
+      name: r.warehouse.name,
       quantity: r.quantity,
     })),
   };
@@ -186,7 +186,7 @@ export type MovementFilter = {
   type?: MovementType;
   warehouseId?: number;
   /** Last id of the previous page. The ledger only grows, so it is paged by
-   * cursor: OFFSET 40000 re-scans every earlier column to answer one page. */
+   * cursor: OFFSET 40000 re-scans every earlier row to answer one page. */
   cursor?: string;
   limit?: number;
 };
@@ -230,11 +230,11 @@ export async function listMovements(actor: Actor, filter: MovementFilter = {}) {
           product: { select: { name: true } },
         },
       },
-      customer: { select: { id: true, name: true } },
+      warehouse: { select: { id: true, name: true } },
       createdBy: { select: { id: true, name: true, email: true } },
     },
     orderBy: { id: "desc" },
-    take: limit + 1, // one extra column is how we know there IS a next page
+    take: limit + 1, // one extra row is how we know there IS a next page
   });
 
   const hasMore = rows.length > limit;
@@ -252,7 +252,7 @@ export async function listMovements(actor: Actor, filter: MovementFilter = {}) {
       referenceId: m.referenceId,
       orderId: m.orderId,
       createdAt: m.createdAt,
-      customer: m.customer,
+      warehouse: m.warehouse,
       user: m.createdBy ? (m.createdBy.name ?? m.createdBy.email) : null,
       sku: m.material?.sku ?? m.productVariant?.sku ?? null,
       name:

@@ -23,7 +23,7 @@ export async function fillOrder(
 
   const order = await prisma.order.findFirst({
     where: { ...scope, id: orderId, deletedAt: null },
-    select: { id: true, status: true, warehouseId: true, customer: { select: { code: true } } },
+    select: { id: true, status: true, warehouseId: true, warehouse: { select: { code: true } } },
   });
   if (!order) throw new StationError("group-not-found", "No such order here.");
   if (order.status !== "IN_PRODUCTION") {
@@ -103,7 +103,7 @@ export async function fillOrder(
       });
       const position = await tx.basketPosition.findUniqueOrThrow({
         where: { id: slot.id },
-        select: { name: true, shelfName: true, column: true, row: true },
+        select: { name: true, shelfName: true, row: true, column: true },
       });
       return basketName(position);
     }
@@ -124,7 +124,7 @@ export async function fillOrder(
  * clear shelves, and it names the site so a multi-site admin knows where to go.
  */
 async function withBlockedAlert<T>(
-  order: { warehouseId: number | null; customer: { code: string } | null },
+  order: { warehouseId: number | null; warehouse: { code: string } | null },
   ctx: AuditContext,
   run: () => Promise<T>,
 ): Promise<T> {
@@ -132,12 +132,12 @@ async function withBlockedAlert<T>(
     return await run();
   } catch (e) {
     if (e instanceof StationError && e.code === "no-available-basket") {
-      const site = order.customer?.code ?? "the customer";
+      const site = order.warehouse?.code ?? "the warehouse";
       const staff = order.warehouseId ? await warehouseMemberIds(order.warehouseId) : [];
       const admins = await usersWithPermission("orders.read.all");
       await notifyMany(prisma, [...staff, ...admins].filter((id) => id !== ctx.actor?.id), {
         type: "FULFILLMENT_BLOCKED",
-        data: { customer: site, reason: "No basket position is free" },
+        data: { warehouse: site, reason: "No basket position is free" },
         href: "/fulfillment",
       });
     }

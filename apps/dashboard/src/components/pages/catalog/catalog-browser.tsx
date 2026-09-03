@@ -51,7 +51,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-2 sm:flex-column sm:items-center sm:justify-between">
+      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("catalog.browse.title")}</h1>
           <p className="text-muted-foreground text-sm">{t("catalog.browse.subtitle")}</p>
@@ -140,7 +140,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
       ) : (
         <div className="border-border divide-border divide-y overflow-hidden rounded-lg border">
           {filtered.map((p) => (
-            <div key={p.id} className="flex flex-col gap-3 p-4 sm:flex-column sm:items-center">
+            <div key={p.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 {p.thumbnail ? (
                   // eslint-disable-next-line @next/next/no-img-element

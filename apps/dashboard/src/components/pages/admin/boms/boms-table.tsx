@@ -71,7 +71,7 @@ export function BomsTable({
   const columns: Column<BomRowView>[] = [
     {
       id: "product",
-      header: t("inventory.boms.col.product"),
+      header: t("inventory.boms.col.variant"),
       cell: (b) => (
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{b.variantName}</p>

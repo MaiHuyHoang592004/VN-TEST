@@ -59,7 +59,7 @@ export function DataTableToolbar({
   }, [draft, search, onSearchChange]);
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-column sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-1 flex-wrap items-center gap-2">
         {onSearchChange && (
           <div className="relative w-full sm:max-w-xs">

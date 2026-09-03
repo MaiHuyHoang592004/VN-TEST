@@ -135,7 +135,7 @@ export function ReceiptFormDialog({
       onSubmit={onSubmit}
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t("inventory.receipts.form.customer")} required>
+        <FormField label={t("inventory.receipts.form.warehouse")} required>
           {(props) => (
             <Select value={warehouseId} onValueChange={(v) => v && setWarehouseId(v)}>
               <SelectTrigger {...props}>

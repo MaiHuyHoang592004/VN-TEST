@@ -1,7 +1,7 @@
 /**
  * Warehouse master-data and membership logic. Transport-agnostic.
  *
- * A customer referenced by inventory or orders is NEVER hard-deleted — it is
+ * A warehouse referenced by inventory or orders is NEVER hard-deleted — it is
  * deactivated, or soft-deleted only when nothing points at it. Membership is
  * many-to-many (WarehouseMember); User.warehouseId is a denormalised pointer
  * to the primary site, kept in sync in the same transaction.
@@ -21,7 +21,7 @@ type Actor = NonNullable<AuditContext["actor"]>;
 const blankToNull = (v?: string) => (v && v.length ? v : null);
 
 export async function listWarehouses(_actor: Actor, opts: { includeInactive?: boolean } = {}) {
-  return prisma.customer.findMany({
+  return prisma.warehouse.findMany({
     where: { deletedAt: null, ...(opts.includeInactive ? {} : { status: "ACTIVE" }) },
     select: { ...WAREHOUSE_SELECT, _count: { select: { members: true, orders: true, inventory: true } } },
     orderBy: { name: "asc" },
@@ -29,7 +29,7 @@ export async function listWarehouses(_actor: Actor, opts: { includeInactive?: bo
 }
 
 export function getWarehouse(_actor: Actor, id: number) {
-  return prisma.customer.findFirstOrThrow({
+  return prisma.warehouse.findFirstOrThrow({
     where: { id, deletedAt: null },
     select: {
       ...WAREHOUSE_SELECT,
@@ -47,8 +47,8 @@ export function getWarehouse(_actor: Actor, id: number) {
 }
 
 /**
- * People who may be assigned to a customer — customer-shaped roles only.
- * Offering to put a seller on a customer rota is a mistake the UI shouldn't
+ * People who may be assigned to a warehouse — warehouse-shaped roles only.
+ * Offering to put a seller on a warehouse rota is a mistake the UI shouldn't
  * invite, and the roles are what the order scoping keys off anyway.
  */
 export function listAssignableStaff(_actor: Actor) {
@@ -87,7 +87,7 @@ export async function createWarehouse(actor: Actor, raw: unknown, ctx: AuditCont
   const data = toData(warehouseSchema.parse(raw));
   try {
     const wh = await prisma.$transaction(async (tx) => {
-      const created = await tx.customer.create({ data, select: { id: true, code: true, name: true } });
+      const created = await tx.warehouse.create({ data, select: { id: true, code: true, name: true } });
       await writeAudit(tx, ctx, {
         action: "WAREHOUSE_CREATED",
         targetType: "customer",
@@ -107,10 +107,10 @@ export async function createWarehouse(actor: Actor, raw: unknown, ctx: AuditCont
 
 export async function updateWarehouse(actor: Actor, id: number, raw: unknown, ctx: AuditContext) {
   const data = toData(warehouseSchema.parse(raw));
-  const before = await prisma.customer.findFirstOrThrow({ where: { id, deletedAt: null }, select: WAREHOUSE_SELECT });
+  const before = await prisma.warehouse.findFirstOrThrow({ where: { id, deletedAt: null }, select: WAREHOUSE_SELECT });
   try {
     await prisma.$transaction(async (tx) => {
-      await tx.customer.update({ where: { id }, data });
+      await tx.warehouse.update({ where: { id }, data });
       await writeAudit(tx, ctx, {
         action: "WAREHOUSE_UPDATED",
         targetType: "customer",
@@ -130,7 +130,7 @@ export async function updateWarehouse(actor: Actor, id: number, raw: unknown, ct
 
 export async function setWarehouseStatus(actor: Actor, id: number, status: "ACTIVE" | "INACTIVE", ctx: AuditContext) {
   await prisma.$transaction(async (tx) => {
-    await tx.customer.update({ where: { id }, data: { status } });
+    await tx.warehouse.update({ where: { id }, data: { status } });
     await writeAudit(tx, ctx, {
       action: "WAREHOUSE_STATUS_CHANGED",
       targetType: "customer",
@@ -141,7 +141,7 @@ export async function setWarehouseStatus(actor: Actor, id: number, status: "ACTI
   return { ok: true as const };
 }
 
-/** Counts of everything that references the customer — drives can_delete and
+/** Counts of everything that references the warehouse — drives can_delete and
  * the "used by" pills in the delete dialog. */
 export async function getWarehouseUsage(_actor: Actor, id: number) {
   const [members, orders, inventory, stockImports] = await Promise.all([
@@ -158,7 +158,7 @@ export async function deleteWarehouse(actor: Actor, id: number, ctx: AuditContex
   const usage = await getWarehouseUsage(actor, id);
   if (!usage.canDelete) return { ok: false as const, error: "in-use" as const, usage };
   await prisma.$transaction(async (tx) => {
-    await tx.customer.update({ where: { id }, data: { deletedAt: new Date(), status: "INACTIVE" } });
+    await tx.warehouse.update({ where: { id }, data: { deletedAt: new Date(), status: "INACTIVE" } });
     await writeAudit(tx, ctx, { action: "WAREHOUSE_STATUS_CHANGED", targetType: "customer", targetId: String(id), after: { deleted: true } });
   });
   return { ok: true as const };

@@ -78,8 +78,8 @@ before(async () => {
   packerId = p.id;
 
   const [wa, wb] = await Promise.all([
-    prisma.customer.create({ data: { code: "RCP-A", name: "Receipt site A" } }),
-    prisma.customer.create({ data: { code: "RCP-B", name: "Receipt site B" } }),
+    prisma.warehouse.create({ data: { code: "RCP-A", name: "Receipt site A" } }),
+    prisma.warehouse.create({ data: { code: "RCP-B", name: "Receipt site B" } }),
   ]);
   siteA = wa.id;
   siteB = wb.id;

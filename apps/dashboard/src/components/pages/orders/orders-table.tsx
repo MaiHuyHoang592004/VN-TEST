@@ -274,7 +274,7 @@ export function OrdersTable({
       ? [
           {
             id: "qr",
-            header: t("orders.qr.row"),
+            header: t("orders.qr.column"),
             hideOnMobile: true,
             cell: (o: OrderRow) => (
               <div className="flex items-center gap-1">

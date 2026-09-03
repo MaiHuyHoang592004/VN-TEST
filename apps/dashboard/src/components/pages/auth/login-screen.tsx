@@ -160,7 +160,7 @@ export function LoginScreen({
       <div aria-hidden className="mesh-bg radial-fade absolute inset-0" />
       <div aria-hidden className="grid-bg radial-fade absolute inset-0" />
 
-      <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-14 lg:flex-column lg:items-center lg:justify-between lg:gap-20">
+      <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-14 lg:flex-row lg:items-center lg:justify-between lg:gap-20">
         {/* Brand side — the reason to sign in. Sits above the card on small
             screens (centered, smaller headline), beside it from lg up. */}
         <section className="flex max-w-md flex-1 flex-col gap-5 text-center lg:gap-6 lg:text-left">

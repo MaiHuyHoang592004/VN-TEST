@@ -61,7 +61,7 @@ export function SettingsCard({
         // Vercel's settings pattern: the card body sits on canvas (white) and
         // the action bar is a canvas-soft strip divided by a hairline of the
         // same weight as the card's ring, so the two read as one system.
-        <CardFooter className="border-border bg-muted/50 flex flex-col gap-3 rounded-b-xl border-t px-6 py-3 sm:flex-column sm:items-center sm:justify-between">
+        <CardFooter className="border-border bg-muted/50 flex flex-col gap-3 rounded-b-xl border-t px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-muted-foreground text-sm">{footer}</div>
           {action && <div className="flex shrink-0 gap-2">{action}</div>}
         </CardFooter>

@@ -3590,7 +3590,24 @@ Also check the block for a `--grid-bg` / `grid-bg` utility and the `text-gradien
 grep -rn "text-gradient\|btn-shine\|grid-bg\|brand-mesh\|brand-gradient\|gradient-develop\|gradient-preview\|gradient-ship" --include='*.tsx' --include='*.css' apps/dashboard/src
 ```
 
-Delete each utility definition and each call site's class. If a call site's element becomes unstyled, give it `text-(--text-strong)` — a plain navy heading is correct GWP; a rainbow gradient is not.
+Delete each utility definition and each call site's class.
+
+**Task 1 left these tokens alive on purpose — you are the task that removes
+them.** Deleting `--brand-gradient` in Task 1 would have made the login
+headline transparent, because `.text-gradient` paints with
+`background-clip: text; color: transparent`. So Task 1 re-composed
+`--gradient-develop/-preview/-ship`, `--brand-gradient` and `--brand-mesh` out
+of GWP tokens (action/sky/orange/yellow/red — no new colours) as a bridge.
+Every consumer is an auth or marketing surface: `login-screen.tsx` (5 sites),
+`reset-password.tsx` (2), `[...comingSoon]/page.tsx` (1). Delete the token
+definitions from `globals.css` in this task **together with** the utilities and
+those call sites. Task 26 then rebuilds the login screen as the app's second
+brand moment, so it does not need a gradient to look composed.
+
+Note also that `vercel-purple` and `vercel-pink` had no GWP counterpart — GWP
+ships no purple or pink ramp — so Task 1 substituted `sky-500` and
+`orange-500` inside those gradients. That substitution disappears with the
+gradients themselves; do not preserve it. If a call site's element becomes unstyled, give it `text-(--text-strong)` — a plain navy heading is correct GWP; a rainbow gradient is not.
 
 - [ ] **Step 4: Verify lint, build, adherence**
 

@@ -8,6 +8,13 @@ fail=0
 
 report() { printf '\n== %s ==\n' "$1"; }
 
+# Excluded files are REGEX false positives, not colour decisions:
+#   bubble.tsx   oklch(from var(--primary) ...) — a colour DERIVED from a token
+#   chart.tsx    [stroke='#ccc'] — recharts SELECTORS, not applied colours
+#   camera-panel canvas 2D fillStyle; print-labels-sheet print background
+#   order-qr     QR needs pure #000/#fff to scan
+#   google-icon, footer-social — third-party brand marks, not ours to recolour
+# The final filter drops comment lines (a hex mentioned in prose is not a style).
 report "hex / rgb / oklch literals in components (must be empty)"
 # Exclusions beyond .test./gwp.theme.css, each a category the token layer
 # cannot express, not a missed migration site:
@@ -37,7 +44,7 @@ if grep -rnE '#[0-9a-fA-F]{3,8}\b|rgba?\(|oklch\(' \
      | grep -v 'print-labels-sheet.tsx' \
      | grep -v 'bubble.tsx' \
      | grep -v 'chart.tsx' \
-     | grep -v 'Tailwind defaults it to'; then
+     | grep -vE '^[^:]+:[0-9]+: *(//|\*|/\*)'; then
   echo "FAIL: colour literal outside the token layer"; fail=1
 else echo "ok"; fi
 

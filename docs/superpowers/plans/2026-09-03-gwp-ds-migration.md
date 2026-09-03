@@ -348,7 +348,30 @@ Then, inside the existing `@theme inline { … }` block, **delete** the entries 
 
 - the whole `--radius-xs` … `--radius-pill` group (GWP: 8/10/14/18/24/32/44/999 px — deliberately rounder than Geist's 4/6/8/12)
 - the `--shadow-ds-1` … `--shadow-ds-5` group (GWP shadows are blue-tinted and wide; replaced in Step 5)
-- the `--text-display-*` and `--text-body-*` type scale (GWP: `--fs-display-*`, `--fs-body*`)
+- `--ease-geist`
+
+**Do NOT delete the `--text-display-*` / `--text-body-*` type scale.** A
+pre-flight check found 29 live call sites (`text-display-xl` ×4, `-lg` ×7,
+`-md` ×7, `-sm` ×5, `text-body-lg` ×2, `-md` ×2, `-sm` ×2). In Tailwind v4 an
+undefined utility is silently dropped rather than failing the build, so
+deleting these keys would cost 29 silent type regressions. **Repoint them to
+GWP's ladder instead** — the call sites keep working and land on GWP metrics:
+
+```css
+  --text-display-xl: var(--fs-display-xl);
+  --text-display-lg: var(--fs-display-lg);
+  --text-display-md: var(--fs-display-md);
+  --text-display-sm: var(--fs-display-sm);
+  --text-body-lg: var(--fs-body-lg);
+  --text-body-md: var(--fs-body);
+  --text-body-sm: var(--fs-body-sm);
+```
+
+Drop each one's `--line-height`, `--letter-spacing` and `--font-weight`
+sub-properties: the negative tracking is a Geist signature, and GWP sets
+tracking through `--ls-display` / `--ls-body` instead. Layer 4 tasks may
+migrate individual call sites to `text-(length:--fs-*)` opportunistically, but
+no task in this plan is required to.
 - the `--color-vercel-*` group and `--color-gray-alpha-*` group (no Vercel brand colour survives the migration)
 - `--ease-geist`
 
@@ -528,9 +551,18 @@ if grep -rn 'vercel-\|gray-alpha-\|ease-geist' \
 else echo "ok"; fi
 
 report "Tailwind default palette next to GWP ramps (must be empty)"
-if grep -rnE '\b(bg|text|border|ring|fill|stroke|divide)-(slate|gray|zinc|stone|amber|lime|emerald|teal|cyan|indigo|violet|purple|fuchsia|rose|blue|neutral)-[0-9]{2,3}\b' \
+# NOTE: sky / navy / action / cream / wash / yellow / green / red / orange /
+# neutral are all GWP ramp names and must NOT appear in this list — GWP owns
+# them. Only names GWP defines no ramp for are forbidden here.
+if grep -rnE '\b(bg|text|border|ring|fill|stroke|divide)-(slate|gray|zinc|stone|amber|lime|emerald|teal|cyan|indigo|violet|purple|fuchsia|rose|blue)-[0-9]{2,3}\b' \
      --include='*.tsx' src; then
   echo "FAIL: non-GWP palette utility"; fail=1
+else echo "ok"; fi
+
+report "neutral steps GWP does not define (only 50 and 100 exist)"
+if grep -rnE '\b(bg|text|border|ring|fill|stroke|divide)-neutral-(?!50\b|100\b)[0-9]{2,3}\b' \
+     --include='*.tsx' -P src; then
+  echo "FAIL: neutral step outside GWP's 50/100"; fail=1
 else echo "ok"; fi
 
 report "backend metadata palette read for chrome (must be empty)"
@@ -1438,7 +1470,8 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 36 primitives have no GWP counterpart. Most already inherited GWP colours from Task 1 because they were written against semantic tokens. This task finds and fixes the ones that were not, so no Vercel-era detail survives into Layer 2. **No structural change to any of them** — this is a class sweep.
 
 **Files:**
-- Modify: whichever files the greps below implicate, among `apps/dashboard/src/components/ui/{accordion,alert,alert-dialog,aspect-ratio,attachment,avatar,bubble,button-group,collapsible,combobox,context-menu,dropdown-menu,field,hover-card,input-group,input-otp,item,kbd,label,marker,menubar,message,message-scroller,navigation-menu,progress,radio-group,resizable,scroll-area,separator,slider,spinner,switch,toggle,tooltip}.tsx` and `ui/custom/spotlight-card.tsx`
+- Modify: whichever files the greps below implicate, among `apps/dashboard/src/components/ui/{accordion,alert,aspect-ratio,attachment,avatar,bubble,button-group,collapsible,combobox,context-menu,dropdown-menu,field,hover-card,input-group,input-otp,item,kbd,label,marker,menubar,message,message-scroller,navigation-menu,popover,progress,radio-group,resizable,scroll-area,separator,slider,spinner,switch,tooltip}.tsx` and `ui/custom/spotlight-card.tsx`
+- **Out of scope — owned by another task, do not touch:** `button` `badge` `input` `textarea` `select` `native-select` `checkbox` (Tasks 3–6, already done) · `card` `table` `pagination` `dialog` `alert-dialog` `drawer` `sheet` `tabs` `toggle` `toggle-group` `skeleton` `empty` `sonner` `command` `calendar` `chart` (Tasks 8–14, still to come) · `sidebar` (Task 17)
 - Reference: `docs/design-system/A11Y.md` (tooltip, menu and focus contracts)
 
 **Interfaces:**
@@ -1449,10 +1482,15 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 ```bash
 cd apps/dashboard/src/components/ui
-grep -rn 'ring-offset-\|rounded-\[\|shadow-\[\|text-\[1[0-9]px\]\|dark:' --include='*.tsx' . | tee /tmp/gwp-groupc.txt | wc -l
+grep -rn 'ring-offset-\|rounded-\[\|shadow-\[\|text-\[1[0-9]px\]\|dark:' --include='*.tsx' . \
+  | grep -vE '/(button|badge|input|textarea|select|native-select|checkbox|card|table|pagination|dialog|alert-dialog|drawer|sheet|tabs|toggle|toggle-group|skeleton|empty|sonner|command|calendar|chart|sidebar)\.tsx' \
+  | tee /tmp/gwp-groupc.txt | wc -l
 ```
 
-That list is the task's worklist. Work it top to bottom with these substitutions, and make no other change to any file:
+The `grep -v` is not optional: the raw grep hits 29 files, 20 of which belong
+to other tasks. Sweeping them here means either redundant churn (files Tasks
+3–6 already finished) or pre-empting a later task's specific treatment with a
+generic one (Tasks 8–14). That list is the task's worklist. Work it top to bottom with these substitutions, and make no other change to any file:
 
 | Found | Replace with | Why |
 |---|---|---|

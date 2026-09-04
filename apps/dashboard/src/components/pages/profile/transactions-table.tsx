@@ -35,6 +35,12 @@ export type TransactionRow = {
  * The seller's own ledger, on the shared data table — so it paginates instead
  * of rendering every transaction ever, which is what the hand-rolled version
  * did and what would have fallen over first in production.
+ *
+ * `summary` defaults to TRUE, which is /profile/billing exactly as it has
+ * always been: balance tiles, the two request buttons and their dialogs, then
+ * the table. The full-width /wallet route renders its balance in a sky hero and
+ * its actions in the page toolbar, so it passes `summary={false}` and takes the
+ * ledger alone. One component, two framings — not two copies of a ledger.
  */
 export function BillingPanel({
   rows,
@@ -42,6 +48,7 @@ export function BillingPanel({
   balance,
   debt,
   refundable,
+  summary = true,
 }: {
   rows: TransactionRow[];
   total: number;
@@ -50,6 +57,9 @@ export function BillingPanel({
   /** Server-quoted: what each order is worth back, so the dialog cannot
    * promise a number the service would refuse. */
   refundable: RefundableOrder[];
+  /** Render the balance card, the request buttons and their dialogs above the
+   * table. Off for callers that already show the balance and own the actions. */
+  summary?: boolean;
 }) {
   const params = useTableParams({ pageSize: 20 });
   const { t } = useTranslation();
@@ -119,6 +129,7 @@ export function BillingPanel({
 
   return (
     <SettingsStack>
+      {summary && (
       <SettingsCard
         title={t("profile.billing.balance")}
         description={t("profile.billing.balanceHint")}
@@ -154,6 +165,7 @@ export function BillingPanel({
           </div>
         </div>
       </SettingsCard>
+      )}
 
       <SettingsCard
         title={t("profile.billing.transactions")}
@@ -178,15 +190,19 @@ export function BillingPanel({
         />
       </SettingsCard>
 
-      <TopUpRequestDialog
-        open={asking === "topup"}
-        onOpenChange={(o) => !o && setAsking(null)}
-      />
-      <RefundRequestDialog
-        orders={refundable}
-        open={asking === "refund"}
-        onOpenChange={(o) => !o && setAsking(null)}
-      />
+      {summary && (
+        <>
+          <TopUpRequestDialog
+            open={asking === "topup"}
+            onOpenChange={(o) => !o && setAsking(null)}
+          />
+          <RefundRequestDialog
+            orders={refundable}
+            open={asking === "refund"}
+            onOpenChange={(o) => !o && setAsking(null)}
+          />
+        </>
+      )}
     </SettingsStack>
   );
 }

@@ -1,0 +1,48 @@
+{
+  "meta": "Settings",
+  "title": "Settings",
+  "subtitle": "Language, time zone and everything else you can configure",
+  "preferences": {
+    "title": "Language & time zone",
+    "hint": "Saved to your account, so the choice follows you to another device.",
+    "language": "Language",
+    "timezone": "Time zone",
+    "footer": "Applies everywhere you sign in, not just this browser.",
+    "saved": "Preferences saved"
+  },
+  "directory": {
+    "title": "Everything else",
+    "subtitle": "The rest of the settings live with the thing they configure."
+  },
+  "links": {
+    "profile": {
+      "title": "Profile",
+      "body": "Your name, phone, company and tax details."
+    },
+    "security": {
+      "title": "Security",
+      "body": "Password, email address and signing out everywhere."
+    },
+    "billing": {
+      "title": "Billing",
+      "body": "Balance, top-ups and your transaction history."
+    },
+    "api": {
+      "title": "API keys",
+      "body": "Create and revoke the keys your own systems use."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "body": "Where order events are posted, and the signing secret."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "Everything the system has told you, newest first."
+    },
+    "admin": {
+      "title": "Administration",
+      "body": "Users, roles, warehouses and the audit log."
+    }
+  },
+  "open": "Open"
+}

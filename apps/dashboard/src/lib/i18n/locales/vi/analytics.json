@@ -1,0 +1,66 @@
+{
+  "meta": "Phân tích",
+  "title": "Phân tích",
+  "subtitle": "Đơn hàng, số lượng và chi tiêu của bạn đang đi về đâu",
+  "periods": {
+    "today": "Hôm nay",
+    "week": "Tuần này",
+    "month": "Tháng này",
+    "year": "Năm nay",
+    "all": "Toàn bộ",
+    "custom": "Tùy chọn"
+  },
+  "from": "Từ ngày",
+  "to": "Đến ngày",
+  "volume": {
+    "heading": "Trong khoảng thời gian này",
+    "orders": "Đơn hàng",
+    "units": "Sản phẩm",
+    "spend": "Chi tiêu",
+    "balance": "Số dư",
+    "debt": "Công nợ",
+    "sellers": "Người bán",
+    "skus": "SKU",
+    "artwork": "Thiết kế"
+  },
+  "ordersWord": "đơn",
+  "statusMix": {
+    "title": "Cơ cấu trạng thái đơn hàng",
+    "subtitle": "Toàn bộ thời gian, không chỉ khoảng đang chọn",
+    "empty": "Chưa có đơn hàng nào. Đơn bạn tạo hoặc nhập vào sẽ hiện ở đây."
+  },
+  "topSku": {
+    "title": "SKU dẫn đầu",
+    "subtitle": "Xếp theo số lượng trong khoảng này",
+    "empty": "Chưa sản xuất gì trong khoảng thời gian này."
+  },
+  "topArtwork": {
+    "title": "Thiết kế dẫn đầu",
+    "subtitle": "Xếp theo số lượng trong khoảng này",
+    "empty": "Chưa sản xuất gì trong khoảng thời gian này."
+  },
+  "pending": {
+    "heading": "Chưa đo được",
+    "subheading": "Mỗi mục dưới đây cần một truy vấn mà hệ thống chưa có. Không có con số nào ở đây là ước lượng.",
+    "trend": {
+      "title": "Đơn hàng theo thời gian",
+      "body": "Đếm theo từng ngày cần một truy vấn tổng hợp đơn hàng theo mốc thời gian."
+    },
+    "revenue": {
+      "title": "Chi tiêu theo thời gian",
+      "body": "Đường chi tiêu cần cùng truy vấn tổng hợp đó trên giá gốc."
+    },
+    "marketplace": {
+      "title": "Theo sàn bán hàng",
+      "body": "Tách đơn theo cửa hàng cần một truy vấn nhóm theo trường marketplace."
+    },
+    "leadTime": {
+      "title": "Thời gian hoàn thành đơn",
+      "body": "Từ lúc đặt đến lúc giao cần tổng hợp các mốc đổi trạng thái."
+    }
+  },
+  "noAccess": {
+    "title": "Không có số liệu cho vai trò của bạn",
+    "body": "Phân tích đọc đơn hàng và giao dịch, tài khoản này không có quyền với cả hai."
+  }
+}

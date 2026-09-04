@@ -1,0 +1,12 @@
+{
+  "subtitle": "Solde, versements et historique des transactions",
+  "available": "Solde disponible",
+  "chargeNote": "Les commandes sont débitées de ce solde au moment de leur production.",
+  "actionsHint": "Demandez un rechargement, ou un remboursement sur une commande éligible.",
+  "owed": "Dû",
+  "owedNote": "Montant impayé sur votre compte",
+  "refundable": "Commandes remboursables",
+  "refundableNote": "Éligibles à une demande de remboursement",
+  "movements": "Transactions",
+  "movementsNote": "Sur votre compte à ce jour"
+}

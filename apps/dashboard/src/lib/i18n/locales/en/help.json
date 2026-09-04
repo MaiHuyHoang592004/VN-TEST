@@ -1,0 +1,52 @@
+{
+  "meta": "Help",
+  "title": "Help & Support",
+  "subtitle": "What this app does, and how to reach a person",
+  "about": {
+    "title": "What GWPrintz is",
+    "body": "GWPrintz fulfills personalized products. You send orders in; we print, pack, QC and ship them. This dashboard is where you watch that happen and sort out anything that goes wrong."
+  },
+  "contact": {
+    "title": "Need a person?",
+    "body": "Raise a ticket. It is the supported way to reach support, and it keeps the whole conversation attached to the order.",
+    "cta": "Open a ticket",
+    "note": "Support answers on the ticket itself, so there is no second inbox to watch."
+  },
+  "guide": {
+    "title": "Where things live",
+    "subtitle": "Every area of the dashboard, in one list."
+  },
+  "areas": {
+    "orders": {
+      "title": "Orders",
+      "body": "Every order from checkout to delivery, with its production and shipping status."
+    },
+    "catalog": {
+      "title": "Catalog",
+      "body": "Products, variants, SKUs and mockups."
+    },
+    "inventory": {
+      "title": "Inventory",
+      "body": "What is on the shelves — materials and finished goods."
+    },
+    "fulfillment": {
+      "title": "Fulfillment",
+      "body": "The production floor: scanning, labels and tracking."
+    },
+    "billing": {
+      "title": "Billing",
+      "body": "Balance, top-ups and transactions."
+    },
+    "tickets": {
+      "title": "Support",
+      "body": "Your tickets, and everything support has replied."
+    }
+  },
+  "before": {
+    "title": "Before you open a ticket",
+    "subtitle": "A ticket carrying these three things gets answered on the first reply.",
+    "s1": "The Order ID, exactly as it appears in the orders table.",
+    "s2": "What you expected to happen, and what happened instead.",
+    "s3": "A screenshot or the artwork file, if the problem is visual."
+  }
+}

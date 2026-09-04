@@ -1,0 +1,53 @@
+{
+  "meta": "Aide",
+  "title": "Aide et support",
+  "subtitle": "Ce que fait cette application, et comment joindre quelqu'un",
+  "about": {
+    "title": "Ce qu'est GWPrintz",
+    "body": "GWPrintz assure la production et l'expédition de produits personnalisés. Vous envoyez les commandes ; nous imprimons, emballons, contrôlons et expédions. Ce tableau de bord est l'endroit où vous suivez tout cela et réglez ce qui coince."
+  },
+  "contact": {
+    "title": "Besoin de parler à quelqu'un ?",
+    "body": "Ouvrez un ticket. C'est la voie prise en charge pour joindre le support, et toute la conversation reste rattachée à la commande.",
+    "cta": "Ouvrir un ticket",
+    "note": "Le support répond dans le ticket lui-même : aucune autre boîte de réception à surveiller."
+  },
+  "guide": {
+    "title": "Où se trouve quoi",
+    "subtitle": "Toutes les sections du tableau de bord, en une liste."
+  },
+  "areas": {
+    "orders": {
+      "title": "Commandes",
+      "body": "Chaque commande du paiement à la livraison, avec son statut de production et d'expédition."
+    },
+    "catalog": {
+      "title": "Catalogue",
+      "body": "Produits, variantes, SKU et maquettes."
+    },
+    "inventory": {
+      "title": "Stock",
+      "body": "Ce qu'il y a sur les étagères — matières et produits finis."
+    },
+    "fulfillment": {
+      "title": "Production",
+      "body": "L'atelier : scan, étiquettes et suivi."
+    },
+    "billing": {
+      "title": "Facturation",
+      "body": "Solde, rechargements et transactions."
+    },
+    "tickets": {
+      "title": "Support",
+      "body": "Vos tickets et toutes les réponses du support."
+    }
+  },
+  "before": {
+    "title": "Avant d'ouvrir un ticket",
+    "subtitle": "Un ticket qui contient ces trois éléments trouve sa réponse dès le premier échange.",
+    "s1": "L'identifiant de commande, exactement tel qu'il apparaît dans le tableau."
+    ,
+    "s2": "Ce que vous attendiez, et ce qui s'est passé à la place.",
+    "s3": "Une capture d'écran ou le fichier du visuel, si le problème est visuel."
+  }
+}

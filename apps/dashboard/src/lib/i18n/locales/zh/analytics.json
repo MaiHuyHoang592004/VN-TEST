@@ -1,0 +1,66 @@
+{
+  "meta": "分析",
+  "title": "分析",
+  "subtitle": "订单、件数与支出的走向",
+  "periods": {
+    "today": "今天",
+    "week": "本周",
+    "month": "本月",
+    "year": "今年",
+    "all": "全部时间",
+    "custom": "自定义"
+  },
+  "from": "起始日期",
+  "to": "结束日期",
+  "volume": {
+    "heading": "本时间段内",
+    "orders": "订单",
+    "units": "件数",
+    "spend": "支出",
+    "balance": "余额",
+    "debt": "欠款",
+    "sellers": "卖家",
+    "skus": "SKU",
+    "artwork": "图稿"
+  },
+  "ordersWord": "单",
+  "statusMix": {
+    "title": "订单状态构成",
+    "subtitle": "统计全部时间，不限于所选时间段",
+    "empty": "还没有订单。你创建或导入的订单会显示在这里。"
+  },
+  "topSku": {
+    "title": "热门 SKU",
+    "subtitle": "按本时间段的件数排序",
+    "empty": "本时间段内还没有任何生产记录。"
+  },
+  "topArtwork": {
+    "title": "热门图稿",
+    "subtitle": "按本时间段的件数排序",
+    "empty": "本时间段内还没有任何生产记录。"
+  },
+  "pending": {
+    "heading": "尚未统计",
+    "subheading": "以下每一项都需要平台目前还没有的查询。这里不会显示任何估算值。",
+    "trend": {
+      "title": "订单趋势",
+      "body": "按天统计需要一个按时间分桶的订单聚合查询。"
+    },
+    "revenue": {
+      "title": "支出趋势",
+      "body": "支出曲线需要同一个聚合查询作用在成本上。"
+    },
+    "marketplace": {
+      "title": "按销售平台",
+      "body": "按店铺拆分订单需要对 marketplace 字段做分组统计。"
+    },
+    "leadTime": {
+      "title": "履约时长",
+      "body": "从下单到发货需要汇总状态变更的时间戳。"
+    }
+  },
+  "noAccess": {
+    "title": "你的角色暂无可用报表",
+    "body": "分析读取订单与交易数据，而此账号两者都没有权限。"
+  }
+}

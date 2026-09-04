@@ -1,0 +1,48 @@
+{
+  "meta": "Cài đặt",
+  "title": "Cài đặt",
+  "subtitle": "Ngôn ngữ, múi giờ và mọi thứ khác bạn có thể thiết lập",
+  "preferences": {
+    "title": "Ngôn ngữ & múi giờ",
+    "hint": "Lưu vào tài khoản, nên lựa chọn sẽ theo bạn sang máy khác.",
+    "language": "Ngôn ngữ",
+    "timezone": "Múi giờ",
+    "footer": "Áp dụng ở mọi nơi bạn đăng nhập, không chỉ trình duyệt này.",
+    "saved": "Đã lưu tùy chọn"
+  },
+  "directory": {
+    "title": "Những mục còn lại",
+    "subtitle": "Các cài đặt khác nằm ngay cạnh thứ mà chúng thiết lập."
+  },
+  "links": {
+    "profile": {
+      "title": "Hồ sơ",
+      "body": "Tên, số điện thoại, công ty và mã số thuế của bạn."
+    },
+    "security": {
+      "title": "Bảo mật",
+      "body": "Mật khẩu, địa chỉ email và đăng xuất khỏi mọi thiết bị."
+    },
+    "billing": {
+      "title": "Thanh toán",
+      "body": "Số dư, nạp tiền và lịch sử giao dịch."
+    },
+    "api": {
+      "title": "Khóa API",
+      "body": "Tạo và thu hồi khóa cho hệ thống của bạn."
+    },
+    "webhooks": {
+      "title": "Webhook",
+      "body": "Nơi nhận sự kiện đơn hàng và khóa ký."
+    },
+    "notifications": {
+      "title": "Thông báo",
+      "body": "Mọi thông báo hệ thống đã gửi, mới nhất trước."
+    },
+    "admin": {
+      "title": "Quản trị",
+      "body": "Người dùng, vai trò, kho và nhật ký kiểm toán."
+    }
+  },
+  "open": "Mở"
+}

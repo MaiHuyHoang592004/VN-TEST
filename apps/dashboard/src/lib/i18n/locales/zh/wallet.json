@@ -1,0 +1,12 @@
+{
+  "subtitle": "余额、付款与交易记录",
+  "available": "可用余额",
+  "chargeNote": "订单在生产时从该余额中扣款。",
+  "actionsHint": "申请充值，或对符合条件的订单申请退款。",
+  "owed": "欠款",
+  "owedNote": "账户中尚未结清的金额",
+  "refundable": "可退款订单",
+  "refundableNote": "可申请退款",
+  "movements": "交易记录",
+  "movementsNote": "账户至今的交易笔数"
+}

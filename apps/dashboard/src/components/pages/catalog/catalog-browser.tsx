@@ -6,6 +6,7 @@ import { LayoutGrid, List, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCell, SearchField, Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
+import { money } from "@/lib/money";
 
 export type CatalogProduct = {
   id: number;
@@ -130,7 +131,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
                 <span className="mt-1 text-(length:--fs-body-sm) font-semibold text-(--text-body)">
                   {t("catalog.browse.from")}{" "}
                   <span className="font-mono tracking-(--ls-mono) tabular-nums">
-                    ${from(p).price}
+                    {money(from(p).price)}
                   </span>
                 </span>
               </span>
@@ -143,7 +144,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
                     >
                       <span className="truncate text-(--text-body)">{s.variantName}</span>
                       <span className="font-mono tracking-(--ls-mono) tabular-nums">
-                        ${s.price}
+                        {money(s.price)}
                       </span>
                     </span>
                   ))}
@@ -180,7 +181,7 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
                     >
                       {s.variantName}
                       <span className="ml-1.5 font-mono tracking-(--ls-mono) tabular-nums">
-                        ${s.price}
+                        {money(s.price)}
                       </span>
                     </span>
                   ))}

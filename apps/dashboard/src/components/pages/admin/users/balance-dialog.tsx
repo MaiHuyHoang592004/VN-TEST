@@ -21,6 +21,7 @@ import {
 } from "@/modules/identity/users/actions";
 
 import type { UserRow } from "./users-table";
+import { money } from "@/lib/money";
 
 export type BalanceMode = "TOPUP" | "REFUND" | "ADJUST";
 
@@ -30,9 +31,6 @@ const STEM: Record<BalanceMode, string> = {
   REFUND: "balRefund",
   ADJUST: "balAdjust",
 };
-
-const money = (v: number) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(v);
 
 export function BalanceDialog({
   user,

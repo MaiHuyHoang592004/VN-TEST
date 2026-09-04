@@ -8,6 +8,7 @@ import {
 } from "@/components/global/data-table";
 import { MetricCard, SearchField } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
+import { money } from "@/lib/money";
 
 export type SellerRow = {
   id: string;
@@ -20,9 +21,6 @@ export type SellerRow = {
   balance: string;
   debt: string;
 };
-
-const money = (v: string) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(v));
 
 /**
  * What the whole business did in the window, then every seller inside it.

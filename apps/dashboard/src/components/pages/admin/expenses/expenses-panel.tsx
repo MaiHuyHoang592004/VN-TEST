@@ -27,6 +27,7 @@ import { deleteCategoryAction, deleteEntryAction } from "@/modules/finance/expen
 import { CategoryDialog } from "./category-dialog";
 import { EntryDialog } from "./entry-dialog";
 import { StatusBadge } from "@/components/ds";
+import { money } from "@/lib/money";
 
 export type CategoryRow = {
   id: number;
@@ -49,9 +50,6 @@ export type EntryRow = {
   category: { id: number; name: string };
   vendor: { id: number; name: string } | null;
 };
-
-const money = (v: string) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(v));
 
 export function ExpensesPanel({
   tab,

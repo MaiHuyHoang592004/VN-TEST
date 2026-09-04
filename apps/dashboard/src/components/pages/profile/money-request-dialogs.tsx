@@ -22,11 +22,9 @@ import {
   requestTopUpAction,
 } from "@/modules/finance/requests/actions";
 import { PAYMENT_METHODS } from "@/modules/finance/requests/schema";
+import { money } from "@/lib/money";
 
 export type RefundableOrder = { id: number; label: string; total: string };
-
-const money = (v: string) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(v));
 
 /** The upload control both dialogs use. Evidence is what turns "I paid you"
  * into something an approver can act on without a conversation. */

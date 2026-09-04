@@ -4,8 +4,8 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Paperclip, X } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Callout, KeyValueRow, StatusBadge, Surface } from "@/components/ds";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -21,7 +21,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { replyTicketAction, setTicketStatusAction } from "@/modules/support/tickets/actions";
 import { TICKET_STATUSES } from "@/modules/support/tickets/schema";
 
-import { priorityVariant } from "./tickets-table";
+import { priorityTone } from "./tickets-table";
 
 type Attachment = { url: string; originalFilename: string };
 type Message = {
@@ -89,7 +89,7 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
     <>
       <Link
         href="/tickets"
-        className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-sm"
+        className="inline-flex items-center gap-1.5 text-(length:--fs-body-sm) text-(--text-muted) hover:text-(--text-body)"
       >
         <ArrowLeft className="size-4" />
         {t("support.tickets.detail.back")}
@@ -97,8 +97,6 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <h1 className="text-2xl font-semibold tracking-tight">{ticket.title}</h1>
-
           <ol className="flex flex-col gap-4">
             {messages.map((message) => (
               <MessageBubble
@@ -108,34 +106,36 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
               />
             ))}
             {messages.length === 1 && !ticket.description && (
-              <li className="text-muted-foreground text-sm">{t("support.tickets.detail.empty")}</li>
+              <li className="text-(length:--fs-body-sm) text-(--text-muted)">
+                {t("support.tickets.detail.empty")}
+              </li>
             )}
           </ol>
 
           {closed ? (
-            <div className="border-border bg-muted/40 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
-              <div className="flex flex-col">
-                <p className="text-sm font-medium">{t("support.tickets.detail.closed")}</p>
-                <p className="text-muted-foreground text-xs">
-                  {t("support.tickets.detail.closedHint")}
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                disabled={statusPending}
-                onClick={() => submitStatus("OPEN")}
-              >
-                {t("support.tickets.detail.reopen")}
-              </Button>
-            </div>
+            <Callout
+              tone="info"
+              title={t("support.tickets.detail.closed")}
+              action={
+                <Button
+                  variant="outline"
+                  disabled={statusPending}
+                  onClick={() => submitStatus("OPEN")}
+                >
+                  {t("support.tickets.detail.reopen")}
+                </Button>
+              }
+            >
+              {t("support.tickets.detail.closedHint")}
+            </Callout>
           ) : (
             <ReplyBox ticketId={ticket.id} />
           )}
         </div>
 
-        <aside className="border-border flex w-full shrink-0 flex-col gap-4 rounded-lg border p-4 lg:sticky lg:top-24 lg:w-72">
-          <div className="flex flex-col gap-1.5">
-            <span className="text-muted-foreground text-xs">
+        <Surface className="w-full shrink-0 lg:sticky lg:top-24 lg:w-72" radius="card" shadow="xs">
+          <div className="mb-2 flex flex-col gap-1.5">
+            <span className="font-sans text-(length:--fs-meta) font-bold tracking-(--ls-caps) uppercase text-(--text-label)">
               {t("support.tickets.detail.status")}
             </span>
             <Select
@@ -156,52 +156,61 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
             </Select>
           </div>
 
-          <Field label={t("support.tickets.detail.priority")}>
-            <Badge variant={priorityVariant(ticket.priority)}>
-              {t(`support.tickets.priority.${ticket.priority}`)}
-            </Badge>
-          </Field>
+          {/* PRIORITY IS NOT A STATUS. Explicit tone, never toneFor(): the
+              status map deliberately excludes TicketPriority, and routing
+              URGENT through it would render it grey. */}
+          <dl>
+            <KeyValueRow
+              label={t("support.tickets.detail.priority")}
+              value={
+                <StatusBadge
+                  status={ticket.priority}
+                  tone={priorityTone(ticket.priority)}
+                  dot={false}
+                >
+                  {t(`support.tickets.priority.${ticket.priority}`)}
+                </StatusBadge>
+              }
+            />
 
-          {ticket.reason && (
-            <Field label={t("support.tickets.detail.reason")}>
-              <span className="text-sm">{t(`support.tickets.reason.${ticket.reason}`)}</span>
-            </Field>
-          )}
+            {ticket.reason && (
+              <KeyValueRow
+                label={t("support.tickets.detail.reason")}
+                value={t(`support.tickets.reason.${ticket.reason}`)}
+              />
+            )}
 
-          <Field label={t("support.tickets.detail.customer")}>
-            <span className="text-sm">{ticket.author.name}</span>
-          </Field>
+            <KeyValueRow label={t("support.tickets.detail.customer")} value={ticket.author.name} />
 
-          {ticket.order && (
-            <Field label={t("support.tickets.detail.order")}>
-              <Link
-                href={`/orders?q=${encodeURIComponent(ticket.order.label)}`}
-                className="font-mono text-sm underline-offset-2 hover:underline"
-              >
-                {ticket.order.label}
-              </Link>
-            </Field>
-          )}
+            {ticket.order && (
+              <KeyValueRow
+                label={t("support.tickets.detail.order")}
+                mono
+                value={
+                  <Link
+                    href={`/orders?q=${encodeURIComponent(ticket.order.label)}`}
+                    className="text-(--text-link) underline-offset-2 hover:underline"
+                  >
+                    {ticket.order.label}
+                  </Link>
+                }
+              />
+            )}
 
-          <Field label={t("support.tickets.detail.created")}>
-            <span className="text-sm">{new Date(ticket.createdAt).toLocaleString()}</span>
-          </Field>
+            <KeyValueRow
+              label={t("support.tickets.detail.created")}
+              value={new Date(ticket.createdAt).toLocaleString()}
+            />
 
-          <Field label={t("support.tickets.detail.replies")}>
-            <span className="text-sm tabular-nums">{ticket.replies.length}</span>
-          </Field>
-        </aside>
+            <KeyValueRow
+              label={t("support.tickets.detail.replies")}
+              mono
+              value={ticket.replies.length}
+            />
+          </dl>
+        </Surface>
       </div>
     </>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-muted-foreground text-xs">{label}</span>
-      {children}
-    </div>
   );
 }
 
@@ -213,17 +222,24 @@ function MessageBubble({ message, fromAuthor }: { message: Message; fromAuthor: 
 
   return (
     <li className={`flex flex-col gap-1 ${fromAuthor ? "items-start" : "items-end"}`}>
-      <span className="text-muted-foreground text-xs">
+      <span className="text-(length:--fs-meta) text-(--text-muted)">
         {fromAuthor ? message.author.name : t("support.tickets.detail.staff")} ·{" "}
-        {new Date(message.createdAt).toLocaleString()}
+        <time className="font-mono tracking-(--ls-mono)">
+          {new Date(message.createdAt).toLocaleString()}
+        </time>
       </span>
-      <div
-        className={`max-w-[85%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
-          fromAuthor ? "bg-muted" : "bg-primary text-primary-foreground"
-        }`}
+      {/* The two sides are two SURFACES, not a white bubble and an Action Blue
+          one: the DS allows Action Blue once per region, and a thread of ten
+          staff replies would spend it ten times. */}
+      <Surface
+        level={fromAuthor ? "data" : "inset"}
+        radius="card"
+        shadow={fromAuthor ? "xs" : "none"}
+        pad={false}
+        className="max-w-[85%] px-3 py-2 text-(length:--fs-body-sm) whitespace-pre-wrap"
       >
         {message.content}
-      </div>
+      </Surface>
       {message.attachments.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {message.attachments.map((file) => (
@@ -232,7 +248,7 @@ function MessageBubble({ message, fromAuthor }: { message: Message; fromAuthor: 
               href={file.url}
               target="_blank"
               rel="noreferrer"
-              className="border-border hover:border-foreground/30 block size-20 overflow-hidden rounded border transition-colors"
+              className="block size-20 overflow-hidden rounded-(--radius-xs) bg-(--surface-content) transition-shadow hover:shadow-(--shadow-sm)"
             >
               {/* Plain <img>: user uploads on arbitrary storage hosts, which
                   next/image would need configuring per domain. */}
@@ -281,7 +297,7 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
   };
 
   return (
-    <div className="border-border flex flex-col gap-2 rounded-lg border p-3">
+    <Surface radius="card" shadow="xs" pad={false} className="flex flex-col gap-2 p-3">
       <Textarea
         rows={3}
         value={content}
@@ -302,7 +318,7 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
           {files.map((file, index) => (
             <li
               key={`${file.name}-${index}`}
-              className="border-border text-muted-foreground flex items-center gap-1 rounded-md border px-2 py-1 text-xs"
+              className="flex items-center gap-1 rounded-(--radius-pill) bg-(--surface-inset) px-2 py-1 text-(length:--fs-meta) text-(--text-muted)"
             >
               {file.name}
               <button
@@ -318,7 +334,7 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
       )}
 
       {formError && (
-        <p role="alert" className="text-destructive text-sm">
+        <p role="alert" className="text-(length:--fs-body-sm) text-(--status-critical-fg)">
           {formError}
         </p>
       )}
@@ -339,13 +355,13 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
           <Button
             type="button"
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("support.tickets.form.attach")}
             onClick={() => fileInput.current?.click()}
           >
             <Paperclip className="size-4" />
           </Button>
-          <span className="text-muted-foreground text-xs">
+          <span className="text-(length:--fs-meta) text-(--text-muted)">
             {t("support.tickets.detail.sendHint")}
           </span>
         </div>
@@ -353,6 +369,6 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
           {t("support.tickets.detail.send")}
         </Button>
       </div>
-    </div>
+    </Surface>
   );
 }

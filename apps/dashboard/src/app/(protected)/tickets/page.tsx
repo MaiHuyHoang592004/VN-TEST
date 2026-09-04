@@ -2,6 +2,8 @@ import { requireAnyPermission } from "@/modules/core/guard";
 import { listTickets } from "@/modules/support/tickets/queries";
 import { listOrders } from "@/modules/fulfillment/orders/queries";
 import { TicketsTable } from "@/components/pages/support/tickets-table";
+import { TicketsHeader } from "@/components/pages/support/tickets-header";
+import { Page } from "@/components/ds";
 import type { TicketReason } from "@/modules/support/tickets/schema";
 
 /**
@@ -38,7 +40,8 @@ export default async function TicketsPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <TicketsHeader />
       <TicketsTable
         total={total}
         orders={orders.rows.map((o) => ({
@@ -58,6 +61,6 @@ export default async function TicketsPage({
           order: r.order ? { id: r.order.id, label: r.order.externalId ?? `#${r.order.id}` } : null,
         }))}
       />
-    </main>
+    </Page>
   );
 }

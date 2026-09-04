@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatusBadge, type StatusTone } from "@/components/ds";
 import {
   Select,
   SelectContent,
@@ -41,13 +41,29 @@ export type TicketRowView = {
   order: { id: number; label: string } | null;
 };
 
-/** Status and priority read as colour before they read as words, so the two
- * badges answer "is anyone waiting on me?" from across the room. */
-export const statusVariant = (status: string) =>
-  status === "CLOSED" ? "outline" : status === "RESOLVED" ? "default" : "secondary";
+/**
+ * Status and priority read as colour before they read as words, so the two
+ * badges answer "is anyone waiting on me?" from across the room.
+ *
+ * STATUS comes from STATUS_TONES via the raw value — there is no local status
+ * colour here any more, which is the drift the DS's map exists to end.
+ *
+ * PRIORITY does not, and must never: `status-tones.ts` records that
+ * TicketPriority is a priority and not a status, and that routing it through
+ * toneFor() would silently render URGENT grey. It gets an explicit tone
+ * instead. Four levels, three tones — the same collapse the old
+ * `priorityVariant` made, because the schema's LOW and MEDIUM were already one
+ * appearance and inventing a fourth would be inventing a level.
+ */
+export const PRIORITY_TONES: Record<string, StatusTone> = {
+  URGENT: "critical",
+  HIGH: "attention",
+  MEDIUM: "neutral",
+  LOW: "neutral",
+};
 
-export const priorityVariant = (priority: string) =>
-  priority === "URGENT" ? "destructive" : priority === "HIGH" ? "default" : "secondary";
+export const priorityTone = (priority: string): StatusTone =>
+  PRIORITY_TONES[priority] ?? "neutral";
 
 export function TicketsTable({
   rows,
@@ -72,28 +88,34 @@ export function TicketsTable({
     {
       id: "title",
       header: t("support.tickets.col.title"),
-      cell: (r) => <span className="font-medium">{r.title}</span>,
+      cell: (r) => (
+        <span className="font-sans text-(length:--fs-body-sm) font-semibold text-(--text-body)">
+          {r.title}
+        </span>
+      ),
     },
     {
       id: "author",
       header: t("support.tickets.col.author"),
       hideOnMobile: true,
-      cell: (r) => <span className="text-muted-foreground text-sm">{r.author}</span>,
+      cell: (r) => (
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">{r.author}</span>
+      ),
     },
     {
       id: "status",
       header: t("support.tickets.col.status"),
       cell: (r) => (
-        <Badge variant={statusVariant(r.status)}>{t(`support.tickets.status.${r.status}`)}</Badge>
+        <StatusBadge status={r.status}>{t(`support.tickets.status.${r.status}`)}</StatusBadge>
       ),
     },
     {
       id: "priority",
       header: t("support.tickets.col.priority"),
       cell: (r) => (
-        <Badge variant={priorityVariant(r.priority)}>
+        <StatusBadge status={r.priority} tone={priorityTone(r.priority)} dot={false}>
           {t(`support.tickets.priority.${r.priority}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -107,12 +129,12 @@ export function TicketsTable({
           <Link
             href={`/orders?q=${encodeURIComponent(r.order.label)}`}
             onClick={(e) => e.stopPropagation()}
-            className="font-mono text-xs underline-offset-2 hover:underline"
+            className="font-mono text-(length:--fs-meta) tracking-(--ls-mono) text-(--text-link) underline-offset-2 hover:underline"
           >
             {r.order.label}
           </Link>
         ) : (
-          <span className="text-muted-foreground">—</span>
+          <span className="text-(--text-muted)">—</span>
         ),
     },
     {
@@ -120,7 +142,7 @@ export function TicketsTable({
       header: t("support.tickets.col.reason"),
       hideOnMobile: true,
       cell: (r) => (
-        <span className="text-muted-foreground text-sm">
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">
           {r.reason ? t(`support.tickets.reason.${r.reason}`) : "—"}
         </span>
       ),
@@ -129,14 +151,18 @@ export function TicketsTable({
       id: "replies",
       header: t("support.tickets.col.replies"),
       className: "text-right tabular-nums",
-      cell: (r) => r.replyCount,
+      cell: (r) => (
+        <span className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono)">
+          {r.replyCount}
+        </span>
+      ),
     },
     {
       id: "createdAt",
       header: t("support.tickets.col.created"),
       hideOnMobile: true,
       cell: (r) => (
-        <span className="text-muted-foreground text-sm whitespace-nowrap">
+        <span className="text-(length:--fs-body-sm) whitespace-nowrap text-(--text-muted)">
           {new Date(r.createdAt).toLocaleDateString()}
         </span>
       ),
@@ -151,7 +177,7 @@ export function TicketsTable({
               server refuses an edit that is not theirs to make. */}
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("support.tickets.edit.title")}
             onClick={(e) => {
               e.stopPropagation();
@@ -163,7 +189,7 @@ export function TicketsTable({
         <Can permission="tickets.manage">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("support.tickets.delete.submit")}
             onClick={async (e) => {
               e.stopPropagation();
@@ -182,14 +208,6 @@ export function TicketsTable({
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("support.tickets.title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("support.tickets.subtitle")}</p>
-        </div>
-        <Button onClick={() => setCreating(true)}>{t("support.tickets.new")}</Button>
-      </div>
-
       <DataTable
         rows={rows}
         columns={columns}
@@ -204,6 +222,10 @@ export function TicketsTable({
             searchPlaceholder={t("support.tickets.search")}
             hasFilters={hasFilters}
             onClearFilters={() => params.clearFilters(["q", "status", "priority", "reason"])}
+            // The page's one primary action. It used to sit beside the h1; the
+            // DS's operational hero owns no CTA, and this toolbar is the slot
+            // the hero deliberately does not provide.
+            actions={<Button onClick={() => setCreating(true)}>{t("support.tickets.new")}</Button>}
             filters={
               <>
                 <Select

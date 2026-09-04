@@ -4,6 +4,8 @@ import { requireAnyPermission } from "@/modules/core/guard";
 import { getTicketDetail } from "@/modules/support/tickets/queries";
 import { TicketError } from "@/modules/support/index";
 import { TicketThread } from "@/components/pages/support/ticket-thread";
+import { TicketDetailHeader } from "@/components/pages/support/tickets-header";
+import { Page } from "@/components/ds";
 
 /**
  * One ticket, as a conversation.
@@ -26,7 +28,8 @@ export default async function TicketDetailPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-5xl flex-1 px-6 py-8 lg:px-20">
+    <Page className="max-w-5xl">
+      <TicketDetailHeader id={ticket.id} title={ticket.title} />
       <TicketThread
         ticket={{
           id: ticket.id,
@@ -53,7 +56,7 @@ export default async function TicketDetailPage({
           })),
         }}
       />
-    </main>
+    </Page>
   );
 }
 

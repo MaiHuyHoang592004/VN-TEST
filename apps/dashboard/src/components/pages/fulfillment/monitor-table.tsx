@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { ExternalLink, MapPin } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatusBadge, Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import { listGroupsAction } from "@/modules/fulfillment/stations/actions";
@@ -46,21 +46,22 @@ export function MonitorTable({
 
   return (
     <div className="space-y-6">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("fulfillment.monitor.title")}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t("fulfillment.monitor.subtitle")}</p>
-      </header>
-
+      {/* These are LINKS, not chips. Each filter is a real route so a
+          supervisor can bookmark "what is still open" and the back button
+          behaves — so they carry aria-current and take the DS's NAVIGATION
+          treatment (the pale sky pill NavTabs uses), not FilterChip, whose
+          aria-pressed and Action Blue fill belong to a filter that does not
+          navigate. */}
       <div className="flex gap-1">
         {FILTERS.map((f) => (
           <Link
             key={f}
             href={`/fulfillment/monitor?filter=${f}`}
             aria-current={filter === f ? "page" : undefined}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+            className={`inline-flex shrink-0 items-center rounded-(--radius-pill) px-3 py-1.5 font-sans text-(length:--fs-body-sm) font-semibold transition-colors duration-(--dur-fast) ease-(--ease-out) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
               filter === f
-                ? "bg-secondary text-secondary-foreground font-medium"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-sky-200 text-navy-700"
+                : "text-navy-500 hover:bg-sky-100 hover:text-navy-700"
             }`}
           >
             {t(`fulfillment.monitor.tabs.${f}`)}
@@ -69,13 +70,15 @@ export function MonitorTable({
       </div>
 
       {groups.length === 0 ? (
-        <p className="border-border text-muted-foreground rounded-lg border border-dashed px-6 py-12 text-center text-sm">
+        <p className="rounded-(--radius-card) bg-(--surface-shell) px-6 py-12 text-center text-(length:--fs-body-sm) text-(--text-muted)">
           {t("fulfillment.monitor.empty")}
         </p>
       ) : (
-        <div className="border-border overflow-x-auto rounded-lg border">
+        <Surface pad={false} radius="card" shadow="xs" className="overflow-x-auto">
+          {/* The board is read from across the room: the type stays at the size
+              it already was rather than shrinking to the DS's body default. */}
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-muted-foreground text-xs">
+            <thead className="text-(length:--fs-meta) text-(--text-label)">
               <tr>
                 <th className="px-3 py-2 text-left font-medium">{t("fulfillment.monitor.colTracking")}</th>
                 <th className="px-3 py-2 text-left font-medium">{t("fulfillment.monitor.colCustomer")}</th>
@@ -87,41 +90,50 @@ export function MonitorTable({
                 <th className="px-3 py-2 text-left font-medium">{t("fulfillment.monitor.colOldest")}</th>
               </tr>
             </thead>
-            <tbody className="divide-border divide-y">
+            <tbody className="divide-y divide-(--border-hairline)">
               {groups.map((g) => (
-                <tr key={g.key} className="hover:bg-muted/30">
-                  <td className="px-3 py-2 font-mono text-xs">{g.trackingNumber ?? g.key}</td>
+                <tr key={g.key} className="hover:bg-sky-50">
+                  <td className="px-3 py-2 font-mono text-xs tracking-(--ls-mono) text-(--text-body)">
+                    {g.trackingNumber ?? g.key}
+                  </td>
                   <td className="px-3 py-2">{g.customer ?? "—"}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{g.orderCount}</td>
+                  <td className="px-3 py-2 text-right font-mono tracking-(--ls-mono) tabular-nums">
+                    {g.orderCount}
+                  </td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <div className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-(--surface-inset)">
                         <div
                           className={`h-full rounded-full ${
-                            g.totalFilled >= g.totalQuantity ? "bg-green-600" : "bg-action-500"
+                            g.totalFilled >= g.totalQuantity
+                              ? "bg-(--status-success-dot)"
+                              : "bg-action-500"
                           }`}
                           style={{
                             width: `${Math.min(100, (g.totalFilled / Math.max(1, g.totalQuantity)) * 100)}%`,
                           }}
                         />
                       </div>
-                      <span className="text-muted-foreground text-xs tabular-nums">
+                      <span className="font-mono text-xs tracking-(--ls-mono) tabular-nums text-(--text-muted)">
                         {g.totalFilled}/{g.totalQuantity}
                       </span>
                     </div>
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-1">
+                      {/* The file Task 20 flagged: the hand-picked ON_HOLD
+                          ternary goes, and the colour comes from STATUS_TONES
+                          like the Orders table's badge for the same status. */}
                       {g.statuses.map((s) => (
-                        <Badge key={s} variant={s === "ON_HOLD" ? "destructive" : "secondary"}>
+                        <StatusBadge key={s} status={s} size="sm">
                           {t(`orders.statuses.${s}`)}
-                        </Badge>
+                        </StatusBadge>
                       ))}
                     </div>
                   </td>
                   <td className="px-3 py-2">
                     {g.basket ? (
-                      <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+                      <span className="inline-flex items-center gap-1 text-xs text-(--text-muted)">
                         <MapPin className="stroke-action-500 size-3.5" />
                         {g.basket}
                       </span>
@@ -144,14 +156,14 @@ export function MonitorTable({
                       "—"
                     )}
                   </td>
-                  <td className="text-muted-foreground px-3 py-2 text-xs">
+                  <td className="px-3 py-2 text-xs text-(--text-muted)">
                     {new Date(g.oldestPlacedAt).toLocaleDateString()}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Surface>
       )}
 
       {cursor && (

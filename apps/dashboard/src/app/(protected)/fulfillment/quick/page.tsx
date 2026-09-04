@@ -1,5 +1,6 @@
 import { requirePermission } from "@/modules/core/guard";
 import { QuickScan } from "@/components/pages/fulfillment/quick-scan";
+import { Page } from "@/components/ds";
 
 /**
  * Quick scan — one status, applied to whole parcels as fast as they can be
@@ -13,8 +14,8 @@ import { QuickScan } from "@/components/pages/fulfillment/quick-scan";
 export default async function QuickScanPage() {
   await requirePermission("orders.status.update");
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
       <QuickScan />
-    </main>
+    </Page>
   );
 }

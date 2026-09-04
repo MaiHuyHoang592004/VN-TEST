@@ -1,5 +1,7 @@
 import { listGroups } from "@/modules/fulfillment/stations/queries";
 import { MonitorTable } from "@/components/pages/fulfillment/monitor-table";
+import { MonitorHeader } from "@/components/pages/fulfillment/monitor-header";
+import { Page } from "@/components/ds";
 
 /**
  * Every parcel in flight, one column each. READ ONLY — there is deliberately not
@@ -25,8 +27,9 @@ export default async function MonitorPage({
   const { groups, nextCursor } = await listGroups({ filter, limit: 50 });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <MonitorHeader />
       <MonitorTable filter={filter} initialGroups={groups} initialCursor={nextCursor} />
-    </main>
+    </Page>
   );
 }

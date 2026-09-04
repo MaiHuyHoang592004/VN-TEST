@@ -1,5 +1,6 @@
 import { requirePermission } from "@/modules/core/guard";
 import { Station } from "@/components/pages/fulfillment/station";
+import { Page } from "@/components/ds";
 
 /**
  * The scan station — where a parcel is found, made, photographed and handed
@@ -17,8 +18,8 @@ import { Station } from "@/components/pages/fulfillment/station";
 export default async function FulfillmentPage() {
   await requirePermission("orders.status.update");
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
       <Station />
-    </main>
+    </Page>
   );
 }

@@ -203,14 +203,14 @@ function TeamSwitcher() {
 }
 
 /**
- * The navbar's way into the navigation, below the DS's 1024px kit floor.
+ * The navbar's only way into the navigation, at EVERY width.
  *
- * lg:hidden, not md:hidden. Task 16 removed the persistent 240px rail; while
- * this button hid at 768px and the sheet only mounted below 768px, a
- * 768—1023px viewport had no route into the nav at all. RESPONSIVE.md puts the
- * kit floor at 1024 and the admin Sidebar off-canvas below it, so the sheet is
- * the navigation for everything under 1024 — and this button has to reach the
- * same width. The paired change is SidebarProvider's useIsBelowDesktop().
+ * Task 16 removed the persistent 240px rail and made the sheet the sidebar's
+ * only mode. This button hid first at 768px and then at 1024px, and each time
+ * the widths above it were left with no route into the nav at all — no
+ * sections, no wallet, no settings, no sign-out. There is no width where the
+ * navigation lives somewhere else now, so there is no width where this button
+ * should be absent. The paired change is SidebarProvider's `isMobile`.
  */
 export function SidebarNavButtons() {
   const { user } = useAuth();
@@ -225,10 +225,16 @@ export function SidebarNavButtons() {
     // of this button's width while size-9 holds the height — a 36px-tall
     // button squeezed to ~29px wide, which is the oval. NavTabs scrolls
     // instead, which is what its overflow-x-auto is already there for.
+    //
+    // NO BREAKPOINT HIDE. This button used to be lg:hidden because desktop had
+    // the persistent rail; Layer 3 removed the rail and made the sheet the only
+    // mode, which left every signed-in viewport at 1024px and up with no
+    // navigation at all — no sections, no wallet, no settings, no sign-out. The
+    // sheet is now the whole nav, so its opener belongs at every width.
     <button
       aria-label={t("sidebar.open")}
       onClick={() => setOpenMobile(true)}
-      className="inline-flex size-9 shrink-0 items-center justify-center rounded-(--radius-pill) text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none lg:hidden"
+      className="inline-flex size-9 shrink-0 items-center justify-center rounded-(--radius-pill) text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
     >
       <Menu className="size-4" />
     </button>

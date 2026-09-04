@@ -5,7 +5,6 @@ import { mergeProps } from "@base-ui/react/merge-props"
 import { useRender } from "@base-ui/react/use-render"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { useIsBelowDesktop } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,7 +27,7 @@ import { PanelLeftIcon } from "lucide-react"
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "15rem" /* 240px — matches vercel.com dashboard */
-const SIDEBAR_WIDTH_MOBILE = "100vw" /* full-screen menu on phones */
+const SIDEBAR_WIDTH_SHEET = "20rem" /* the drawer, once there is room for one */
 const SIDEBAR_WIDTH_ICON = "3rem"
 const SIDEBAR_KEYBOARD_SHORTCUT = "b"
 
@@ -66,15 +65,17 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  // "Mobile" here means "the sidebar is a sheet", and that is everything below
-  // the DS's 1024px kit floor — not below 768px. Task 16 removed the persistent
-  // 240px rail, and with the rail gone a 768—1023px viewport had no navigation
-  // at all: the desktop branch renders off-canvas, the sheet branch never
-  // mounted, and SidebarNavButtons was md:hidden. useIsBelowDesktop is a
-  // separate query on purpose — useIsMobile still means 768 for DataTable's
+  // "Mobile" here means "the sidebar is a sheet" — and since the rail was
+  // removed, that is EVERY width, not a breakpoint. The first pass at this
+  // widened the query from 768px to 1024px, which fixed tablets and left 1024px
+  // and up in the same hole: the desktop branch renders off-canvas, the sheet
+  // branch never mounted, and a signed-in viewport had no navigation at all —
+  // no sections, no wallet, no settings, no sign-out. The plan is explicit that
+  // the sheet "becomes its only mode", so this is a constant and not a media
+  // query. useIsMobile (768) is untouched: it still drives DataTable's
   // card-vs-table switch, which is a product decision and not this fix's to
   // make.
-  const isMobile = useIsBelowDesktop()
+  const isMobile = true
   const [openMobile, setOpenMobile] = React.useState(false)
 
   // This is the internal state of the sidebar.
@@ -195,15 +196,14 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="w-(--sidebar-width) max-w-none bg-sidebar p-0 text-sidebar-foreground sm:max-w-none [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-              // inline so it beats the sheet's base data-[side=left]:w-3/4
-              width: SIDEBAR_WIDTH_MOBILE,
-              maxWidth: "none",
-            } as React.CSSProperties
-          }
+          // Full-bleed on a phone, a 20rem drawer once there is room for one.
+          // This used to be a flat 100vw, which was right while the sheet only
+          // mounted below 768px; now that it is the sidebar at EVERY width, a
+          // flat 100vw covers a 1440px desktop in cream to show ten links.
+          // max-w-none at both widths is what beats the sheet's own
+          // data-[side=left]:w-3/4 and sm:max-w-sm.
+          className="w-screen max-w-none bg-sidebar p-0 text-sidebar-foreground sm:w-(--sidebar-width) sm:max-w-none [&>button]:hidden"
+          style={{ "--sidebar-width": SIDEBAR_WIDTH_SHEET } as React.CSSProperties}
           side={side}
         >
           <SheetHeader className="sr-only">

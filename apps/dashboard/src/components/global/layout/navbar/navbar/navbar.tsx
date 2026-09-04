@@ -136,7 +136,7 @@ export function Navbar() {
             >
               {/* One mark, one theme. The monogram already carries the
                   letterform, so there is no separate wordmark text node. */}
-              <GwpMark size={26} tone="navy" />
+              <GwpMark size={26} tone="sky" />
             </Link>
 
             {/* Navigation Links (Desktop only) */}

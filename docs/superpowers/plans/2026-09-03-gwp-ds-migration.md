@@ -3738,7 +3738,7 @@ The outer `px-4 pt-3` is what lets sky show *around* the shell. Without it the n
 
 - [ ] **Step 2: Swap the brand mark**
 
-Replace the `next/image` block pointing at `/Geomatric/black.svg` and `/Geomatric/white.svg` with `<GwpMark size={26} tone="navy" />` for the signed-out lockup, and delete the `OpCreative` text node next to it if `GwpMark withWordmark` carries the wordmark. Then delete the now-unreferenced files:
+Replace the `next/image` block pointing at `/Geomatric/black.svg` and `/Geomatric/white.svg` with `<GwpMark size={26} tone="sky" />`. **Not `navy`** — `GwpMark.prompt.md` is explicit that the floating nav shell takes `sky`, and that "navy is no longer the default: it reads heavy and corporate and pulls the brand toward SaaS/admin". That is the exact failure mode this migration exists to reverse, so a navy mark in the nav would undo the point of the shell for the signed-out lockup, and delete the `OpCreative` text node next to it if `GwpMark withWordmark` carries the wordmark. Then delete the now-unreferenced files:
 
 ```bash
 grep -rn "Geomatric" --include='*.tsx' apps/dashboard/src || rm -rf apps/dashboard/public/Geomatric

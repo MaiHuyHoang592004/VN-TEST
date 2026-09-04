@@ -179,17 +179,25 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
         for (const line of lines) {
           await reserveForOrder(tx, line.id, actor.id);
         }
-        await writeAudit(tx, ctx, {
-          action: "ORDER_ASSIGNED",
-          targetType: "order",
-          targetId: lines.map((l) => l.id).join(","),
-          after: {
-            warehouseId,
-            sellerId,
-            charged: total.toFixed(2),
-            balanceAfter: move.after.toFixed(2),
-          },
-        });
+        // One audit row per order, not one row for the whole batch: the audit
+        // log is looked up by targetId=orderId (an exact match, not
+        // "contains"), so a joined "12,13,14" would make the charge for order
+        // 12 untraceable when 12 was assigned alongside 13 and 14.
+        for (const line of lines) {
+          await writeAudit(tx, ctx, {
+            action: "ORDER_ASSIGNED",
+            targetType: "order",
+            targetId: String(line.id),
+            after: {
+              warehouseId,
+              sellerId,
+              charged: line.cost.toFixed(2),
+              batchTotal: total.toFixed(2),
+              batchSize: lines.length,
+              balanceAfter: move.after.toFixed(2),
+            },
+          });
+        }
         // Money LEFT their balance without them doing anything — the case that
         // most deserves a notification, and the one legacy never sent. One per
         // seller per batch, not one per order, because the charge is one move.
@@ -229,6 +237,20 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
         return { ok: false as const, error: "insufficient-balance" as const, sellerId };
+      }
+      if (e instanceof InventoryError && e.code === "bom-line-unmapped") {
+        // Same shape as insufficient-stock below: a named, actionable reason
+        // instead of the generic 500 this used to fall through to (assign
+        // threw straight past the `throw e` at the bottom of this block).
+        // detail comes from explode() (boms/service/explode.ts): one line at
+        // a time, since explode() throws on the first unmapped line it hits.
+        const detail = e.detail as { bomId: number; bomLineId: number; componentSku: string } | undefined;
+        return {
+          ok: false as const,
+          error: "bom-line-unmapped" as const,
+          sellerId,
+          componentSku: detail?.componentSku,
+        };
       }
       if (e instanceof InventoryError && e.code === "insufficient-stock") {
         const detail = e.detail as InsufficientStockDetail | undefined;

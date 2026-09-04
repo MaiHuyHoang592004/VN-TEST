@@ -68,7 +68,8 @@ const PURCHASE_SELECT = {
   customerId: true,
   warehouseId: true,
   shippingAddress: true,
-  variant: { select: { id: true, name: true, key: true, configs: true } },
+  variant: { select: { id: true, name: true, key: true } },
+  product: { select: { id: true, configs: true } },
   productVariant: { select: { sku: true } },
   shipments: {
     select: { id: true, labelUrl: true, trackingNumber: true },
@@ -84,9 +85,12 @@ const PURCHASE_SELECT = {
  *
  * Legacy's LABEL_CONFIG mapped variant.key → {min, single, multiple}: one box
  * for a single item, a bigger one above a threshold. The rules live as data on
- * the variant because they are a customer fact, not code.
+ * the PRODUCT (seed-demo.ts sets `configs.parcel` on `prisma.product`, and the
+ * catalog's Product.configs field is exactly this escape hatch) because they
+ * are a customer fact, not code — never on Variant, which is the shared
+ * color/size catalog entry and carries no per-product box data at all.
  *
- * When a variant has no dimensions we report "missing-dimensions" and skip it.
+ * When a product has no dimensions we report "missing-dimensions" and skip it.
  * Guessing is the one thing that must not happen here: a wrong box size buys a
  * label at the wrong price, the carrier re-rates it weeks later, and the
  * difference lands as an unexplained invoice line.
@@ -96,7 +100,7 @@ type ProductParcelConfig = { single?: BoxRule; multiple?: BoxRule; distanceUnit?
 
 export function parcelsFor(rows: Row[]): Parcel[] | null {
   const units = rows.reduce((n, r) => n + r.quantity, 0);
-  const config = (rows[0]?.variant?.configs as { parcel?: ProductParcelConfig } | null)?.parcel;
+  const config = (rows[0]?.product?.configs as { parcel?: ProductParcelConfig } | null)?.parcel;
   if (!config) return null;
 
   const rule =

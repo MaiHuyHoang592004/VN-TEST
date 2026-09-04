@@ -14,6 +14,16 @@ import { bomSchema } from "../schema.ts";
 
 const blankToNull = (v?: string | null) => (v && v.length ? v : null);
 
+/**
+ * A REQUIRED line with no material behind it: production would explode() it
+ * and never be able to reserve the actual component. Blocking this at
+ * ACTIVATION — not just surfacing it in the consumption preview — is what
+ * stops an incomplete recipe from ever becoming the one assignment follows.
+ */
+const unmappedRequiredLines = <T extends { materialId?: number | null; required: boolean }>(
+  lines: T[],
+) => lines.filter((l) => l.required && l.materialId == null);
+
 /** The four counts every list column and tile is built from. */
 const summarize = (lines: { materialId: number | null; required: boolean }[]) => ({
   lineCount: lines.length,
@@ -201,6 +211,16 @@ export async function createBom(
   if (input.status === "ACTIVE" && input.lines.length === 0) {
     throw new InventoryError("not-editable", "A BOM with no lines cannot be activated.");
   }
+  if (input.status === "ACTIVE") {
+    const unmapped = unmappedRequiredLines(input.lines);
+    if (unmapped.length) {
+      throw new InventoryError(
+        "bom-line-unmapped",
+        "A required component is not mapped to a material yet.",
+        { items: unmapped.map((l) => ({ componentSku: l.componentSku, componentName: l.componentName })) },
+      );
+    }
+  }
 
   const created = await prisma.$transaction(async (tx) => {
     const version = input.version ?? (await nextVersion(tx, productVariantId));
@@ -251,6 +271,16 @@ export async function updateBom(actor: Actor, id: number, raw: unknown, ctx: Aud
   if (input.status === "ACTIVE" && input.lines.length === 0) {
     throw new InventoryError("not-editable", "A BOM with no lines cannot be activated.");
   }
+  if (input.status === "ACTIVE") {
+    const unmapped = unmappedRequiredLines(input.lines);
+    if (unmapped.length) {
+      throw new InventoryError(
+        "bom-line-unmapped",
+        "A required component is not mapped to a material yet.",
+        { items: unmapped.map((l) => ({ componentSku: l.componentSku, componentName: l.componentName })) },
+      );
+    }
+  }
 
   await prisma.$transaction(async (tx) => {
     await tx.bomLine.deleteMany({ where: { bomId: id } });
@@ -285,11 +315,24 @@ export async function updateBom(actor: Actor, id: number, raw: unknown, ctx: Aud
 export async function activateBom(actor: Actor, id: number, ctx: AuditContext) {
   const bom = await prisma.bom.findFirst({
     where: { id, deletedAt: null },
-    select: { id: true, productVariantId: true, status: true, _count: { select: { lines: true } } },
+    select: {
+      id: true,
+      productVariantId: true,
+      status: true,
+      lines: { select: { materialId: true, required: true, componentSku: true, componentName: true } },
+    },
   });
   if (!bom) throw new InventoryError("not-found", "That BOM no longer exists.");
-  if (bom._count.lines === 0) {
+  if (bom.lines.length === 0) {
     throw new InventoryError("not-editable", "A BOM with no lines cannot be activated.");
+  }
+  const unmapped = unmappedRequiredLines(bom.lines);
+  if (unmapped.length) {
+    throw new InventoryError(
+      "bom-line-unmapped",
+      "A required component is not mapped to a material yet.",
+      { items: unmapped.map((l) => ({ componentSku: l.componentSku, componentName: l.componentName })) },
+    );
   }
 
   await prisma.$transaction(async (tx) => {

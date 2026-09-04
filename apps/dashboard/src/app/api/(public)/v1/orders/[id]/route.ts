@@ -72,7 +72,9 @@ export const PATCH = withApiKey(async (req, actor, { params }) => {
       released = result.released;
     } catch (e) {
       if (e instanceof PatchError) {
-        return apiError(e.code === "not-found" ? "not_found" : "invalid_request", e.message);
+        const code =
+          e.code === "not-found" ? "not_found" : e.code === "conflict" ? "conflict" : "invalid_request";
+        return apiError(code, e.message);
       }
       throw e;
     }

@@ -10,10 +10,21 @@ import * as orders from "./service.ts";
 import { InvalidTransitionError } from "./status.ts";
 import type { FulfillmentStatus } from "@gwprint/db";
 
-export async function createOrderAction(input: unknown, owner?: string) {
+/**
+ * `idempotencyKey` is generated once by the dialog when it opens and reused
+ * on every submit — same pattern as refundOrdersAction — so a double-click or
+ * a retry after a dropped response creates the order exactly once.
+ */
+export async function createOrderAction(input: unknown, owner?: string, idempotencyKey?: string) {
   const actor = await requirePermission("orders.create");
   return withValidation(async () => {
-    const result = await orders.createOrder(actor, input, await auditContext(actor), owner ?? actor.id);
+    const result = await orders.createOrder(
+      actor,
+      input,
+      await auditContext(actor),
+      owner ?? actor.id,
+      idempotencyKey,
+    );
     revalidatePath("/orders");
     return result;
   });
@@ -29,10 +40,19 @@ export async function createOrdersAction(rows: unknown[], owner?: string) {
   return result;
 }
 
-export async function updateOrderAction(id: number, input: unknown) {
+/** `expectedUpdatedAt` is the `updatedAt` the caller read before editing —
+ * pass it to catch a save that landed after someone else's, instead of
+ * silently overwriting it. Omit to skip the check. */
+export async function updateOrderAction(id: number, input: unknown, expectedUpdatedAt?: string) {
   const actor = await requirePermission("orders.update");
   return withValidation(async () => {
-    const result = await orders.updateOrder(actor, id, input, await auditContext(actor));
+    const result = await orders.updateOrder(
+      actor,
+      id,
+      input,
+      await auditContext(actor),
+      expectedUpdatedAt ? new Date(expectedUpdatedAt) : undefined,
+    );
     revalidatePath("/orders");
     return result;
   });

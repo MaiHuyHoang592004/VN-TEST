@@ -260,19 +260,26 @@ test("an untracked material is on the recipe but holds no stock", async () => {
 test("a REQUIRED unmapped line blocks the explode; an optional one does not", async () => {
   const pv = await newVariant("BOM-UNMAPPED");
   const m = await newMaterial("BOM-M9");
-  await createBom(
-    admin(),
-    pv,
-    {
+  // Direct DB insert, not createBom(): activation now REFUSES a required
+  // unmapped line (see "activation refuses a required unmapped line" below)
+  // — this simulates the other way such a BOM can exist, a material's
+  // mapping removed AFTER activation, which explode() must still catch.
+  const bom = await prisma.bom.create({
+    data: {
+      productVariantId: pv,
       name: "v1",
+      version: 1,
       status: "ACTIVE",
-      lines: [
-        line(m, 1),
-        { ...line(m, 1), materialId: null, componentSku: "MYSTERY", required: true },
-      ],
+      createdById: adminId,
+      updatedById: adminId,
     },
-    ctx(),
-  );
+  });
+  await prisma.bomLine.createMany({
+    data: [
+      { bomId: bom.id, ...line(m, 1) },
+      { bomId: bom.id, ...line(m, 1), materialId: null, componentSku: "MYSTERY", required: true },
+    ],
+  });
 
   await assert.rejects(
     () => explode(prisma, pv, 1),
@@ -297,6 +304,42 @@ test("a REQUIRED unmapped line blocks the explode; an optional one does not", as
   );
   const reqs = await explode(prisma, pv2, 1);
   assert.equal(reqs.length, 1);
+});
+
+test("activation refuses a required unmapped line, on all three paths", async () => {
+  const pv = await newVariant("BOM-ACTIVATE-UNMAPPED");
+  const m = await newMaterial("BOM-M11");
+  const unmappedLines = [
+    line(m, 1),
+    { ...line(m, 1), materialId: null, componentSku: "MYSTERY", required: true },
+  ];
+
+  await assert.rejects(
+    () => createBom(admin(), pv, { name: "v1", status: "ACTIVE", lines: unmappedLines }, ctx()),
+    (e: Error) => codeOf(e) === "bom-line-unmapped",
+    "createBom must not let an incomplete recipe become the one production follows",
+  );
+
+  // A DRAFT with the same lines is fine — the block is on ACTIVE only.
+  const created = await createBom(
+    admin(),
+    pv,
+    { name: "v1", status: "DRAFT", lines: unmappedLines },
+    ctx(),
+  );
+  await assert.rejects(
+    () => updateBom(admin(), created.id, { name: "v1", status: "ACTIVE", lines: unmappedLines }, ctx()),
+    (e: Error) => codeOf(e) === "bom-line-unmapped",
+  );
+  await assert.rejects(
+    () => activateBom(admin(), created.id, ctx()),
+    (e: Error) => codeOf(e) === "bom-line-unmapped",
+  );
+
+  // Mapping the mystery component clears the way on all three paths.
+  const mapped = unmappedLines.map((l) => (l.componentSku === "MYSTERY" ? { ...l, materialId: m } : l));
+  await updateBom(admin(), created.id, { name: "v1", status: "DRAFT", lines: mapped }, ctx());
+  await assert.doesNotReject(() => activateBom(admin(), created.id, ctx()));
 });
 
 test("an unmapped line is counted as incomplete on the list", async () => {

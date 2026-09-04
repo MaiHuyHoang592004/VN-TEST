@@ -15,6 +15,8 @@
  * is how the legacy API ended up able to create orders the UI would have
  * rejected.
  */
+import { createHash } from "node:crypto";
+
 import { prisma, writeAudit, orderScope, type AuditContext } from "@gwprint/db";
 import { can } from "@gwprint/shared";
 
@@ -22,6 +24,20 @@ import { isDuplicateKey } from "../../../core/ledger.ts";
 import { notify } from "../../../platform/index.ts";
 import { orderSchema, type OrderInput } from "../schema.ts";
 import { blankToNull, type Actor } from "./shared.ts";
+
+/** A stale write must lose the race, not silently win it. Thrown when a
+ * caller supplied the `updatedAt` it read and the row has since moved. */
+export class OrderConflictError extends Error {
+  readonly code = "conflict" as const;
+  readonly orderId: number;
+  // Fields assigned explicitly, not via TypeScript parameter properties:
+  // node --test strips types rather than compiling them (modules/README.md).
+  constructor(orderId: number) {
+    super(`Order ${orderId} was changed since it was read.`);
+    this.name = "OrderConflictError";
+    this.orderId = orderId;
+  }
+}
 
 /**
  * Create one order.
@@ -164,7 +180,16 @@ export async function createOrders(
   const results: Array<{ column: number; ok: boolean; id?: number; error?: string }> = [];
   for (const [i, raw] of rows.entries()) {
     try {
-      const r = await createOrder(actor, raw, ctx, owner);
+      // A retried import — the SAME file re-submitted after a timeout, or the
+      // Import button hit twice — must not create every column a second time.
+      // The key is derived from the column's own content plus its position, not
+      // random: replaying the identical file reproduces the identical key and
+      // dedupes through the same UNIQUE(idempotencyKey) path a single
+      // create/API POST already relies on. Position is part of it so two
+      // genuinely-identical sibling rows (a real duplicate line) still both
+      // get created.
+      const idempotencyKey = `import:${owner}:${i}:${createHash("sha256").update(JSON.stringify(raw)).digest("hex").slice(0, 32)}`;
+      const r = await createOrder(actor, raw, ctx, owner, idempotencyKey);
       results.push(r.ok ? { column: i, ok: true, id: r.id } : { column: i, ok: false, error: r.error });
     } catch (e) {
       const message =
@@ -184,15 +209,35 @@ export async function createOrders(
   };
 }
 
-export async function updateOrder(actor: Actor, id: number, raw: unknown, ctx: AuditContext) {
+export async function updateOrder(
+  actor: Actor,
+  id: number,
+  raw: unknown,
+  ctx: AuditContext,
+  /** The `updatedAt` the caller read before editing. Omit to skip the check —
+   * no dashboard screen currently opens an existing order for edit, so no
+   * caller has one to send yet; this is here for when one does. */
+  expectedUpdatedAt?: Date,
+) {
   const input = orderSchema.parse(raw);
   const before = await prisma.order.findFirstOrThrow({
     where: { ...(await orderScope(actor)), id, deletedAt: null },
     select: {
       externalId: true, marketplace: true, quantity: true, deadline: true,
       note: true, internalNote: true, imageUrl: true, shippingAddressId: true,
+      status: true,
     },
   });
+
+  // Quantity is the one field that changes what somebody has to MAKE — once
+  // the order has left PENDING it has already been priced and charged (see
+  // assignOrders), so changing it here would desync Order.quantity from the
+  // baseCost/Transaction already recorded. Matches the public API's
+  // patchOrder, which locks the same field the same way.
+  if (input.quantity !== before.quantity && before.status !== "PENDING") {
+    return { ok: false as const, error: "quantity-locked" as const };
+  }
+
   const data = {
     externalId: input.externalId,
     marketplace: blankToNull(input.marketplace),
@@ -202,38 +247,57 @@ export async function updateOrder(actor: Actor, id: number, raw: unknown, ctx: A
     internalNote: blankToNull(input.internalNote),
     imageUrl: blankToNull(input.imageUrl),
   };
-  await prisma.$transaction(async (tx) => {
-    await tx.order.update({ where: { id }, data });
-    if (before.shippingAddressId) {
-      await tx.address.update({
-        where: { id: before.shippingAddressId },
-        data: {
-          name: input.shippingName,
-          company: blankToNull(input.shippingCompany),
-          email: blankToNull(input.shippingEmail),
-          phone: blankToNull(input.shippingPhone),
-          line1: blankToNull(input.line1),
-          line2: blankToNull(input.line2),
-          city: blankToNull(input.city),
-          state: blankToNull(input.state),
-          zip: input.zip,
-          country: blankToNull(input.country),
-        },
+  try {
+    await prisma.$transaction(async (tx) => {
+      // A caller that supplies the updatedAt it read proves it started from
+      // the CURRENT row: if the row has moved since, this matches zero rows
+      // and the stale write loses instead of silently clobbering whatever the
+      // other party saved in between.
+      if (expectedUpdatedAt) {
+        const result = await tx.order.updateMany({
+          where: { id, updatedAt: expectedUpdatedAt },
+          data,
+        });
+        if (result.count === 0) throw new OrderConflictError(id);
+      } else {
+        await tx.order.update({ where: { id }, data });
+      }
+      if (before.shippingAddressId) {
+        await tx.address.update({
+          where: { id: before.shippingAddressId },
+          data: {
+            name: input.shippingName,
+            company: blankToNull(input.shippingCompany),
+            email: blankToNull(input.shippingEmail),
+            phone: blankToNull(input.shippingPhone),
+            line1: blankToNull(input.line1),
+            line2: blankToNull(input.line2),
+            city: blankToNull(input.city),
+            state: blankToNull(input.state),
+            zip: input.zip,
+            country: blankToNull(input.country),
+          },
+        });
+      }
+      // Diff only what changed — a whole-column before/after buries the one field
+      // someone actually needs to find later.
+      const changed = Object.fromEntries(
+        Object.entries(data).filter(
+          ([k, v]) => String(before[k as keyof typeof before] ?? "") !== String(v ?? ""),
+        ),
+      );
+      await writeAudit(tx, ctx, {
+        action: "ORDER_UPDATED",
+        targetType: "order",
+        targetId: String(id),
+        before,
+        after: changed,
       });
-    }
-    // Diff only what changed — a whole-column before/after buries the one field
-    // someone actually needs to find later.
-    const changed = Object.fromEntries(
-      Object.entries(data).filter(([k, v]) => String(before[k as keyof typeof before] ?? "") !== String(v ?? "")),
-    );
-    await writeAudit(tx, ctx, {
-      action: "ORDER_UPDATED",
-      targetType: "order",
-      targetId: String(id),
-      before,
-      after: changed,
     });
-  });
+  } catch (e) {
+    if (e instanceof OrderConflictError) return { ok: false as const, error: "conflict" as const };
+    throw e;
+  }
   return { ok: true as const };
 }
 

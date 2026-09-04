@@ -82,6 +82,12 @@ export function OrderDialog({
   const [skuCache, setSkuCache] = useState<{ forProduct: number; items: Option[] } | null>(null);
   const skus = skuCache && skuCache.forProduct === productId ? skuCache.items : [];
   const [skuId, setSkuId] = useState<number | null>(null);
+  // Generated ONCE per dialog open, not per submit — so a double-click or a
+  // retry after a dropped response creates the order exactly once, same
+  // pattern as RefundDialog/AssignDialog. Unused on edit; updateOrderAction
+  // takes no idempotency key because a PATCH-shaped write already lands on
+  // the same state when replayed.
+  const [idempotencyKey] = useState(() => `order-${Date.now()}-${crypto.randomUUID()}`);
 
   const set = (k: keyof typeof EMPTY, v: string) => setValues((s) => ({ ...s, [k]: v }));
 
@@ -104,7 +110,7 @@ export function OrderDialog({
 
   const { submit, pending, formError, fieldErrors } = useFormAction({
     action: (input: Record<string, unknown>) =>
-      order ? updateOrderAction(order.id, input) : createOrderAction(input),
+      order ? updateOrderAction(order.id, input) : createOrderAction(input, undefined, idempotencyKey),
     successMessage: t(order ? "orders.updated" : "orders.created"),
     errorMessages: {
       "unknown-sku": t("orders.errUnknownSku"),

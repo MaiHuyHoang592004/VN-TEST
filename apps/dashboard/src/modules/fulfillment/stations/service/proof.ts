@@ -76,12 +76,16 @@ export async function attachProof(
       }
     }
     await freeBasket(tx, rows);
-    await writeAudit(tx, ctx, {
-      action: "ORDER_PROOF_UPLOADED",
-      targetType: "order",
-      targetId: rows.map((r) => r.id).join(","),
-      after: { proofImageUrl: stored.url, proofKey: stored.pathname },
-    });
+    // One audit row per order — targetId is looked up by exact match, so a
+    // joined id list would make this untraceable per order.
+    for (const column of rows) {
+      await writeAudit(tx, ctx, {
+        action: "ORDER_PROOF_UPLOADED",
+        targetType: "order",
+        targetId: String(column.id),
+        after: { proofImageUrl: stored.url, proofKey: stored.pathname },
+      });
+    }
     return out;
   });
   await dispatchStatusWebhooks(changes);

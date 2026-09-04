@@ -95,12 +95,16 @@ export async function fillOrder(
         where: { id: { in: groupIds } },
         data: { basketPositionId: slot.id },
       });
-      await writeAudit(tx, ctx, {
-        action: "ORDER_UPDATED",
-        targetType: "order",
-        targetId: groupIds.join(","),
-        after: { basketPositionId: slot.id },
-      });
+      // One audit row per order — targetId is looked up by exact match, so a
+      // joined id list would make this untraceable per order.
+      for (const orderId of groupIds) {
+        await writeAudit(tx, ctx, {
+          action: "ORDER_UPDATED",
+          targetType: "order",
+          targetId: String(orderId),
+          after: { basketPositionId: slot.id },
+        });
+      }
       const position = await tx.basketPosition.findUniqueOrThrow({
         where: { id: slot.id },
         select: { name: true, shelfName: true, row: true, column: true },

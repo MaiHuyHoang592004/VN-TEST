@@ -450,37 +450,39 @@ test("an unmapped required component blocks reservation with its own code", asyn
   const pv = await prisma.productVariant.create({
     data: { productId, variantId: variant.id, sku: "OF-SKU-UNMAPPED" },
   });
-  await createBom(
-    admin(),
-    pv.id,
-    {
-      name: "v1",
-      status: "ACTIVE",
-      lines: [
-        {
-          materialId: m,
-          componentSku: "C-ok",
-          quantityPerUnit: 1,
-          unit: "pcs",
-          wastageRate: 0,
-          stage: "PRODUCTION",
-          required: true,
-          sortOrder: 0,
-        },
-        {
-          materialId: null,
-          componentSku: "C-mystery",
-          quantityPerUnit: 1,
-          unit: "pcs",
-          wastageRate: 0,
-          stage: "PRODUCTION",
-          required: true,
-          sortOrder: 1,
-        },
-      ],
-    },
-    ctx(),
-  );
+  // Direct DB insert, not createBom(): activation now REFUSES a required
+  // unmapped line, so this simulates the other way such a BOM can exist — a
+  // material's mapping removed AFTER activation — which reserveForOrder must
+  // still catch.
+  const bom = await prisma.bom.create({
+    data: { productVariantId: pv.id, name: "v1", version: 1, status: "ACTIVE", createdById: adminId, updatedById: adminId },
+  });
+  await prisma.bomLine.createMany({
+    data: [
+      {
+        bomId: bom.id,
+        materialId: m,
+        componentSku: "C-ok",
+        quantityPerUnit: 1,
+        unit: "pcs",
+        wastageRate: 0,
+        stage: "PRODUCTION",
+        required: true,
+        sortOrder: 0,
+      },
+      {
+        bomId: bom.id,
+        materialId: null,
+        componentSku: "C-mystery",
+        quantityPerUnit: 1,
+        unit: "pcs",
+        wastageRate: 0,
+        stage: "PRODUCTION",
+        required: true,
+        sortOrder: 1,
+      },
+    ],
+  });
   const orderId = await newOrder(pv.id, 1);
 
   await withFlag("1", async () => {

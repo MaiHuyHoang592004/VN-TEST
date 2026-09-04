@@ -123,7 +123,9 @@ test("@vercel/blob is imported in exactly one place", async () => {
       }
       if (!/\.(ts|tsx)$/.test(entry.name)) continue;
       // storage.ts owns the drivers; this test names the SDKs to check.
-      const relative = path.relative(SRC, full);
+      // path.relative() returns OS-native separators (backslash on Windows),
+      // so the check normalizes to forward slashes rather than hardcoding one.
+      const relative = path.relative(SRC, full).split(path.sep).join("/");
       if (/^modules\/core\/storage(\.|\.test\.)/.test(relative)) continue;
       const source = await readFile(full, "utf8");
       if (sdks.some((sdk) => source.includes(`"${sdk}"`) || source.includes(`'${sdk}'`))) {

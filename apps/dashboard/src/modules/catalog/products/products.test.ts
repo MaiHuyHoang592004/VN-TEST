@@ -119,8 +119,8 @@ test("a variant in use is never deleted, and an unused one soft-deletes", async 
   assert.equal(usage.skus, 1);
   assert.equal(usage.canDelete, false);
 
-  // A clean variant deletes — and leaves its column behind so the unique key
-  // cannot be recycled into a different variant's audit history.
+  // A clean product deletes — and leaves its column behind so the unique key
+  // cannot be recycled into a different product's audit history.
   const created = await createProduct(admin(), {
     name: "Disposable", key: "cat-disposable", status: "DRAFT",
   }, ctx(admin()));
@@ -128,7 +128,7 @@ test("a variant in use is never deleted, and an unused one soft-deletes", async 
   const id = created.ok === true ? created.id : 0;
 
   assert.equal((await deleteProduct(admin(), id, ctx(admin()))).ok, true);
-  const column = await prisma.variant.findUniqueOrThrow({ where: { id } });
+  const column = await prisma.product.findUniqueOrThrow({ where: { id } });
   assert.notEqual(column.deletedAt, null, "soft delete, not a real one");
   const { rows } = await listProducts(admin());
   assert.equal(rows.some((r) => r.key === "cat-disposable"), false, "and it leaves the list");

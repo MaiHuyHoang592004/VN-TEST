@@ -30,7 +30,10 @@ export type PatchErrorCode =
   /** Editing something only a PENDING order may change. */
   | 'not-editable'
   /** A body with nothing in it we accept. */
-  | 'nothing-to-patch';
+  | 'nothing-to-patch'
+  /** expected_updated_at was sent and no longer matches — someone else's
+   * write landed first. */
+  | 'conflict';
 
 export class PatchError extends Error {
   readonly code: PatchErrorCode;
@@ -56,6 +59,11 @@ export const patchOrderSchema = z
     image_url: z.string().trim().url().max(1000).optional(),
     external_id: z.string().trim().max(120).optional(),
     deadline: z.string().trim().datetime().optional(),
+    /** The order's `updated_at` as of the caller's last GET. When sent, the
+     * write is refused (409 conflict) if the order has changed since —
+     * proof the caller started from the current row, not a stale one. Omit
+     * to skip the check and write unconditionally, as before. */
+    expected_updated_at: z.string().trim().datetime().optional(),
     shipping: z
       .object({
         name: z.string().trim().max(160).optional(),
@@ -94,7 +102,7 @@ export async function patchOrder(
 ) {
   const input = patchOrderSchema.parse(raw);
   const keys = Object.keys(input).filter(
-    (k) => input[k as keyof PatchOrderInput] !== undefined,
+    (k) => k !== 'expected_updated_at' && input[k as keyof PatchOrderInput] !== undefined,
   );
   if (!keys.length)
     throw new PatchError(
@@ -116,9 +124,20 @@ export async function patchOrder(
       quantity: true,
       imageUrl: true,
       shippingAddressId: true,
+      updatedAt: true,
     },
   });
   if (!order) throw new PatchError('not-found', 'No such order.');
+
+  if (
+    input.expected_updated_at !== undefined &&
+    order.updatedAt.getTime() !== new Date(input.expected_updated_at).getTime()
+  ) {
+    throw new PatchError(
+      'conflict',
+      'This order was changed since it was last read.',
+    );
+  }
 
   if (input.quantity !== undefined && order.status !== 'PENDING') {
     throw new PatchError(
@@ -140,20 +159,30 @@ export async function patchOrder(
   const resumeTo = resumeTargetOf(order.configs) ?? 'PENDING';
 
   await prisma.$transaction(async (tx) => {
-    await tx.order.update({
-      where: { id },
-      data: {
-        ...(input.note !== undefined ? { note: input.note || null } : {}),
-        ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
-        ...(input.image_url !== undefined ? { imageUrl: input.image_url } : {}),
-        ...(input.external_id !== undefined
-          ? { externalId: input.external_id }
-          : {}),
-        ...(input.deadline !== undefined
-          ? { deadline: new Date(input.deadline) }
-          : {}),
-      },
-    });
+    const data = {
+      ...(input.note !== undefined ? { note: input.note || null } : {}),
+      ...(input.quantity !== undefined ? { quantity: input.quantity } : {}),
+      ...(input.image_url !== undefined ? { imageUrl: input.image_url } : {}),
+      ...(input.external_id !== undefined
+        ? { externalId: input.external_id }
+        : {}),
+      ...(input.deadline !== undefined
+        ? { deadline: new Date(input.deadline) }
+        : {}),
+    };
+    // Re-check atomically, inside the write itself: the pre-check above can
+    // still lose a race to a write that lands in between it and here.
+    if (input.expected_updated_at !== undefined) {
+      const result = await tx.order.updateMany({
+        where: { id, updatedAt: new Date(input.expected_updated_at) },
+        data,
+      });
+      if (result.count === 0) {
+        throw new PatchError('conflict', 'This order was changed since it was last read.');
+      }
+    } else {
+      await tx.order.update({ where: { id }, data });
+    }
 
     if (input.shipping && order.shippingAddressId) {
       const s = input.shipping;

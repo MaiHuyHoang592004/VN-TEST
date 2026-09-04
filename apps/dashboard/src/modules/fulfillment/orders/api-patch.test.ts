@@ -145,6 +145,46 @@ test("quantity is editable while pending and refused after", async () => {
   assert.equal(still.ok, true);
 });
 
+test("a stale expected_updated_at is refused; the current one goes through", async () => {
+  const before = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    select: { updatedAt: true },
+  });
+
+  // Someone else's write lands first.
+  await patchOrder(seller(), orderId, { note: "the other party's edit" }, ctx(seller()));
+
+  // A caller that started from the now-stale updatedAt loses the race — the
+  // write is refused rather than silently overwriting what just landed.
+  await assert.rejects(
+    () =>
+      patchOrder(
+        seller(),
+        orderId,
+        { note: "clobbers the other edit", expected_updated_at: before.updatedAt.toISOString() },
+        ctx(seller()),
+      ),
+    (e) => e instanceof PatchError && codeOf(e) === "conflict",
+  );
+  const stillTheOtherEdit = await prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    select: { note: true, updatedAt: true },
+  });
+  assert.equal(stillTheOtherEdit.note, "the other party's edit", "the losing write never landed");
+
+  // The CURRENT updatedAt proves the caller is starting from the live row.
+  await patchOrder(
+    seller(),
+    orderId,
+    { note: "a fresh read, then a fresh write", expected_updated_at: stillTheOtherEdit.updatedAt.toISOString() },
+    ctx(seller()),
+  );
+  assert.equal(
+    (await prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { note: true } })).note,
+    "a fresh read, then a fresh write",
+  );
+});
+
 test("another seller's order id is a miss, not a column", async () => {
   await assert.rejects(
     () => patchOrder(stranger(), orderId, { note: "not mine" }, ctx(stranger())),

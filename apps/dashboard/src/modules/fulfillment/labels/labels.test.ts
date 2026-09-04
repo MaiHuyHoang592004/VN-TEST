@@ -149,8 +149,10 @@ test("a variant with no box size is skipped — never guessed", async () => {
 });
 
 test("the box grows with the count, and the weight scales with it", () => {
-  const one = parcelsFor([{ quantity: 1, variant: boxedConfig() }] as never);
-  const many = parcelsFor([{ quantity: 3, variant: boxedConfig() }] as never);
+  // configs lives on the PRODUCT, not the variant — see parcelsFor's own
+  // doc-comment and seed-demo.ts, which writes it there.
+  const one = parcelsFor([{ quantity: 1, product: boxedConfig() }] as never);
+  const many = parcelsFor([{ quantity: 3, product: boxedConfig() }] as never);
   assert.equal(one?.[0].length, 6, "one piece uses the single box");
   assert.equal(many?.[0].length, 9, "three pieces use the bigger box");
   assert.equal(one?.[0].weight, 3);

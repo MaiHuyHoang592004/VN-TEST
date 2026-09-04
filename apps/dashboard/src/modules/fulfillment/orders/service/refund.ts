@@ -216,13 +216,25 @@ export async function adminRefundOrders(
         for (const order of live) {
           await applyStatusChange(tx, ctx, order, "CANCELLED", reason);
         }
-        await writeAudit(tx, ctx, {
-          action: "BALANCE_REFUND",
-          targetType: "order",
-          targetId: orderIds.join(","),
-          after: { sellerId, refunded: amount.toFixed(2), orders: live.length },
-          reason,
-        });
+        // One audit row per order, not one row for the whole batch: the audit
+        // log is looked up by targetId=orderId (an exact match, not
+        // "contains"), so a joined "12,13,14" would make the refund on order
+        // 12 untraceable when it was refunded alongside 13 and 14.
+        for (const order of live) {
+          const line = lines.find((l) => l.orderId === order.id);
+          await writeAudit(tx, ctx, {
+            action: "BALANCE_REFUND",
+            targetType: "order",
+            targetId: String(order.id),
+            after: {
+              sellerId,
+              refunded: line?.total,
+              batchTotal: amount.toFixed(2),
+              batchSize: live.length,
+            },
+            reason,
+          });
+        }
         // applyBalanceMove deliberately sends nothing (core may not import a
         // domain), so the seller is told here, inside the same transaction.
         await notify(tx, {

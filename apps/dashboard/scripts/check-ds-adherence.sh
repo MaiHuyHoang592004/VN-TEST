@@ -44,7 +44,6 @@ if grep -rnE '#[0-9a-fA-F]{3,8}|rgba?\(|oklch\(|color-mix\(|:[[:space:]]*(white
      | grep -F -v 'oklch(from_var(' \
      | grep -F -v 'oklch(from var(' \
      | grep -E -v 'color-mix\([^)]*var\(' \
-     | grep -F -v 'color-mix(in srgb, white 35%, transparent)' \
      | grep -E -v '(mask|mask-image|mask-composite):' \
      | grep -E -v '^[^:]+:[0-9]+: *(//|\*|/\*)'; then
   echo "FAIL: colour literal outside the token layer"; fail=1

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="GoodWoodPrint">
+  <rect width="64" height="64" rx="14" fill="#ABDAEF"></rect>
+  <g fill="none" stroke="#FFFDF0" stroke-width="2.4">
+    <circle cx="32" cy="32" r="6"></circle>
+    <circle cx="32" cy="32" r="12"></circle>
+    <circle cx="32" cy="32" r="18"></circle>
+    <circle cx="32" cy="32" r="24"></circle>
+  </g>
+  <circle cx="32" cy="32" r="2.4" fill="#FFFDF0"></circle>
+</svg>

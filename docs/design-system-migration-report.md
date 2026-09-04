@@ -61,7 +61,7 @@ the code before touching it; "verified" is what was exercised in a browser.
 | 22 | Catalog | 4 | 4/4 | grid, list, view toggle, search |
 | 23 | Inventory | 6 | 4/6 | the two write dialogs (adjust, import) not exercised |
 | 24 | Fulfillment | 3 | 2/3 | monitor filters + board; the station's scan flow needs a barcode |
-| 25 | Admin (12 routes) | 22 gates, 13 tables, 20 `<Can>` | gates 22/22, routes 4/12 | see below |
+| 25 | Admin (12 routes) | 22 gates, 13 tables, 20 `<Can>` | gates 22/22, routes 12/12 | see below |
 | 26 | Profile/wallet/etc | 8 | 6/8 | see below |
 
 ### Task 20 — the four Orders interactions not ticked
@@ -89,11 +89,32 @@ The plan's Step 5 proof, run:
 - the sorted permission strings are **identical**;
 - the 20 `<Can permission="…">` sites **diff clean against HEAD**.
 
-Four of the twelve routes were walked in a browser (users, transactions, boms,
-expenses) as an admin. The remaining eight were not, and the plan explicitly
-says *"do not sample"* — so this is the largest gap in the verification, and it
-is stated plainly rather than rounded up. The eight are homogeneous with the
-four and share the same header, badge and toolbar changes.
+**All twelve routes were walked in a browser**, as an admin
+(`sam@demo.opcreative.dev`, roles `SUPPORT` + `ADMIN`) against the seeded local
+database: users, transactions, boms and expenses first, then products,
+products/[id]/variants, variants, mockups, materials, vendors, warehouses and
+audit. Every one renders its hero with the title read from `nav-tabs.ts`, its
+StatusBadge states, its mono codes and figures, and exactly one Action Blue
+button in its toolbar. Search was exercised on `/admin/products` (`hoodie` →
+"1–1 of 1", with the Clear button appearing).
+
+**The other half of the gate check was run too.** Signed in as a seller
+(`maya@demo.opcreative.dev`, role `SELLER`), all eight of the newly walked
+routes return the 403 page and the admin tab strip renders empty. Signed in as
+a `SUPPORT`-only account, the strip showed exactly the five sections that role
+can reach and `/admin/products` 403'd — so the tabs and the server guard agree.
+
+One gap remains inside Task 25: the audit table's `attention` tone for a
+**sensitive** action (`BALANCE_*`, `*ROLE*`, `*DELETED*`) could not be
+exercised, because the seed data contains only `SHIPMENT_CREATED` and
+`ORDER_STATUS_CHANGED`. The neutral branch was verified; the attention branch
+was not.
+
+One minor inconsistency worth a decision: on `/admin/products/[id]/variants`
+the hero reads "Products" (the section, via `activeTabHref`'s nested-route
+rule) while the record is named in the page body below it. Tickets' detail
+route instead puts the record in the hero. Both are defensible; they are not
+the same.
 
 ### Task 26 — the sign-in paths
 
@@ -222,6 +243,14 @@ never rendered. After Layer 4:
   than VERIFY.md and is not claimed to be equivalent.
 - **The 84 database-backed tests still have not run** here. The 48 runnable
   tests pass.
+- **A concurrent session is renaming `@opcreative/*` to `@gwprint/*`** across
+  the repo (180 files, uncommitted at the time of writing) and has repointed
+  `apps/dashboard/.env.local` at a remote Railway database. The main working
+  tree does not build while that is in flight, because `node_modules` still
+  carries the old workspace links. The Layer 4 verification above was therefore
+  run from a separate git worktree checked out at `1407f5c` with its own
+  `.env.local` pointing back at `opcreative_local`. Nothing in that rename is
+  part of this migration.
 - **`DESIGN-VERCEL.md` is now `DESIGN-VERCEL.ARCHIVED.md`** with a header
   saying so, and the root `CLAUDE.md` points at `docs/design-system/` instead.
 - **No dead tokens were left to delete.** The Step 2 sweep for `vercel-*`,

@@ -12,6 +12,7 @@ import {
 } from "@/modules/finance/transactions/actions";
 
 import type { TransactionRow } from "./transactions-table";
+import { money } from "@/lib/money";
 
 /**
  * Approve or reject one pending column.
@@ -70,7 +71,9 @@ export function ApproveDialog({
     >
       <div className="border-border flex items-center justify-between gap-3 rounded-md border p-3">
         <span className="text-sm">{t(`finance.types.${transaction.type}`)}</span>
-        <span className="font-mono text-sm font-medium tabular-nums">${transaction.amount}</span>
+        <span className="font-mono text-sm font-medium tabular-nums">
+          {money(transaction.amount)}
+        </span>
       </div>
 
       {approving ? (

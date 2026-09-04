@@ -37,6 +37,7 @@ import { EditUserDialog } from "./edit-user-dialog";
 import { BalanceDialog, type BalanceMode } from "./balance-dialog";
 import { UserStatusDialog, type StatusAction } from "./user-status-dialog";
 import { StatusBadge } from "@/components/ds";
+import { money } from "@/lib/money";
 
 export type UserRow = {
   id: string;
@@ -137,11 +138,7 @@ export function UsersTable({
             header: t("admin.users.colBalance"),
             sortable: true,
             className: "text-right tabular-nums",
-            cell: (u: UserRow) =>
-              new Intl.NumberFormat(undefined, {
-                style: "currency",
-                currency: "USD",
-              }).format(Number(u.balance)),
+            cell: (u: UserRow) => money(u.balance),
           } satisfies Column<UserRow>,
         ]
       : []),

@@ -41,6 +41,7 @@ import { VoidLabelDialog } from "./void-label-dialog";
 import { AssignDialog } from "./assign-dialog";
 import { ImportDialog } from "./import-dialog";
 import { DeleteOrdersDialog } from "./delete-orders-dialog";
+import { money } from "@/lib/money";
 
 export type OrderRow = {
   id: number;
@@ -291,7 +292,7 @@ export function OrdersTable({
             hideOnMobile: true,
             cell: (o: OrderRow) => (
               <span className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono)">
-                {o.baseCost ? `$${o.baseCost}` : "—"}
+                {money(o.baseCost)}
               </span>
             ),
           } satisfies Column<OrderRow>,

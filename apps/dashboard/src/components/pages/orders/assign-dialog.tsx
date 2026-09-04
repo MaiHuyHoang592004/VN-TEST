@@ -18,6 +18,7 @@ import {
   assignOrdersAction,
   previewAssignmentAction,
 } from "@/modules/fulfillment/orders/actions";
+import { money } from "@/lib/money";
 
 type Preview = {
   skipped: number;
@@ -162,13 +163,13 @@ export function AssignDialog({
                   </p>
                 </div>
                 <div className="text-right tabular-nums">
-                  <p className="font-mono font-medium">−${s.charge}</p>
+                  <p className="font-mono font-medium">−{money(s.charge)}</p>
                   <p
                     className={`font-mono text-xs ${
                       s.affordable ? "text-muted-foreground" : "text-destructive"
                     }`}
                   >
-                    ${s.balanceBefore} → ${s.balanceAfter}
+                    {money(s.balanceBefore)} → {money(s.balanceAfter)}
                   </p>
                 </div>
               </div>

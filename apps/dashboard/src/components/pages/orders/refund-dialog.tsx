@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FormDialog, FormField, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { refundOrdersAction, refundQuoteAction } from "@/modules/fulfillment/orders/actions";
+import { money } from "@/lib/money";
 
 type Quote = {
   lines: {
@@ -87,7 +88,7 @@ export function RefundDialog({
       pending={pending || !quote}
       submitDisabled={refundable.length === 0}
       formError={formError}
-      footerHint={quote ? `${t("orders.refundTotal")}: $${quote.total}` : undefined}
+      footerHint={quote ? `${t("orders.refundTotal")}: ${money(quote.total)}` : undefined}
       onSubmit={() => submit(undefined as never)}
     >
       {!quote ? (
@@ -107,10 +108,10 @@ export function RefundDialog({
                     {line.externalId ?? `#${line.orderId}`}
                   </span>
                   <span className="text-right tabular-nums">
-                    <span className="font-mono">${line.total}</span>
+                    <span className="font-mono">{money(line.total)}</span>
                     {Number(line.shippingCost) > 0 && (
                       <span className="text-muted-foreground ml-2 text-xs">
-                        (${line.baseCost} + ${line.shippingCost})
+                        ({money(line.baseCost)} + {money(line.shippingCost)})
                       </span>
                     )}
                   </span>

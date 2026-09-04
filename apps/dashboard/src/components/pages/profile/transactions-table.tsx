@@ -17,6 +17,7 @@ import {
   TopUpRequestDialog,
   type RefundableOrder,
 } from "./money-request-dialogs";
+import { money } from "@/lib/money";
 
 export type TransactionRow = {
   id: number;
@@ -29,9 +30,6 @@ export type TransactionRow = {
   balanceAfter: string | null;
   createdAt: string;
 };
-
-const money = (v: string) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(v));
 
 /**
  * The seller's own ledger, on the shared data table — so it paginates instead

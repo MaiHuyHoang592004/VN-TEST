@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { MetricCard, StatusBadge, Surface } from "@/components/ds";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import { useTranslation } from "@/lib/i18n";
+import { money } from "@/lib/money";
 
 export type SellerHomeData = {
   balance: string;
@@ -25,9 +26,6 @@ export type SellerHomeData = {
     createdAt: string;
   }[];
 };
-
-const money = (v: string) =>
-  new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(Number(v));
 
 /** The seller's own dashboard: money at the top, where their orders are
  * underneath, and the two things that need an answer from them (debt, open

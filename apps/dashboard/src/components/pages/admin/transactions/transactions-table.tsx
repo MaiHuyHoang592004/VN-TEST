@@ -29,6 +29,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import { ApproveDialog } from "./approve-dialog";
 import { StatusBadge } from "@/components/ds";
+import { money, moneyAbs } from "@/lib/money";
 
 export type TransactionRow = {
   id: number;
@@ -116,7 +117,8 @@ export function TransactionsTable({
               negative ? "text-destructive" : "text-green-600"
             }`}
           >
-            {negative ? "" : "+"}${r.amount.replace("-", "")}
+            {negative ? "−" : "+"}
+            {moneyAbs(r.amount)}
           </span>
         );
       },
@@ -129,7 +131,7 @@ export function TransactionsTable({
       cell: (r) =>
         r.balanceBefore && r.balanceAfter ? (
           <span className="text-muted-foreground font-mono text-xs">
-            ${r.balanceBefore} → ${r.balanceAfter}
+            {money(r.balanceBefore)} → {money(r.balanceAfter)}
           </span>
         ) : (
           <span className="text-muted-foreground text-sm">—</span>

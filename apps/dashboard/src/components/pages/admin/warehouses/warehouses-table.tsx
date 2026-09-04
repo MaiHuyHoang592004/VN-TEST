@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,6 +18,7 @@ import { useTranslation } from "@/lib/i18n";
 import { WarehouseDialog, type WarehouseRow } from "./warehouse-dialog";
 import { DeleteWarehouseDialog } from "./delete-warehouse-dialog";
 import { WarehouseMembersDialog } from "./warehouse-members-dialog";
+import { StatusBadge } from "@/components/ds";
 
 export function WarehousesTable({ rows }: { rows: WarehouseRow[] }) {
   const params = useTableParams();
@@ -75,9 +75,9 @@ export function WarehousesTable({ rows }: { rows: WarehouseRow[] }) {
       id: "status",
       header: t("admin.warehouses.colStatus"),
       cell: (w) => (
-        <Badge variant={w.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={w.status}>
           {t(`admin.statuses.${w.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -88,7 +88,7 @@ export function WarehousesTable({ rows }: { rows: WarehouseRow[] }) {
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${w.code}`}>
+              <Button variant="ghost" size="icon-sm" aria-label={`${t("admin.actions.for")} ${w.code}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }

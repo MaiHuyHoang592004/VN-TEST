@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, Package } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,6 +33,7 @@ import { setProductStatusAction } from "@/modules/catalog/products/actions";
 
 import { ProductDialog, type ProductRow } from "./product-dialog";
 import { DeleteProductDialog } from "./delete-product-dialog";
+import { StatusBadge } from "@/components/ds";
 
 const STATUSES = ["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const;
 
@@ -99,9 +99,9 @@ export function ProductsTable({ rows, total }: { rows: ProductRow[]; total: numb
       id: "status",
       header: t("catalog.products.colStatus"),
       cell: (p) => (
-        <Badge variant={p.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={p.status}>
           {t(`catalog.statuses.${p.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -122,7 +122,7 @@ export function ProductsTable({ rows, total }: { rows: ProductRow[]; total: numb
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${p.name}`}>
+              <Button variant="ghost" size="icon-sm" aria-label={`${t("admin.actions.for")} ${p.name}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }

@@ -1,12 +1,15 @@
 import { listWarehouses } from "@/modules/inventory/warehouses/queries";
 import { WarehousesTable } from "@/components/pages/admin/warehouses/warehouses-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 export default async function AdminWarehousesPage() {
   // Inactive sites are included: this is the screen where you'd reactivate one.
   const rows = await listWarehouses({ includeInactive: true });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <WarehousesTable
         rows={rows.map((w) => ({
           id: w.id,
@@ -29,6 +32,6 @@ export default async function AdminWarehousesPage() {
           orders: w._count.orders,
         }))}
       />
-    </main>
+    </Page>
   );
 }

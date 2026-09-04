@@ -10,6 +10,8 @@ import {
 } from "@/modules/catalog/product-variants/queries";
 import { Badge } from "@/components/ui/badge";
 import { SkuGrid } from "@/components/pages/admin/products/skus/sku-grid";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * The SKUs of one variant and their tier prices — the screen the pricing rules
@@ -36,7 +38,8 @@ export default async function ProductVariantsPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <div className="mb-6 flex flex-col gap-2">
         <Link
           href="/admin/products"
@@ -70,6 +73,6 @@ export default async function ProductVariantsPage({
           prices: Object.fromEntries(s.prices.map((p) => [p.tier, p.price.toFixed(2)])),
         }))}
       />
-    </main>
+    </Page>
   );
 }

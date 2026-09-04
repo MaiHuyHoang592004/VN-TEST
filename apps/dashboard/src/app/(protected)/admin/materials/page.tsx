@@ -1,6 +1,8 @@
 import { requirePermission } from "@/modules/core/guard";
 import { listMaterials } from "@/modules/inventory/materials/queries";
 import { MaterialsTable } from "@/components/pages/admin/materials/materials-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * Material master data: what an item IS, never how many exist.
@@ -35,8 +37,9 @@ export default async function AdminMaterialsPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <MaterialsTable total={total} rows={rows} />
-    </main>
+    </Page>
   );
 }

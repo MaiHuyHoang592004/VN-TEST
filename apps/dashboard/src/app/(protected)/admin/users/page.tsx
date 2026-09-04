@@ -2,6 +2,8 @@ import type { UserRole, UserStatus } from "@opcreative/db";
 
 import { listUsers } from "@/modules/identity/users/queries";
 import { UsersTable } from "@/components/pages/admin/users/users-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * Reads the table's URL state and fetches exactly that page of rows. The query
@@ -28,7 +30,8 @@ export default async function AdminUsersPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <UsersTable
         total={total}
         rows={rows.map((u) => ({
@@ -47,6 +50,6 @@ export default async function AdminUsersPage({
           createdAt: u.createdAt.toISOString(),
         }))}
       />
-    </main>
+    </Page>
   );
 }

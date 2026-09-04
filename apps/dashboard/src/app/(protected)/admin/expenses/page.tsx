@@ -2,6 +2,8 @@ import { requirePermission } from "@/modules/core/guard";
 import { listCategories, listEntries } from "@/modules/finance/expenses/queries";
 import { listVendorOptions } from "@/modules/finance/vendors/queries";
 import { ExpensesPanel } from "@/components/pages/admin/expenses/expenses-panel";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * The company's own books — rent, ink, salaries, scrap sales.
@@ -44,7 +46,8 @@ export default async function AdminExpensesPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <ExpensesPanel
         tab={one("tab") === "categories" ? "categories" : "entries"}
         total={entries.total}
@@ -66,6 +69,6 @@ export default async function AdminExpensesPage({
           vendor: e.vendor,
         }))}
       />
-    </main>
+    </Page>
   );
 }

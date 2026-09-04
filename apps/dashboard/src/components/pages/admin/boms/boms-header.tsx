@@ -27,14 +27,10 @@ export function BomsHeader({ actions }: { actions?: ReactNode }) {
   ] as const;
 
   return (
-    <header className="mb-6 flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("inventory.boms.title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("inventory.boms.subtitle")}</p>
-        </div>
-        {actions && <div className="flex shrink-0 gap-2">{actions}</div>}
-      </div>
+    // The title and subtitle are the route's PageHeader now; what is left here
+    // is the view switcher and the page's actions.
+    <header className="flex flex-col gap-4">
+      {actions && <div className="flex flex-wrap justify-end gap-2">{actions}</div>}
 
       <nav className="border-border flex gap-1 border-b" aria-label={t("inventory.boms.title")}>
         {views.map((view) => (

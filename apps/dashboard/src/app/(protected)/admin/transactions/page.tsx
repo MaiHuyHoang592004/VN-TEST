@@ -1,6 +1,8 @@
 import { requirePermission } from "@/modules/core/guard";
 import { listTransactions } from "@/modules/finance/transactions/queries";
 import { TransactionsTable } from "@/components/pages/admin/transactions/transactions-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * The admin view of the ledger.
@@ -32,7 +34,8 @@ export default async function AdminTransactionsPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <TransactionsTable
         total={total}
         rows={rows.map((r) => ({
@@ -53,7 +56,7 @@ export default async function AdminTransactionsPage({
           userEmail: r.user.email,
         }))}
       />
-    </main>
+    </Page>
   );
 }
 

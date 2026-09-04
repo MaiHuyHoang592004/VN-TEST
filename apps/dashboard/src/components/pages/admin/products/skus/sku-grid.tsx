@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { MoreHorizontal } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -30,6 +29,7 @@ import {
 
 import { AttachVariantsDialog } from "./attach-variants-dialog";
 import { BulkPricesDialog } from "./bulk-prices-dialog";
+import { StatusBadge } from "@/components/ds";
 
 /** tier 0 is the base/public price; 1-4 match User.tier. */
 export const TIERS = [0, 1, 2, 3, 4] as const;
@@ -194,9 +194,9 @@ export function SkuGrid({
       id: "status",
       header: t("catalog.skus.colStatus"),
       cell: (column) => (
-        <Badge variant={column.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={column.status}>
           {t(`catalog.statuses.${column.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -218,7 +218,7 @@ export function SkuGrid({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${column.variantName}`}>
+              <Button variant="ghost" size="icon-sm" aria-label={`${t("admin.actions.for")} ${column.variantName}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }

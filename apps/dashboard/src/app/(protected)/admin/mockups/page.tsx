@@ -1,5 +1,7 @@
 import { listMockups } from "@/modules/catalog/mockups/queries";
 import { MockupsTable } from "@/components/pages/admin/mockups/mockups-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * No extra requirePermission here, unlike /admin/products: listMockups already
@@ -26,7 +28,8 @@ export default async function AdminMockupsPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <MockupsTable
         total={total}
         rows={rows.map((m) => ({
@@ -40,6 +43,6 @@ export default async function AdminMockupsPage({
           updatedAt: m.updatedAt.toISOString(),
         }))}
       />
-    </main>
+    </Page>
   );
 }

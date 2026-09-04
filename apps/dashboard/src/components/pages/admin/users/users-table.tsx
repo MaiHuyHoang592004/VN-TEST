@@ -36,6 +36,7 @@ import { InviteUserDialog } from "./invite-user-dialog";
 import { EditUserDialog } from "./edit-user-dialog";
 import { BalanceDialog, type BalanceMode } from "./balance-dialog";
 import { UserStatusDialog, type StatusAction } from "./user-status-dialog";
+import { StatusBadge } from "@/components/ds";
 
 export type UserRow = {
   id: string;
@@ -116,9 +117,9 @@ export function UsersTable({
       id: "status",
       header: t("admin.users.colStatus"),
       cell: (u) => (
-        <Badge variant={u.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={u.status}>
           {statusLabel(u.status)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -163,7 +164,7 @@ export function UsersTable({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${u.email}`}>
+              <Button variant="ghost" size="icon-sm" aria-label={`${t("admin.actions.for")} ${u.email}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,6 +28,7 @@ import { Can } from "@/components/global/permission-gate";
 import { useTranslation } from "@/lib/i18n";
 
 import { ApproveDialog } from "./approve-dialog";
+import { StatusBadge } from "@/components/ds";
 
 export type TransactionRow = {
   id: number;
@@ -95,7 +95,12 @@ export function TransactionsTable({
     {
       id: "type",
       header: t("finance.colType"),
-      cell: (r) => <Badge variant="secondary">{t(`finance.types.${r.type}`)}</Badge>,
+      // A transaction TYPE is not a status — explicit neutral, never toneFor().
+      cell: (r) => (
+        <StatusBadge status={r.type} tone="neutral" dot={false}>
+          {t(`finance.types.${r.type}`)}
+        </StatusBadge>
+      ),
     },
     {
       id: "amount",
@@ -133,18 +138,10 @@ export function TransactionsTable({
     {
       id: "status",
       header: t("finance.colStatus"),
+      // TransactionStatus is in STATUS_TONES, so the local three-way ternary
+      // goes and the colour derives from the value.
       cell: (r) => (
-        <Badge
-          variant={
-            r.status === "COMPLETED"
-              ? "default"
-              : r.status === "PENDING"
-                ? "secondary"
-                : "destructive"
-          }
-        >
-          {t(`finance.statuses.${r.status}`)}
-        </Badge>
+        <StatusBadge status={r.status}>{t(`finance.statuses.${r.status}`)}</StatusBadge>
       ),
     },
     {
@@ -208,7 +205,7 @@ export function TransactionsTable({
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
-                  <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${r.publicId}`}>
+                  <Button variant="ghost" size="icon-sm" aria-label={`${t("admin.actions.for")} ${r.publicId}`}>
                     <MoreHorizontal className="size-4" />
                   </Button>
                 }

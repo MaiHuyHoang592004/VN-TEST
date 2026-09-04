@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -24,6 +23,7 @@ import { StatTiles } from "@/components/pages/inventory/stat-tiles";
 
 import { BomDialog } from "./bom-dialog";
 import { BomsHeader } from "./boms-header";
+import { StatusBadge } from "@/components/ds";
 
 export type MaterialOption = { id: number; sku: string; name: string; uom: string };
 export type SkuOption = { id: number; sku: string | null; name: string };
@@ -93,9 +93,9 @@ export function BomsTable({
       id: "status",
       header: t("inventory.boms.col.status"),
       cell: (b) => (
-        <Badge variant={b.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={b.status}>
           {t(`inventory.boms.status.${b.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {

@@ -20,6 +20,7 @@ import { StatTiles } from "@/components/pages/inventory/stat-tiles";
 
 import { BomsHeader } from "./boms-header";
 import type { SiteOption } from "./boms-table";
+import { StatusBadge } from "@/components/ds";
 
 export type CoverageRowView = {
   key: string;
@@ -38,11 +39,18 @@ export type CoverageRowView = {
   coverage: "NEEDED" | "NO_STOCK" | "UNMAPPED" | "AVAILABLE";
 };
 
-const BADGE_VARIANT = {
-  AVAILABLE: "default",
-  NEEDED: "destructive",
-  NO_STOCK: "secondary",
-  UNMAPPED: "secondary",
+/**
+ * Coverage is COMPUTED here, not a backend enum, so it is not in STATUS_TONES
+ * and must not be routed through toneFor(). Explicit tones, chosen to say the
+ * same things the old variants said: covered reads done, a shortage reads
+ * critical, and the two "we cannot tell" states stay neutral rather than
+ * borrowing an alarm colour for missing data.
+ */
+const COVERAGE_TONES = {
+  AVAILABLE: "success",
+  NEEDED: "critical",
+  NO_STOCK: "neutral",
+  UNMAPPED: "neutral",
 } as const;
 
 /**
@@ -83,9 +91,9 @@ export function CoverageTable({
       id: "coverage",
       header: t("inventory.boms.coverage.col.coverage"),
       cell: (r) => (
-        <Badge variant={BADGE_VARIANT[r.coverage]}>
+        <StatusBadge status={r.coverage} tone={COVERAGE_TONES[r.coverage]}>
           {t(`inventory.boms.coverage.badge.${r.coverage}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {

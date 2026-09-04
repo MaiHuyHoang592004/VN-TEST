@@ -3,6 +3,8 @@ import type { ProductStatus } from "@opcreative/db";
 import { requirePermission } from "@/modules/core/guard";
 import { listProducts } from "@/modules/catalog/products/queries";
 import { ProductsTable } from "@/components/pages/admin/products/products-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * Reads the table's URL state and fetches exactly that page.
@@ -36,7 +38,8 @@ export default async function AdminProductsPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <ProductsTable
         total={total}
         rows={rows.map((p) => ({
@@ -49,6 +52,6 @@ export default async function AdminProductsPage({
           updatedAt: p.updatedAt.toISOString(),
         }))}
       />
-    </main>
+    </Page>
   );
 }

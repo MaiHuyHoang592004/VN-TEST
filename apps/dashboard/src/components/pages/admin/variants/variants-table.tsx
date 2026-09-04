@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,6 +32,7 @@ import { setVariantStatusAction } from "@/modules/catalog/variants/actions";
 
 import { VariantDialog, type VariantRow } from "./variant-dialog";
 import { DeleteVariantDialog } from "./delete-variant-dialog";
+import { StatusBadge } from "@/components/ds";
 
 const STATUSES = ["DRAFT", "ACTIVE", "INACTIVE", "ARCHIVED"] as const;
 
@@ -81,9 +81,9 @@ export function VariantsTable({ rows, total }: { rows: VariantRow[]; total: numb
       id: "status",
       header: t("catalog.variants.colStatus"),
       cell: (v) => (
-        <Badge variant={v.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={v.status}>
           {t(`catalog.statuses.${v.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -104,7 +104,7 @@ export function VariantsTable({ rows, total }: { rows: VariantRow[]; total: numb
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${v.name}`}>
+              <Button variant="ghost" size="icon-sm" aria-label={`${t("admin.actions.for")} ${v.name}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }

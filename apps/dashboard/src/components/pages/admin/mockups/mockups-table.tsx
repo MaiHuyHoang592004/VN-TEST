@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { MoreHorizontal, Image as ImageIcon } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,6 +30,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import { MockupDialog, type MockupRow } from "./mockup-dialog";
 import { DeleteMockupDialog } from "./delete-mockup-dialog";
+import { StatusBadge } from "@/components/ds";
 
 const STATUSES = ["active", "inactive"] as const;
 
@@ -93,9 +93,9 @@ export function MockupsTable({ rows, total }: { rows: MockupRow[]; total: number
       id: "status",
       header: t("catalog.mockups.colStatus"),
       cell: (m) => (
-        <Badge variant={m.status === "active" ? "default" : "secondary"}>
+        <StatusBadge status={m.status}>
           {t(`catalog.mockupStatuses.${m.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -106,7 +106,7 @@ export function MockupsTable({ rows, total }: { rows: MockupRow[]; total: number
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon" aria-label={`${t("admin.actions.for")} ${m.name}`}>
+              <Button variant="ghost" size="icon-sm" aria-label={`${t("admin.actions.for")} ${m.name}`}>
                 <MoreHorizontal className="size-4" />
               </Button>
             }

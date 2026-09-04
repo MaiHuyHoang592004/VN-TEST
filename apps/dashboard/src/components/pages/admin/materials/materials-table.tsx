@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { MoreHorizontal } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,6 +30,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import { MaterialDialog, MATERIAL_TYPES, type MaterialRow } from "./material-dialog";
 import { DeleteMaterialDialog } from "./delete-material-dialog";
+import { StatusBadge } from "@/components/ds";
 
 export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: number }) {
   const params = useTableParams();
@@ -76,9 +76,9 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
       id: "status",
       header: t("inventory.materials.col.status"),
       cell: (m) => (
-        <Badge variant={m.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={m.status}>
           {t(`catalog.statuses.${m.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -104,7 +104,7 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
             render={
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon-sm"
                 aria-label={`${t("admin.actions.for")} ${m.sku}`}
               >
                 <MoreHorizontal className="size-4" />
@@ -129,13 +129,6 @@ export function MaterialsTable({ rows, total }: { rows: MaterialRow[]; total: nu
 
   return (
     <>
-      <header className="mb-6 flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {t("inventory.materials.title")}
-        </h1>
-        <p className="text-muted-foreground text-sm">{t("inventory.materials.subtitle")}</p>
-      </header>
-
       <DataTable
         rows={rows}
         columns={columns}

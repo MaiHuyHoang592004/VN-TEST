@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -20,6 +19,7 @@ import {
   type Column,
 } from "@/components/global/data-table";
 import { useTranslation } from "@/lib/i18n";
+import { StatusBadge } from "@/components/ds";
 
 export type AuditRow = {
   id: string;
@@ -107,9 +107,15 @@ export function AuditTable({ rows, total }: { rows: AuditRow[]; total: number })
       id: "action",
       header: t("admin.audit.colAction"),
       cell: (r) => (
-        <Badge variant={isSensitive(r.action) ? "default" : "secondary"}>
+        // An audit ACTION is not a status, so it never goes through toneFor():
+        // the tone is the sensitivity flag, passed explicitly.
+        <StatusBadge
+          status={r.action}
+          tone={isSensitive(r.action) ? "attention" : "neutral"}
+          dot={false}
+        >
           {pretty(r.action)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -137,7 +143,7 @@ export function AuditTable({ rows, total }: { rows: AuditRow[]; total: number })
       cell: (r) => (
         <Button
           variant="ghost"
-          size="icon"
+          size="icon-sm"
           aria-label={t("admin.audit.showChanges")}
           aria-expanded={expanded === r.id}
           onClick={() => setExpanded(expanded === r.id ? null : r.id)}

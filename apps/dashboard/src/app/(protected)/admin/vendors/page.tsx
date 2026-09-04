@@ -1,6 +1,8 @@
 import { requirePermission } from "@/modules/core/guard";
 import { listVendors } from "@/modules/finance/vendors/queries";
 import { VendorsTable } from "@/components/pages/admin/vendors/vendors-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * Supplier master data — who the company buys from.
@@ -30,7 +32,8 @@ export default async function AdminVendorsPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <VendorsTable
         total={total}
         tiles={tiles}
@@ -39,6 +42,6 @@ export default async function AdminVendorsPage({
           updatedAt: v.updatedAt.toISOString(),
         }))}
       />
-    </main>
+    </Page>
   );
 }

@@ -23,8 +23,15 @@ export type Tile = {
    * having to know about tones. */
   display?: string;
   /**
-   * Tone the card when the value is non-zero — a shortage tile that reads 0 in
+   * Tone the card when the value is NON-ZERO — a shortage tile that reads 0 in
    * red is noise, and one that reads 12 in grey is missed.
+   *
+   * Non-zero, not positive. The old guard was `value > 0`, which silently threw
+   * away the caller's tone on a negative figure: the expenses panel passes
+   * `net < 0 ? "critical" : undefined` and its net rendered grey, contradicting
+   * the comment above it that said "a negative net reads red". The sign is the
+   * caller's decision; this only suppresses the colour when there is nothing
+   * there to colour.
    *
    * These are the DS's own StatusTone names, so a tone chosen here is the same
    * colour a StatusBadge for the same meaning would be.
@@ -63,7 +70,7 @@ export function StatTiles({ tiles }: { tiles: Tile[] }) {
         <MetricCard
           key={label}
           label={label}
-          tone={tone && value > 0 ? tone : "neutral"}
+          tone={tone && value !== 0 ? tone : "neutral"}
           value={display ?? value.toLocaleString()}
         />
       ))}

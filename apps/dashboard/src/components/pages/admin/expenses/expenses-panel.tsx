@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,6 +26,7 @@ import { deleteCategoryAction, deleteEntryAction } from "@/modules/finance/expen
 
 import { CategoryDialog } from "./category-dialog";
 import { EntryDialog } from "./entry-dialog";
+import { StatusBadge } from "@/components/ds";
 
 export type CategoryRow = {
   id: number;
@@ -75,11 +75,7 @@ export function ExpensesPanel({
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("finance.expenses.title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("finance.expenses.subtitle")}</p>
-        </div>
+      <div className="flex flex-wrap items-end justify-end gap-3">
         {/* The tab lives in the URL, so a deep link and the back button both
             work — the only thing the "tabs are routes" rule actually protects. */}
         <div className="border-border flex gap-1 rounded-md border p-1">
@@ -157,9 +153,13 @@ function EntriesTab({
       id: "type",
       header: t("finance.expenses.colType"),
       cell: (e) => (
-        <Badge variant={e.type === "INCOME" ? "default" : "secondary"}>
+        <StatusBadge
+          status={e.type}
+          tone={e.type === "INCOME" ? "success" : "neutral"}
+          dot={false}
+        >
           {t(`finance.expenses.types.${e.type}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -214,7 +214,7 @@ function EntriesTab({
         <div className="flex justify-end">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("admin.actions.edit")}
             onClick={(event) => {
               event.stopPropagation();
@@ -225,7 +225,7 @@ function EntriesTab({
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("admin.actions.delete")}
             onClick={(event) => {
               event.stopPropagation();
@@ -414,9 +414,13 @@ function CategoriesTab({ categories }: { categories: CategoryRow[] }) {
       id: "type",
       header: t("finance.expenses.colType"),
       cell: (c) => (
-        <Badge variant={c.type === "INCOME" ? "default" : "secondary"}>
+        <StatusBadge
+          status={c.type}
+          tone={c.type === "INCOME" ? "success" : "neutral"}
+          dot={false}
+        >
           {t(`finance.expenses.types.${c.type}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -453,7 +457,7 @@ function CategoriesTab({ categories }: { categories: CategoryRow[] }) {
         <div className="flex justify-end">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("admin.actions.edit")}
             onClick={(e) => {
               e.stopPropagation();
@@ -464,7 +468,7 @@ function CategoriesTab({ categories }: { categories: CategoryRow[] }) {
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("admin.actions.delete")}
             onClick={(e) => {
               e.stopPropagation();

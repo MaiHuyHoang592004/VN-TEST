@@ -2,6 +2,8 @@ import type { AuditAction } from "@opcreative/db";
 
 import { listAuditLog } from "@/modules/platform/audit/queries";
 import { AuditTable } from "@/components/pages/admin/audit/audit-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 export default async function AdminAuditPage({
   searchParams,
@@ -22,7 +24,8 @@ export default async function AdminAuditPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <AuditTable
         total={total}
         rows={rows.map((r) => ({
@@ -39,6 +42,6 @@ export default async function AdminAuditPage({
           createdAt: r.createdAt.toISOString(),
         }))}
       />
-    </main>
+    </Page>
   );
 }

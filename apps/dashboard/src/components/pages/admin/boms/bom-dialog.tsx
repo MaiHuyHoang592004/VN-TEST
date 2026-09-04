@@ -31,6 +31,7 @@ import {
 } from "@/modules/inventory/boms/actions";
 
 import type { MaterialOption, SiteOption } from "./boms-table";
+import { StatusBadge } from "@/components/ds";
 
 const STAGES = ["PRODUCTION", "PACKING", "SHIPPING", "OTHER"] as const;
 const STATUSES = ["DRAFT", "ACTIVE", "INACTIVE"] as const;
@@ -208,9 +209,9 @@ export function BomDialog({
               )}
             >
               <span>v{v.version}</span>
-              <Badge variant={v.status === "ACTIVE" ? "default" : "secondary"}>
+              <StatusBadge status={v.status}>
                 {t(`inventory.boms.status.${v.status}`)}
-              </Badge>
+              </StatusBadge>
             </button>
           ))}
           <Button

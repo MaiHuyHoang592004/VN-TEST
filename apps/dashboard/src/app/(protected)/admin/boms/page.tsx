@@ -5,6 +5,8 @@ import { listMySitesAction } from "@/modules/inventory/stock/actions";
 import { listSkuOptions } from "@/modules/catalog/product-variants/queries";
 import { BomsTable } from "@/components/pages/admin/boms/boms-table";
 import { CoverageTable } from "@/components/pages/admin/boms/coverage-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * Bills of suppliers: what each SKU is made of, and whether the components are
@@ -36,9 +38,10 @@ export default async function AdminBomsPage({
       listMySitesAction(),
     ]);
     return (
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+      <Page>
+        <AdminPageHeader />
         <CoverageTable rows={coverage.rows} tiles={coverage.tiles} sites={sites} />
-      </main>
+      </Page>
     );
   }
 
@@ -55,7 +58,8 @@ export default async function AdminBomsPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <BomsTable
         total={total}
         tiles={tiles}
@@ -73,6 +77,6 @@ export default async function AdminBomsPage({
           summary: b.summary,
         }))}
       />
-    </main>
+    </Page>
   );
 }

@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -26,6 +25,7 @@ import { useTranslation } from "@/lib/i18n";
 import { deleteVendorAction } from "@/modules/finance/vendors/actions";
 
 import { VendorDialog } from "./vendor-dialog";
+import { StatusBadge } from "@/components/ds";
 
 export type VendorRow = {
   id: number;
@@ -119,9 +119,9 @@ export function VendorsTable({
       id: "status",
       header: t("finance.vendors.colStatus"),
       cell: (v) => (
-        <Badge variant={v.status === "ACTIVE" ? "default" : "secondary"}>
+        <StatusBadge status={v.status}>
           {t(`finance.vendors.status.${v.status}`)}
-        </Badge>
+        </StatusBadge>
       ),
     },
     {
@@ -142,7 +142,7 @@ export function VendorsTable({
         <div className="flex justify-end">
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("admin.actions.edit")}
             onClick={(e) => {
               e.stopPropagation();
@@ -153,7 +153,7 @@ export function VendorsTable({
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="icon-sm"
             aria-label={t("admin.actions.delete")}
             onClick={(e) => {
               e.stopPropagation();
@@ -169,14 +169,6 @@ export function VendorsTable({
 
   return (
     <>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight">{t("finance.vendors.title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("finance.vendors.subtitle")}</p>
-        </div>
-        <Button onClick={() => setCreating(true)}>{t("finance.vendors.new")}</Button>
-      </div>
-
       <StatTiles
         tiles={[
           { label: t("finance.vendors.tiles.total"), value: tiles.total },
@@ -197,6 +189,8 @@ export function VendorsTable({
             search={params.get("q")}
             onSearchChange={(v) => params.setFilter("q", v)}
             searchPlaceholder={t("finance.vendors.search")}
+            // The page's action moves out of the hero, which owns no CTA.
+            actions={<Button onClick={() => setCreating(true)}>{t("finance.vendors.new")}</Button>}
             hasFilters={hasFilters}
             onClearFilters={() => params.clearFilters(["q", "status"])}
             filters={

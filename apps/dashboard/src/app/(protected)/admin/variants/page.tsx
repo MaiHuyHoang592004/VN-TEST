@@ -3,6 +3,8 @@ import type { ProductStatus } from "@opcreative/db";
 import { requirePermission } from "@/modules/core/guard";
 import { listVariants } from "@/modules/catalog/variants/queries";
 import { VariantsTable } from "@/components/pages/admin/variants/variants-table";
+import { AdminPageHeader } from "@/components/pages/admin/admin-header";
+import { Page } from "@/components/ds";
 
 /**
  * Gated on products.MANAGE, not the products.read that listVariants asks for:
@@ -30,7 +32,8 @@ export default async function AdminVariantsPage({
   });
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <AdminPageHeader />
       <VariantsTable
         total={total}
         rows={rows.map((v) => ({
@@ -42,6 +45,6 @@ export default async function AdminVariantsPage({
           updatedAt: v.updatedAt.toISOString(),
         }))}
       />
-    </main>
+    </Page>
   );
 }

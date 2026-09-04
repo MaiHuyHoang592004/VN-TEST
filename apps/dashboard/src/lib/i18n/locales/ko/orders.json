@@ -5,6 +5,7 @@
     "attention": "확인 필요"
   },
   "title": "주문",
+  "subtitle": "접수부터 배송까지, 모든 주문.",
   "search": "주문 번호 또는 운송장 번호 검색",
   "allStatuses": "모든 상태",
   "colOrder": "주문",

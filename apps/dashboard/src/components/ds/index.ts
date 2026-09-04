@@ -17,6 +17,7 @@ export { GwpMark } from "./brand/gwp-mark";
 export { LoadingState, type LoadingStateProps } from "./loading-state";
 export { KeyValueRow, type KeyValueRowProps } from "./key-value-row";
 export { MetricCard, type MetricCardProps } from "./metric-card";
+export { ProductCell, type ProductCellProps } from "./product-cell";
 export { Page, PageHeader, PageSection, PageToolbar } from "./page";
 export { SearchField, type SearchFieldProps } from "./search-field";
 export { SectionHeading, type SectionHeadingProps } from "./section-heading";

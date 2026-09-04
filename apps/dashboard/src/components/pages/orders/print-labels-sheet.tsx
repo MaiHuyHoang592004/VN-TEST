@@ -60,7 +60,9 @@ export function PrintLabelsSheet({ orders }: { orders: PrintRow[] }) {
         .print-block { max-width: 460px; }
       `}</style>
 
-      <main className="mx-auto w-full max-w-3xl bg-white p-8 text-black">
+      {/* White ground, navy ink, no shadow: sky and a drop shadow cost toner
+          and can render as grey blocks on a mono laser. */}
+      <main className="mx-auto w-full max-w-3xl bg-(--surface-data) p-8 text-navy-700">
         <div className="no-print mb-6 flex items-center justify-between">
           <p className="text-sm text-navy-500">
             {t("orders.qr.printCount").replace("{count}", String(orders.length))}
@@ -87,9 +89,12 @@ export function PrintLabelsSheet({ orders }: { orders: PrintRow[] }) {
                   {[o.variantName, o.sku].filter(Boolean).join(" · ") || "—"}
                 </p>
                 <p className="mt-1 text-lg font-semibold tabular-nums">
-                  {t("orders.colQty")}: {o.quantity}
+                  {t("orders.colQty")}:{" "}
+                  <span className="font-mono tracking-(--ls-mono)">{o.quantity}</span>
                 </p>
-                {o.tracking && <p className="mt-1 font-mono text-xs">{o.tracking}</p>}
+                {o.tracking && (
+                  <p className="mt-1 font-mono text-xs tracking-(--ls-mono)">{o.tracking}</p>
+                )}
                 <p className="mt-1 text-xs text-navy-500">
                   {[o.customerName, o.warehouseCode].filter(Boolean).join(" · ")}
                 </p>

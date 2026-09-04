@@ -7,6 +7,8 @@ import { listOrders, orderStatusSummary } from "@/modules/fulfillment/orders/que
 import { listWarehouses } from "@/modules/inventory/warehouses/queries";
 import { PROCESSING } from "@/modules/fulfillment/orders/status";
 import { OrdersTable } from "@/components/pages/orders/orders-table";
+import { OrdersHeader } from "@/components/pages/orders/orders-header";
+import { Page } from "@/components/ds";
 
 /**
  * One page, every role. The SCOPE does the role work — a seller sees their own
@@ -69,7 +71,8 @@ export default async function OrdersPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <OrdersHeader />
       <OrdersTable
         total={total}
         summary={summary}
@@ -108,6 +111,6 @@ export default async function OrdersPage({
           note: o.note,
         }))}
       />
-    </main>
+    </Page>
   );
 }

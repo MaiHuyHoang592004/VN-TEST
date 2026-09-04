@@ -5,6 +5,7 @@
     "attention": "要対応"
   },
   "title": "注文",
+  "subtitle": "注文から配達まで、すべての注文。",
   "search": "注文IDまたは追跡番号で検索",
   "allStatuses": "すべての状態",
   "colOrder": "注文",

@@ -5,6 +5,7 @@
     "attention": "Needs attention"
   },
   "title": "Orders",
+  "subtitle": "Every order, from placed to delivered.",
   "search": "Search order id or tracking number",
   "allStatuses": "All statuses",
   "colOrder": "Order",

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Image as ImageIcon, Package, RefreshCw } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { FilterChip, ProductCell, StatusBadge } from "@/components/ds";
 import {
   Select,
   SelectContent,
@@ -80,14 +80,6 @@ const STATUSES = [
   "ON_HOLD",
 ] as const;
 
-/** Terminal states read as done; ON_HOLD, CANCELLED and REFUNDED stand out. */
-function statusVariant(status: string) {
-  if (status === "DELIVERED") return "default" as const;
-  if (status === "CANCELLED" || status === "REFUNDED" || status === "ON_HOLD")
-    return "destructive" as const;
-  return "secondary" as const;
-}
-
 export function OrdersTable({
   rows,
   total,
@@ -160,13 +152,13 @@ export function OrdersTable({
                 <img
                   src={o.mockupThumbnail ?? o.imageUrl ?? ""}
                   alt=""
-                  className="border-border size-8 rounded-md border object-cover"
+                  className="size-8 rounded-(--radius-xs) bg-(--surface-content) object-cover"
                 />
               }
             />
           ) : (
-            <span className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
-              <Package className="size-4" />
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--surface-content)">
+              <Package className="size-4 stroke-(--icon-muted)" />
             </span>
           )}
           {/* The packed-parcel photo, when there is one. Beside the design
@@ -178,12 +170,14 @@ export function OrdersTable({
               src={o.proofImageUrl}
               alt=""
               title={t("orders.proof.thumb")}
-              className="ring-green-600/60 size-8 shrink-0 rounded-md object-cover ring-2"
+              className="size-8 shrink-0 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
             />
           )}
           <div className="min-w-0">
-            <p className="truncate font-mono text-xs font-medium">{o.externalId ?? `#${o.id}`}</p>
-            <p className="text-muted-foreground truncate text-xs">
+            <p className="truncate font-mono text-(length:--fs-meta) font-medium tracking-(--ls-mono) text-(--text-body)">
+              {o.externalId ?? `#${o.id}`}
+            </p>
+            <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
               {o.marketplace ?? t("orders.noMarketplace")}
             </p>
           </div>
@@ -193,13 +187,16 @@ export function OrdersTable({
     {
       id: "variant",
       header: t("orders.colProduct"),
+      // The DS's product cell: name, SKU in mono, variant on the meta line.
+      // No image — the artwork thumbnail is the ORDER column's, where it is a
+      // trigger, and one product per cell means one thumbnail per row.
       cell: (o) => (
-        <div className="min-w-0">
-          <p className="truncate text-sm">{o.productName ?? "—"}</p>
-          <p className="text-muted-foreground truncate text-xs">
-            {[o.variantName, o.sku].filter(Boolean).join(" · ") || "—"}
-          </p>
-        </div>
+        <ProductCell
+          size="sm"
+          name={o.productName ?? "—"}
+          code={o.sku}
+          meta={o.variantName}
+        />
       ),
     },
     {
@@ -208,14 +205,18 @@ export function OrdersTable({
       hideOnMobile: true,
       // Only meaningful to someone who can see across accounts; a seller's own
       // orders are all theirs.
-      cell: (o) => <span className="text-muted-foreground text-sm">{o.customerName ?? "—"}</span>,
+      cell: (o) => (
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">
+          {o.customerName ?? "—"}
+        </span>
+      ),
     },
     {
       id: "qty",
       header: t("orders.colQty"),
       className: "text-right tabular-nums",
       cell: (o) => (
-        <span className="text-sm">
+        <span className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono)">
           {o.filled > 0 ? `${o.filled}/${o.quantity}` : o.quantity}
         </span>
       ),
@@ -223,8 +224,11 @@ export function OrdersTable({
     {
       id: "status",
       header: t("orders.colStatus"),
+      // The colour comes from STATUS_TONES via the raw status, so this badge
+      // and the summary strip above can never disagree about a status. The
+      // label stays the translated string.
       cell: (o) => (
-        <Badge variant={statusVariant(o.status)}>{t(`orders.statuses.${o.status}`)}</Badge>
+        <StatusBadge status={o.status}>{t(`orders.statuses.${o.status}`)}</StatusBadge>
       ),
     },
     {
@@ -234,13 +238,17 @@ export function OrdersTable({
       cell: (o) =>
         o.tracking ? (
           <div className="min-w-0">
-            <p className="truncate font-mono text-xs">{o.tracking}</p>
+            <p className="truncate font-mono text-(length:--fs-meta) tracking-(--ls-mono) text-(--text-body)">
+              {o.tracking}
+            </p>
             {o.trackingStatus && (
-              <p className="text-muted-foreground truncate text-xs">{o.trackingStatus}</p>
+              <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
+                {o.trackingStatus}
+              </p>
             )}
           </div>
         ) : (
-          <span className="text-muted-foreground text-sm">—</span>
+          <span className="text-(length:--fs-body-sm) text-(--text-muted)">—</span>
         ),
     },
     {
@@ -248,7 +256,9 @@ export function OrdersTable({
       header: t("orders.colWarehouse"),
       hideOnMobile: true,
       cell: (o) => (
-        <span className="text-muted-foreground font-mono text-xs">{o.warehouseCode ?? "—"}</span>
+        <span className="font-mono text-(length:--fs-meta) tracking-(--ls-mono) text-(--text-muted)">
+          {o.warehouseCode ?? "—"}
+        </span>
       ),
     },
     // Money is gated: a customer packer has no business seeing what a seller
@@ -262,7 +272,9 @@ export function OrdersTable({
             className: "text-right tabular-nums",
             hideOnMobile: true,
             cell: (o: OrderRow) => (
-              <span className="text-sm">{o.baseCost ? `$${o.baseCost}` : "—"}</span>
+              <span className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono)">
+                {o.baseCost ? `$${o.baseCost}` : "—"}
+              </span>
             ),
           } satisfies Column<OrderRow>,
         ]
@@ -286,7 +298,7 @@ export function OrdersTable({
                   <Can permission="orders.update">
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon-sm"
                       aria-label={t("orders.artwork.title")}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -300,7 +312,7 @@ export function OrdersTable({
                         looking at, which is how it is used in practice. */}
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon-sm"
                       aria-label={t("orders.recalc.action")}
                       disabled={recalcPending}
                       onClick={(e) => {
@@ -322,7 +334,7 @@ export function OrdersTable({
       header: t("orders.colPlaced"),
       hideOnMobile: true,
       cell: (o) => (
-        <span className="text-muted-foreground text-sm">
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">
           {new Date(o.placedAt).toLocaleDateString()}
         </span>
       ),
@@ -331,20 +343,17 @@ export function OrdersTable({
 
   return (
     <>
-      <div className="mb-4 flex gap-1">
+      {/* Chips, not tabs: these FILTER the same query rather than navigating,
+          so they carry aria-pressed. `x === "all" ? "" : x` is the URL
+          contract — "all" is the absence of the param, not a value. */}
+      <div className="flex gap-2">
         {TABS.map((x) => (
-          <button
+          <FilterChip
             key={x}
+            label={t(`orders.tabs.${x}`)}
+            active={tab === x}
             onClick={() => params.setFilter("tab", x === "all" ? "" : x)}
-            aria-current={tab === x ? "page" : undefined}
-            className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
-              tab === x
-                ? "bg-secondary text-secondary-foreground font-medium"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {t(`orders.tabs.${x}`)}
-          </button>
+          />
         ))}
       </div>
 

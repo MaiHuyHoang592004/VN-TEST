@@ -5,6 +5,7 @@
     "attention": "À traiter"
   },
   "title": "Commandes",
+  "subtitle": "Chaque commande, de la création à la livraison.",
   "search": "Rechercher un n° de commande ou de suivi",
   "allStatuses": "Tous les statuts",
   "colOrder": "Commande",

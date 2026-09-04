@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useTableParams } from "@/components/global/data-table";
+import { MetricCard, toneFor } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 
 export type StatusSummaryRow = {
@@ -51,10 +52,14 @@ export function StatusSummary({ rows }: { rows: StatusSummaryRow[] }) {
           open={openStatus === column.status}
           onOpenChange={(open) => setOpenStatus(open ? column.status : null)}
         >
+          {/* The tone comes from the same STATUS_TONES map the table's badges
+              read, so a status is one colour in both places. MetricCard keeps
+              its own label/value type, and forwards the trigger's onClick,
+              aria-expanded and ref. */}
           <PopoverTrigger
             render={
-              <button
-                type="button"
+              <MetricCard
+                tone={toneFor(column.status)}
                 // Click filters; the card is a filter chip that happens to
                 // carry its own numbers.
                 onClick={() =>
@@ -64,30 +69,16 @@ export function StatusSummary({ rows }: { rows: StatusSummaryRow[] }) {
                   e.preventDefault();
                   setOpenStatus(column.status);
                 }}
-                className={`border-border bg-card hover:border-foreground/30 flex min-w-24 flex-1 flex-col gap-0.5 rounded-lg border px-2.5 py-2 text-left transition-colors ${
-                  active === column.status ? "border-foreground/40 ring-ring/40 ring-1" : ""
+                title={t(`orders.statuses.${column.status}`)}
+                label={t(`orders.statuses.${column.status}`)}
+                value={column.orders.toLocaleString()}
+                deltaNote={`${column.quantity.toLocaleString()} ${t("orders.summary.units")}`}
+                className={`min-w-24 flex-1 p-2.5 ${
+                  active === column.status ? "shadow-(--shadow-focus)" : ""
                 }`}
               />
             }
-          >
-            {/* The status name as plain text, not a Badge: the chip's own
-                padding cost ~20px per card, which is the difference between
-                eight fitting and six. The table below still badges each column. */}
-            <span
-              className="text-muted-foreground truncate text-[11px] leading-4"
-              title={t(`orders.statuses.${column.status}`)}
-            >
-              {t(`orders.statuses.${column.status}`)}
-            </span>
-            <span className="flex items-baseline gap-1.5">
-              <span className="text-base leading-tight font-semibold tabular-nums">
-                {column.orders.toLocaleString()}
-              </span>
-              <span className="text-muted-foreground truncate text-[10px] tabular-nums">
-                {column.quantity.toLocaleString()} {t("orders.summary.units")}
-              </span>
-            </span>
-          </PopoverTrigger>
+          />
 
           <PopoverContent align="start" className="w-72">
             <p className="text-sm font-medium">{t("orders.summary.breakdown")}</p>

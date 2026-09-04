@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ChevronDown, MapPin, Package, Truck } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/ds";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTranslation } from "@/lib/i18n";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -47,28 +47,30 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
               <img
                 src={order.mockupThumbnail ?? order.imageUrl ?? ""}
                 alt=""
-                className="border-border size-10 rounded-md border object-cover"
+                className="size-10 rounded-(--radius-xs) bg-(--surface-content) object-cover"
               />
             }
           />
         ) : (
-          <span className="bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md">
-            <Package className="size-4" />
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--surface-content)">
+            <Package className="size-4 stroke-(--icon-muted)" />
           </span>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate font-mono text-xs font-medium">
+          <p className="truncate font-mono text-(length:--fs-meta) font-medium tracking-(--ls-mono) text-(--text-body)">
             {order.externalId ?? `#${order.id}`}
           </p>
-          <p className="truncate text-sm">{order.productName ?? "—"}</p>
-          <p className="text-muted-foreground truncate text-xs">
+          <p className="truncate text-(length:--fs-body-sm) text-(--text-body)">
+            {order.productName ?? "—"}
+          </p>
+          <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
             {[order.variantName, order.sku].filter(Boolean).join(" · ") || "—"}
           </p>
         </div>
 
         <div className="shrink-0 text-right">
-          <p className="text-base leading-none font-semibold tabular-nums">
+          <p className="font-mono text-base leading-none font-semibold tracking-(--ls-mono) tabular-nums">
             {order.filled > 0 ? `${order.filled}/${order.quantity}` : order.quantity}
           </p>
           <p className="text-muted-foreground mt-1 text-[10px] uppercase">{t("orders.colQty")}</p>
@@ -76,21 +78,15 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <Badge
-          variant={
-            order.status === "CANCELLED" || order.status === "ON_HOLD"
-              ? "destructive"
-              : order.status === "DELIVERED"
-                ? "default"
-                : "secondary"
-          }
-        >
+        {/* Same STATUS_TONES map as the table's badge — the card is the same
+            row on a smaller screen, so it cannot disagree about a colour. */}
+        <StatusBadge status={order.status}>
           {t(`orders.statuses.${order.status}`)}
-        </Badge>
+        </StatusBadge>
         {complete && order.filled > 0 && (
-          <Badge className="bg-green-600/15 text-green-600">
+          <StatusBadge status="FULFILLED" dot={false} size="sm">
             {t("fulfillment.card.filled")}
-          </Badge>
+          </StatusBadge>
         )}
         {order.tracking && (
           <span className="text-muted-foreground inline-flex min-w-0 items-center gap-1 text-xs">
@@ -146,7 +142,7 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
                   <img
                     src={order.proofImageUrl}
                     alt={t("orders.proof.thumb")}
-                    className="ring-green-600/60 size-8 rounded-md object-cover ring-2"
+                    className="size-8 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
                   />
                 )}
                 <span className="text-muted-foreground ml-auto">{order.warehouseCode ?? "—"}</span>

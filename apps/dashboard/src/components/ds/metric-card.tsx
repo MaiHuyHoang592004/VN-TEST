@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 const TONES = {
   action: { wash: "bg-(--wash-blue)", ink: "text-(--action-600)" },
   progress: { wash: "bg-(--status-progress-bg)", ink: "text-(--status-progress-fg)" },
+  info: { wash: "bg-(--status-info-bg)", ink: "text-(--status-info-fg)" },
   success: { wash: "bg-(--status-success-bg)", ink: "text-(--status-success-fg)" },
   critical: { wash: "bg-(--status-critical-bg)", ink: "text-(--status-critical-fg)" },
   attention: { wash: "bg-(--status-attention-bg)", ink: "text-(--status-attention-fg)" },
@@ -38,12 +39,14 @@ export type MetricCardProps = {
   deltaNote?: React.ReactNode;
   /** A lucide stroke icon — 15–16px inline in `wash`, 18–20px in the chip on `card`. */
   icon?: React.ReactNode;
-  /** Match the tone to the metric's MEANING, not to variety. */
+  /** Match the tone to the metric's MEANING, not to variety. The seven names
+   * are exactly StatusTone's, so a figure derived from a status can be tinted
+   * with toneFor() and agree with the StatusBadge beside it. */
   tone?: keyof typeof TONES;
   variant?: "wash" | "card" | "tile";
   onClick?: () => void;
   className?: string;
-};
+} & Omit<React.ComponentProps<"button">, "value" | "onClick" | "className">;
 
 export function MetricCard({
   label,
@@ -56,11 +59,16 @@ export function MetricCard({
   variant = "wash",
   onClick,
   className,
+  ...rest
 }: MetricCardProps) {
   const t = TONES[tone];
   // `tile` is a compatibility alias for `wash`.
   const isCard = variant === "card";
-  const interactive = Boolean(onClick);
+  // Interactive when the card owns the click OR when something outside is
+  // driving it — Base UI's `render` hands a trigger its onClick, aria-expanded
+  // and ref through `rest`, and a card that ignored those would be a popover
+  // trigger that never opens. Everything unknown is forwarded for that reason.
+  const interactive = Boolean(onClick) || Object.keys(rest).length > 0;
 
   const body = (
     <>
@@ -133,7 +141,14 @@ export function MetricCard({
   }
 
   return (
-    <button type="button" data-slot="metric-card" data-tone={tone} onClick={onClick} className={shell}>
+    <button
+      type="button"
+      data-slot="metric-card"
+      data-tone={tone}
+      onClick={onClick}
+      {...rest}
+      className={shell}
+    >
       {body}
     </button>
   );

@@ -5,6 +5,7 @@
     "attention": "需要关注"
   },
   "title": "订单",
+  "subtitle": "每一笔订单，从下单到送达。",
   "search": "搜索订单号或运单号",
   "allStatuses": "全部状态",
   "colOrder": "订单",

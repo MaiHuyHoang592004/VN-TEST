@@ -7,8 +7,6 @@ import { auth } from "@opcreative/auth";
 import { AppProviders } from "@/components/global/providers";
 import { Navbar } from "@/components/global/layout/navbar";
 import { Footer } from "@/components/global/layout/footer";
-import { AppSidebar } from "@/components/global/layout/sidebar/app-sidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 // GWP type rationing (DS SKILL.md rule 4): Baloo 2 is brand moments, page
 // titles and KPI numerals ONLY; Nunito Sans runs the UI; IBM Plex Mono carries
@@ -57,40 +55,27 @@ export default async function RootLayout({
     : null;
 
   return (
-    // suppressHydrationWarning: next-themes stamps the theme class on <html> before hydration
+    // suppressHydrationWarning: next-themes stamps the theme class on <html>
+    // before hydration. The theme is a no-op after the token migration (the DS
+    // ships no dark palette) but the provider stays wired.
     <html
       lang="en"
       suppressHydrationWarning
       className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable} h-full antialiased`}
     >
-      {/* pb: clearance for the floating mobile dock */}
-      <body className="flex min-h-full flex-col pb-24 md:pb-0">
-        {/* First child of <body>: restores the dragged sidebar width before
-            the sidebar paints (a <script> outside <head>/<body> is invalid
-            HTML and breaks hydration). */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{var w=localStorage.getItem('sidebar:width');if(w)document.documentElement.style.setProperty('--sidebar-width-user',w)}catch(e){}`,
-          }}
-        />
+      {/* SKY IS THE PAGE. The body is the sky canvas and content floats on it —
+          not a white app with a sky accent. pb: clearance for the floating
+          mobile dock. */}
+      <body className="flex min-h-full flex-col bg-(--surface-canvas) pb-24 md:pb-0">
         <AppProviders user={user} accountLocale={session?.user?.locale}>
-          {/* Full-height icon-rail sidebar; navbar + content live in the inset */}
-          <SidebarProvider
-            style={
-              {
-                // Follows the user's dragged width (set on <html>), else default
-                "--sidebar-width": "var(--sidebar-width-user, 15rem)" /* 240px, matches vercel.com */,
-              } as React.CSSProperties
-            }
-          >
-            <AppSidebar />
-            <SidebarInset className="min-w-0">
-              <Navbar />
-              {children}
-              {/* Marketing footer is for the signed-out surface only */}
-              {!user && <Footer />}
-            </SidebarInset>
-          </SidebarProvider>
+          {/* No SidebarProvider and no persistent rail: GWP navigation is the
+              floating cream TopNav, and the section rail opens as a sheet from
+              the nav's own button (SidebarNavButtons). The provider the sheet
+              needs lives inside <Navbar/>, wrapping only the nav subtree. */}
+          <Navbar />
+          {children}
+          {/* Marketing footer is for the signed-out surface only */}
+          {!user && <Footer />}
         </AppProviders>
       </body>
     </html>

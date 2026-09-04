@@ -192,20 +192,14 @@
   --ds-ring: var(--border-hairline);
   --shadow-card: var(--shadow-sm);
 
-  /* Decorative gradients/mesh (marketing "coming soon" page, spotlight-card,
-     brand text-gradient utilities below) previously keyed off the Vercel
-     brand hexes. No Vercel colour survives the migration, so these now
-     compose from GWP's brand accents instead of inventing a new hue. */
-  --gradient-develop: linear-gradient(90deg, var(--action-500), var(--sky-400));
-  --gradient-preview: linear-gradient(90deg, var(--orange-500), var(--yellow-500));
-  --gradient-ship: linear-gradient(90deg, var(--red-600), var(--orange-500));
-  --brand-gradient: linear-gradient(120deg, var(--action-500), var(--sky-500) 45%, var(--orange-500));
-  --brand-mesh:
-    radial-gradient(60% 60% at 15% 20%, var(--sky-400) 0%, transparent 60%),
-    radial-gradient(60% 60% at 40% 0%, var(--action-500) 0%, transparent 60%),
-    radial-gradient(55% 65% at 70% 25%, var(--orange-500) 0%, transparent 60%),
-    radial-gradient(50% 60% at 90% 5%, var(--yellow-500) 0%, transparent 60%);
-  --grid-line: var(--border-hairline);        /* same duty: a faint line over any surface */
+  /* The Vercel-era decorative gradient tokens are GONE. Task 1 kept them
+     alive, re-composed out of GWP accents, only because the gradient-text
+     utility painted with `background-clip: text; color: transparent` —
+     deleting the token there would have turned the login headline invisible.
+     Task 16 deletes the tokens, the utilities and all eleven call sites in one
+     commit. The DS sanctions exactly TWO gradients — --field-admin for the
+     admin dissolve and --field-hero-sky for one hero surface, both in
+     gwp.theme.css — and a decorative mesh is not among them. */
 
   --selection-bg: var(--sky-200);
   --selection-fg: var(--navy-900);
@@ -251,14 +245,15 @@
   * {
     @apply border-border outline-ring; /* focus blue at full strength, per spec */
   }
+  /* SKY IS THE PAGE: the ground is painted here, not on a wrapper, so every
+     surface above it is something that floats. The Geist-specific
+     stylistic-set tuning ("ss11") that used to sit on <html> is gone with the
+     Geist binary — Nunito Sans has no ss* sets, so it would be silently
+     ignored anyway. */
   body {
-    @apply bg-background text-foreground;
-  }
-  html {
     @apply font-sans;
-    /* The Geist-specific stylistic-set tuning ("ss11") that lived here is
-       gone with the Geist binary — Nunito Sans has no ss* sets, so it would
-       be silently ignored anyway. */
+    background: var(--surface-canvas);
+    color: var(--text-body);
   }
   ::selection {
     background: var(--selection-bg);
@@ -283,47 +278,11 @@
 }
 
 /* ============================================================
-   Vercel-style effects: gradients, grid, hover, spotlight
+   Effects that outlived the Vercel skin. The gradient text, the brand
+   fill, the Develop/Preview/Ship pairs, the mesh, the hero grid and its
+   radial mask are deleted here together with their tokens and call sites.
    ============================================================ */
 @layer utilities {
-  /* Brand gradient text (headings) */
-  .text-gradient {
-    background: var(--brand-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-
-  /* Solid brand gradient fill */
-  .bg-brand {
-    background: var(--brand-gradient);
-  }
-
-  /* The three named gradient pairs — Develop / Preview / Ship */
-  .bg-develop { background: var(--gradient-develop); }
-  .bg-preview { background: var(--gradient-preview); }
-  .bg-ship { background: var(--gradient-ship); }
-  .text-develop,
-  .text-preview,
-  .text-ship {
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .text-develop { background-image: var(--gradient-develop); }
-  .text-preview { background-image: var(--gradient-preview); }
-  .text-ship { background-image: var(--gradient-ship); }
-
-  /* Hero-scale mesh — the brand's only decorative system. Never miniaturize. */
-  .mesh-bg {
-    background-image: var(--brand-mesh);
-    filter: blur(60px);
-    opacity: 0.55;
-  }
-  .dark .mesh-bg {
-    opacity: 0.4;
-  }
-
   /* Scrolls, but without the bar — narrow tab rows that overflow in long locales */
   .scrollbar-none {
     scrollbar-width: none;
@@ -342,20 +301,6 @@
     color: var(--mute);
   }
 
-  /* Vercel hero grid */
-  .grid-bg {
-    background-image:
-      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-    background-size: 44px 44px;
-  }
-
-  /* Fade the edges of the grid, radial from top */
-  .radial-fade {
-    -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, black 35%, transparent 100%);
-    mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, black 35%, transparent 100%);
-  }
-
   /* Lift + colored glow on hover */
   .hover-lift {
     transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -364,50 +309,6 @@
     transform: translateY(-3px);
     box-shadow: 0 14px 44px -14px oklch(from var(--action-500) l c h / 0.4);
   }
-}
-
-/* Gradient border that brightens on hover (Vercel card edge) */
-.gradient-border {
-  position: relative;
-}
-.gradient-border::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: var(--brand-gradient);
-  -webkit-mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(black 0 0) content-box, linear-gradient(black 0 0);
-  mask-composite: exclude;
-  opacity: 0.45;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-.gradient-border:hover::after {
-  opacity: 1;
-}
-
-/* Shine sweep on hover (buttons) */
-.btn-shine {
-  position: relative;
-  overflow: hidden;
-}
-.btn-shine::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -160%;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(100deg, transparent, color-mix(in srgb, white 35%, transparent), transparent);
-  transform: skewX(-20deg);
-  transition: left 0.6s ease;
-  pointer-events: none;
-}
-.btn-shine:hover::after {
-  left: 160%;
 }
 
 /* Mouse-following spotlight card — the signature Vercel hover */

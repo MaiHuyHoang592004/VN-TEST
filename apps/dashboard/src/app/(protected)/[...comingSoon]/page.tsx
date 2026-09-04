@@ -41,9 +41,6 @@ export default function ComingSoon() {
         }
       `}</style>
 
-      {/* themed grid backdrop, same as the home hero */}
-      <div aria-hidden className="grid-bg radial-fade absolute inset-0 -z-20" />
-
       {/* aurora orbs — brand colors, slow drift */}
       <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
         <div

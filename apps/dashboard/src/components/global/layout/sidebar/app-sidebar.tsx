@@ -1,9 +1,15 @@
 /**
- * Vercel-style app sidebar on the shadcn sidebar primitive.
- * Full-height, same surface color as the page. SidebarRail (right edge) is
- * the control: click toggles collapse, drag resizes (200-400px, persisted).
- * Collapsed = icon rail with tooltips; hovering expands it temporarily and
- * leaving collapses it again. Desktop only; mobile keeps the tab bar.
+ * The full navigation tree, rendered as a SHEET and nothing else.
+ *
+ * The DS is unambiguous: "GWP never uses a dark or vertical sidebar." Task 16
+ * removed the persistent 240px rail from the root layout, so this component no
+ * longer has a desktop mode: `collapsible="offcanvas"` plus the provider's
+ * `defaultOpen={false}` (set in Navbar) keep the desktop branch off-canvas, and
+ * SidebarNavButtons opens the sheet. The rail-only affordances — hover-to-open,
+ * the pin button and the drag-to-resize SidebarRail with its localStorage width
+ * — went with the rail.
+ *
+ * Every nav item, permission filter and href below is unchanged.
  * ponytail: teams are dummy data — wire to a real teams table later.
  */
 
@@ -14,8 +20,6 @@ import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  Pin,
-  PanelLeftClose,
   ChevronsUpDown,
   Check,
   Plus,
@@ -32,7 +36,6 @@ import {
   HelpCircle,
   LifeBuoy,
   LogOut,
-  Search as SearchIcon,
   Users,
   Warehouse,
   ScrollText,
@@ -65,7 +68,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -84,11 +86,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-const MIN_W = 200;
-const MAX_W = 400;
-/** Dragging narrower than this collapses the sidebar to the icon rail. */
-const COLLAPSE_BELOW = 150;
 
 // ponytail: dummy teams until the teams table exists
 const TEAMS = [
@@ -230,72 +227,18 @@ export function SidebarNavButtons() {
 export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { t } = useTranslation();
-  const { open, setOpen, toggleSidebar, isMobile, setOpenMobile } =
-    useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const pathname = usePathname();
   const { can } = usePermissions();
   const adminNav = sectionNav("/admin").filter((item) => !item.permission || can(item.permission));
   const showFulfillment = can("orders.status.update");
   const showInventory = can("inventory.read");
-  // True while the sidebar is only open because the pointer is over it
-  // (state, not a ref: the pin button's icon depends on it).
-  const [hoverOpen, setHoverOpen] = useState(false);
-
   if (!user) return null;
 
   const initial = (user.displayName || user.email || "?")[0].toUpperCase();
 
-  const onEnter = () => {
-    if (!open) {
-      setHoverOpen(true);
-      setOpen(true);
-    }
-  };
-  const onLeave = () => {
-    if (hoverOpen) {
-      setHoverOpen(false);
-      setOpen(false);
-    }
-  };
-  /** Pin: keep a hover-opened sidebar open. Unpin: collapse it. */
-  const onPin = () => {
-    if (hoverOpen) setHoverOpen(false);
-    else setOpen(false);
-  };
-  /** Rail: drag to resize (writes --sidebar-width), click to toggle. */
-  const onRailPointerDown = (e: React.PointerEvent) => {
-    const startX = e.clientX;
-    let dragged = false;
-    const onMove = (ev: PointerEvent) => {
-      if (Math.abs(ev.clientX - startX) < 4) return; // ignore click jitter
-      dragged = true;
-      setHoverOpen(false); // resizing pins it open
-      if (ev.clientX < COLLAPSE_BELOW) {
-        // dragged past the minimum → collapse to the icon rail
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-        setOpen(false);
-        return;
-      }
-      if (!open) setOpen(true);
-      const w = Math.min(MAX_W, Math.max(MIN_W, ev.clientX));
-      document.documentElement.style.setProperty("--sidebar-width-user", `${w}px`);
-      localStorage.setItem("sidebar:width", `${w}px`);
-    };
-    const onUp = () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerup", onUp);
-      if (dragged) return;
-      // plain click: pin a hover-opened panel, otherwise toggle
-      if (hoverOpen) setHoverOpen(false);
-      else toggleSidebar();
-    };
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerup", onUp);
-  };
-
   return (
-    <Sidebar collapsible="icon" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+    <Sidebar collapsible="offcanvas">
       <SidebarHeader className="gap-3 p-3 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-1.5">
           <div className="min-w-0 flex-1">
@@ -313,21 +256,10 @@ export function AppSidebar() {
           )}
         </div>
 
-        {/* Search: real box when open; icon that pins open when collapsed.
-            pb-1 opens a breath between the box and the nav list below. */}
-        <div className="pb-1 group-data-[collapsible=icon]:hidden">
+        {/* pb-1 opens a breath between the search box and the nav list. */}
+        <div className="pb-1">
           <Search variant="dropdown" fullWidth anchor="left" />
         </div>
-        <button
-          aria-label={t("nav.search")}
-          onClick={() => {
-            setHoverOpen(false);
-            setOpen(true);
-          }}
-          className="text-muted-foreground hover:bg-accent hover:text-foreground hidden h-8 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring group-data-[collapsible=icon]:flex"
-        >
-          <SearchIcon className="size-4" />
-        </button>
       </SidebarHeader>
 
       <SidebarContent>
@@ -469,20 +401,6 @@ export function AppSidebar() {
           <span className="flex shrink-0 items-center gap-0.5 group-data-[collapsible=icon]:hidden">
             {/* Theme toggle removed: dark mode is forced off (GWP ships no
                 dark palette; see AppProviders' forcedTheme). */}
-            {!isMobile && (
-              <button
-                aria-label={t(hoverOpen ? "sidebar.pin" : "sidebar.collapse")}
-                title={t(hoverOpen ? "sidebar.pin" : "sidebar.collapse")}
-                onClick={onPin}
-                className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-8 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {hoverOpen ? (
-                  <Pin className="size-4" />
-                ) : (
-                  <PanelLeftClose className="size-4" />
-                )}
-              </button>
-            )}
             <button
               aria-label={t("nav.logout")}
               onClick={() => void signOut()}
@@ -493,9 +411,6 @@ export function AppSidebar() {
           </span>
         </div>
       </SidebarFooter>
-
-      {/* Rail: click toggles collapse, drag resizes (shadcn SidebarRail) */}
-      <SidebarRail onPointerDown={onRailPointerDown} />
     </Sidebar>
   );
 }

@@ -150,27 +150,21 @@ export function LoginScreen({
   return (
     // min-h fills the viewport below the 60px navbar — footer only appears on scroll
     <main className="relative flex min-h-[calc(100svh-60px)] flex-1 flex-col overflow-hidden px-6 py-16">
-      {/* mesh sits behind the grid — the brand's one decorative system, hero
-          scale only; the grid gets its own layer so the mask fades the grid,
-          not the content on top of it.
-          NOT -z-10: <main> is position:relative with z-index:auto, so it makes
-          no stacking context and a negative layer sinks behind SidebarInset's
-          bg-background — which is why the old grid never showed. Content is
-          lifted with `relative` instead. */}
-      <div aria-hidden className="mesh-bg radial-fade absolute inset-0" />
-      <div aria-hidden className="grid-bg radial-fade absolute inset-0" />
+      {/* The mesh and grid backdrops are gone with their Vercel-era utilities
+          (Task 16). Sky is the page now, and the login screen is deliberately
+          left plain: Task 26 rebuilds it as the app's second brand moment. */}
 
       <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-14 lg:flex-row lg:items-center lg:justify-between lg:gap-20">
         {/* Brand side — the reason to sign in. Sits above the card on small
             screens (centered, smaller headline), beside it from lg up. */}
         <section className="flex max-w-md flex-1 flex-col gap-5 text-center lg:gap-6 lg:text-left">
           <span className="eyebrow flex items-center justify-center gap-2 lg:justify-start">
-            <span className="bg-brand size-1.5 rounded-full" />
+            <span className="size-1.5 rounded-full bg-(--action-500)" />
             {t("auth.panel.eyebrow")}
           </span>
           <h1 className="text-display-sm sm:text-display-md lg:text-display-lg text-balance">
             {t("auth.panel.headline")}{" "}
-            <span className="text-gradient">{t("auth.panel.headlineAccent")}</span>
+            <span className="text-(--text-strong)">{t("auth.panel.headlineAccent")}</span>
           </h1>
           <p className="text-muted-foreground text-sm text-balance lg:text-base">
             {t("auth.panel.subtitle")}
@@ -199,7 +193,7 @@ export function LoginScreen({
         <CardHeader className="text-center">
           {/* font-semibold restores the display token's 600: CardTitle's base
               font-medium sets --tw-font-weight, which beats the token default. */}
-          <CardTitle className="text-gradient text-display-md sm:text-display-lg font-semibold">
+          <CardTitle className="text-display-md sm:text-display-lg font-semibold text-(--text-strong)">
             {mode === "signup" ? t("auth.signupTitle") : t("auth.title")}
           </CardTitle>
           <CardDescription>
@@ -286,7 +280,7 @@ export function LoginScreen({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              <Button type="submit" className="btn-shine w-full" disabled={busy}>
+              <Button type="submit" className="w-full" disabled={busy}>
                 {busy ? <Spinner /> : null}
                 {t("nav.login")}
               </Button>
@@ -348,7 +342,7 @@ export function LoginScreen({
                   {t("auth.passwordHint")}
                 </p>
               </div>
-              <Button type="submit" className="btn-shine w-full" disabled={busy}>
+              <Button type="submit" className="w-full" disabled={busy}>
                 {busy ? <Spinner /> : null}
                 {t("auth.createAccount")}
               </Button>
@@ -369,7 +363,7 @@ export function LoginScreen({
               </InputOTP>
               <Button
                 type="submit"
-                className="btn-shine w-full"
+                className="w-full"
                 disabled={busy || code.length < 6}
               >
                 {busy ? <Spinner /> : null}

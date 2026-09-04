@@ -40,8 +40,6 @@ export function ResetPassword() {
   return (
     // min-h fills the viewport below the 60px navbar — footer only appears on scroll
     <main className="relative flex min-h-[calc(100svh-60px)] flex-1 flex-col items-center justify-center overflow-hidden px-6 py-16">
-      <div aria-hidden className="grid-bg radial-fade absolute inset-0 -z-10" />
-
       <Card className="bg-background shadow-ds-5 w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-display-md sm:text-display-lg font-semibold">
@@ -66,7 +64,7 @@ export function ResetPassword() {
                 {t("auth.passwordHint")}
               </p>
             </div>
-            <Button type="submit" className="btn-shine w-full" disabled={busy}>
+            <Button type="submit" className="w-full" disabled={busy}>
               {busy ? <Spinner /> : null}
               {t("auth.updatePassword")}
             </Button>

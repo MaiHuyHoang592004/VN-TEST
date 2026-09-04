@@ -16,7 +16,11 @@ import { activeHref } from "@/config/nav-tabs";
 import { useTranslation } from "@/lib/i18n";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import { NotificationBell } from "../notifications/notification-bell";
-import { SidebarNavButtons } from "@/components/global/layout/sidebar/app-sidebar";
+import {
+  AppSidebar,
+  SidebarNavButtons,
+} from "@/components/global/layout/sidebar/app-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { MobileUserMenu } from "../menus/mobile-user-menu";
 import { LanguageSelector } from "../menus/language-selector";
 import { ToolsDropdown } from "../menus/tools-dropdown";
@@ -65,7 +69,16 @@ export function Navbar() {
   const activeTab = activeHref(pathname, dockTabs.map((d) => d.href));
 
   return (
-    <>
+    // The root layout has no rail and no SidebarProvider any more (the DS:
+    // "GWP never uses a dark or vertical sidebar"). SidebarNavButtons and
+    // AppSidebar both call useSidebar(), so the provider moves here and wraps
+    // only the nav subtree — the sheet keeps its context, the page does not
+    // get a 240px column. `contents` because the provider's own wrapper is a
+    // `flex min-h-svh` div, which would otherwise become a full-height flex
+    // row between <body> and the nav. defaultOpen={false} so the desktop
+    // branch of <Sidebar> stays off-canvas: the sheet is the only mode.
+    <SidebarProvider defaultOpen={false} className="contents">
+      <AppSidebar />
       <nav
         className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 h-[60px] w-full border-b backdrop-blur"
         style={{ overflowAnchor: "none" }}
@@ -207,6 +220,6 @@ export function Navbar() {
           )}
         </div>
       </div>
-    </>
+    </SidebarProvider>
   );
 }

@@ -1,6 +1,8 @@
 import { listProducts } from "@/modules/catalog/products/queries";
 import { listSkusWithMyPrice } from "@/modules/catalog/product-variants/queries";
 import { CatalogBrowser } from "@/components/pages/catalog/catalog-browser";
+import { CatalogHeader } from "@/components/pages/catalog/catalog-header";
+import { Page } from "@/components/ds";
 
 /**
  * What a seller can order, at THEIR price.
@@ -40,8 +42,9 @@ export default async function CatalogPage() {
   );
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <CatalogHeader />
       <CatalogBrowser products={products.filter((p) => p.skus.length > 0)} />
-    </main>
+    </Page>
   );
 }

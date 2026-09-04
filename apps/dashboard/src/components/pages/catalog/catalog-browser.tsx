@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { LayoutGrid, List, Package, Search } from "lucide-react";
+import { LayoutGrid, List, Package } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ProductCell, SearchField, Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 
 export type CatalogProduct = {
@@ -51,47 +50,45 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
 
   return (
     <>
-      <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">{t("catalog.browse.title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("catalog.browse.subtitle")}</p>
+      {/* The DS's SearchShell: the search row sits ON the cream brand surface,
+          with the view toggle in its action slot. */}
+      <Surface
+        level="content"
+        radius="card"
+        shadow="none"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <SearchField
+          value={q}
+          onChange={setQ}
+          placeholder={t("catalog.browse.search")}
+          aria-label={t("catalog.browse.search")}
+          className="w-full sm:w-72"
+        />
+        <div className="flex shrink-0 gap-1">
+          <Button
+            variant={view === "grid" ? "secondary" : "ghost"}
+            size="icon-sm"
+            aria-label={t("catalog.browse.gridView")}
+            aria-pressed={view === "grid"}
+            onClick={() => setView("grid")}
+          >
+            <LayoutGrid className="size-4" />
+          </Button>
+          <Button
+            variant={view === "list" ? "secondary" : "ghost"}
+            size="icon-sm"
+            aria-label={t("catalog.browse.listView")}
+            aria-pressed={view === "list"}
+            onClick={() => setView("list")}
+          >
+            <List className="size-4" />
+          </Button>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("catalog.browse.search")}
-              className="w-full pl-8 sm:w-64"
-              aria-label={t("catalog.browse.search")}
-            />
-          </div>
-          <div className="flex gap-1">
-            <Button
-              variant={view === "grid" ? "secondary" : "ghost"}
-              size="icon"
-              aria-label={t("catalog.browse.gridView")}
-              aria-pressed={view === "grid"}
-              onClick={() => setView("grid")}
-            >
-              <LayoutGrid className="size-4" />
-            </Button>
-            <Button
-              variant={view === "list" ? "secondary" : "ghost"}
-              size="icon"
-              aria-label={t("catalog.browse.listView")}
-              aria-pressed={view === "list"}
-              onClick={() => setView("list")}
-            >
-              <List className="size-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      </Surface>
 
       {filtered.length === 0 ? (
-        <p className="text-muted-foreground py-16 text-center text-sm">
+        <p className="py-16 text-center text-(length:--fs-body-sm) text-(--text-muted)">
           {needle ? t("catalog.browse.emptyFiltered") : t("catalog.browse.empty")}
         </p>
       ) : view === "grid" ? (
@@ -101,35 +98,53 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
               key={p.id}
               onClick={() => setOpenId(openId === p.id ? null : p.id)}
               aria-expanded={openId === p.id}
-              className="border-border bg-background hover:border-foreground/20 flex flex-col overflow-hidden rounded-lg border text-left transition-colors"
+              // Surface renders a <section>, and this card is a <button> that
+              // expands its SKU list — so it carries level="data"'s own tokens
+              // rather than nesting one element inside the other.
+              className="flex flex-col overflow-hidden rounded-(--radius-card) bg-(--surface-data) text-left shadow-(--shadow-xs) transition-shadow duration-(--dur-fast) ease-(--ease-out) hover:shadow-(--shadow-sm) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             >
-              <span className="bg-muted flex aspect-[4/3] items-center justify-center overflow-hidden">
+              {/* The cream product well — the DS's one sanctioned warm surface
+                  on an operational screen, and never a grey one. */}
+              <span className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-(--surface-content)">
                 {p.thumbnail ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={p.thumbnail} alt="" className="size-full object-cover" />
                 ) : (
-                  <Package className="text-muted-foreground size-8" />
+                  <Package className="size-8 stroke-(--icon-muted)" />
                 )}
               </span>
               <span className="flex flex-1 flex-col gap-1 p-4">
-                <span className="truncate text-sm font-medium">{p.name}</span>
-                <span className="text-muted-foreground text-xs">
+                <span className="truncate text-(length:--fs-body-sm) font-semibold text-(--text-body)">
+                  {p.name}
+                </span>
+                <span className="font-mono text-(length:--fs-micro) tracking-(--ls-mono) text-(--text-muted)">
+                  {p.key}
+                </span>
+                <span className="text-(length:--fs-meta) text-(--text-muted)">
                   {/* No plural machinery in t(); one extra key beats "1 options"
                       on a page sellers actually look at. Languages without
                       plurals simply repeat the same word. */}
                   {p.skus.length}{" "}
                   {t(p.skus.length === 1 ? "catalog.browse.option" : "catalog.browse.options")}
                 </span>
-                <span className="mt-1 text-sm font-semibold tabular-nums">
-                  {t("catalog.browse.from")} ${from(p).price}
+                <span className="mt-1 text-(length:--fs-body-sm) font-semibold text-(--text-body)">
+                  {t("catalog.browse.from")}{" "}
+                  <span className="font-mono tracking-(--ls-mono) tabular-nums">
+                    ${from(p).price}
+                  </span>
                 </span>
               </span>
               {openId === p.id && (
-                <span className="border-border flex flex-col gap-1 border-t p-3">
+                <span className="flex flex-col gap-1 border-t border-(--border-hairline) p-3">
                   {p.skus.map((s) => (
-                    <span key={s.id} className="flex items-center justify-between gap-2 text-xs">
-                      <span className="truncate">{s.variantName}</span>
-                      <span className="font-mono tabular-nums">${s.price}</span>
+                    <span
+                      key={s.id}
+                      className="flex items-center justify-between gap-2 text-(length:--fs-meta)"
+                    >
+                      <span className="truncate text-(--text-body)">{s.variantName}</span>
+                      <span className="font-mono tracking-(--ls-mono) tabular-nums">
+                        ${s.price}
+                      </span>
                     </span>
                   ))}
                 </span>
@@ -138,38 +153,42 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
           ))}
         </div>
       ) : (
-        <div className="border-border divide-border divide-y overflow-hidden rounded-lg border">
-          {filtered.map((p) => (
-            <div key={p.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
-              <div className="flex min-w-0 flex-1 items-center gap-3">
-                {p.thumbnail ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={p.thumbnail}
-                    alt=""
-                    className="border-border size-10 shrink-0 rounded-md border object-cover"
-                  />
-                ) : (
-                  <span className="bg-muted text-muted-foreground flex size-10 shrink-0 items-center justify-center rounded-md">
-                    <Package className="size-4" />
-                  </span>
-                )}
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{p.name}</p>
-                  <p className="text-muted-foreground truncate font-mono text-xs">{p.key}</p>
+        <Surface pad={false} radius="card" shadow="xs" className="overflow-hidden">
+          <div className="divide-y divide-(--border-hairline)">
+            {filtered.map((p) => (
+              <div key={p.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
+                <ProductCell
+                  className="min-w-0 flex-1"
+                  name={p.name}
+                  code={p.key}
+                  image={
+                    p.thumbnail ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.thumbnail} alt="" />
+                    ) : (
+                      <span className="flex size-full items-center justify-center">
+                        <Package className="size-4 stroke-(--icon-muted)" />
+                      </span>
+                    )
+                  }
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  {p.skus.map((s) => (
+                    <span
+                      key={s.id}
+                      className="inline-flex items-center rounded-(--radius-pill) bg-(--surface-inset) px-2.5 py-1 text-(length:--fs-meta) text-(--text-body)"
+                    >
+                      {s.variantName}
+                      <span className="ml-1.5 font-mono tracking-(--ls-mono) tabular-nums">
+                        ${s.price}
+                      </span>
+                    </span>
+                  ))}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-1.5">
-                {p.skus.map((s) => (
-                  <Badge key={s.id} variant="secondary" className="font-normal">
-                    {s.variantName}
-                    <span className="ml-1.5 font-mono tabular-nums">${s.price}</span>
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </Surface>
       )}
     </>
   );

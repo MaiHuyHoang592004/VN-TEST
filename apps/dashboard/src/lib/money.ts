@@ -7,22 +7,26 @@
  * hand-typed ones were invisible to a grep for "USD". They now all come here,
  * so the currency is one line.
  *
- * VND has no minor unit, and `Intl` knows that: it renders 80000 as "80.000 ₫"
- * with no decimal places, without being told. Do not add `minimumFractionDigits`
- * to force cents back — that would be inventing a subunit the currency does not
- * have.
+ * USD, because the official price list quotes USD: a Glass Suncatcher is $4.03.
+ * `Intl` supplies the two decimal places on its own — do not add
+ * `minimumFractionDigits` to force them, and do not strip them, or the number
+ * on screen stops matching the number the price list agreed.
+ *
+ * This was VND for one release, while the catalogue was a Vietnamese production
+ * cost sheet. Changing it back is this one line PLUS a reimport: prices are
+ * stored verbatim, so the digits in the database are in whatever currency the
+ * workbook that wrote them used. The two have to move together.
  *
  * LOCALE is deliberately the viewer's (`undefined`), matching how every date in
  * the app is already formatted with `toLocaleDateString()`. The currency is the
- * business's; the way it is written is the reader's. To pin the Vietnamese form
- * for everyone regardless of UI language, change `undefined` to `"vi-VN"`.
+ * business's; the way it is written is the reader's.
  *
  * Values arrive as STRINGS from the server — Prisma Decimal never crosses the
  * boundary as a float, because a float loses money. This accepts both and does
  * the one conversion, at the edge, where the value is about to be read rather
  * than calculated with.
  */
-export const CURRENCY = "VND";
+export const CURRENCY = "USD";
 
 const formatter = new Intl.NumberFormat(undefined, {
   style: "currency",

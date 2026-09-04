@@ -34,7 +34,7 @@ export default async function CatalogPage() {
         .filter((s) => s.status === "ACTIVE" && s.priced)
         .map((s) => ({
           id: s.id,
-          variantName: s.product.name,
+          variantName: s.variant.name,
           sku: s.sku,
           price: s.price,
         })),

@@ -118,6 +118,11 @@ export const SKU_SELECT = {
   needed: true,
   salePrice: true,
   product: { select: { id: true, name: true, key: true, status: true } },
+  // The variant is what DISTINGUISHES one SKU of a product from the next — it
+  // carries the size. Without it every SKU of a product reads identically, and
+  // a seller picking "4 inch" from a list of rows all labelled with the product
+  // name is choosing blind.
+  variant: { select: { id: true, name: true, key: true } },
   prices: { select: { tier: true, price: true }, orderBy: { tier: "asc" } },
   createdAt: true,
   updatedAt: true,

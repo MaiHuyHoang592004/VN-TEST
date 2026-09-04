@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeader } from "@/components/ds";
+import { PageHeader, PageTabs } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 
 /**
@@ -28,6 +28,8 @@ export function InventoryPageHeader({
       title={t(titleKey)}
       subtitle={t(subtitleKey)}
       tone="soft"
-    />
+    >
+      <PageTabs section="/inventory" />
+    </PageHeader>
   );
 }

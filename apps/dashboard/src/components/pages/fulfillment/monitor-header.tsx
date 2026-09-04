@@ -1,6 +1,6 @@
 "use client";
 
-import { PageHeader } from "@/components/ds";
+import { PageHeader, PageTabs } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 
 /**
@@ -21,6 +21,8 @@ export function MonitorHeader() {
       subtitle={t("fulfillment.monitor.subtitle")}
       tone="soft"
       size="sm"
-    />
+    >
+      <PageTabs section="/fulfillment" />
+    </PageHeader>
   );
 }

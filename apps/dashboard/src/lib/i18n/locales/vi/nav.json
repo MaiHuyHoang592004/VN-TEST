@@ -19,5 +19,8 @@
     "wallet": "Ví",
     "walletDescription": "Số dư & nạp tiền"
   },
-  "tickets": "Hỗ trợ"
+  "tickets": "Hỗ trợ",
+  "workspace": "Vận hành",
+  "account": "Menu tài khoản",
+  "sectionTabs": "Mục"
 }

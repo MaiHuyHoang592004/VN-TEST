@@ -1,5 +1,6 @@
 /**
- * The full navigation tree, rendered as a SHEET and nothing else.
+ * The full navigation tree, rendered as a SHEET and nothing else — and, since
+ * the top nav took over the desktop, as the MOBILE nav and nothing else.
  *
  * The DS is unambiguous: "GWP never uses a dark or vertical sidebar." Task 16
  * removed the persistent 240px rail from the root layout, so this component no
@@ -9,25 +10,22 @@
  * the pin button and the drag-to-resize SidebarRail with its localStorage width
  * — went with the rail.
  *
- * Every nav item, permission filter and href below is unchanged.
- * ponytail: teams are dummy data — wire to a real teams table later.
+ * It still renders every route, because a phone has room for four dock icons
+ * and this is where the rest live. On desktop the same routes are on the bar:
+ * four inline, Analytics and Wallet under Tools ▾, the seventeen staff routes
+ * under Workspace ▾, and the account rows under the avatar. All of them read
+ * config/nav-tabs.ts + config/nav-icons.ts, so no list here is a second copy.
  */
 
 "use client";
 
-import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Menu,
   X,
-  ChevronsUpDown,
-  Check,
-  Plus,
   Home,
   Package,
   Boxes,
-  Layers,
-  Image as ImageIcon,
   Wallet,
   BarChart3,
   Settings,
@@ -36,27 +34,16 @@ import {
   HelpCircle,
   LifeBuoy,
   LogOut,
-  Users,
-  Warehouse,
-  ScrollText,
-  ScanLine,
-  Zap,
-  MonitorDot,
-  ArrowLeftRight,
-  Shapes,
-  PackageOpen,
-  ListTree,
-  Truck,
-  Receipt,
-  type LucideIcon,
 } from "lucide-react";
 
 import { useAuth } from "@/components/global/providers";
 import { useTranslation } from "@/lib/i18n";
-import { activeHref, sectionTabs } from "@/config/nav-tabs";
+import { activeHref } from "@/config/nav-tabs";
+import { sectionNav } from "@/config/nav-icons";
 import { usePermissions } from "@/hooks/use-permissions";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import { Search } from "@/components/global/search";
+import { TeamSwitcher } from "@/components/global/layout/navbar/menus/team-switcher";
 import {
   Sidebar,
   SidebarContent,
@@ -71,27 +58,12 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-// ponytail: dummy teams until the teams table exists
-const TEAMS = [
-  { id: "personal", name: "HoangMh's projects", plan: "Hobby" },
-  { id: "gwprint", name: "GWPrintz", plan: "Pro" },
-];
 
 const MAIN_NAV = [
   { key: "nav.home", href: "/", icon: Home },
@@ -102,46 +74,6 @@ const MAIN_NAV = [
   { key: "nav.analytics", href: "/analytics", icon: BarChart3 },
 ];
 
-/**
- * Route → icon. The ONLY nav data the sidebar owns.
- *
- * The routes themselves come from config/nav-tabs.ts, so a page added to a
- * section appears in BOTH the tab column and this sidebar or in neither. The
- * sidebar used to keep parallel lists and they drifted exactly as you would
- * expect — /admin/materials landed in one, /inventory/receipts in the other.
- *
- * A route with no icon here still renders (with the fallback); the nav test
- * fails first, which is the point.
- */
-const NAV_ICONS: Record<string, LucideIcon> = {
-  "/fulfillment": ScanLine,
-  "/fulfillment/quick": Zap,
-  "/fulfillment/monitor": MonitorDot,
-  "/inventory": Boxes,
-  "/inventory/receipts": PackageOpen,
-  "/inventory/movements": ArrowLeftRight,
-  "/admin/users": Users,
-  "/admin/products": Boxes,
-  "/admin/variants": Layers,
-  "/admin/mockups": ImageIcon,
-  "/admin/materials": Shapes,
-  "/admin/boms": ListTree,
-  "/admin/transactions": CreditCard,
-  "/admin/vendors": Truck,
-  "/admin/expenses": Receipt,
-  "/admin/warehouses": Warehouse,
-  "/admin/audit": ScrollText,
-};
-
-/** One section's routes, with icons attached. */
-const sectionNav = (prefix: string) =>
-  sectionTabs(prefix).map((tab) => ({
-    key: tab.labelKey,
-    href: tab.href,
-    permission: tab.permission,
-    icon: NAV_ICONS[tab.href] ?? Boxes,
-  }));
-
 const ACCOUNT_NAV = [
   { key: "nav.profile", href: "/profile", icon: User },
   { key: "nav.settings", href: "/settings", icon: Settings },
@@ -149,68 +81,17 @@ const ACCOUNT_NAV = [
   { key: "nav.helpSupport", href: "/help", icon: HelpCircle },
 ];
 
-function TeamSwitcher() {
-  const { t } = useTranslation();
-  const [teamId, setTeamId] = useState(TEAMS[0].id);
-  const team = TEAMS.find((x) => x.id === teamId) ?? TEAMS[0];
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={
-          <button className="flex w-full items-center gap-2 rounded-(--radius-card) border border-(--border-hairline) p-2 text-left transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1" />
-        }
-      >
-        <span className="flex size-6 shrink-0 items-center justify-center rounded-(--radius-pill) bg-sky-200 text-(length:--fs-micro) font-semibold text-navy-700">
-          {team.name[0]}
-        </span>
-        <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-          <span className="block truncate font-sans text-(length:--fs-body-sm) font-semibold text-navy-700">
-            {team.name}
-          </span>
-        </span>
-        <Badge
-          variant="secondary"
-          className="shrink-0 group-data-[collapsible=icon]:hidden"
-        >
-          {team.plan}
-        </Badge>
-        <ChevronsUpDown className="size-4 shrink-0 text-(--icon-muted) group-data-[collapsible=icon]:hidden" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64" align="start">
-        <DropdownMenuGroup>
-          {TEAMS.map(({ id, name, plan }) => (
-            <DropdownMenuItem key={id} onClick={() => setTeamId(id)}>
-              <span className="mr-1 flex size-5 items-center justify-center rounded-(--radius-pill) bg-sky-200 text-(length:--fs-micro) font-semibold text-navy-700">
-                {name[0]}
-              </span>
-              <span className="flex-1 truncate">{name}</span>
-              <span className="text-(length:--fs-meta) text-(--text-muted)">
-                {plan}
-              </span>
-              {id === teamId && <Check className="size-4 stroke-navy-700" />}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <Plus className="size-4" />
-          <span>{t("sidebar.createTeam")}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 /**
- * The navbar's only way into the navigation, at EVERY width.
+ * The way into the sheet — the phone's whole navigation.
  *
- * Task 16 removed the persistent 240px rail and made the sheet the sidebar's
- * only mode. This button hid first at 768px and then at 1024px, and each time
- * the widths above it were left with no route into the nav at all — no
- * sections, no wallet, no settings, no sign-out. There is no width where the
- * navigation lives somewhere else now, so there is no width where this button
- * should be absent. The paired change is SidebarProvider's `isMobile`.
+ * The history matters, because this button's breakpoint has been wrong twice.
+ * It was lg:hidden while the desktop had a persistent rail; Task 16 removed the
+ * rail and the hide left every viewport from 1024px up with no navigation at
+ * all, so the hide came off. The top nav now carries every route on desktop —
+ * four inline, Tools ▾, Workspace ▾, the avatar menu — which is the condition
+ * that was missing then, so the caller in Navbar hides it below md again. The
+ * rule is the same one it always was: this button is absent only where the
+ * navigation is somewhere else.
  */
 export function SidebarNavButtons() {
   const { user } = useAuth();
@@ -220,17 +101,15 @@ export function SidebarNavButtons() {
   if (!user) return null;
 
   return (
-    // shrink-0 keeps it square: it shares a flex column with NavTabs, whose tabs
-    // are wider than a phone, and without this flexbox takes the overflow out
-    // of this button's width while size-9 holds the height — a 36px-tall
-    // button squeezed to ~29px wide, which is the oval. NavTabs scrolls
-    // instead, which is what its overflow-x-auto is already there for.
+    // shrink-0 keeps it square: it shares a flex row with the mark and the nav
+    // items, and without it flexbox takes the row's overflow out of this
+    // button's width while size-9 holds the height — a 36px-tall button
+    // squeezed to ~29px wide, which is the oval.
     //
-    // NO BREAKPOINT HIDE. This button used to be lg:hidden because desktop had
-    // the persistent rail; Layer 3 removed the rail and made the sheet the only
-    // mode, which left every signed-in viewport at 1024px and up with no
-    // navigation at all — no sections, no wallet, no settings, no sign-out. The
-    // sheet is now the whole nav, so its opener belongs at every width.
+    // The breakpoint lives on the CALLER, not here: Navbar wraps this in
+    // md:hidden. A component that hides itself cannot be reused at a width
+    // where the surrounding nav is different, and that is exactly the mistake
+    // this button has already made twice.
     <button
       aria-label={t("sidebar.open")}
       onClick={() => setOpenMobile(true)}

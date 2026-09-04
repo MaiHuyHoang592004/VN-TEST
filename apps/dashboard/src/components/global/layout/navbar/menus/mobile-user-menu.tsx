@@ -7,7 +7,7 @@
 
 import { useState } from "react";
 import { useLocaleRouter } from "@/lib/i18n/navigation";
-import { User, LogOut, X } from "lucide-react";
+import { User, Settings, HelpCircle, LogOut, X } from "lucide-react";
 import { useAuth } from "@/components/global/providers";
 import { useTranslation } from "@/lib/i18n";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -97,21 +97,29 @@ export function MobileUserMenu() {
             </DrawerClose>
           </div>
         </DrawerHeader>
-        {/* Profile only, and that is not a gap. /settings, /billing and /help
-            were three of the four links here and all three land on the
-            coming-soon page — a menu that mostly apologises is worse than a
-            short one. /profile is a real section with its own tab column
-            (security, API, webhooks, billing), so the one link opens all of
-            it. Add rows back here as those routes actually ship. */}
+        {/* This list was cut to /profile alone while /settings and /help fell
+            to the coming-soon page — a menu that mostly apologises is worse
+            than a short one. Both are real pages now, so both are back.
+            Billing is deliberately still absent: /profile is a real section
+            with its own tab column (security, API, webhooks, billing), so the
+            one link opens all of it, and a phone has no room for the same
+            destination twice. */}
         <div className="px-4 py-2">
           <nav className="space-y-1">
-            <button
-              onClick={() => handleNavigation("/profile")}
-              className="flex w-full items-center gap-3 rounded-(--radius-card) px-3 py-3 font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
-            >
-              <User className="h-5 w-5" />
-              <span>{t("nav.profile")}</span>
-            </button>
+            {[
+              { href: "/profile", icon: User, key: "nav.profile" },
+              { href: "/settings", icon: Settings, key: "nav.settings" },
+              { href: "/help", icon: HelpCircle, key: "nav.helpSupport" },
+            ].map(({ href, icon: Icon, key }) => (
+              <button
+                key={href}
+                onClick={() => handleNavigation(href)}
+                className="flex w-full items-center gap-3 rounded-(--radius-card) px-3 py-3 font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
+              >
+                <Icon className="h-5 w-5" />
+                <span>{t(key)}</span>
+              </button>
+            ))}
           </nav>
           <div className="mt-4 border-t border-(--border-hairline) pt-4">
             <button

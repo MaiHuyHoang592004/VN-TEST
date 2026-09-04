@@ -19,5 +19,8 @@
     "wallet": "ウォレット",
     "walletDescription": "残高とチャージ"
   },
-  "tickets": "サポート"
+  "tickets": "サポート",
+  "workspace": "ワークスペース",
+  "account": "アカウントメニュー",
+  "sectionTabs": "セクション"
 }

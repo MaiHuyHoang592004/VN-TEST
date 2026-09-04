@@ -19,5 +19,8 @@
     "wallet": "지갑",
     "walletDescription": "잔액 및 충전"
   },
-  "tickets": "고객 지원"
+  "tickets": "고객 지원",
+  "workspace": "워크스페이스",
+  "account": "계정 메뉴",
+  "sectionTabs": "섹션"
 }

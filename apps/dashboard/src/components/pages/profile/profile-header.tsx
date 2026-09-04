@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-import { PageHeader } from "@/components/ds";
+import { PageHeader, PageTabs } from "@/components/ds";
 import { activeTabHref, sectionTabs } from "@/config/nav-tabs";
 import { useTranslation } from "@/lib/i18n";
 
@@ -30,6 +30,8 @@ export function ProfilePageHeader() {
       title={tab ? t(tab.labelKey) : t("profile.title")}
       tone="soft"
       size="sm"
-    />
+    >
+      <PageTabs section="/profile" />
+    </PageHeader>
   );
 }

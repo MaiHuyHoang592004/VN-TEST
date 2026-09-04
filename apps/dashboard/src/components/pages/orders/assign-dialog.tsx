@@ -61,7 +61,22 @@ export function AssignDialog({
 }) {
   const router = useRouter();
   const { t } = useTranslation();
-  const [warehouseId, setWarehouseId] = useState<number | null>(null);
+  /**
+   * ONE warehouse means there is no choice to make, so the dialog opens with it
+   * already picked and the operator only confirms the charge.
+   *
+   * Deliberately `length === 1`, not "the first one": with two or more sites a
+   * default would put a mis-assignment one careless click away, and an
+   * assignment moves money and sends work to a physical building. The empty
+   * field is the safeguard there, and `submitDisabled` already refuses a null.
+   *
+   * A lazy initialiser is enough — orders-table renders this dialog as
+   * `{assigning && <AssignDialog …/>}`, so it remounts on every open and cannot
+   * hold a stale selection from last time.
+   */
+  const [warehouseId, setWarehouseId] = useState<number | null>(
+    warehouses.length === 1 ? warehouses[0].id : null,
+  );
   const [preview, setPreview] = useState<Preview | null>(null);
   // Generated ONCE per dialog. Regenerating per submit would defeat the point.
   const [idempotencyKey] = useState(() => `assign-${Date.now()}-${crypto.randomUUID()}`);

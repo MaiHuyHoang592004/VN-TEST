@@ -277,7 +277,7 @@ export async function purchaseLabels(
           // advisory lock keyed by referenceId, not a row lock on the
           // orders table, so an unrelated group's purchase proceeds freely.
           // Released automatically at transaction end (the `_xact_` variant).
-          await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${referenceId}))`;
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${referenceId}))`;
 
           // Re-read INSIDE the lock: `group` above was planned before we got
           // here, and is stale the moment a concurrent request for this same

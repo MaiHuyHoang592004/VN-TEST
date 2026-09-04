@@ -11,8 +11,9 @@ import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 
 import { prisma, type UserRole } from "@gwprint/db";
-import { previewLabels, parcelsFor } from "./purchase.ts";
+import { previewLabels, parcelsFor, purchaseLabels, __setProviderForTests } from "./purchase.ts";
 import { resolveLabelUrl } from "./download.ts";
+import type { LabelProvider } from "./provider.ts";
 
 let adminId: string;
 let sellerId: string;
@@ -164,6 +165,129 @@ test("a preview is read-only — nothing is bought by looking", async () => {
   await previewLabels(admin(), [id]);
   const shipments = await prisma.shipment.count({ where: { orderId: id } });
   assert.equal(shipments, 0, "preview must never create a shipment");
+});
+
+// ── purchaseLabels: the money path, under real concurrency ─────────────────
+//
+// SHP-03: two purchase requests for the SAME orders — a double-click, or a
+// genuine client retry racing the first attempt's own slow response — must
+// buy exactly once. The provider here is a controllable fake so the RACE
+// WINDOW is real (an artificial delay inside "the carrier call") without
+// depending on KiloShips' actual uptime, per this file's own header.
+
+const fakeProvider = (delayMs: number): LabelProvider & { calls: number } => {
+  const p = {
+    calls: 0,
+    name: "fake",
+    async purchase(group: { referenceId: string }) {
+      p.calls++;
+      await new Promise((r) => setTimeout(r, delayMs));
+      return {
+        labelUrl: "https://example.com/concurrent-label.pdf",
+        trackingNumber: `CONCUR-${group.referenceId}`,
+        provider: "fake",
+        method: "usps_ground_advantage",
+        cost: "5.00",
+        raw: { referenceId: group.referenceId },
+      };
+    },
+  };
+  return p;
+};
+
+test("two concurrent purchases for the same order buy exactly once", async () => {
+  process.env.KILOSHIPS_API_KEY = "test-key";
+  const fake = fakeProvider(150);
+  __setProviderForTests(fake);
+  const auditCtx = { actor: admin(), ip: null, userAgent: null };
+
+  try {
+    const id = await makeOrder({ zip: "60006", sku: skuBoxed });
+
+    const [r1, r2] = await Promise.all([
+      purchaseLabels(admin(), [id], auditCtx),
+      purchaseLabels(admin(), [id], auditCtx),
+    ]);
+
+    assert.equal(fake.calls, 1, "the carrier was called exactly once, not twice, for one order");
+
+    const results = [r1, r2];
+    assert.equal(
+      results.filter((r) => r.purchased.length === 1).length,
+      1,
+      "exactly one of the two calls actually bought it",
+    );
+    assert.equal(
+      results.filter((r) => r.skipped.some((s) => s.reason === "already-has-label")).length,
+      1,
+      "the OTHER call recognised it was already bought — success, not a failure",
+    );
+    assert.equal(results.some((r) => r.failed.length > 0), false, "neither call errors");
+
+    const shipments = await prisma.shipment.findMany({ where: { orderId: id } });
+    assert.equal(shipments.length, 1, "one Shipment row — not two carrier charges recorded as two");
+  } finally {
+    __setProviderForTests(null);
+    delete process.env.KILOSHIPS_API_KEY;
+  }
+});
+
+test("a retry after the first attempt already committed is a clean skip, sequentially too", async () => {
+  process.env.KILOSHIPS_API_KEY = "test-key";
+  const fake = fakeProvider(0);
+  __setProviderForTests(fake);
+  const auditCtx = { actor: admin(), ip: null, userAgent: null };
+
+  try {
+    const id = await makeOrder({ zip: "60007", sku: skuBoxed });
+
+    const first = await purchaseLabels(admin(), [id], auditCtx);
+    assert.equal(first.purchased.length, 1);
+    assert.equal(fake.calls, 1);
+
+    // The exact "click Buy again" scenario SHP-03 names — not a double-click
+    // racing the first response, just a plain repeat of the same request.
+    const retry = await purchaseLabels(admin(), [id], auditCtx);
+    assert.equal(retry.purchased.length, 0);
+    assert.equal(retry.skipped[0]?.reason, "already-has-label");
+    assert.equal(fake.calls, 1, "the carrier was never called a second time");
+
+    const shipments = await prisma.shipment.count({ where: { orderId: id } });
+    assert.equal(shipments, 1);
+  } finally {
+    __setProviderForTests(null);
+    delete process.env.KILOSHIPS_API_KEY;
+  }
+});
+
+test("different orders purchased at the same time are NOT serialized against each other", async () => {
+  process.env.KILOSHIPS_API_KEY = "test-key";
+  const fake = fakeProvider(150);
+  __setProviderForTests(fake);
+  const auditCtx = { actor: admin(), ip: null, userAgent: null };
+
+  try {
+    const a = await makeOrder({ zip: "60008", sku: skuBoxed });
+    const b = await makeOrder({ zip: "60009", sku: skuBoxed });
+
+    const started = Date.now();
+    const [ra, rb] = await Promise.all([
+      purchaseLabels(admin(), [a], auditCtx),
+      purchaseLabels(admin(), [b], auditCtx),
+    ]);
+    const elapsed = Date.now() - started;
+
+    assert.equal(ra.purchased.length, 1);
+    assert.equal(rb.purchased.length, 1);
+    assert.equal(fake.calls, 2, "two DIFFERENT orders, two real purchases");
+    // The advisory lock is keyed by referenceId (which differs per order
+    // here) — if it were accidentally serializing ALL purchases instead of
+    // just same-referenceId ones, this would take ~2×150ms instead of ~150ms.
+    assert.ok(elapsed < 280, `unrelated orders should not wait on each other's lock (took ${elapsed}ms)`);
+  } finally {
+    __setProviderForTests(null);
+    delete process.env.KILOSHIPS_API_KEY;
+  }
 });
 
 test("ids outside the actor's scope are reported, not silently dropped", async () => {

@@ -1,7 +1,9 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+import { ProductCell, StatusBadge } from "@/components/ds";
 import {
   Select,
   SelectContent,
@@ -17,8 +19,6 @@ import {
 } from "@/components/global/data-table";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
-
-import { InventoryHeader } from "./stat-tiles";
 
 const MOVEMENT_TYPES = [
   "RECEIPT",
@@ -67,7 +67,7 @@ export function MovementsTable({
       id: "createdAt",
       header: t("inventory.movements.col.created"),
       cell: (m) => (
-        <span className="text-muted-foreground text-sm whitespace-nowrap">
+        <span className="text-(length:--fs-body-sm) whitespace-nowrap text-(--text-muted)">
           {new Date(m.createdAt).toLocaleString()}
         </span>
       ),
@@ -75,23 +75,29 @@ export function MovementsTable({
     {
       id: "type",
       header: t("inventory.movements.col.type"),
-      cell: (m) => <Badge variant="secondary">{t(`inventory.movements.types.${m.type}`)}</Badge>,
+      // EXPLICIT neutral, never toneFor(). status-tones.ts is unambiguous:
+      // InventoryMovementType.RETURN "is a movement TYPE that happens to
+      // collide with the DS's `Return` status key. Do not pass it to
+      // toneFor()." A movement type is not a status, and the direction — the
+      // part that carries meaning — is coloured in the quantity column.
+      cell: (m) => (
+        <StatusBadge status={m.type} tone="neutral" dot={false}>
+          {t(`inventory.movements.types.${m.type}`)}
+        </StatusBadge>
+      ),
     },
     {
       id: "item",
       header: t("inventory.movements.col.item"),
-      cell: (m) => (
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{m.name ?? "—"}</p>
-          {m.sku && <p className="text-muted-foreground truncate font-mono text-xs">{m.sku}</p>}
-        </div>
-      ),
+      cell: (m) => <ProductCell size="sm" name={m.name ?? "—"} code={m.sku} />,
     },
     {
       id: "warehouse",
       header: t("inventory.movements.col.warehouse"),
       hideOnMobile: true,
-      cell: (m) => <span className="text-muted-foreground text-sm">{m.warehouse}</span>,
+      cell: (m) => (
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">{m.warehouse}</span>
+      ),
     },
     {
       id: "quantity",
@@ -99,14 +105,21 @@ export function MovementsTable({
       className: "text-right tabular-nums",
       // The SIGN is the information: movements that take stock away are
       // negative, and the colour follows the sign rather than the type — so a
-      // new movement type renders correctly without touching this.
+      // new movement type renders correctly without touching this. The DS asks
+      // for direction as an ARROW in the tone's ink rather than a coloured
+      // word, so the figure reads as a figure and the direction as a glyph.
       cell: (m) => (
         <span
           className={cn(
-            "font-medium",
-            m.quantity < 0 ? "text-red-600" : "text-green-600",
+            "inline-flex items-center justify-end gap-1 font-mono font-semibold tracking-(--ls-mono)",
+            m.quantity < 0 ? "text-(--status-critical-fg)" : "text-(--status-success-fg)",
           )}
         >
+          {m.quantity < 0 ? (
+            <ArrowDownRight aria-hidden="true" className="size-3.5 shrink-0" />
+          ) : (
+            <ArrowUpRight aria-hidden="true" className="size-3.5 shrink-0" />
+          )}
           {m.quantity > 0 ? `+${m.quantity}` : m.quantity}
         </span>
       ),
@@ -116,24 +129,23 @@ export function MovementsTable({
       header: t("inventory.movements.col.reference"),
       hideOnMobile: true,
       cell: (m) => (
-        <span className="text-muted-foreground font-mono text-xs">{m.reference ?? "—"}</span>
+        <span className="font-mono text-(length:--fs-meta) tracking-(--ls-mono) text-(--text-muted)">
+          {m.reference ?? "—"}
+        </span>
       ),
     },
     {
       id: "user",
       header: t("inventory.movements.col.user"),
       hideOnMobile: true,
-      cell: (m) => <span className="text-muted-foreground text-sm">{m.user ?? "—"}</span>,
+      cell: (m) => (
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">{m.user ?? "—"}</span>
+      ),
     },
   ];
 
   return (
     <>
-      <InventoryHeader
-        title={t("inventory.movements.title")}
-        subtitle={t("inventory.movements.subtitle")}
-      />
-
       <DataTable
         rows={rows}
         columns={columns}

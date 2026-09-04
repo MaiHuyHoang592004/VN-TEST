@@ -64,11 +64,12 @@ export function MetricCard({
   const t = TONES[tone];
   // `tile` is a compatibility alias for `wash`.
   const isCard = variant === "card";
-  // Interactive when the card owns the click OR when something outside is
-  // driving it — Base UI's `render` hands a trigger its onClick, aria-expanded
-  // and ref through `rest`, and a card that ignored those would be a popover
-  // trigger that never opens. Everything unknown is forwarded for that reason.
-  const interactive = Boolean(onClick) || Object.keys(rest).length > 0;
+  // A card is interactive when it has a click, whoever supplied it: Base UI's
+  // `render` hands a trigger its onClick through this same prop, and the rest
+  // of what it needs — aria-expanded, onContextMenu, the ref — rides along in
+  // `rest` onto the button. A card without a click stays a <div>, because a
+  // figure nobody can press is not a button.
+  const interactive = Boolean(onClick);
 
   const body = (
     <>

@@ -173,7 +173,7 @@ export function BomsTable({
           {
             label: t("inventory.boms.tiles.incomplete"),
             value: tiles.unmappedLines,
-            tone: "danger",
+            tone: "critical",
           },
         ]}
       />

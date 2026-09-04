@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
+import { KeyValueRow, StatusBadge, Surface } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ResponsiveDialog } from "@/components/global/form";
@@ -88,20 +88,51 @@ export function ReceiptDetailDialog({
       className="sm:max-w-3xl"
     >
       {!receipt ? (
-        <p className="text-muted-foreground py-6 text-sm">…</p>
+        <p className="py-6 text-(length:--fs-body-sm) text-(--text-muted)">…</p>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={receipt.status === "COMPLETE" ? "default" : "secondary"}>
-              {t(`inventory.receipts.status.${receipt.status}`)}
-            </Badge>
-            {receipt.provider && (
-              <span className="text-muted-foreground text-sm">{receipt.provider}</span>
-            )}
-            {receipt.rejectReason && (
-              <span className="text-red-600 text-sm">{receipt.rejectReason}</span>
-            )}
-          </div>
+          {/* The receipt's own facts, as the DS's label/value rows: codes and
+              references in mono, status from STATUS_TONES. */}
+          <Surface level="inset" radius="card" shadow="none" className="py-1">
+            <dl>
+              <KeyValueRow
+                label={t("inventory.receipts.col.status")}
+                value={
+                  <StatusBadge status={receipt.status}>
+                    {t(`inventory.receipts.status.${receipt.status}`)}
+                  </StatusBadge>
+                }
+              />
+              <KeyValueRow
+                label={t("inventory.receipts.col.code")}
+                mono
+                value={receipt.code}
+              />
+              <KeyValueRow
+                label={t("inventory.receipts.col.warehouse")}
+                value={receipt.warehouse.name}
+              />
+              {receipt.provider && (
+                <KeyValueRow
+                  label={t("inventory.receipts.col.supplier")}
+                  value={receipt.provider}
+                />
+              )}
+              <KeyValueRow
+                label={t("inventory.receipts.col.shipments")}
+                mono
+                value={receipt.shipments.length}
+              />
+              {receipt.rejectReason && (
+                <KeyValueRow
+                  label={t("inventory.receipts.detail.rejectReason")}
+                  value={
+                    <span className="text-(--status-critical-fg)">{receipt.rejectReason}</span>
+                  }
+                />
+              )}
+            </dl>
+          </Surface>
 
           {receipt.shipments.map((shipment) => (
             <ShipmentPanel
@@ -192,19 +223,21 @@ function ShipmentPanel({
     <div className="border-border flex flex-col gap-3 rounded-lg border p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-col gap-0.5">
-          <p className="font-mono text-sm font-medium">{shipment.shipmentCode}</p>
+          <p className="font-mono text-(length:--fs-body-sm) font-medium tracking-(--ls-mono) text-(--text-body)">
+            {shipment.shipmentCode}
+          </p>
           {meta.length > 0 && (
-            <p className="text-muted-foreground text-xs">{meta.join(" · ")}</p>
+            <p className="text-(length:--fs-meta) text-(--text-muted)">{meta.join(" · ")}</p>
           )}
         </div>
-        <Badge variant={shipment.status === "RECEIVED" ? "default" : "secondary"}>
+        <StatusBadge status={shipment.status}>
           {t(`inventory.receipts.shipStatus.${shipment.status}`)}
-        </Badge>
+        </StatusBadge>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="text-muted-foreground text-xs">
+          <thead className="text-(length:--fs-meta) text-(--text-label)">
             <tr>
               <th className="px-2 py-1 text-left">{t("inventory.receipts.form.item")}</th>
               <th className="px-2 py-1 text-right">{t("inventory.receipts.detail.expected")}</th>
@@ -275,7 +308,7 @@ function ShipmentPanel({
 
       <div className="flex flex-wrap gap-2">
         {evidence.length === 0 ? (
-          <span className="text-muted-foreground text-xs">
+          <span className="text-(length:--fs-meta) text-(--text-muted)">
             {t("inventory.receipts.detail.noEvidence")}
           </span>
         ) : (

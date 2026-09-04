@@ -2,6 +2,8 @@ import { requirePermission } from "@/modules/core/guard";
 import { listStock } from "@/modules/inventory/stock/queries";
 import { listMySitesAction } from "@/modules/inventory/stock/actions";
 import { StockTable } from "@/components/pages/inventory/stock-table";
+import { InventoryPageHeader } from "@/components/pages/inventory/inventory-header";
+import { Page } from "@/components/ds";
 
 /**
  * What is on the shelves — suppliers and finished goods on ONE page.
@@ -39,7 +41,8 @@ export default async function InventoryPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <InventoryPageHeader titleKey="inventory.stock.title" subtitleKey="inventory.stock.subtitle" />
       <StockTable
         itemType={itemType}
         rows={rows}
@@ -47,6 +50,6 @@ export default async function InventoryPage({
         totals={totals}
         sites={sites}
       />
-    </main>
+    </Page>
   );
 }

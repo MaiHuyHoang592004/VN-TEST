@@ -2,6 +2,8 @@ import { requirePermission } from "@/modules/core/guard";
 import { listMovements } from "@/modules/inventory/stock/queries";
 import { listMySitesAction } from "@/modules/inventory/stock/actions";
 import { MovementsTable } from "@/components/pages/inventory/movements-table";
+import { InventoryPageHeader } from "@/components/pages/inventory/inventory-header";
+import { Page } from "@/components/ds";
 
 /**
  * The ledger: every change to every count, in the order it happened.
@@ -35,7 +37,8 @@ export default async function MovementsPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <InventoryPageHeader titleKey="inventory.movements.title" subtitleKey="inventory.movements.subtitle" />
       <MovementsTable
         sites={sites}
         nextCursor={nextCursor}
@@ -55,6 +58,6 @@ export default async function MovementsPage({
           name: m.name,
         }))}
       />
-    </main>
+    </Page>
   );
 }

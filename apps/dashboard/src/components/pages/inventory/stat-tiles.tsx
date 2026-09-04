@@ -1,7 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
-
+import { MetricCard, type StatusTone } from "@/components/ds";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,6 +10,10 @@ import { cn } from "@/lib/utils";
  * summing the rows on screen. That is the one rule this component exists to
  * hold: the legacy page added up whatever it had rendered, so the tiles lied
  * whenever a filter matched more than one page.
+ *
+ * Each tile is a DS `MetricCard` in its default `wash` variant, so a figure
+ * carries the same tone here as the badge for the same thing does in the table
+ * below it.
  */
 export type Tile = {
   label: string;
@@ -19,9 +22,14 @@ export type Tile = {
    * decides the colour, so a negative net reads red without the formatter
    * having to know about tones. */
   display?: string;
-  /** Colour the number when it is non-zero — a shortage tile that reads 0 in
-   * red is noise, and one that reads 12 in grey is missed. */
-  tone?: "danger" | "warning";
+  /**
+   * Tone the card when the value is non-zero — a shortage tile that reads 0 in
+   * red is noise, and one that reads 12 in grey is missed.
+   *
+   * These are the DS's own StatusTone names, so a tone chosen here is the same
+   * colour a StatusBadge for the same meaning would be.
+   */
+  tone?: StatusTone;
 };
 
 /**
@@ -47,63 +55,18 @@ export function StatTiles({ tiles }: { tiles: Tile[] }) {
   return (
     <div
       className={cn(
-        "mb-4 grid gap-2 sm:gap-3",
+        "grid gap-2 sm:gap-3",
         COLUMNS[tiles.length] ?? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6",
       )}
     >
-      {tiles.map((tile) => (
-        <StatTile key={tile.label} {...tile} />
+      {tiles.map(({ label, value, display, tone }) => (
+        <MetricCard
+          key={label}
+          label={label}
+          tone={tone && value > 0 ? tone : "neutral"}
+          value={display ?? value.toLocaleString()}
+        />
       ))}
     </div>
-  );
-}
-
-function StatTile({ label, value, display, tone }: Tile) {
-  const alert = tone && value > 0;
-  return (
-    <div className="border-border bg-card flex min-w-0 flex-col gap-0.5 rounded-lg border px-3 py-2.5">
-      {/* truncate, not wrap: a two-line label pushes the number out of the column
-          and the tiles stop lining up. The full text stays in the title. */}
-      <p className="text-muted-foreground truncate text-xs font-medium" title={label}>
-        {label}
-      </p>
-      <p
-        className={cn(
-          "truncate text-lg leading-tight font-semibold tabular-nums sm:text-xl",
-          alert && tone === "danger" && "text-red-600",
-          alert && tone === "warning" && "text-status-attention-fg",
-        )}
-      >
-        {display ?? value.toLocaleString()}
-      </p>
-    </div>
-  );
-}
-
-/**
- * Page heading for an inventory tab.
- *
- * No tab strip here: switching between Stock and Movements is the NAVBAR's
- * job, declared once in config/nav-tabs.ts alongside every other section. A
- * second column of tabs inside the page would be the same navigation rendered
- * twice, in two different styles, that could disagree about what is active.
- */
-export function InventoryHeader({
-  title,
-  subtitle,
-  actions,
-}: {
-  title: string;
-  subtitle: string;
-  actions?: ReactNode;
-}) {
-  return (
-    <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        <p className="text-muted-foreground text-sm">{subtitle}</p>
-      </div>
-      {actions && <div className="flex shrink-0 gap-2">{actions}</div>}
-    </header>
   );
 }

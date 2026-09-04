@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ProductCell } from "@/components/ds";
 import {
   Select,
   SelectContent,
@@ -25,7 +25,7 @@ import { useTranslation } from "@/lib/i18n";
 
 import { AdjustStockDialog } from "./adjust-stock-dialog";
 import { ImportStockDialog } from "./import-stock-dialog";
-import { InventoryHeader, StatTiles } from "./stat-tiles";
+import { StatTiles } from "./stat-tiles";
 
 export type StockRowView = {
   itemType: "MATERIAL" | "PRODUCT";
@@ -69,21 +69,24 @@ export function StockTable({
     {
       id: "item",
       header: t("inventory.stock.col.item"),
-      cell: (r) => (
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium">{r.name}</p>
-          <p className="text-muted-foreground truncate font-mono text-xs">{r.sku}</p>
-        </div>
-      ),
+      cell: (r) => <ProductCell size="sm" name={r.name} code={r.sku} />,
     },
     {
       id: "kind",
       header: t("inventory.stock.col.kind"),
       hideOnMobile: true,
       cell: (r) => (
-        <span className="text-muted-foreground text-sm">
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">
           {r.itemType === "MATERIAL" && r.kind
-            ? t(`inventory.suppliers.types.${r.kind}`)
+            ? // REPAIR, not a migration change. This key was
+              // `inventory.materials.types.*` and the committed-upstream
+              // material <-> supplier find-and-replace (MIGRATION-STATUS §3)
+              // renamed the READ but not the locale files, which still have
+              // `materials`. The page printed the raw key —
+              // "inventory.suppliers.types.SEMI_FINISHED" — in the Type column.
+              // The locale settles it: inventory.materials.types holds exactly
+              // this enum's five values. Only call site in the app.
+              t(`inventory.materials.types.${r.kind}`)
             : (r.kind ?? "—")}
         </span>
       ),
@@ -91,29 +94,31 @@ export function StockTable({
     {
       id: "onHand",
       header: t("inventory.stock.col.onHand"),
-      className: "text-right tabular-nums",
+      className: "text-right font-mono tracking-(--ls-mono) tabular-nums",
       cell: (r) => r.onHand,
     },
     {
       id: "reserved",
       header: <WithTip label={t("inventory.stock.col.reserved")} tip={t("inventory.stock.tip.reserved")} />,
-      className: "text-right tabular-nums",
+      className: "text-right font-mono tracking-(--ls-mono) tabular-nums",
       hideOnMobile: true,
       cell: (r) => r.reserved,
     },
     {
       id: "needed",
       header: <WithTip label={t("inventory.stock.col.shortage")} tip={t("inventory.stock.tip.shortage")} />,
-      className: "text-right tabular-nums",
+      className: "text-right font-mono tracking-(--ls-mono) tabular-nums",
       cell: (r) => (
-        <span className={cn(r.needed > 0 && "text-red-600 font-medium")}>{r.needed}</span>
+        <span className={cn(r.needed > 0 && "font-semibold text-(--status-critical-fg)")}>
+          {r.needed}
+        </span>
       ),
     },
     {
       id: "available",
       header: <WithTip label={t("inventory.stock.col.available")} tip={t("inventory.stock.tip.available")} />,
-      className: "text-right tabular-nums",
-      cell: (r) => <span className="font-medium">{r.available}</span>,
+      className: "text-right font-mono tracking-(--ls-mono) tabular-nums",
+      cell: (r) => <span className="font-semibold">{r.available}</span>,
     },
     {
       id: "warehouses",
@@ -122,12 +127,18 @@ export function StockTable({
       cell: (r) => (
         <div className="flex flex-wrap gap-1">
           {r.warehouses.length === 0 ? (
-            <span className="text-muted-foreground text-sm">—</span>
+            <span className="text-(length:--fs-body-sm) text-(--text-muted)">—</span>
           ) : (
             r.warehouses.map((w) => (
-              <Badge key={w.id} variant="secondary" className="font-normal">
-                {w.name}: {w.quantity}
-              </Badge>
+              <span
+                key={w.id}
+                className="inline-flex items-center rounded-(--radius-pill) bg-(--surface-inset) px-2.5 py-1 text-(length:--fs-meta) text-(--text-body)"
+              >
+                {w.name}:{" "}
+                <span className="ml-1 font-mono tracking-(--ls-mono) tabular-nums">
+                  {w.quantity}
+                </span>
+              </span>
             ))
           )}
         </div>
@@ -149,24 +160,16 @@ export function StockTable({
 
   return (
     <>
-      <InventoryHeader
-        title={t("inventory.stock.title")}
-        subtitle={t("inventory.stock.subtitle")}
-        actions={
-          <Can permission="inventory.adjust">
-            <Button variant="outline" onClick={() => setImporting(true)}>
-              {t("inventory.stock.import")}
-            </Button>
-          </Can>
-        }
-      />
-
       <StatTiles
         tiles={[
           { label: t("inventory.stock.tiles.items"), value: total },
-          { label: t("inventory.stock.tiles.onHand"), value: totals.quantity },
-          { label: t("inventory.stock.tiles.reserved"), value: totals.reserved },
-          { label: t("inventory.stock.tiles.shortage"), value: totals.needed, tone: "danger" },
+          { label: t("inventory.stock.tiles.onHand"), value: totals.quantity, tone: "success" },
+          {
+            label: t("inventory.stock.tiles.reserved"),
+            value: totals.reserved,
+            tone: "progress",
+          },
+          { label: t("inventory.stock.tiles.shortage"), value: totals.needed, tone: "critical" },
         ]}
       />
 
@@ -183,6 +186,14 @@ export function StockTable({
             searchPlaceholder={t("inventory.stock.search")}
             hasFilters={hasFilters}
             onClearFilters={() => params.clearFilters(["q", "customer"])}
+            // The page's action moves out of the hero, which owns no CTA.
+            actions={
+              <Can permission="inventory.adjust">
+                <Button variant="outline" onClick={() => setImporting(true)}>
+                  {t("inventory.stock.import")}
+                </Button>
+              </Can>
+            }
             filters={
               <>
                 {/* One page replaces legacy's two parallel screens: the toggle

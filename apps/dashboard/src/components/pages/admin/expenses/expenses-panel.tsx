@@ -258,7 +258,7 @@ function EntriesTab({
             label: t("finance.expenses.tiles.net"),
             value: Number(summary.net),
             display: money(summary.net),
-            tone: Number(summary.net) < 0 ? "danger" : undefined,
+            tone: Number(summary.net) < 0 ? "critical" : undefined,
           },
           { label: t("finance.expenses.tiles.count"), value: summary.count },
         ]}

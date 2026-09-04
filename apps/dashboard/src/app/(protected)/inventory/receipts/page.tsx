@@ -3,6 +3,8 @@ import { listReceipts, shipmentsReport } from "@/modules/inventory/receipts/quer
 import { listMySitesAction } from "@/modules/inventory/stock/actions";
 import { listMaterialOptions } from "@/modules/inventory/materials/queries";
 import { ReceiptsTable } from "@/components/pages/inventory/receipts-table";
+import { InventoryPageHeader } from "@/components/pages/inventory/inventory-header";
+import { Page } from "@/components/ds";
 
 /**
  * Goods arriving. An admin raises a receipt (one customer, one or more
@@ -42,7 +44,8 @@ export default async function ReceiptsPage({
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
+    <Page>
+      <InventoryPageHeader titleKey="inventory.receipts.title" subtitleKey="inventory.receipts.subtitle" />
       <ReceiptsTable
         total={total}
         sites={sites}
@@ -64,6 +67,6 @@ export default async function ReceiptsPage({
           createdAt: r.createdAt.toISOString(),
         }))}
       />
-    </main>
+    </Page>
   );
 }

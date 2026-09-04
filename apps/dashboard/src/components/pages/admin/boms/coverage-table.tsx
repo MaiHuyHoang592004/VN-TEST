@@ -168,12 +168,12 @@ export function CoverageTable({
           {
             label: t("inventory.boms.coverage.tiles.shortage"),
             value: tiles.shortage,
-            tone: "danger",
+            tone: "critical",
           },
           {
             label: t("inventory.boms.coverage.tiles.noStock"),
             value: tiles.noStock,
-            tone: "warning",
+            tone: "attention",
           },
         ]}
       />

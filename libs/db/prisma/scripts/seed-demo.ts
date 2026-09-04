@@ -59,6 +59,15 @@ if (!isLocal) {
 // ── Markers. One list of conventions, used by seed AND wipe: they cannot drift.
 const PREFIX = "DEMO-";                 // order externalIds
 const DEMO_DOMAIN = "@demo.gwprint.dev"; // every seeded account except the admin
+/**
+ * Databases seeded BEFORE the rebrand carry the old domain. The wipe has to
+ * match both or it silently leaves every demo account, ticket, reply,
+ * notification and wallet behind while still reporting success — it counts the
+ * ids it found, and finding none reads as "removed 0". Seeding only ever writes
+ * the current domain; this list is for cleaning up after the rename.
+ */
+const LEGACY_DEMO_DOMAINS = ["@demo.opcreative.dev"];
+const ALL_DEMO_DOMAINS = [DEMO_DOMAIN, ...LEGACY_DEMO_DOMAINS];
 const ADMIN_EMAIL = "huyhoang5924@gmail.com";
 const MAT_PREFIX = "DM-";               // material skus, vendor codes
 const NOTE_MARK = "DEMO seed";          // receipts.note, expenses.description prefix
@@ -120,7 +129,8 @@ async function wipe(loud = true) {
   const say = (s: string) => loud && console.log(s);
 
   const demoUsers = await prisma.user.findMany({
-    where: { email: { endsWith: DEMO_DOMAIN } }, select: { id: true },
+    where: { OR: ALL_DEMO_DOMAINS.map((d) => ({ email: { endsWith: d } })) },
+    select: { id: true },
   });
   const demoUserIds = demoUsers.map((u) => u.id);
 

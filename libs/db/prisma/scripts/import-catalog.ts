@@ -24,7 +24,7 @@
  * Product.configs so it is not lost, and no UI renders it today.
  *
  * Idempotent: re-running updates by `key` rather than creating duplicates.
- * LOCAL ONLY.
+ * LOCAL by default; a remote target needs SEED_ALLOW_REMOTE=1.
  */
 import { readFileSync } from "node:fs";
 import XLSX from "xlsx-js-style";
@@ -32,9 +32,19 @@ import XLSX from "xlsx-js-style";
 import { prisma } from "../../src/client.ts";
 
 const url = process.env.DATABASE_URL ?? "";
-if (!/@(localhost|127\.0\.0\.1)[:/]/.test(url)) {
-  console.error(`Refusing to import: ${url.replace(/:[^:@]*@/, ":***@")} is not a local database.`);
+const isLocal = /@(localhost|127\.0\.0\.1)[:/]/.test(url);
+const host = url.replace(/:[^:@/]+@/, ":***@").replace(/\?.*/, "");
+
+// Same opt-in seed-demo.ts uses: local by default, and a remote target needs
+// an environment variable you cannot arrive at by pressing up-arrow in a shell.
+if (!isLocal && process.env.SEED_ALLOW_REMOTE !== "1") {
+  console.error(`Refusing to import: ${host} is not a local database.`);
+  console.error("Set SEED_ALLOW_REMOTE=1 if that is genuinely what you want.");
   process.exit(1);
+}
+if (!isLocal) {
+  console.warn(`\n⚠  REMOTE DATABASE: ${host}`);
+  console.warn(`⚠  This changes data that real signed-in users will see.\n`);
 }
 
 const file = process.argv[2];

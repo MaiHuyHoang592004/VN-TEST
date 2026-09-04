@@ -78,6 +78,35 @@ if grep -rn 'metadata\.\(theme\|color\)\|FULFILLED_STATUS' \
   echo "FAIL: reading the forbidden metadata.ts palette"; fail=1
 else echo "ok"; fi
 
+# --- Layer 4 checks. These only became meaningful once the pages themselves
+# --- were recomposed, so they are appended rather than retrofitted.
+
+report "status rendered as anything but StatusBadge (must be empty)"
+# Every hand-picked status colour in the app was deleted in Layer 4. This is
+# the check that stops the next one being added: a page must derive status
+# colour from STATUS_TONES, never from a local ternary or variant map.
+if grep -rnE '<Badge[^>]*status|statusVariant|statusColor|STATUS_COLORS'      --include='*.tsx' src/components/pages; then
+  echo "FAIL: a page is picking a status colour by hand"; fail=1
+else echo "ok"; fi
+
+report "pages hand-rolling the operational page container (must be empty)"
+# <Page> owns the max-w-7xl gutters. A <main> that sets that width itself is a
+# page that did not adopt it. Deliberately anchored to <main ... max-w-7xl>
+# rather than max-w-7xl alone: the fulfillment station's sticky action bar is a
+# <div> that matches the page width on purpose, and the auth, invite, forbidden
+# and coming-soon screens are centred full-height compositions that are NOT
+# operational pages and must not be forced into one.
+if grep -rnE '<main[^>]*max-w-7xl' --include='*.tsx' src/app src/components/pages      | grep -v '/components/ds/page\.tsx:'; then
+  echo "FAIL: a page is not using <Page>"; fail=1
+else echo "ok"; fi
+
+report "display face used outside titles/KPIs (review each hit)"
+# Informational, not failing: a legitimate new page title trips it too. DS rule
+# 4 rations Baloo 2 to brand moments, page titles and KPI numbers, so every hit
+# here should be one of those three and nothing else.
+grep -rn 'font-display' --include='*.tsx' src/components src/app | grep -v '/components/ds/'
+echo "(informational)"
+
 echo
 [ "$fail" -eq 0 ] && echo "ADHERENCE: PASS" || echo "ADHERENCE: FAIL"
 exit "$fail"

@@ -2,7 +2,7 @@
 
 Fulfillment platform for print-on-demand sellers. Structure:
 
-- `apps/dashboard` — per-user private panel (BUILT: Next.js 16, shadcn base-nova, Vercel/Geist theme)
+- `apps/dashboard` — per-user private panel (BUILT: Next.js 16, shadcn base-nova skinned to the GoodWoodPrint design system)
 - `apps/storefront` — public Shopify-style site (skeleton, not built yet)
 - `libs/db` — Prisma + shared backend logic (skeleton) · `libs/shared` — shared types/constants (skeleton)
 - `.archive/` — legacy projects, LOCAL ONLY (gitignored, each its own git repo). Never commit or scan it.
@@ -71,13 +71,19 @@ files, nothing else. Prod migrations: `npm run db:migrate:prod` from `libs/db`
 
 ## Conventions (learned the hard way — follow them)
 
-- **Vercel design spec**: `apps/dashboard/DESIGN-VERCEL.md` is the OFFICIAL Geist
-  spec (vercel.com/design.md + design.dark.md — tokens, typography, spacing,
-  shadows, motion, component recipes, voice rules; dark theme in the appendix).
-  Consult it when building/polishing any dashboard UI so components read as
-  Vercel, not generic shadcn.
+- **Design spec**: `docs/design-system/` is the OFFICIAL GoodWoodPrint design
+  system — read `SKILL.md` (the four rules, one page), then `readme.md` (the
+  full rulebook) before building or polishing any UI. Tokens live in
+  `apps/dashboard/src/app/gwp.theme.css` (generated); never add a colour
+  outside it. Status colour comes only from
+  `apps/dashboard/src/components/ds/status-tones.ts`, never from a local
+  ternary and never from the backend's `metadata.ts` theme/color literals. Run
+  `bash apps/dashboard/scripts/check-ds-adherence.sh` before committing UI
+  changes. `apps/dashboard/DESIGN-VERCEL.ARCHIVED.md` is the pre-migration
+  Geist spec — history, not authority.
 
-- shadcn here uses **Base UI primitives** (`base-nova`), NOT radix: triggers/items
+- shadcn here uses **Base UI primitives** (`base-nova`), GWP-skinned in place,
+  NOT radix: triggers/items
   compose with `render={<El />}` — never `asChild`. Non-button renders on Button
   need `nativeButton={false}`.
 - Menu-item hover/keyboard state = `data-highlighted` (Base UI). Item's base class

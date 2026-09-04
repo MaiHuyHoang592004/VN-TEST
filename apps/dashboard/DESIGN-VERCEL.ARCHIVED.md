@@ -1,3 +1,17 @@
+<!--
+  ARCHIVED — HISTORY, NOT AUTHORITY.
+
+  This is the pre-migration Geist/Vercel spec the dashboard was built to. The
+  app now follows the GoodWoodPrint design system in `docs/design-system/`;
+  read `SKILL.md` (the four rules, one page) and then `readme.md`.
+
+  It is kept because it documents what was built and why, and because a
+  component whose behaviour was decided here still behaves that way. Do NOT
+  take a colour, a shadow, a type scale or a component recipe from this file:
+  every one of them was remapped in the migration, and the design system names
+  the old theme among the sources that will mislead a reader.
+-->
+
 ---
 version: alpha
 name: Geist

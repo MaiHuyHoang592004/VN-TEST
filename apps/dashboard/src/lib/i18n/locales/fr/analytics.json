@@ -1,0 +1,66 @@
+{
+  "meta": "Analyses",
+  "title": "Analyses",
+  "subtitle": "Comment évoluent vos commandes, vos unités et vos dépenses",
+  "periods": {
+    "today": "Aujourd'hui",
+    "week": "Cette semaine",
+    "month": "Ce mois-ci",
+    "year": "Cette année",
+    "all": "Tout l'historique",
+    "custom": "Personnalisé"
+  },
+  "from": "Du",
+  "to": "Au",
+  "volume": {
+    "heading": "Sur cette période",
+    "orders": "Commandes",
+    "units": "Unités",
+    "spend": "Dépenses",
+    "balance": "Solde",
+    "debt": "Dette",
+    "sellers": "Vendeurs",
+    "skus": "SKU",
+    "artwork": "Visuels"
+  },
+  "ordersWord": "commandes",
+  "statusMix": {
+    "title": "Répartition des statuts",
+    "subtitle": "Sur tout l'historique, pas seulement cette période",
+    "empty": "Aucune commande pour l'instant. Les commandes que vous créez ou importez apparaîtront ici."
+  },
+  "topSku": {
+    "title": "Meilleurs SKU",
+    "subtitle": "Classés par unités sur cette période",
+    "empty": "Rien n'a encore été produit sur cette période."
+  },
+  "topArtwork": {
+    "title": "Meilleurs visuels",
+    "subtitle": "Classés par unités sur cette période",
+    "empty": "Rien n'a encore été produit sur cette période."
+  },
+  "pending": {
+    "heading": "Pas encore mesuré",
+    "subheading": "Chacun de ces indicateurs demande une requête qui n'existe pas encore. Rien ici n'est estimé.",
+    "trend": {
+      "title": "Commandes dans le temps",
+      "body": "Un décompte jour par jour demande un agrégat de commandes réparti par intervalle."
+    },
+    "revenue": {
+      "title": "Dépenses dans le temps",
+      "body": "Une courbe de dépenses demande le même agrégat appliqué au coût de base."
+    },
+    "marketplace": {
+      "title": "Par place de marché",
+      "body": "Répartir les commandes par boutique demande un comptage groupé sur le champ marketplace."
+    },
+    "leadTime": {
+      "title": "Délai de traitement",
+      "body": "De la commande à l'expédition, il faut agréger les horodatages de changement de statut."
+    }
+  },
+  "noAccess": {
+    "title": "Aucun indicateur pour votre rôle",
+    "body": "Les analyses lisent les commandes et les transactions, et ce compte n'a accès ni à l'une ni à l'autre."
+  }
+}

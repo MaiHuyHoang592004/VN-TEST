@@ -1,0 +1,12 @@
+{
+  "subtitle": "Số dư, thanh toán và lịch sử giao dịch",
+  "available": "Số dư khả dụng",
+  "chargeNote": "Đơn hàng được trừ từ số dư này khi bắt đầu sản xuất.",
+  "actionsHint": "Yêu cầu nạp tiền, hoặc hoàn tiền cho đơn hàng đủ điều kiện.",
+  "owed": "Còn nợ",
+  "owedNote": "Khoản chưa thanh toán trên tài khoản",
+  "refundable": "Đơn có thể hoàn tiền",
+  "refundableNote": "Đủ điều kiện yêu cầu hoàn tiền",
+  "movements": "Giao dịch",
+  "movementsNote": "Tổng giao dịch trên tài khoản"
+}

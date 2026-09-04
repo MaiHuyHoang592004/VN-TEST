@@ -1,0 +1,66 @@
+{
+  "meta": "Analytics",
+  "title": "Analytics",
+  "subtitle": "How your orders, units and spend are moving",
+  "periods": {
+    "today": "Today",
+    "week": "This week",
+    "month": "This month",
+    "year": "This year",
+    "all": "All time",
+    "custom": "Custom"
+  },
+  "from": "From",
+  "to": "To",
+  "volume": {
+    "heading": "In this window",
+    "orders": "Orders",
+    "units": "Units",
+    "spend": "Spend",
+    "balance": "Balance",
+    "debt": "Debt",
+    "sellers": "Sellers",
+    "skus": "SKUs",
+    "artwork": "Artwork"
+  },
+  "ordersWord": "orders",
+  "statusMix": {
+    "title": "Order status mix",
+    "subtitle": "All time, not just this window",
+    "empty": "No orders yet. Orders you create or import will show up here."
+  },
+  "topSku": {
+    "title": "Top SKUs",
+    "subtitle": "Ranked by units in this window",
+    "empty": "Nothing has been produced in this window yet."
+  },
+  "topArtwork": {
+    "title": "Top artwork",
+    "subtitle": "Ranked by units in this window",
+    "empty": "Nothing has been produced in this window yet."
+  },
+  "pending": {
+    "heading": "Not measured yet",
+    "subheading": "Each of these needs a query the platform does not have yet. Nothing here is estimated.",
+    "trend": {
+      "title": "Orders over time",
+      "body": "A day-by-day count needs a time-bucketed order aggregate."
+    },
+    "revenue": {
+      "title": "Spend over time",
+      "body": "A spend curve needs the same aggregate over base cost."
+    },
+    "marketplace": {
+      "title": "By marketplace",
+      "body": "Splitting orders by store needs a grouped count on the marketplace field."
+    },
+    "leadTime": {
+      "title": "Fulfillment lead time",
+      "body": "Placed to shipped needs the status-change timestamps aggregated."
+    }
+  },
+  "noAccess": {
+    "title": "Nothing to report for your role",
+    "body": "Analytics reads orders and transactions, and this account holds neither."
+  }
+}

@@ -3,5 +3,6 @@
   "saving": "Enregistrement…",
   "copy": "Copier",
   "error": "Une erreur est survenue. Actualisez et réessayez.",
-  "close": "Fermer"
+  "close": "Fermer",
+  "cancel": "Annuler"
 }

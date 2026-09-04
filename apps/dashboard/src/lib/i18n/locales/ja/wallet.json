@@ -1,0 +1,12 @@
+{
+  "subtitle": "残高、支払いと取引履歴",
+  "available": "利用可能残高",
+  "chargeNote": "注文は生産時にこの残高から差し引かれます。",
+  "actionsHint": "チャージを申請するか、対象の注文の返金を申請できます。",
+  "owed": "未払い",
+  "owedNote": "アカウントの未精算分",
+  "refundable": "返金可能な注文",
+  "refundableNote": "返金を申請できます",
+  "movements": "取引件数",
+  "movementsNote": "これまでのアカウント全体"
+}

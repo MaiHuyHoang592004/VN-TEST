@@ -157,7 +157,7 @@ export function LoginScreen({
           maximum, so nothing else here may add a third. */}
       <CraftCut
         className="pointer-events-none absolute inset-x-0 bottom-0"
-        from="var(--surface-canvas-soft)"
+        from="var(--surface-canvas)"
         to="var(--surface-shell)"
         depth={72}
         sweep="left"
@@ -167,15 +167,28 @@ export function LoginScreen({
         {/* Brand side — the reason to sign in. Sits above the card on small
             screens (centered, smaller headline), beside it from lg up. */}
         <section className="flex max-w-md flex-1 flex-col gap-5 text-center lg:gap-6 lg:text-left">
-          <span className="eyebrow flex items-center justify-center gap-2 lg:justify-start">
+          <span className="eyebrow flex items-center justify-center gap-2 text-(--text-on-sky) lg:justify-start">
             <span className="size-1.5 rounded-full bg-(--action-500)" />
             {t("auth.panel.eyebrow")}
           </span>
-          <h1 className="text-display-sm sm:text-display-md lg:text-display-lg text-balance">
+          {/* Display ink follows the surface, and this surface is
+              --surface-canvas (sky-300) straight from <body>: on saturated sky
+              the headline is CREAM, with white for the one accent phrase. Navy
+              here is the generic-SaaS look the DS names by name, and it is what
+              this screen was doing — it was the only hero in the app still
+              doing it, since PageHeader tone="sky" has always used this pair.
+              Measured: cream on sky-300 is 1.47:1, well under the 3:1 large-text
+              floor. That is a property of the DS's own hero pairing rather than
+              of this screen, so it is flagged, not silently re-decided here. */}
+          <h1 className="text-display-sm sm:text-display-md lg:text-display-lg text-(--display-on-sky) text-balance">
             {t("auth.panel.headline")}{" "}
-            <span className="text-(--text-strong)">{t("auth.panel.headlineAccent")}</span>
+            <span className="text-(--display-on-sky-bright)">
+              {t("auth.panel.headlineAccent")}
+            </span>
           </h1>
-          <p className="text-muted-foreground text-sm text-balance lg:text-base">
+          {/* The prose stays navy: it is body copy, not display, and navy-600
+              on sky-300 measures 7.8:1. */}
+          <p className="text-(--text-on-sky-secondary) text-sm text-balance lg:text-base">
             {t("auth.panel.subtitle")}
           </p>
           {/* w-fit + mx-auto keeps the rows left-aligned to each other while the

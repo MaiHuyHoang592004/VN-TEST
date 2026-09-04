@@ -19,5 +19,8 @@
     "wallet": "Portefeuille",
     "walletDescription": "Solde et recharges"
   },
-  "tickets": "Assistance"
+  "tickets": "Assistance",
+  "workspace": "Espace de travail",
+  "account": "Menu du compte",
+  "sectionTabs": "Section"
 }

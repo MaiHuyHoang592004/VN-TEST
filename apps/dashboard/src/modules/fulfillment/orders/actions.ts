@@ -98,6 +98,26 @@ export async function previewAssignmentAction(orderIds: number[]) {
   return orders.previewAssignment(actor, orderIds);
 }
 
+/**
+ * The five milestones behind one order's expanded row.
+ *
+ * A read through an action rather than a prop on the list: the panel opens for
+ * one row at a time, so joining an audit trail onto all 25 rows of every page
+ * would pay for 25 timelines to show none or one.
+ *
+ * Any of the three read grants, and `orderTimeline` re-applies the row scope
+ * on top — asking for an id you cannot see returns an empty timeline, not a
+ * 403 that would confirm the row exists.
+ */
+export async function orderTimelineAction(id: number) {
+  const actor = await requireAnyPermission(
+    "orders.read.own",
+    "orders.read.customer",
+    "orders.read.all",
+  );
+  return orders.orderTimeline(actor, id);
+}
+
 /** What these orders are worth back. Gated on orders.refund rather than a read
  * grant: the quote exposes what a seller paid, and only the person who could
  * act on it needs to see it. */

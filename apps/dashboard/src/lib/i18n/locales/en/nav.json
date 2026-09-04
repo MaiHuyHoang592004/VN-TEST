@@ -19,5 +19,8 @@
     "wallet": "Wallet",
     "walletDescription": "Balance & top-ups"
   },
-  "tickets": "Support"
+  "tickets": "Support",
+  "workspace": "Workspace",
+  "account": "Account menu",
+  "sectionTabs": "Section"
 }

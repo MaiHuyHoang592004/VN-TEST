@@ -1,0 +1,48 @@
+{
+  "meta": "Paramètres",
+  "title": "Paramètres",
+  "subtitle": "Langue, fuseau horaire et tout ce que vous pouvez configurer",
+  "preferences": {
+    "title": "Langue et fuseau horaire",
+    "hint": "Enregistré sur votre compte : le choix vous suit d'un appareil à l'autre.",
+    "language": "Langue",
+    "timezone": "Fuseau horaire",
+    "footer": "S'applique partout où vous vous connectez, pas seulement dans ce navigateur.",
+    "saved": "Préférences enregistrées"
+  },
+  "directory": {
+    "title": "Le reste",
+    "subtitle": "Les autres réglages se trouvent à côté de ce qu'ils configurent."
+  },
+  "links": {
+    "profile": {
+      "title": "Profil",
+      "body": "Votre nom, téléphone, société et informations fiscales."
+    },
+    "security": {
+      "title": "Sécurité",
+      "body": "Mot de passe, adresse e-mail et déconnexion de tous les appareils."
+    },
+    "billing": {
+      "title": "Facturation",
+      "body": "Solde, rechargements et historique des transactions."
+    },
+    "api": {
+      "title": "Clés API",
+      "body": "Créez et révoquez les clés utilisées par vos systèmes."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "body": "Où sont envoyés les événements de commande, et la clé de signature."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "body": "Tout ce que le système vous a signalé, du plus récent au plus ancien."
+    },
+    "admin": {
+      "title": "Administration",
+      "body": "Utilisateurs, rôles, entrepôts et journal d'audit."
+    }
+  },
+  "open": "Ouvrir"
+}

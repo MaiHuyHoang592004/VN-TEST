@@ -33,6 +33,10 @@ import enFulfillment from "./locales/en/fulfillment.json";
 import enInventory from "./locales/en/inventory.json";
 import enSupport from "./locales/en/support.json";
 import enHome from "./locales/en/home.json";
+import enWallet from "./locales/en/wallet.json";
+import enAnalytics from "./locales/en/analytics.json";
+import enSettings from "./locales/en/settings.json";
+import enHelp from "./locales/en/help.json";
 
 import zhCommon from "./locales/zh/common.json";
 import zhProfile from "./locales/zh/profile.json";
@@ -51,6 +55,10 @@ import zhFulfillment from "./locales/zh/fulfillment.json";
 import zhInventory from "./locales/zh/inventory.json";
 import zhSupport from "./locales/zh/support.json";
 import zhHome from "./locales/zh/home.json";
+import zhWallet from "./locales/zh/wallet.json";
+import zhAnalytics from "./locales/zh/analytics.json";
+import zhSettings from "./locales/zh/settings.json";
+import zhHelp from "./locales/zh/help.json";
 
 import frCommon from "./locales/fr/common.json";
 import frProfile from "./locales/fr/profile.json";
@@ -69,6 +77,10 @@ import frFulfillment from "./locales/fr/fulfillment.json";
 import frInventory from "./locales/fr/inventory.json";
 import frSupport from "./locales/fr/support.json";
 import frHome from "./locales/fr/home.json";
+import frWallet from "./locales/fr/wallet.json";
+import frAnalytics from "./locales/fr/analytics.json";
+import frSettings from "./locales/fr/settings.json";
+import frHelp from "./locales/fr/help.json";
 
 import viCommon from "./locales/vi/common.json";
 import viProfile from "./locales/vi/profile.json";
@@ -87,6 +99,10 @@ import viFulfillment from "./locales/vi/fulfillment.json";
 import viInventory from "./locales/vi/inventory.json";
 import viSupport from "./locales/vi/support.json";
 import viHome from "./locales/vi/home.json";
+import viWallet from "./locales/vi/wallet.json";
+import viAnalytics from "./locales/vi/analytics.json";
+import viSettings from "./locales/vi/settings.json";
+import viHelp from "./locales/vi/help.json";
 
 import jaCommon from "./locales/ja/common.json";
 import jaProfile from "./locales/ja/profile.json";
@@ -105,6 +121,10 @@ import jaFulfillment from "./locales/ja/fulfillment.json";
 import jaInventory from "./locales/ja/inventory.json";
 import jaSupport from "./locales/ja/support.json";
 import jaHome from "./locales/ja/home.json";
+import jaWallet from "./locales/ja/wallet.json";
+import jaAnalytics from "./locales/ja/analytics.json";
+import jaSettings from "./locales/ja/settings.json";
+import jaHelp from "./locales/ja/help.json";
 
 import koCommon from "./locales/ko/common.json";
 import koProfile from "./locales/ko/profile.json";
@@ -123,6 +143,10 @@ import koFulfillment from "./locales/ko/fulfillment.json";
 import koInventory from "./locales/ko/inventory.json";
 import koSupport from "./locales/ko/support.json";
 import koHome from "./locales/ko/home.json";
+import koWallet from "./locales/ko/wallet.json";
+import koAnalytics from "./locales/ko/analytics.json";
+import koSettings from "./locales/ko/settings.json";
+import koHelp from "./locales/ko/help.json";
 
 import arCommon from "./locales/ar/common.json";
 import arProfile from "./locales/ar/profile.json";
@@ -141,6 +165,10 @@ import arFulfillment from "./locales/ar/fulfillment.json";
 import arInventory from "./locales/ar/inventory.json";
 import arSupport from "./locales/ar/support.json";
 import arHome from "./locales/ar/home.json";
+import arWallet from "./locales/ar/wallet.json";
+import arAnalytics from "./locales/ar/analytics.json";
+import arSettings from "./locales/ar/settings.json";
+import arHelp from "./locales/ar/help.json";
 
 export const translations = {
   en: {
@@ -161,6 +189,10 @@ export const translations = {
     inventory: enInventory,
     support: enSupport,
     home: enHome,
+    wallet: enWallet,
+    analytics: enAnalytics,
+    settings: enSettings,
+    help: enHelp,
   },
   zh: {
     common: zhCommon,
@@ -180,6 +212,10 @@ export const translations = {
     inventory: zhInventory,
     support: zhSupport,
     home: zhHome,
+    wallet: zhWallet,
+    analytics: zhAnalytics,
+    settings: zhSettings,
+    help: zhHelp,
   },
   fr: {
     common: frCommon,
@@ -199,6 +235,10 @@ export const translations = {
     inventory: frInventory,
     support: frSupport,
     home: frHome,
+    wallet: frWallet,
+    analytics: frAnalytics,
+    settings: frSettings,
+    help: frHelp,
   },
   vi: {
     common: viCommon,
@@ -218,6 +258,10 @@ export const translations = {
     inventory: viInventory,
     support: viSupport,
     home: viHome,
+    wallet: viWallet,
+    analytics: viAnalytics,
+    settings: viSettings,
+    help: viHelp,
   },
   ja: {
     common: jaCommon,
@@ -237,6 +281,10 @@ export const translations = {
     inventory: jaInventory,
     support: jaSupport,
     home: jaHome,
+    wallet: jaWallet,
+    analytics: jaAnalytics,
+    settings: jaSettings,
+    help: jaHelp,
   },
   ko: {
     common: koCommon,
@@ -256,6 +304,10 @@ export const translations = {
     inventory: koInventory,
     support: koSupport,
     home: koHome,
+    wallet: koWallet,
+    analytics: koAnalytics,
+    settings: koSettings,
+    help: koHelp,
   },
   ar: {
     common: arCommon,
@@ -275,5 +327,9 @@ export const translations = {
     inventory: arInventory,
     support: arSupport,
     home: arHome,
+    wallet: arWallet,
+    analytics: arAnalytics,
+    settings: arSettings,
+    help: arHelp,
   },
 };

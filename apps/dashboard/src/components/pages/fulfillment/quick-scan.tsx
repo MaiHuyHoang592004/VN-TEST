@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { ScanLine } from "lucide-react";
 import type { FulfillmentStatus } from "@gwprint/db";
 
-import { StatusBadge, Surface } from "@/components/ds";
+import { PageTabs, StatusBadge, Surface } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -118,6 +118,12 @@ export function QuickScan() {
         <p className="mt-1 font-sans text-(length:--fs-body-sm) text-(--text-muted)">
           {t("fulfillment.quick.subtitle")}
         </p>
+        {/* The two workstations take no hero — a packer's scan field has to
+            stay on the first screen — but they still need the section's other
+            two routes one click away, which is what the navbar's tab column
+            used to give them. A 32px strip is the hero's job at a twentieth of
+            its height. */}
+        <PageTabs section="/fulfillment" className="mt-3" />
       </header>
 
       {/* The scan target sits on the inset rung, as it does on the station. */}

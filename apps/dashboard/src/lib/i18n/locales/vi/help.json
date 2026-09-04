@@ -1,0 +1,52 @@
+{
+  "meta": "Trợ giúp",
+  "title": "Trợ giúp & Hỗ trợ",
+  "subtitle": "Ứng dụng này làm gì, và làm sao để gặp người thật",
+  "about": {
+    "title": "GWPrintz là gì",
+    "body": "GWPrintz thực hiện đơn hàng sản phẩm cá nhân hóa. Bạn gửi đơn vào; chúng tôi in, đóng gói, kiểm tra chất lượng và giao hàng. Bảng điều khiển này là nơi bạn theo dõi việc đó và xử lý khi có trục trặc."
+  },
+  "contact": {
+    "title": "Cần gặp người hỗ trợ?",
+    "body": "Hãy tạo một ticket. Đó là cách được hỗ trợ chính thức, và toàn bộ trao đổi sẽ gắn liền với đơn hàng.",
+    "cta": "Tạo ticket",
+    "note": "Bộ phận hỗ trợ trả lời ngay trong ticket, nên bạn không phải canh thêm hộp thư nào khác."
+  },
+  "guide": {
+    "title": "Mọi thứ nằm ở đâu",
+    "subtitle": "Toàn bộ các khu vực của bảng điều khiển, trong một danh sách."
+  },
+  "areas": {
+    "orders": {
+      "title": "Đơn hàng",
+      "body": "Mọi đơn từ lúc đặt đến lúc giao, kèm trạng thái sản xuất và vận chuyển."
+    },
+    "catalog": {
+      "title": "Danh mục",
+      "body": "Sản phẩm, biến thể, SKU và mockup."
+    },
+    "inventory": {
+      "title": "Tồn kho",
+      "body": "Những gì đang có trên kệ — nguyên vật liệu và thành phẩm."
+    },
+    "fulfillment": {
+      "title": "Sản xuất & giao hàng",
+      "body": "Xưởng sản xuất: quét mã, nhãn vận chuyển và tra cứu hành trình."
+    },
+    "billing": {
+      "title": "Thanh toán",
+      "body": "Số dư, nạp tiền và giao dịch."
+    },
+    "tickets": {
+      "title": "Hỗ trợ",
+      "body": "Ticket của bạn và mọi phản hồi từ bộ phận hỗ trợ."
+    }
+  },
+  "before": {
+    "title": "Trước khi tạo ticket",
+    "subtitle": "Một ticket có đủ ba thứ này sẽ được giải quyết ngay ở lần trả lời đầu tiên.",
+    "s1": "Mã đơn hàng, đúng như hiển thị trong bảng đơn hàng.",
+    "s2": "Bạn mong đợi điều gì, và thực tế đã xảy ra điều gì.",
+    "s3": "Ảnh chụp màn hình hoặc file thiết kế, nếu vấn đề nằm ở hình ảnh."
+  }
+}

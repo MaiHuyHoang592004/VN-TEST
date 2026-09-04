@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-import { PageHeader } from "@/components/ds";
+import { PageHeader, PageTabs } from "@/components/ds";
 import { activeTabHref, sectionTabs } from "@/config/nav-tabs";
 import { useTranslation } from "@/lib/i18n";
 
@@ -34,6 +34,8 @@ export function AdminPageHeader({ subtitleKey }: { subtitleKey?: string }) {
       subtitle={subtitleKey ? t(subtitleKey) : undefined}
       tone="soft"
       size="sm"
-    />
+    >
+      <PageTabs section="/admin" />
+    </PageHeader>
   );
 }

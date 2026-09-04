@@ -1,0 +1,48 @@
+{
+  "meta": "设置",
+  "title": "设置",
+  "subtitle": "语言、时区，以及其他所有可配置项",
+  "preferences": {
+    "title": "语言与时区",
+    "hint": "保存在账号中，换一台设备也会跟着你。",
+    "language": "语言",
+    "timezone": "时区",
+    "footer": "在你登录的任何地方生效，不只是当前浏览器。",
+    "saved": "偏好设置已保存"
+  },
+  "directory": {
+    "title": "其余设置",
+    "subtitle": "其他设置就放在它们所配置的功能旁边。"
+  },
+  "links": {
+    "profile": {
+      "title": "个人资料",
+      "body": "姓名、电话、公司与税号。"
+    },
+    "security": {
+      "title": "安全",
+      "body": "密码、邮箱地址，以及退出所有设备。"
+    },
+    "billing": {
+      "title": "账务",
+      "body": "余额、充值与交易记录。"
+    },
+    "api": {
+      "title": "API 密钥",
+      "body": "为你自己的系统创建和吊销密钥。"
+    },
+    "webhooks": {
+      "title": "Webhook",
+      "body": "订单事件的推送地址与签名密钥。"
+    },
+    "notifications": {
+      "title": "通知",
+      "body": "系统发给你的全部消息，最新的在前。"
+    },
+    "admin": {
+      "title": "管理",
+      "body": "用户、角色、仓库与审计日志。"
+    }
+  },
+  "open": "打开"
+}

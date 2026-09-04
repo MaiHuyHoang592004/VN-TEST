@@ -3,5 +3,6 @@
   "saving": "Saving…",
   "copy": "Copy",
   "error": "Something went wrong. Refresh and try again.",
-  "close": "Close"
+  "close": "Close",
+  "cancel": "Cancel"
 }

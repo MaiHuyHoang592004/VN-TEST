@@ -30,7 +30,8 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { MobileUserMenu } from "../menus/mobile-user-menu";
 import { LanguageSelector } from "../menus/language-selector";
 import { ToolsDropdown } from "../menus/tools-dropdown";
-import { NavTabs } from "./nav-tabs";
+import { UserMenu } from "../menus/user-menu";
+import { WorkspaceDropdown } from "../menus/workspace-dropdown";
 
 /**
  * The phone's tab bar.
@@ -73,6 +74,30 @@ function useDockTabs() {
 const NAV_ITEM =
   "inline-flex h-9 items-center rounded-(--radius-pill) px-3 font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none aria-[current=page]:bg-sky-200 aria-[current=page]:text-navy-700";
 
+/**
+ * The primary nav, inline in the shell.
+ *
+ * FOUR ROUTES SIGNED IN, and the ceiling is the same argument as the mobile
+ * dock's: everything past four is an overflow menu, not another item. Tools
+ * carries Analytics and Wallet; Workspace carries the seventeen staff routes
+ * and disappears entirely for a seller. That is the whole nav — a seller sees
+ * Home · Orders · Products · Support · Tools and nothing greyed out.
+ *
+ * Signed out is the marketing bar and stays two items: Home is the page you
+ * are already on, and Support needs an account.
+ */
+const SIGNED_IN_NAV = [
+  { href: "/", key: "nav.home" },
+  { href: "/orders", key: "nav.orders" },
+  { href: "/catalog", key: "nav.products" },
+  { href: "/tickets", key: "nav.tickets" },
+];
+
+const SIGNED_OUT_NAV = [
+  { href: "/orders", key: "nav.orders" },
+  { href: "/catalog", key: "nav.products" },
+];
+
 export function Navbar() {
   const { user, loading } = useAuth();
   const pathname = usePathname();
@@ -81,6 +106,12 @@ export function Navbar() {
   // Ask the LIST which one is active, never each item: /orders/print is under
   // /orders, and an item asked on its own answers about itself only.
   const activeTab = activeHref(pathname, dockTabs.map((d) => d.href));
+
+  // The same rule for the desktop bar. Ask the LIST, not each item: "/" is the
+  // only exact match, so a nested route keeps its parent lit and exactly one
+  // item is ever current.
+  const primaryNav = user ? SIGNED_IN_NAV : SIGNED_OUT_NAV;
+  const activeNav = activeHref(pathname, primaryNav.map((i) => i.href));
 
   // The DS ships two chromes: the seller's cream shell floating on sky, and
   // the admin bar — white ground, full-bleed, one bright CTA. Admin screens
@@ -122,13 +153,18 @@ export function Navbar() {
               : "mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 rounded-(--radius-pill) bg-(--surface-nav) px-4 shadow-(--shadow-sm) lg:px-6"
           }
         >
-          {/* Left - Logo + Navigation Links シノビデータ */}
-          <div className="flex h-full min-w-0 items-center gap-4 lg:gap-8">
-            <SidebarNavButtons />
-            {/* Section tabs live in this same column — no second bar. */}
-            {user && <NavTabs />}
-            {!user && (
-              <>
+          {/* Left — mark, primary nav, overflow menus. Identical shape signed
+              in and signed out; only the item LIST differs, so the bar never
+              rearranges itself around you. */}
+          <div className="flex h-full min-w-0 items-center gap-3 lg:gap-6">
+            {/* The sheet is the mobile nav now. Desktop reaches every route
+                from this bar — Workspace ▾ carries the seventeen the sheet used
+                to hold alone — so the hamburger goes back to md:hidden, where
+                it was before the rail was removed. */}
+            <span className="md:hidden">
+              <SidebarNavButtons />
+            </span>
+
             <Link
               href="/"
               aria-label="GWPrintz"
@@ -140,17 +176,21 @@ export function Navbar() {
             </Link>
 
             {/* Navigation Links (Desktop only) */}
-            <div className="hidden items-center gap-1 md:flex">
-              <Link href="/orders" className={NAV_ITEM}>
-                {t("nav.orders")}
-              </Link>
-              <Link href="/catalog" className={NAV_ITEM}>
-                {t("nav.products")}
-              </Link>
+            <div className="hidden min-w-0 items-center gap-1 md:flex">
+              {primaryNav.map(({ href, key }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={activeNav === href ? "page" : undefined}
+                  className={NAV_ITEM}
+                >
+                  {t(key)}
+                </Link>
+              ))}
               <ToolsDropdown />
+              {/* Renders nothing for a seller — it has no group they can open. */}
+              {user && <WorkspaceDropdown />}
             </div>
-              </>
-            )}
           </div>
 
           {/* Right - Search, Auth/User, Theme Toggle */}
@@ -200,6 +240,14 @@ export function Navbar() {
                 from the sidebar footer, not just hidden. */}
             {user && <NotificationBell />}
             <LanguageSelector />
+            {/* bell · language · avatar ▾ — the design's right-hand cluster.
+                Desktop only: on mobile the dock's MobileUserMenu is the same
+                menu in the shape a thumb reaches. */}
+            {user && (
+              <span className="hidden md:inline-flex">
+                <UserMenu />
+              </span>
+            )}
           </div>
         </div>
       </nav>

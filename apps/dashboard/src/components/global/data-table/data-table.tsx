@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ReactNode } from "react";
+import { Fragment, useId, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -87,6 +87,23 @@ export type DataTableProps<T> = {
    * is per-page rather than a flag day.
    */
   mobileCard?: (row: T) => ReactNode;
+
+  /**
+   * Extra detail for ONE row at a time, rendered in a full-width row beneath it.
+   *
+   * Returning null for a row means it has nothing to expand, and the affordance
+   * is not drawn for it — an expander that opens an empty panel teaches people
+   * to stop pressing expanders.
+   *
+   * One at a time on purpose: the panel is tall, and several open at once turns
+   * the table into a list of panels with rows lost between them. Opening a
+   * second closes the first.
+   *
+   * Omit to keep the table exactly as it was — no chevron column, no state.
+   */
+  renderExpanded?: (row: T) => ReactNode;
+  /** Accessible name for the expander button. */
+  expandLabel?: string;
 };
 
 export function DataTable<T>({
@@ -104,10 +121,14 @@ export function DataTable<T>({
   footer,
   onRowClick,
   mobileCard,
+  renderExpanded,
+  expandLabel = "Toggle details",
 }: DataTableProps<T>) {
   const headingId = useId();
   const isMobile = useIsMobile();
   const selectable = Boolean(selected && onSelectedChange);
+  const expandable = Boolean(renderExpanded);
+  const [openRow, setOpenRow] = useState<string | null>(null);
 
   const allOnPageSelected =
     selectable && rows.length > 0 && rows.every((r) => selected!.has(rowId(r)));
@@ -139,7 +160,7 @@ export function DataTable<T>({
     return null;
   };
 
-  const colSpan = columns.length + (selectable ? 1 : 0);
+  const colSpan = columns.length + (selectable ? 1 : 0) + (expandable ? 1 : 0);
 
   if (mobileCard && isMobile) {
     return (
@@ -211,6 +232,7 @@ export function DataTable<T>({
                   />
                 </TableHead>
               )}
+              {expandable && <TableHead className="w-10" />}
               {columns.map((col) => {
                 const isSorted = sort?.id === col.id;
                 return (
@@ -267,6 +289,11 @@ export function DataTable<T>({
                       <Skeleton className="size-4" />
                     </TableCell>
                   )}
+                  {expandable && (
+                    <TableCell>
+                      <Skeleton className="size-4" />
+                    </TableCell>
+                  )}
                   {columns.map((col) => (
                     <TableCell
                       key={col.id}
@@ -290,38 +317,76 @@ export function DataTable<T>({
               rows.map((row) => {
                 const id = rowId(row);
                 const isSelected = selectable && selected!.has(id);
+                // Asked once per row: a row with nothing to show gets no
+                // expander, and the panel below is only built when it is open.
+                const panel = renderExpanded?.(row) ?? null;
+                const isOpen = expandable && openRow === id;
                 return (
-                  <TableRow
-                    key={id}
-                    data-state={isSelected ? "selected" : undefined}
-                    aria-labelledby={headingId}
-                    onClick={onRowClick ? () => onRowClick(row) : undefined}
-                    className={cn(onRowClick && "cursor-pointer")}
-                  >
-                    {selectable && (
-                      <TableCell
-                        // The checkbox must not trigger the row's own click.
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleOne(id)}
-                          aria-label="Select row"
-                        />
-                      </TableCell>
+                  <Fragment key={id}>
+                    <TableRow
+                      data-state={isSelected ? "selected" : undefined}
+                      aria-labelledby={headingId}
+                      onClick={onRowClick ? () => onRowClick(row) : undefined}
+                      className={cn(
+                        onRowClick && "cursor-pointer",
+                        // The open row and its panel read as one object, so the
+                        // row takes the panel's ground rather than the stripe.
+                        isOpen && "bg-sky-50 hover:bg-sky-50",
+                      )}
+                    >
+                      {selectable && (
+                        <TableCell
+                          // The checkbox must not trigger the row's own click.
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            checked={isSelected}
+                            onCheckedChange={() => toggleOne(id)}
+                            aria-label="Select row"
+                          />
+                        </TableCell>
+                      )}
+                      {expandable && (
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          {panel && (
+                            <button
+                              type="button"
+                              aria-expanded={isOpen}
+                              aria-label={expandLabel}
+                              onClick={() => setOpenRow(isOpen ? null : id)}
+                              className="inline-flex size-7 items-center justify-center rounded-(--radius-xs) text-(--icon-muted) transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
+                            >
+                              <ChevronDown
+                                className={cn(
+                                  "size-4 transition-transform duration-(--dur-fast) ease-(--ease-out) motion-reduce:transition-none",
+                                  isOpen && "rotate-180",
+                                )}
+                              />
+                            </button>
+                          )}
+                        </TableCell>
+                      )}
+                      {columns.map((col) => (
+                        <TableCell
+                          key={col.id}
+                          className={cn(
+                            col.className,
+                            col.hideOnMobile && "hidden sm:table-cell",
+                          )}
+                        >
+                          {col.cell(row)}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+
+                    {isOpen && panel && (
+                      <TableRow className="bg-sky-50 hover:bg-sky-50">
+                        <TableCell colSpan={colSpan} className="px-4 pt-0 pb-5">
+                          {panel}
+                        </TableCell>
+                      </TableRow>
                     )}
-                    {columns.map((col) => (
-                      <TableCell
-                        key={col.id}
-                        className={cn(
-                          col.className,
-                          col.hideOnMobile && "hidden sm:table-cell",
-                        )}
-                      >
-                        {col.cell(row)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
+                  </Fragment>
                 );
               })
             )}

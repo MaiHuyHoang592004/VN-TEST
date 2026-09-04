@@ -1,0 +1,12 @@
+{
+  "subtitle": "잔액, 지급 및 거래 내역",
+  "available": "사용 가능 잔액",
+  "chargeNote": "주문은 생산 시 이 잔액에서 차감됩니다.",
+  "actionsHint": "충전을 요청하거나 대상 주문의 환불을 요청하세요.",
+  "owed": "미지급",
+  "owedNote": "계정에 남은 미결제 금액",
+  "refundable": "환불 가능 주문",
+  "refundableNote": "환불을 요청할 수 있습니다",
+  "movements": "거래 내역",
+  "movementsNote": "지금까지의 계정 전체"
+}

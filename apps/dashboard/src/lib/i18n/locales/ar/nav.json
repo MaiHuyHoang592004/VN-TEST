@@ -19,5 +19,8 @@
     "wallet": "المحفظة",
     "walletDescription": "الرصيد والشحن"
   },
-  "tickets": "الدعم"
+  "tickets": "الدعم",
+  "workspace": "مساحة العمل",
+  "account": "قائمة الحساب",
+  "sectionTabs": "القسم"
 }

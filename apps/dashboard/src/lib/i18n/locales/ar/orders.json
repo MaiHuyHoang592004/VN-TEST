@@ -213,5 +213,9 @@
     "units": "وحدة",
     "breakdown": "المكوّنات",
     "nothing": "لا شيء هنا."
+  },
+  "dialogNewSubmit": "إنشاء طلب",
+  "timeline": {
+    "toggle": "عرض مسار الطلب"
   }
 }

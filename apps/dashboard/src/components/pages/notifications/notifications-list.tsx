@@ -4,6 +4,12 @@
  * The /notifications archive: every notification, read and unread, newest
  * first, with delete.
  *
+ * Two filters, and they are deliberately not the same kind. The category tab
+ * asks the SERVER, because the page promises a category's whole history. The
+ * "unread only" toggle is a client-side lens over the rows already loaded —
+ * identical wording and identical snapshot semantics to the bell panel, so the
+ * two surfaces cannot disagree about what "unread only" means.
+ *
  * Three ways into the same delete, one per input the app actually meets:
  * swipe left (touch) reveals a destructive button, long-press (touch) reveals
  * the same one for people who don't know the swipe, and a hover/focus trash
@@ -16,7 +22,7 @@
  * deletion here reaches the badge within a minute — chrome-grade freshness.
  */
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { NotificationType } from "@gwprint/db";
 import { CheckCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -70,6 +76,12 @@ export function NotificationsList({
   const [items, setItems] = useState(initialItems);
   const [cursor, setCursor] = useState(initialCursor);
   const [tab, setTab] = useState<string>("all");
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  // Ids read since the filter was switched on. Same contract as the bell panel:
+  // marking read should dim a notification, not delete it from under the cursor
+  // that just clicked it — so the unread filter runs against a snapshot, not
+  // against live read state.
+  const [readInPlace, setReadInPlace] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   /** The one column whose delete is revealed — opening another closes it. */
   const [openId, setOpenId] = useState<string | null>(null);
@@ -77,6 +89,23 @@ export function NotificationsList({
   const fetchSeq = useRef(0);
 
   const unread = items.filter((n) => !n.read).length;
+
+  // The unread filter is the one filter that does NOT go to the server. The
+  // tab does, because a tab promises a category's whole history; "unread only"
+  // is a lens over whatever is already on screen, so it composes with the tab
+  // and with every page "Load more" appends without a refetch of its own.
+  const visible = useMemo(
+    () => items.filter((n) => !unreadOnly || !n.read || readInPlace.has(n.id)),
+    [items, unreadOnly, readInPlace],
+  );
+
+  const toggleUnreadOnly = () => {
+    // Switching the filter on starts a fresh snapshot, so it never lies about
+    // what is still unread.
+    if (!unreadOnly) setReadInPlace(new Set());
+    setUnreadOnly((v) => !v);
+    setOpenId(null);
+  };
 
   const tabTypes = (forTab: string) =>
     forTab === "all" ? undefined : typesFor(forTab as NotificationCategory);
@@ -92,6 +121,9 @@ export function NotificationsList({
     try {
       const page = await listNotificationsPageAction({ types: tabTypes(next) });
       if (fetchSeq.current !== seq) return; // a newer switch already answered
+      // A new server page is a new snapshot: ids read under the previous tab
+      // must not keep rows visible that this page never loaded.
+      setReadInPlace(new Set());
       setItems(page.items);
       setCursor(page.nextCursor);
     } catch {
@@ -102,6 +134,9 @@ export function NotificationsList({
   };
 
   const markAllRead = () => {
+    setReadInPlace(
+      (prev) => new Set([...prev, ...items.filter((n) => !n.read).map((n) => n.id)]),
+    );
     setItems((prev) => prev.map((n) => ({ ...n, read: true })));
     void markAllNotificationsReadAction();
   };
@@ -114,6 +149,7 @@ export function NotificationsList({
       return;
     }
     if (!n.read) {
+      setReadInPlace((prev) => new Set(prev).add(n.id));
       setItems((prev) => prev.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
       void markNotificationReadAction(n.id);
     }
@@ -181,14 +217,32 @@ export function NotificationsList({
         </TabsList>
       </Tabs>
 
+      {/* Unread lens over the loaded rows — the same control, wording and
+          semantics as the bell panel, so the two surfaces cannot disagree.
+          Selected is a FILL; unselected darkens on hover. */}
+      <div className="mt-2">
+        <button
+          type="button"
+          onClick={toggleUnreadOnly}
+          aria-pressed={unreadOnly}
+          className={`rounded-(--radius-pill) border px-2 py-0.5 text-(length:--fs-micro) font-semibold transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
+            unreadOnly
+              ? "border-transparent bg-sky-200 text-navy-700"
+              : "border-(--border-hairline) text-navy-500 hover:bg-sky-100 hover:text-navy-700"
+          }`}
+        >
+          {t("notifications.unreadOnly")}
+        </button>
+      </div>
+
       <div className="border-border mt-3 overflow-hidden rounded-lg border">
-        {items.length === 0 ? (
+        {visible.length === 0 ? (
           <p className="text-muted-foreground px-4 py-16 text-center text-sm">
             {t("notifications.empty")}
           </p>
         ) : (
           <div className="divide-border divide-y">
-            {items.map((n) => (
+            {visible.map((n) => (
               <Row
                 key={n.id}
                 n={n}

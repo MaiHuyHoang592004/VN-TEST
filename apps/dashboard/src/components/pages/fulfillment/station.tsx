@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-import { Surface } from "@/components/ds";
+import { PageTabs, Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 // A TYPE-only import: it is erased at compile time, so pulling the shape from
 // the service does NOT drag prisma and the pg driver into the client bundle
@@ -61,6 +61,12 @@ export function Station() {
         <p className="mt-1 font-sans text-(length:--fs-body-sm) text-(--text-muted)">
           {t("fulfillment.station.subtitle")}
         </p>
+        {/* The two workstations take no hero — a packer's scan field has to
+            stay on the first screen — but they still need the section's other
+            two routes one click away, which is what the navbar's tab column
+            used to give them. A 32px strip is the hero's job at a twentieth of
+            its height. */}
+        <PageTabs section="/fulfillment" className="mt-3" />
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">

@@ -1,0 +1,12 @@
+{
+  "subtitle": "Balance, payouts and transaction history",
+  "available": "Available balance",
+  "chargeNote": "Orders are charged from this balance as they are produced.",
+  "actionsHint": "Ask for a top-up, or a refund on an eligible order.",
+  "owed": "Owed",
+  "owedNote": "Outstanding on your account",
+  "refundable": "Refundable orders",
+  "refundableNote": "Eligible to request a refund",
+  "movements": "Transactions",
+  "movementsNote": "On your account so far"
+}

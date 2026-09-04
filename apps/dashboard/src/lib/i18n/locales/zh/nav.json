@@ -19,5 +19,8 @@
     "wallet": "钱包",
     "walletDescription": "余额与充值"
   },
-  "tickets": "支持"
+  "tickets": "支持",
+  "workspace": "工作区",
+  "account": "账户菜单",
+  "sectionTabs": "分区"
 }

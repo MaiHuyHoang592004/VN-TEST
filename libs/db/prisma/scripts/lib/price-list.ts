@@ -87,6 +87,22 @@ export const abbrev = (name: string) => {
   return (initials.length >= 3 ? initials : name.replace(/[^A-Za-z0-9]/g, "").toUpperCase()).slice(0, 4);
 };
 
+/**
+ * Rows that sit in the SIZE column without being sizes.
+ *
+ * The name puzzle prices a PER-LETTER surcharge inline with its two real sizes:
+ * "1 chữ cái", $0.50. Read literally that becomes a sellable SKU, and the
+ * catalogue offers a seller one letter for fifty cents — the cheapest thing in
+ * the shop, and not a thing at all. It modifies another SKU's price, which this
+ * schema has nowhere to hold, so it is excluded here rather than silently
+ * mispriced. Keyed by product so an identical size string elsewhere is safe.
+ *
+ * Removing an entry is enough to bring the row back: the importer treats the
+ * workbook as the whole truth, so a size that stops being excluded is created
+ * on the next run, and one that starts being excluded is deleted on it.
+ */
+const NOT_A_SIZE = new Set(["custom-name-puzzle-with-animals::1 chữ cái"]);
+
 const num = (v: unknown): number | null => {
   if (v === "" || v === null || v === undefined) return null;
   const n = Number(v);
@@ -153,6 +169,7 @@ export function parsePriceList(wb: XLSX.WorkBook): Product[] {
       }
       const size = text(r[5]);
       if (!current || !size || /liên hệ hotline/i.test(size)) continue;
+      if (NOT_A_SIZE.has(`${current.key}::${size}`)) continue;
       current.sizes.push({
         size,
         cost: num(r[6]),

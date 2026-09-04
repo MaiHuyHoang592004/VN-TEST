@@ -1,5 +1,6 @@
 {
   "title": "대시보드",
+  "greeting": "{name}님, 다시 오셨군요",
   "subtitle": "지금 사업 현황.",
   "from": "시작",
   "to": "종료",

@@ -2,9 +2,8 @@
 
 import { ArrowRight } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StatTiles } from "@/components/pages/inventory/stat-tiles";
+import { MetricCard, StatusBadge, Surface } from "@/components/ds";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import { useTranslation } from "@/lib/i18n";
 
@@ -28,21 +27,32 @@ export function WarehouseHome({ data }: { data: WarehouseHomeData }) {
 
   return (
     <>
-      <StatTiles
-        tiles={[
-          { label: t("home.warehouse.orders"), value: totalOrders },
-          { label: t("home.warehouse.quantity"), value: totalQuantity },
-          { label: t("home.warehouse.skus"), value: data.bySku.length },
-          { label: t("home.warehouse.mockups"), value: data.byMockup.length },
-        ]}
-      />
+      {/* Orders in the window is the floor's headline figure; the units behind
+          it are work in flight. SKU and artwork counts are plain totals. */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <MetricCard
+          tone="action"
+          label={t("home.warehouse.orders")}
+          value={totalOrders.toLocaleString()}
+        />
+        <MetricCard
+          tone="progress"
+          label={t("home.warehouse.quantity")}
+          value={totalQuantity.toLocaleString()}
+        />
+        <MetricCard label={t("home.warehouse.skus")} value={data.bySku.length.toLocaleString()} />
+        <MetricCard
+          label={t("home.warehouse.mockups")}
+          value={data.byMockup.length.toLocaleString()}
+        />
+      </div>
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2">
         {data.byStatus.map((s) => (
-          <Badge key={s.status} variant="secondary" className="gap-1.5">
+          <StatusBadge key={s.status} status={s.status}>
             {t(`orders.statuses.${s.status}`)}
             <span className="tabular-nums">{s.orders}</span>
-          </Badge>
+          </StatusBadge>
         ))}
       </div>
 
@@ -51,7 +61,7 @@ export function WarehouseHome({ data }: { data: WarehouseHomeData }) {
         <RankedList title={t("home.warehouse.byMockup")} rows={data.byMockup} />
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="flex justify-end">
         <Button
           variant="outline"
           nativeButton={false}
@@ -76,27 +86,30 @@ function RankedList({
   const top = rows[0]?.quantity ?? 0;
 
   return (
-    <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
-      <h2 className="text-sm font-medium">{title}</h2>
+    <Surface title={title}>
       {rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">{t("home.warehouse.nothing")}</p>
+        <p className="text-(length:--fs-body-sm) text-(--text-muted)">
+          {t("home.warehouse.nothing")}
+        </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-3">
           {rows.map((column) => (
-            <li key={column.label} className="flex flex-col gap-1">
-              <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="truncate font-mono text-xs">{column.label}</span>
-                <span className="tabular-nums">
+            <li key={column.label} className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-2 text-(length:--fs-body-sm)">
+                <span className="truncate font-mono text-(length:--fs-meta) text-(--text-body)">
+                  {column.label}
+                </span>
+                <span className="tabular-nums text-(--text-body)">
                   {column.quantity.toLocaleString()}
-                  <span className="text-muted-foreground ml-2 text-xs">
+                  <span className="ml-2 text-(length:--fs-meta) text-(--text-muted)">
                     {column.orders} {t("home.warehouse.ordersWord")}
                   </span>
                 </span>
               </div>
               {/* Relative to the top column, so the eye reads the ranking. */}
-              <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+              <div className="h-1.5 overflow-hidden rounded-full bg-(--surface-inset)">
                 <div
-                  className="bg-primary h-full rounded-full"
+                  className="h-full rounded-full bg-(--action-500)"
                   style={{ width: `${top ? (column.quantity / top) * 100 : 0}%` }}
                 />
               </div>
@@ -104,6 +117,6 @@ function RankedList({
           ))}
         </ul>
       )}
-    </section>
+    </Surface>
   );
 }

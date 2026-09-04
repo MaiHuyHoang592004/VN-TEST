@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 
-import { Input } from "@/components/ui/input";
 import {
   DataTable,
   type Column,
 } from "@/components/global/data-table";
-import { StatTiles } from "@/components/pages/inventory/stat-tiles";
+import { MetricCard, SearchField } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 
 export type SellerRow = {
@@ -64,7 +63,7 @@ export function AdminHome({
       cell: (r) => (
         <div className="min-w-0">
           <p className="truncate text-sm font-medium">{r.name}</p>
-          <p className="text-muted-foreground truncate text-xs">{r.email}</p>
+          <p className="truncate text-xs text-(--text-muted)">{r.email}</p>
         </div>
       ),
     },
@@ -108,33 +107,32 @@ export function AdminHome({
       hideOnMobile: true,
       cell: (r) =>
         Number(r.debt) > 0 ? (
-          <span className="text-red-600 font-mono text-sm">{money(r.debt)}</span>
+          <span className="font-mono text-sm text-(--status-critical-fg)">{money(r.debt)}</span>
         ) : (
-          <span className="text-muted-foreground">—</span>
+          <span className="text-(--text-muted)">—</span>
         ),
     },
   ];
 
   return (
     <>
-      <StatTiles
-        tiles={[
-          { label: t("home.admin.transactions"), value: summary.transactions },
-          { label: t("home.admin.customers"), value: summary.customers },
-          { label: t("home.admin.orders"), value: summary.orders },
-          { label: t("home.admin.quantity"), value: summary.quantity },
-          {
-            label: t("home.admin.baseCost"),
-            value: Number(summary.baseCost),
-            display: money(summary.baseCost),
-          },
-          {
-            label: t("home.admin.topups"),
-            value: Number(summary.topup),
-            display: money(summary.topup),
-          },
-        ]}
-      />
+      {/* Money in is the headline figure and takes the one Action tone on this
+          screen; the other five are plain totals, which the DS renders neutral
+          rather than colouring for variety. */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <MetricCard
+          label={t("home.admin.transactions")}
+          value={summary.transactions.toLocaleString()}
+        />
+        <MetricCard
+          label={t("home.admin.customers")}
+          value={summary.customers.toLocaleString()}
+        />
+        <MetricCard label={t("home.admin.orders")} value={summary.orders.toLocaleString()} />
+        <MetricCard label={t("home.admin.quantity")} value={summary.quantity.toLocaleString()} />
+        <MetricCard label={t("home.admin.baseCost")} value={money(summary.baseCost)} />
+        <MetricCard tone="action" label={t("home.admin.topups")} value={money(summary.topup)} />
+      </div>
 
       <DataTable
         rows={filtered}
@@ -143,9 +141,9 @@ export function AdminHome({
         empty={t("home.admin.empty")}
         toolbar={
           <div className="p-3">
-            <Input
+            <SearchField
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={setQuery}
               placeholder={t("home.admin.search")}
               className="max-w-xs"
             />

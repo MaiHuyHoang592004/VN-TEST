@@ -1,5 +1,7 @@
 import { can, type SessionUser } from "@opcreative/auth";
 
+import { Page } from "@/components/ds";
+
 import { adminReport, sellerReport, warehouseReport } from "@/modules/platform/reports/queries";
 import { resolvePeriod } from "@/lib/time-period";
 
@@ -29,7 +31,7 @@ export async function Home({
   if (can(user.roles, "transactions.read.all")) {
     const report = await adminReport(range);
     return (
-      <Shell period={range.period}>
+      <Shell period={range.period} name={user.name}>
         <AdminHome summary={report.summary} rows={report.rows} />
       </Shell>
     );
@@ -38,7 +40,7 @@ export async function Home({
   if (can(user.roles, "transactions.read.own")) {
     const report = await sellerReport(range);
     return (
-      <Shell period={range.period}>
+      <Shell period={range.period} name={user.name}>
         <SellerHome data={report} />
       </Shell>
     );
@@ -47,26 +49,28 @@ export async function Home({
   if (can(user.roles, "orders.read.customer")) {
     const report = await warehouseReport(range);
     return (
-      <Shell period={range.period}>
+      <Shell period={range.period} name={user.name}>
         <WarehouseHome data={report} />
       </Shell>
     );
   }
 
-  return <Shell period={range.period} />;
+  return <Shell period={range.period} name={user.name} />;
 }
 
 function Shell({
   period,
+  name,
   children,
 }: {
   period: string;
+  name?: string | null;
   children?: React.ReactNode;
 }) {
   return (
-    <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-20">
-      <HomeHeader period={period} />
+    <Page>
+      <HomeHeader period={period} name={name} />
       {children}
-    </main>
+    </Page>
   );
 }

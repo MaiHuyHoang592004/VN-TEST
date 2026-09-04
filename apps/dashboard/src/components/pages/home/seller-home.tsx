@@ -2,9 +2,8 @@
 
 import { LifeBuoy } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { StatTiles } from "@/components/pages/inventory/stat-tiles";
+import { MetricCard, StatusBadge, Surface } from "@/components/ds";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import { useTranslation } from "@/lib/i18n";
 
@@ -38,87 +37,101 @@ export function SellerHome({ data }: { data: SellerHomeData }) {
 
   return (
     <>
-      <StatTiles
-        tiles={[
-          {
-            label: t("home.seller.balance"),
-            value: Number(data.balance),
-            display: money(data.balance),
-          },
-          {
-            label: t("home.seller.debt"),
-            value: Number(data.debt),
-            display: money(data.debt),
-            tone: "danger",
-          },
-          { label: t("home.seller.orders"), value: data.orders },
-          { label: t("home.seller.quantity"), value: data.quantity },
-        ]}
-      />
+      {/* Tones follow the metric's MEANING, not variety: the balance is this
+          screen's headline figure, debt is the one number that needs an answer,
+          and a count of orders is a plain total. */}
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <MetricCard
+          tone="action"
+          label={t("home.seller.balance")}
+          value={money(data.balance)}
+        />
+        <MetricCard
+          tone={Number(data.debt) > 0 ? "critical" : "neutral"}
+          label={t("home.seller.debt")}
+          value={money(data.debt)}
+        />
+        <MetricCard label={t("home.seller.orders")} value={data.orders.toLocaleString()} />
+        <MetricCard label={t("home.seller.quantity")} value={data.quantity.toLocaleString()} />
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium">{t("home.seller.statuses")}</h2>
-            <span className="text-muted-foreground text-xs">
+        <Surface
+          title={t("home.seller.statuses")}
+          action={
+            <span className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">
               {data.statusTotal.toLocaleString()} {t("home.seller.ordersWord")}
             </span>
-          </div>
-
+          }
+        >
           {data.statuses.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("home.seller.noOrders")}</p>
+            <p className="text-(length:--fs-body-sm) text-(--text-muted)">
+              {t("home.seller.noOrders")}
+            </p>
           ) : (
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-3">
               {data.statuses.map((s) => {
                 const share = data.statusTotal ? (s.count / data.statusTotal) * 100 : 0;
                 return (
-                  <li key={s.status} className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between gap-2 text-sm">
-                      <Badge variant="secondary">{t(`orders.statuses.${s.status}`)}</Badge>
-                      <span className="tabular-nums">
+                  <li key={s.status} className="flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between gap-2 text-(length:--fs-body-sm)">
+                      {/* The colour comes from the raw status; the label stays
+                          the caller's translated string. */}
+                      <StatusBadge status={s.status}>
+                        {t(`orders.statuses.${s.status}`)}
+                      </StatusBadge>
+                      <span className="tabular-nums text-(--text-body)">
                         {s.count.toLocaleString()}
-                        <span className="text-muted-foreground ml-2 text-xs">
+                        <span className="ml-2 text-(length:--fs-meta) text-(--text-muted)">
                           {share.toFixed(0)}%
                         </span>
                       </span>
                     </div>
                     {/* A bar, not a chart library: one div and a width. */}
-                    <div className="bg-muted h-1.5 overflow-hidden rounded-full">
-                      <div className="bg-primary h-full rounded-full" style={{ width: `${share}%` }} />
+                    <div className="h-1.5 overflow-hidden rounded-full bg-(--surface-inset)">
+                      <div
+                        className="h-full rounded-full bg-(--action-500)"
+                        style={{ width: `${share}%` }}
+                      />
                     </div>
                   </li>
                 );
               })}
             </ul>
           )}
-        </section>
+        </Surface>
 
-        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium">{t("home.seller.recent")}</h2>
-            <Link href="/profile/billing" className="text-xs underline-offset-2 hover:underline">
+        <Surface
+          title={t("home.seller.recent")}
+          action={
+            <Button variant="link" size="sm" nativeButton={false} render={<Link href="/profile/billing" />}>
               {t("home.seller.allTransactions")}
-            </Link>
-          </div>
-
+            </Button>
+          }
+        >
           {data.recent.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("home.seller.noTransactions")}</p>
+            <p className="text-(length:--fs-body-sm) text-(--text-muted)">
+              {t("home.seller.noTransactions")}
+            </p>
           ) : (
-            <ul className="divide-border divide-y">
+            <ul className="divide-y divide-(--border-hairline)">
               {data.recent.map((tx) => {
                 const negative = tx.amount.startsWith("-");
                 return (
-                  <li key={tx.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <li
+                    key={tx.id}
+                    className="flex items-center justify-between gap-3 py-2 text-(length:--fs-body-sm)"
+                  >
                     <div className="min-w-0">
-                      <p className="truncate">{t(`finance.types.${tx.type}`)}</p>
-                      <p className="text-muted-foreground text-xs">
+                      <p className="truncate text-(--text-body)">{t(`finance.types.${tx.type}`)}</p>
+                      <p className="text-(length:--fs-meta) text-(--text-muted)">
                         {new Date(tx.createdAt).toLocaleDateString()} ·{" "}
                         {t(`finance.statuses.${tx.status}`)}
                       </p>
                     </div>
                     <span
                       className={`font-mono tabular-nums ${
-                        negative ? "text-destructive" : "text-green-600"
+                        negative ? "text-(--status-critical-fg)" : "text-(--status-success-fg)"
                       }`}
                     >
                       {negative ? "" : "+"}
@@ -129,13 +142,13 @@ export function SellerHome({ data }: { data: SellerHomeData }) {
               })}
             </ul>
           )}
-        </section>
+        </Surface>
       </div>
 
       {data.openTickets > 0 && (
-        <div className="border-border bg-card mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
-          <div className="flex items-center gap-2 text-sm">
-            <LifeBuoy className="text-muted-foreground size-4" />
+        <Surface className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-(length:--fs-body-sm) text-(--text-body)">
+            <LifeBuoy className="size-4 stroke-(--text-label)" />
             {t("home.seller.openTickets").replace("{count}", String(data.openTickets))}
           </div>
           {/* A link that looks like a button: Base UI needs to be told it is not a
@@ -148,7 +161,7 @@ export function SellerHome({ data }: { data: SellerHomeData }) {
           >
             {t("home.seller.viewTickets")}
           </Button>
-        </div>
+        </Surface>
       )}
     </>
   );

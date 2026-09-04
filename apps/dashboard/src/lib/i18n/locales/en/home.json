@@ -1,5 +1,6 @@
 {
   "title": "Dashboard",
+  "greeting": "Welcome back, {name}",
   "subtitle": "Where the business stands right now.",
   "from": "From",
   "to": "To",

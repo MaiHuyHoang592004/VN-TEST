@@ -1,5 +1,6 @@
 {
   "title": "Bảng điều khiển",
+  "greeting": "Chào mừng trở lại, {name}",
   "subtitle": "Tình hình kinh doanh ngay lúc này.",
   "from": "Từ",
   "to": "Đến",

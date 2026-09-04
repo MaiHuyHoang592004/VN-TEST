@@ -1,5 +1,6 @@
 {
   "title": "仪表盘",
+  "greeting": "欢迎回来，{name}",
   "subtitle": "当前的业务概览。",
   "from": "起始",
   "to": "结束",

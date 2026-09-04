@@ -1,5 +1,6 @@
 {
   "title": "Tableau de bord",
+  "greeting": "Bon retour, {name}",
   "subtitle": "Où en est l'activité, maintenant.",
   "from": "Du",
   "to": "Au",

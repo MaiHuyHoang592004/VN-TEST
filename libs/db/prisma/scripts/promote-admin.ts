@@ -9,7 +9,7 @@
  * grant it. That is the only legitimate use for this script: run it once per
  * environment, then never again.
  *
- * It is deliberately NOT a self-service route in the app. GWPrint is one
+ * It is deliberately NOT a self-service route in the app. GWPrintz is one
  * company with external sellers, so a signup form that could hand out ADMIN
  * would let anyone who registers take over the business.
  */

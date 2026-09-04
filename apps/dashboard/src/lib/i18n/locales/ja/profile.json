@@ -9,7 +9,7 @@
   },
   "form": {
     "identity": "あなたの情報",
-    "identityHint": "GWPrint での表示のされ方です。",
+    "identityHint": "GWPrintz での表示のされ方です。",
     "memberSince": "登録日",
     "avatarUrl": "アバターURL",
     "avatarHint": "空欄にすると Google の写真を使用します。",
@@ -64,7 +64,7 @@
   },
   "api": {
     "title": "APIキー",
-    "hint": "キーを使うと自社システムから GWPrint に接続できます。",
+    "hint": "キーを使うと自社システムから GWPrintz に接続できます。",
     "shownOnce": "新しいキーは一度だけ表示されます。",
     "create": "キーを作成",
     "keyName": "キー名",

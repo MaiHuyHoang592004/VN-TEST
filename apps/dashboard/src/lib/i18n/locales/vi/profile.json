@@ -9,7 +9,7 @@
   },
   "form": {
     "identity": "Thông tin của bạn",
-    "identityHint": "Cách bạn hiển thị trên GWPrint.",
+    "identityHint": "Cách bạn hiển thị trên GWPrintz.",
     "memberSince": "Thành viên từ",
     "avatarUrl": "Đường dẫn ảnh đại diện",
     "avatarHint": "Để trống để dùng ảnh Google của bạn.",
@@ -64,7 +64,7 @@
   },
   "api": {
     "title": "Khóa API",
-    "hint": "Khóa cho phép hệ thống của bạn kết nối với GWPrint.",
+    "hint": "Khóa cho phép hệ thống của bạn kết nối với GWPrintz.",
     "shownOnce": "Khóa mới chỉ hiển thị một lần duy nhất.",
     "create": "Tạo khóa",
     "keyName": "Tên khóa",

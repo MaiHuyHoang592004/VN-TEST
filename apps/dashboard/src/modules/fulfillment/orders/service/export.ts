@@ -141,7 +141,7 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
   // Title block first, exactly as the legacy sheet opened — the person who
   // receives the file needs to know what it is a export OF.
   const sheetRows: unknown[][] = [
-    [{ v: "GWPrint — orders export", s: TITLE_STYLE }],
+    [{ v: "GWPrintz — orders export", s: TITLE_STYLE }],
     [`Exported ${new Date().toISOString().slice(0, 19).replace("T", " ")} UTC`],
     [`Rows: ${rows.length}${total > rows.length ? ` of ${total} (capped)` : ""}`],
     [filters.length ? `Filters — ${filters.join(" · ")}` : "Filters — none (whole table)"],

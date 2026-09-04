@@ -56,7 +56,7 @@ export function Footer() {
           <div className="flex max-w-xs flex-col gap-4">
             <Link
               href="/"
-              aria-label="GoodWoodPrint"
+              aria-label="GWPrintz"
               className="flex items-center rounded-(--radius-pill) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
             >
               <GwpMark size={24} tone="sky" />
@@ -97,7 +97,7 @@ export function Footer() {
         {/* Bottom bar: copyright */}
         <div className="mt-10 border-t border-(--border-hairline) pt-6">
           <p className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">
-            © {new Date().getFullYear()} GWPrint. {t("footer.rights")}
+            © {new Date().getFullYear()} GWPrintz. {t("footer.rights")}
           </p>
         </div>
       </div>

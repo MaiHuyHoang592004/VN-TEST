@@ -26,6 +26,7 @@ import { kiloShips } from "./kiloships.ts";
 import {
   LabelProviderError,
   type Address,
+  type LabelProvider,
   type Parcel,
   type PurchasedLabel,
 } from "./provider.ts";
@@ -33,7 +34,18 @@ import {
 /** The feature hides itself when no carrier is configured. */
 export const labelsEnabled = (): boolean => Boolean(process.env.KILOSHIPS_API_KEY);
 
-const provider = () => kiloShips;
+// TEST-ONLY SEAM. Real code never calls this — provider() below always
+// returns kiloShips otherwise. What purchaseLabels owes a test is OUR
+// concurrency/idempotency decisions (the advisory lock, the re-check, the
+// skip-on-already-purchased), same reasoning as this file's own header on
+// why the provider is a stub in tests: what matters is not KiloShips'
+// uptime. Exported so labels.test.ts can install a fake and inspect exactly
+// how many times it was actually called under real concurrency.
+let providerOverride: LabelProvider | null = null;
+export const __setProviderForTests = (p: LabelProvider | null): void => {
+  providerOverride = p;
+};
+const provider = () => providerOverride ?? kiloShips;
 
 export type SkipReason =
   | "already-has-label"
@@ -242,19 +254,105 @@ export async function purchaseLabels(
     const groupRows = group.orders.map((o) => byId.get(o.id)!).filter(Boolean);
     // Stable across retries: the same orders always produce the same reference,
     // which is what lets the provider hand back the label it already sold us
-    // instead of selling another.
+    // instead of selling another. It also doubles as OUR OWN idempotency key
+    // below — a genuine retry of "buy for these orders" always lands on the
+    // same referenceId, unlike assign/refund where the same orders can
+    // legitimately recur across different batches and need a client-supplied
+    // key instead.
     const referenceId = `opc-${groupRows.map((r) => r.id).sort((a, b) => a - b).join("-")}`;
+    const orderIdsInGroup = groupRows.map((r) => r.id);
 
-    let label: PurchasedLabel;
+    let label: PurchasedLabel | null = null;
+    let alreadySkip: { trackingNumber: string } | null = null;
+
     try {
-      label = await provider().purchase({
-        referenceId,
-        orders: group.orders.map((o) => ({ id: o.id, externalId: o.externalId, quantity: o.quantity })),
-        from: warehouseAddress(),
-        to: group.to!,
-        parcels: group.parcels,
-        serviceLevel: group.serviceLevel,
-      });
+      await prisma.$transaction(
+        async (tx) => {
+          // SERIALIZES concurrent purchase attempts for this exact set of
+          // orders: a second request for the same referenceId (a double-
+          // click, or a genuine retry that races the first attempt's own
+          // response) blocks HERE — before either the carrier call or any
+          // write — until the first attempt's transaction commits or rolls
+          // back. It does not block anything else: this is a Postgres
+          // advisory lock keyed by referenceId, not a row lock on the
+          // orders table, so an unrelated group's purchase proceeds freely.
+          // Released automatically at transaction end (the `_xact_` variant).
+          await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtext(${referenceId}))`;
+
+          // Re-read INSIDE the lock: `group` above was planned before we got
+          // here, and is stale the moment a concurrent request for this same
+          // referenceId just finished while we were waiting for the lock.
+          const fresh = await tx.order.findMany({
+            where: { id: { in: orderIdsInGroup } },
+            select: {
+              id: true,
+              shipments: {
+                select: { trackingNumber: true, labelUrl: true, voidedAt: true },
+                orderBy: { createdAt: "desc" },
+                take: 1,
+              },
+            },
+          });
+          const live = fresh
+            .map((o) => o.shipments[0])
+            .find((s) => s?.labelUrl && !s.voidedAt);
+          if (live && !allowMultiple) {
+            // The OTHER attempt already bought it while we waited for the
+            // lock — this is success, not a failure, just nothing left to do.
+            alreadySkip = { trackingNumber: live.trackingNumber ?? "" };
+            return;
+          }
+
+          // The carrier call happens INSIDE the lock, deliberately: the whole
+          // point of the lock is that a second request for this referenceId
+          // cannot start ITS OWN purchase attempt until this one is fully
+          // resolved, so kiloships.ts's own referenceId-recovery is the
+          // second, independent layer — not the only one.
+          label = await provider().purchase({
+            referenceId,
+            orders: group.orders.map((o) => ({ id: o.id, externalId: o.externalId, quantity: o.quantity })),
+            from: warehouseAddress(),
+            to: group.to!,
+            parcels: group.parcels,
+            serviceLevel: group.serviceLevel,
+          });
+
+          for (const column of groupRows) {
+            await tx.shipment.create({
+              data: {
+                orderId: column.id,
+                trackingNumber: label.trackingNumber,
+                labelUrl: label.labelUrl,
+                provider: label.provider,
+                method: label.method,
+                cost: label.cost ? new Prisma.Decimal(label.cost) : null,
+                trackingStatus: "CREATED",
+                // The raw response IS the dispute record — this is what replaces
+                // legacy's whole OrderLabel log table.
+                configs: { parcels: group.parcels, referenceId, raw: label.raw } as Prisma.InputJsonValue,
+              },
+            });
+            await writeAudit(tx, ctx, {
+              action: "LABEL_PURCHASED",
+              targetType: "order",
+              targetId: String(column.id),
+              after: {
+                trackingNumber: label.trackingNumber,
+                provider: label.provider,
+                cost: label.cost ?? null,
+                referenceId,
+              },
+            });
+          }
+          await notifySellersOfLabel(tx, groupRows, label.trackingNumber, label.provider, ctx);
+        },
+        // Default is 5s — nowhere near kiloships.ts's own 30s carrier
+        // timeout, which now runs INSIDE this transaction. maxWait is how
+        // long this call may wait for a pool connection before even
+        // starting; raised a little since the advisory lock can make that
+        // wait longer than usual under real contention.
+        { timeout: 35_000, maxWait: 10_000 },
+      );
     } catch (e) {
       outcome.failed.push({
         key: group.key,
@@ -263,42 +361,21 @@ export async function purchaseLabels(
       continue;
     }
 
-    await prisma.$transaction(async (tx) => {
-      for (const column of groupRows) {
-        await tx.shipment.create({
-          data: {
-            orderId: column.id,
-            trackingNumber: label.trackingNumber,
-            labelUrl: label.labelUrl,
-            provider: label.provider,
-            method: label.method,
-            cost: label.cost ? new Prisma.Decimal(label.cost) : null,
-            trackingStatus: "CREATED",
-            // The raw response IS the dispute record — this is what replaces
-            // legacy's whole OrderLabel log table.
-            configs: { parcels: group.parcels, referenceId, raw: label.raw } as Prisma.InputJsonValue,
-          },
-        });
-        await writeAudit(tx, ctx, {
-          action: "LABEL_PURCHASED",
-          targetType: "order",
-          targetId: String(column.id),
-          after: {
-            trackingNumber: label.trackingNumber,
-            provider: label.provider,
-            cost: label.cost ?? null,
-            referenceId,
-          },
-        });
-      }
-      await notifySellersOfLabel(tx, groupRows, label.trackingNumber, label.provider, ctx);
-    });
+    if (alreadySkip) {
+      outcome.skipped.push({ key: group.key, reason: "already-has-label" });
+      continue;
+    }
+    if (!label) continue;
+    // A `let` reassigned inside the transaction's closure — TS cannot prove
+    // it is set on this path from the outer scope alone, so bind it to a
+    // plain const once, here, rather than asserting `!` at every use below.
+    const purchased: PurchasedLabel = label;
 
     outcome.purchased.push({
       key: group.key,
-      trackingNumber: label.trackingNumber,
-      labelUrl: label.labelUrl,
-      cost: label.cost,
+      trackingNumber: purchased.trackingNumber,
+      labelUrl: purchased.labelUrl,
+      cost: purchased.cost,
       orders: groupRows.length,
     });
 
@@ -307,16 +384,16 @@ export async function purchaseLabels(
       groupRows.map((r) => r.customerId).filter((id): id is string => id !== null),
       "shipping_added",
       (userId) => ({
-        tracking_number: label.trackingNumber,
-        label_url: label.labelUrl,
-        provider: label.provider,
+        tracking_number: purchased.trackingNumber,
+        label_url: purchased.labelUrl,
+        provider: purchased.provider,
         orders: groupRows
           .filter((r) => r.customerId === userId)
           .map((r) => ({ id: r.id, order_id: r.externalId })),
         updated_at: new Date().toISOString(),
       }),
     );
-    await subscribeIfEnabled(label.trackingNumber);
+    await subscribeIfEnabled(purchased.trackingNumber);
   }
 
   // A failed purchase is money that did not move but work that did not happen
@@ -348,7 +425,7 @@ export async function purchaseLabels(
  */
 function warehouseAddress(): Address {
   return {
-    name: process.env.SHIP_FROM_NAME || "GWPrint",
+    name: process.env.SHIP_FROM_NAME || "GWPrintz",
     company: process.env.SHIP_FROM_COMPANY || null,
     line1: process.env.SHIP_FROM_LINE1 || "",
     line2: process.env.SHIP_FROM_LINE2 || null,

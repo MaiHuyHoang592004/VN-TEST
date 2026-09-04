@@ -150,7 +150,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       apiKey: process.env.RESEND_API_KEY,
       // TODO: switch to a verified gwprint.com sender before production —
       // onboarding@resend.dev only delivers to the Resend account owner.
-      from: "GWPrint <onboarding@resend.dev>",
+      from: "GWPrintz <onboarding@resend.dev>",
       maxAge: 10 * 60,
       generateVerificationToken: () => generateOtp(randomInt),
       async sendVerificationRequest({ identifier, token }) {

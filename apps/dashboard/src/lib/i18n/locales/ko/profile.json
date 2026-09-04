@@ -9,7 +9,7 @@
   },
   "form": {
     "identity": "내 정보",
-    "identityHint": "GWPrint에서 표시되는 방식입니다.",
+    "identityHint": "GWPrintz에서 표시되는 방식입니다.",
     "memberSince": "가입일",
     "avatarUrl": "아바타 URL",
     "avatarHint": "비워 두면 Google 사진을 사용합니다.",
@@ -64,7 +64,7 @@
   },
   "api": {
     "title": "API 키",
-    "hint": "키를 사용하면 자체 시스템이 GWPrint와 통신할 수 있습니다.",
+    "hint": "키를 사용하면 자체 시스템이 GWPrintz와 통신할 수 있습니다.",
     "shownOnce": "새 키는 한 번만 표시됩니다.",
     "create": "키 생성",
     "keyName": "키 이름",

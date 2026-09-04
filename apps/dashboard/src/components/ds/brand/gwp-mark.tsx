@@ -21,7 +21,7 @@ export type GwpMarkProps = {
   /** Rendered height in px. The mark keeps its own aspect ratio. */
   size?: number;
   tone?: keyof typeof TONES;
-  /** Render the stacked GoodWoodPrint wordmark instead of the monogram. */
+  /** Render the stacked GWPrintz wordmark instead of the monogram. */
   withWordmark?: boolean;
   className?: string;
 };
@@ -56,7 +56,7 @@ export function GwpMark({
   const t = TONES[tone];
 
   if (withWordmark) {
-    // The stacked lockup: Good / Wood in the word ink, Print in the accent.
+    // The stacked lockup: GW in the word ink, Printz in the accent.
     return (
       <svg
         data-slot="gwp-mark"
@@ -64,33 +64,30 @@ export function GwpMark({
         width={(size * 200) / 96}
         height={size}
         role="img"
-        aria-label="GoodWoodPrint"
+        aria-label="GWPrintz"
         className={cn("font-display", className)}
       >
-        <text fontWeight="800" fontSize="30" letterSpacing="-0.6">
-          <tspan x="0" y="30" fill={t.word}>
-            Good
+        <text fontWeight="800" fontSize="40" letterSpacing="-0.8">
+          <tspan x="0" y="40" fill={t.word}>
+            GW
           </tspan>
-          <tspan x="0" y="60" fill={t.word}>
-            Wood
-          </tspan>
-          <tspan x="0" y="90" fill={t.accent}>
-            Print
+          <tspan x="0" y="86" fill={t.accent}>
+            Printz
           </tspan>
         </text>
       </svg>
     );
   }
 
-  // The monogram: the tree-ring signature plus the GWP letterform.
+  // The monogram: the tree-ring signature plus the GWPrintz letterform.
   return (
     <svg
       data-slot="gwp-mark"
-      viewBox="0 0 132 48"
-      width={(size * 132) / 48}
+      viewBox="0 0 160 48"
+      width={(size * 160) / 48}
       height={size}
       role="img"
-      aria-label="GoodWoodPrint"
+      aria-label="GWPrintz"
       className={cn("font-display", className)}
     >
       <g fill="none" stroke={t.mark} strokeWidth="2.2">
@@ -102,13 +99,13 @@ export function GwpMark({
       <circle cx="24" cy="24" r="2" fill={t.mark} />
       <text
         x="54"
-        y="31"
+        y="32"
         fontWeight="800"
-        fontSize="26"
+        fontSize="24"
         letterSpacing="-0.5"
         fill={t.word}
       >
-        GWP
+        GWPrintz
       </text>
     </svg>
   );

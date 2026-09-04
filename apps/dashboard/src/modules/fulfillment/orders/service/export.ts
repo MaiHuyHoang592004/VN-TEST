@@ -22,6 +22,7 @@ import { prisma, orderScope, can, Prisma, type FulfillmentStatus } from "@gwprin
 import { putObject } from "../../../core/storage.ts";
 import { exportQuerySchema, type ExportQuery } from "../schema.ts";
 import { type Actor } from "./shared.ts";
+import { searchClauses } from "./reads.ts";
 
 /**
  * ponytail: 50 000 rows in one function invocation. Ceiling — beyond that the
@@ -86,18 +87,7 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
     ...(query.warehouseId ? { warehouseId: query.warehouseId } : {}),
     ...(query.customerId ? { customerId: query.customerId } : {}),
     ...(query.ids?.length ? { id: { in: query.ids } } : {}),
-    ...(query.search
-      ? {
-          OR: [
-            { externalId: { contains: query.search, mode: "insensitive" } },
-            {
-              shipments: {
-                some: { trackingNumber: { contains: query.search, mode: "insensitive" } },
-              },
-            },
-          ],
-        }
-      : {}),
+    ...(query.search ? { OR: searchClauses(query.search) } : {}),
   };
 
   const rows = await prisma.order.findMany({

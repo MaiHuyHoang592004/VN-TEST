@@ -1,0 +1,26 @@
+/// One outbound webhook delivery attempt. dispatchWebhook() used to be
+/// fire-and-forget with nothing written down — a seller's endpoint being
+/// down for an hour lost every event from that hour with no trace of it
+/// anywhere. This is the log that upgrade path asked for: every attempt,
+/// success or failure, and how many tries it took.
+model WebhookDelivery {
+  id Int @id @default(autoincrement())
+
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  event   String
+  /// The exact body that was sent (or would have been, after the last
+  /// attempt) — enough to hand-replay a delivery from here if a seller asks.
+  payload Json
+
+  status   WebhookDeliveryStatus
+  attempts Int                   @default(1)
+  /// Set only when status is FAILED.
+  lastError String? @map("last_error")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("webhook_deliveries")
+}

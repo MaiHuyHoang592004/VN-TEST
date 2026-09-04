@@ -12,13 +12,16 @@ import type { UserStatus } from "@gwprint/db";
 
 import { requirePermission, requireUser } from "../../core/guard.ts";
 import { auditContext } from "../../core/context.ts";
+import { withValidation } from "../../core/action-result.ts";
 import * as users from "./service.ts";
 
 export async function inviteUserAction(input: unknown) {
   const actor = await requirePermission("users.create");
-  const result = await users.inviteUser(actor, input, await auditContext(actor));
-  revalidatePath("/admin/users");
-  return result;
+  return withValidation(async () => {
+    const result = await users.inviteUser(actor, input, await auditContext(actor));
+    revalidatePath("/admin/users");
+    return result;
+  });
 }
 
 export async function revokeInviteAction(inviteId: string) {
@@ -30,10 +33,12 @@ export async function revokeInviteAction(inviteId: string) {
 
 export async function updateUserAction(id: string, input: unknown) {
   const actor = await requirePermission("users.update");
-  const result = await users.updateUser(actor, id, input, await auditContext(actor));
-  revalidatePath("/admin/users");
-  revalidatePath(`/admin/users/${id}`);
-  return result;
+  return withValidation(async () => {
+    const result = await users.updateUser(actor, id, input, await auditContext(actor));
+    revalidatePath("/admin/users");
+    revalidatePath(`/admin/users/${id}`);
+    return result;
+  });
 }
 
 export async function setUserStatusAction(id: string, status: UserStatus) {
@@ -52,16 +57,20 @@ export async function deleteUserAction(id: string) {
 
 export async function topUpBalanceAction(userId: string, input: unknown) {
   const actor = await requirePermission("users.balance.manage");
-  const result = await users.topUpBalance(actor, userId, input, await auditContext(actor));
-  revalidatePath(`/admin/users/${userId}`);
-  return result;
+  return withValidation(async () => {
+    const result = await users.topUpBalance(actor, userId, input, await auditContext(actor));
+    revalidatePath(`/admin/users/${userId}`);
+    return result;
+  });
 }
 
 export async function refundBalanceAction(userId: string, input: unknown) {
   const actor = await requirePermission("users.balance.manage");
-  const result = await users.refundBalance(actor, userId, input, await auditContext(actor));
-  revalidatePath(`/admin/users/${userId}`);
-  return result;
+  return withValidation(async () => {
+    const result = await users.refundBalance(actor, userId, input, await auditContext(actor));
+    revalidatePath(`/admin/users/${userId}`);
+    return result;
+  });
 }
 
 export async function adjustBalanceAction(
@@ -70,9 +79,11 @@ export async function adjustBalanceAction(
   input: unknown,
 ) {
   const actor = await requirePermission("users.balance.manage");
-  const result = await users.adjustBalance(actor, userId, direction, input, await auditContext(actor));
-  revalidatePath(`/admin/users/${userId}`);
-  return result;
+  return withValidation(async () => {
+    const result = await users.adjustBalance(actor, userId, direction, input, await auditContext(actor));
+    revalidatePath(`/admin/users/${userId}`);
+    return result;
+  });
 }
 
 /** Accept an invitation for the signed-in account. Only requires a session —

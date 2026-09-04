@@ -21,7 +21,7 @@ import { prisma, writeAudit, orderScope, type AuditContext } from "@gwprint/db";
 import { can } from "@gwprint/shared";
 
 import { isDuplicateKey } from "../../../core/ledger.ts";
-import { notify } from "../../../platform/index.ts";
+import { notify, dispatchWebhook } from "../../../platform/index.ts";
 import { orderSchema, type OrderInput } from "../schema.ts";
 import { blankToNull, type Actor } from "./shared.ts";
 
@@ -55,6 +55,11 @@ export async function createOrder(
   ctx: AuditContext,
   owner: string = actor.id,
   idempotencyKey?: string,
+  /** false for createOrders' per-row loop, which dispatches CONCURRENTLY for
+   * the whole batch afterward instead — sequentially awaiting one webhook
+   * call (each up to 3 attempts with backoff) per imported row would make a
+   * large import as slow as the seller's endpoint is unreliable. */
+  notifyWebhook = true,
 ) {
   const input = orderSchema.parse(raw);
   if (owner !== actor.id && !can(actor.roles, "orders.update")) {
@@ -83,7 +88,19 @@ export async function createOrder(
   if (sku.status !== "ACTIVE") return { ok: false as const, error: "sku-inactive" as const };
 
   try {
-    return await createOrderTx(input, sku, owner, ctx, idempotencyKey);
+    const result = await createOrderTx(input, sku, owner, ctx, idempotencyKey);
+    // AFTER the transaction commits, never inside — same rule as every other
+    // webhook dispatch in this codebase. Never on a deduped retry: the
+    // seller already heard about this order the first time it was created.
+    if (notifyWebhook && !result.deduped) {
+      await dispatchWebhook(owner, "order_created", {
+        id: result.id,
+        order_id: input.externalId,
+        quantity: input.quantity,
+        placed_at: input.placedAt.toISOString(),
+      });
+    }
+    return result;
   } catch (e) {
     // Lost the UNIQUE(idempotencyKey) race: the other attempt created it, so
     // report ITS order rather than failing a caller who did nothing wrong.
@@ -177,7 +194,7 @@ export async function createOrders(
   ctx: AuditContext,
   owner: string = actor.id,
 ) {
-  const results: Array<{ column: number; ok: boolean; id?: number; error?: string }> = [];
+  const results: Array<{ column: number; ok: boolean; id?: number; deduped?: boolean; error?: string }> = [];
   for (const [i, raw] of rows.entries()) {
     try {
       // A retried import — the SAME file re-submitted after a timeout, or the
@@ -189,8 +206,12 @@ export async function createOrders(
       // genuinely-identical sibling rows (a real duplicate line) still both
       // get created.
       const idempotencyKey = `import:${owner}:${i}:${createHash("sha256").update(JSON.stringify(raw)).digest("hex").slice(0, 32)}`;
-      const r = await createOrder(actor, raw, ctx, owner, idempotencyKey);
-      results.push(r.ok ? { column: i, ok: true, id: r.id } : { column: i, ok: false, error: r.error });
+      const r = await createOrder(actor, raw, ctx, owner, idempotencyKey, false);
+      results.push(
+        r.ok
+          ? { column: i, ok: true, id: r.id, deduped: r.deduped }
+          : { column: i, ok: false, error: r.error },
+      );
     } catch (e) {
       const message =
         e instanceof Error && e.name === "ZodError"
@@ -201,6 +222,20 @@ export async function createOrders(
       results.push({ column: i, ok: false, error: message });
     }
   }
+
+  // One event per genuinely NEW row, fired CONCURRENTLY after the loop — see
+  // createOrder's notifyWebhook doc-comment for why not per-row inline.
+  await Promise.all(
+    results
+      .filter((r) => r.ok && !r.deduped)
+      .map((r) =>
+        dispatchWebhook(owner, "order_created", {
+          id: r.id,
+          order_id: (rows[r.column] as { externalId?: string })?.externalId,
+        }),
+      ),
+  );
+
   return {
     ok: true as const,
     created: results.filter((r) => r.ok).length,
@@ -236,6 +271,18 @@ export async function updateOrder(
   // patchOrder, which locks the same field the same way.
   if (input.quantity !== before.quantity && before.status !== "PENDING") {
     return { ok: false as const, error: "quantity-locked" as const };
+  }
+  // Once CANCELLED, only what the public API's patchOrder already treats as
+  // safe (note/deadline/imageUrl/externalId/shipping) may still change —
+  // informational fields are locked alongside quantity, matching
+  // EDITABLE_AFTER_PENDING there, so a closed order does not keep collecting
+  // silent edits from whichever surface someone happens to use.
+  if (before.status === "CANCELLED") {
+    const marketplaceChanged = blankToNull(input.marketplace) !== before.marketplace;
+    const internalNoteChanged = blankToNull(input.internalNote) !== before.internalNote;
+    if (marketplaceChanged || internalNoteChanged) {
+      return { ok: false as const, error: "not-editable" as const };
+    }
   }
 
   const data = {

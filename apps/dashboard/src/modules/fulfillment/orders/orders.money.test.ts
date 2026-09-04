@@ -172,20 +172,53 @@ test("an already-assigned order is skipped, never charged twice", async () => {
   assert.equal((await balanceOf(sellerA)).toFixed(2), afterFirst.toFixed(2), "not re-charged");
 });
 
-test("an unaffordable batch is rejected WHOLE — no partial assignment", async () => {
+test("an unaffordable seller's batch is rejected WHOLE — no partial assignment for THEM", async () => {
   // sellerB has 5.00 and is untiered, so pays tier 0 (12.50). Two orders = 25.
   const ids = [await makeOrder(sellerB, 1), await makeOrder(sellerB, 1)];
   const before = await balanceOf(sellerB);
 
   const r = await assignOrders(admin(), { orderIds: ids, warehouseId, idempotencyKey: "om-poor-key" }, ctx());
-  assert.equal(r.ok, false);
-  assert.equal(r.ok === false && r.error, "insufficient-balance");
+  // The CALL completes (ok:true) — it is this seller's assignment that failed,
+  // named in `errors`, not the whole request. See the next test: a sibling
+  // seller in the SAME call must not be held hostage by this one's balance.
+  assert.equal(r.ok, true);
+  assert.equal(r.assigned, 0, "this seller's orders were not assigned");
+  assert.equal(r.errors.length, 1);
+  assert.equal(r.errors[0].sellerId, sellerB);
+  assert.equal(r.errors[0].error, "insufficient-balance");
 
   assert.equal((await balanceOf(sellerB)).toFixed(2), before.toFixed(2), "balance untouched");
   const orders = await prisma.order.findMany({ where: { id: { in: ids } }, select: { status: true } });
   assert.ok(orders.every((o) => o.status === "PENDING"), "no order moved");
   const ledger = await prisma.transaction.findMany({ where: { userId: sellerB } });
   assert.equal(ledger.length, 0, "and no ledger column was left behind");
+});
+
+test("one seller's failure does not block the sellers after them in the same batch", async () => {
+  // sellerB fails on balance; sellerA (tier 1, affordable) is queued AFTER
+  // sellerB in the Map (insertion order — sellerB was created first in
+  // before()). The old code `return`ed on the first failure and never even
+  // reached sellerA's turn.
+  const poorOrder = await makeOrder(sellerB, 1);
+  const okOrder = await makeOrder(sellerA, 1);
+  const beforeA = await balanceOf(sellerA);
+
+  const r = await assignOrders(
+    admin(),
+    { orderIds: [poorOrder, okOrder], warehouseId, idempotencyKey: "om-partial-key" },
+    ctx(),
+  );
+  assert.equal(r.ok, true);
+  assert.equal(r.assigned, 1, "sellerA's order still went through");
+  assert.equal(r.errors.length, 1);
+  assert.equal(r.errors[0].sellerId, sellerB);
+
+  const afterA = await balanceOf(sellerA);
+  assert.equal(beforeA.sub(afterA).toFixed(2), "10.00", "sellerA was charged despite sellerB failing");
+  const okStatus = await prisma.order.findUniqueOrThrow({ where: { id: okOrder }, select: { status: true } });
+  assert.equal(okStatus.status, "ASSIGNED");
+  const poorStatus = await prisma.order.findUniqueOrThrow({ where: { id: poorOrder }, select: { status: true } });
+  assert.equal(poorStatus.status, "PENDING", "sellerB's order was untouched, not partially assigned");
 });
 
 test("one batch spanning two sellers charges each their own price", async () => {

@@ -98,6 +98,8 @@ export default async function OrdersPage({
           mockupThumbnail: o.mockup?.thumbnail ?? null,
           imageUrl: o.imageUrl,
           proofImageUrl: o.proofImageUrl,
+          shipmentId: o.shipments[0]?.id ?? null,
+          labelVoided: Boolean(o.shipments[0]?.voidedAt),
           tracking: o.shipments[0]?.trackingNumber ?? null,
           shipTo: [
             o.shippingAddress?.city,
@@ -109,6 +111,19 @@ export default async function OrdersPage({
             .join(", ") || null,
           trackingStatus: o.shipments[0]?.trackingStatus ?? null,
           note: o.note,
+          internalNote: o.internalNote,
+          updatedAt: o.updatedAt.toISOString(),
+          productVariantId: o.productVariant?.id ?? null,
+          shippingName: o.shippingAddress?.name ?? null,
+          shippingCompany: o.shippingAddress?.company ?? null,
+          shippingEmail: o.shippingAddress?.email ?? null,
+          shippingPhone: o.shippingAddress?.phone ?? null,
+          line1: o.shippingAddress?.line1 ?? null,
+          line2: o.shippingAddress?.line2 ?? null,
+          city: o.shippingAddress?.city ?? null,
+          state: o.shippingAddress?.state ?? null,
+          zip: o.shippingAddress?.zip ?? null,
+          country: o.shippingAddress?.country ?? null,
         }))}
       />
     </Page>

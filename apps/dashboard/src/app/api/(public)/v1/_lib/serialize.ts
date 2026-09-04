@@ -37,7 +37,17 @@ export function orderToApi(o: OrderRow) {
     // Only the latest shipment: an order can have several, and a list endpoint
     // returning all of them makes the payload unbounded.
     tracking: shipment
-      ? { number: shipment.trackingNumber, status: shipment.trackingStatus, carrier: shipment.provider }
+      ? {
+          number: shipment.trackingNumber,
+          status: shipment.trackingStatus,
+          carrier: shipment.provider,
+          // The carrier's own last word, as opposed to `status` above (a
+          // name WE picked) — the raw scan an integration can show verbatim.
+          last_scan: shipment.lastScanAt
+            ? { status: shipment.lastScanStatus, detail: shipment.lastScanDetail, at: iso(shipment.lastScanAt) }
+            : null,
+          voided_at: iso(shipment.voidedAt),
+        }
       : null,
     note: o.note,
     // internalNote is deliberately absent — it is the customer talking to

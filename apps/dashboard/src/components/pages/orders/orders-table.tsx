@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Image as ImageIcon, Package, RefreshCw } from "lucide-react";
+import { Image as ImageIcon, Package, Pencil, RefreshCw, Ban } from "lucide-react";
 
 import { FilterChip, ProductCell, StatusBadge } from "@/components/ds";
 import {
@@ -37,6 +37,7 @@ import { StatusSummary, type StatusSummaryRow } from "./status-summary";
 import { BuyLabelsButton } from "./buy-labels-button";
 import { DownloadLabelsButton } from "./download-labels-button";
 import { OrderDialog } from "./order-dialog";
+import { VoidLabelDialog } from "./void-label-dialog";
 import { AssignDialog } from "./assign-dialog";
 import { ImportDialog } from "./import-dialog";
 import { DeleteOrdersDialog } from "./delete-orders-dialog";
@@ -60,10 +61,25 @@ export type OrderRow = {
   mockupThumbnail: string | null;
   imageUrl: string | null;
   proofImageUrl: string | null;
+  shipmentId: number | null;
+  labelVoided: boolean;
   tracking: string | null;
   trackingStatus: string | null;
   shipTo: string | null;
   note: string | null;
+  internalNote: string | null;
+  updatedAt: string;
+  productVariantId: number | null;
+  shippingName: string | null;
+  shippingCompany: string | null;
+  shippingEmail: string | null;
+  shippingPhone: string | null;
+  line1: string | null;
+  line2: string | null;
+  city: string | null;
+  state: string | null;
+  zip: string | null;
+  country: string | null;
 };
 
 const TABS = ["all", "processing", "attention"] as const;
@@ -123,6 +139,8 @@ export function OrdersTable({
     router.refresh();
   };
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<OrderRow | null>(null);
+  const [voidingLabelFor, setVoidingLabelFor] = useState<OrderRow | null>(null);
   const [importing, setImporting] = useState(false);
   const [assigning, setAssigning] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -292,6 +310,42 @@ export function OrdersTable({
               <div className="flex items-center gap-1">
                 <OrderQr {...orderQrProps(o)} />
                 <OrderProofAction orderId={o.id} hasProof={Boolean(o.proofImageUrl)} />
+                {/* Always available — the service itself decides what a
+                    non-PENDING order still allows (quantity locks after
+                    PENDING, most fields lock after CANCELLED) and reports
+                    that back as a field/form error rather than the button
+                    guessing and hiding fields that would have been fine. */}
+                <Can permission="orders.update">
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("orders.edit")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditing(o);
+                    }}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                </Can>
+                {/* Only when there is a live label to cancel — a voided one
+                    already shows nothing here, and this button is not how
+                    a NEW label gets bought (Buy labels handles that). */}
+                {o.shipmentId && !o.labelVoided && o.tracking && (
+                  <Can permission="orders.labels.manage">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t("orders.labels.voidTitle")}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVoidingLabelFor(o);
+                      }}
+                    >
+                      <Ban className="size-4" />
+                    </Button>
+                  </Can>
+                )}
                 {/* Artwork is only editable while the order is PENDING — the
                     service refuses later, so the button follows it. */}
                 {o.status === "PENDING" && (
@@ -474,6 +528,21 @@ export function OrdersTable({
       />
 
       {creating && <OrderDialog open onOpenChange={(o) => !o && setCreating(false)} />}
+      {editing && (
+        <OrderDialog
+          order={editing}
+          open
+          onOpenChange={(o) => !o && setEditing(null)}
+        />
+      )}
+      {voidingLabelFor?.shipmentId && (
+        <VoidLabelDialog
+          shipmentId={voidingLabelFor.shipmentId}
+          trackingNumber={voidingLabelFor.tracking}
+          open
+          onOpenChange={(o) => !o && setVoidingLabelFor(null)}
+        />
+      )}
       {importing && <ImportDialog open onOpenChange={(o) => !o && setImporting(false)} />}
       {assigning && (
         <AssignDialog

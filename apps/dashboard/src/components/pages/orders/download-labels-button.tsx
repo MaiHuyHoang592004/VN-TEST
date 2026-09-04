@@ -49,6 +49,15 @@ export function DownloadLabelsButton({ orderIds }: { orderIds: number[] }) {
     } else {
       toast.success(t("orders.labels.downloaded").replace("{count}", String(result.merged)));
     }
+    // The batch was cut at MAX_LABELS — a second, separate toast, so it does
+    // not get lost inside the wording of whichever message above already fired.
+    if (result.skipped > 0) {
+      toast.warning(
+        t("orders.labels.downloadedCapped")
+          .replace("{max}", String(result.merged + result.failed.length))
+          .replace("{skipped}", String(result.skipped)),
+      );
+    }
     window.open(result.url, "_blank", "noopener");
   };
 

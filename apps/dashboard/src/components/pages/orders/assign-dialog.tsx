@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   Select,
@@ -78,10 +79,29 @@ export function AssignDialog({
   const unaffordable = preview?.sellers.some((s) => !s.affordable) ?? false;
 
   const { submit, pending, formError } = useFormAction({
-    action: () => assignOrdersAction({ orderIds, warehouseId, idempotencyKey }),
+    action: async () => {
+      const result = await assignOrdersAction({ orderIds, warehouseId, idempotencyKey });
+      // The batch no longer dies on the first seller's failure — every OTHER
+      // seller still got assigned and charged. Whoever failed needs naming,
+      // not just a generic "something went wrong" for a run that mostly worked.
+      if (result && "ok" in result && result.ok && result.errors?.length) {
+        const nameOf = (id: string) => preview?.sellers.find((s) => s.sellerId === id)?.name ?? id;
+        const reasonOf = (code: string) =>
+          code === "insufficient-balance"
+            ? t("orders.assignErrBalance")
+            : code === "bom-line-unmapped"
+              ? t("orders.assignErrBom")
+              : t("orders.assignErrStock");
+        toast.warning(
+          t("orders.assignPartialHeader").replace("{count}", String(result.errors.length)) +
+            " " +
+            result.errors.map((e) => `${nameOf(e.sellerId)} (${reasonOf(e.error)})`).join(", "),
+        );
+      }
+      return result;
+    },
     successMessage: t("orders.assigned"),
     errorMessages: {
-      "insufficient-balance": t("orders.errInsufficient"),
       "unknown-customer": t("orders.errUnknownWarehouse"),
     },
     onSuccess: () => {

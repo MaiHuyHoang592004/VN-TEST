@@ -27,8 +27,8 @@ import {
   applyBalanceMove,
   isDuplicateKey,
 } from "../../../core/ledger.ts";
-import { notify } from "../../../platform/index.ts";
-import { applyStatusChange } from "./status-change.ts";
+import { notify, dispatchWebhookMany } from "../../../platform/index.ts";
+import { applyStatusChange, dispatchStatusWebhooks, type StatusChange } from "./status-change.ts";
 import { type Actor } from "./shared.ts";
 
 /** Why an order cannot be refunded. Codes, not prose — the UI localises them
@@ -187,6 +187,10 @@ export async function adminRefundOrders(
     const orderIds = lines.map((l) => l.orderId);
     const reason = input.reason?.trim() || `Refunded ${lines.length} order(s)`;
 
+    // Set inside the transaction, dispatched after it commits — same rule as
+    // every other webhook in this codebase.
+    const statusChanges: StatusChange[] = [];
+
     try {
       const done = await prisma.$transaction(async (tx) => {
         // Re-read INSIDE the transaction and re-check the status: the quote was
@@ -214,7 +218,7 @@ export async function adminRefundOrders(
         });
 
         for (const order of live) {
-          await applyStatusChange(tx, ctx, order, "CANCELLED", reason);
+          statusChanges.push(await applyStatusChange(tx, ctx, order, "CANCELLED", reason));
         }
         // One audit row per order, not one row for the whole batch: the audit
         // log is looked up by targetId=orderId (an exact match, not
@@ -248,6 +252,31 @@ export async function adminRefundOrders(
       if (!done) continue;
       refunded += done;
       credits.push({ sellerId, amount: amount.toFixed(2), orders: done });
+
+      // AFTER the transaction commits, never inside — same rule as every
+      // other webhook dispatch. Two events: the generic status change
+      // (CANCELLED, now in WEBHOOK_STATUSES) and a money-specific
+      // order_refunded per order, since "the order was cancelled" does not
+      // by itself tell an integration a refund happened or for how much.
+      await dispatchStatusWebhooks(statusChanges);
+      await dispatchWebhookMany(
+        statusChanges.filter((c) => c.customerId).map((c) => c.customerId as string),
+        "order_refunded",
+        // One event per SELLER, naming every order of theirs in this batch —
+        // not one event per order, which dispatchWebhookMany's own dedupe-by-
+        // userId would collapse into just the last one silently overwriting
+        // the rest (the same reasoning as purchase.ts's shipping_added).
+        (userId) => ({
+          reason,
+          orders: statusChanges
+            .filter((c) => c.customerId === userId)
+            .map((c) => ({
+              id: c.orderId,
+              order_id: c.externalId,
+              amount: lines.find((l) => l.orderId === c.orderId)?.total ?? null,
+            })),
+        }),
+      );
     } catch (e) {
       // A racing duplicate of a credit that DID land. Report success — the
       // money moved exactly once, which is what the caller asked for.

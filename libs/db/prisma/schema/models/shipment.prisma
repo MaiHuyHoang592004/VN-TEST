@@ -12,6 +12,20 @@ model Shipment {
   labelPath      String?   @map("label_path")
   shippedAt      DateTime? @map("shipped_at")
 
+  /// Set once a void succeeds — carrier-side (when the provider confirms it)
+  /// or, absent that, at least locally so the record stops claiming a live
+  /// label. Buying a NEW label for this shipment's order is a separate,
+  /// ordinary purchase; this column only marks that this one no longer counts.
+  voidedAt   DateTime? @map("voided_at")
+  voidReason String?   @map("void_reason")
+
+  /// The carrier's most recent scan, from the DRX tracking webhook — kept
+  /// distinct from `trackingStatus` (a name WE picked, e.g. "delivered") so
+  /// a support ticket can show the carrier's own last words verbatim.
+  lastScanStatus String?   @map("last_scan_status")
+  lastScanDetail String?   @map("last_scan_detail")
+  lastScanAt     DateTime? @map("last_scan_at")
+
   /// The purchase record: parcels used, the provider's raw response, and the
   /// storage key of any stored artefact. This row IS the label log — legacy
   /// kept a separate OrderLabel table whose only real job was holding the

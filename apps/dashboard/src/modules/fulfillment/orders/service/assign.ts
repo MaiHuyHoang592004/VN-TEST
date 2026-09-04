@@ -11,6 +11,7 @@ import {
   prisma,
   writeAudit,
   orderScope,
+  canUseWarehouse,
   Prisma,
   type AuditContext,
 } from "@gwprint/db";
@@ -69,6 +70,16 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
     select: { id: true, code: true },
   });
   if (!warehouse) return { ok: false as const, error: "unknown-customer" as const };
+  // The destination site is named by the CALLER, not read from a scoped
+  // list — a WAREHOUSE_ADMIN for site A must not be able to assign into site
+  // B just by posting its id. Currently unreachable in practice (a PENDING
+  // order never has warehouseId set, so a site-scoped actor's candidates
+  // below are always empty — see loadOrder in order-flow.ts), but that is an
+  // accident of how PENDING orders are scoped today, not a guarantee; this
+  // closes the gap directly rather than depending on it.
+  if (!(await canUseWarehouse(actor, warehouseId))) {
+    return { ok: false as const, error: "unknown-customer" as const };
+  }
 
   // Only orders this actor may act on, and only ones still awaiting assignment.
   const candidates = await prisma.order.findMany({
@@ -81,7 +92,7 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
     select: { id: true, customerId: true },
   });
   const skipped = orderIds.length - candidates.length;
-  if (!candidates.length) return { ok: true as const, assigned: 0, skipped, charges: [] };
+  if (!candidates.length) return { ok: true as const, assigned: 0, skipped, charges: [], errors: [] };
 
   // One transaction per seller: their money, their batch, their all-or-nothing.
   const bySeller = new Map<string, number[]>();
@@ -96,6 +107,19 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
   const warehouseStaff = (await warehouseMemberIds(warehouseId)).filter((u) => u !== actor.id);
 
   const charges: Array<{ sellerId: string; amount: string; before: string; after: string; orders: number }> = [];
+  // One seller's failure must not swallow the sellers after them in the Map —
+  // legacy's whole batch died on the first bad row, and a 5-seller assign
+  // with seller #3 short on stock silently skipped #4 and #5 even though they
+  // had nothing wrong with them. Each entry names WHICH seller and WHY.
+  const errors: Array<
+    | { sellerId: string; error: "insufficient-balance" }
+    | { sellerId: string; error: "bom-line-unmapped"; componentSku?: string }
+    | {
+        sellerId: string;
+        error: "insufficient-stock";
+        items?: Array<{ sku: string; name: string; required: number; available: number }>;
+      }
+  > = [];
   let assigned = 0;
   for (const [sellerId, ids] of bySeller) {
     // Scoped per seller, because Transaction.idempotencyKey is globally unique
@@ -236,21 +260,17 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
       });
     } catch (e) {
       if (e instanceof NegativeBalanceError) {
-        return { ok: false as const, error: "insufficient-balance" as const, sellerId };
+        errors.push({ sellerId, error: "insufficient-balance" });
+        continue;
       }
       if (e instanceof InventoryError && e.code === "bom-line-unmapped") {
-        // Same shape as insufficient-stock below: a named, actionable reason
-        // instead of the generic 500 this used to fall through to (assign
-        // threw straight past the `throw e` at the bottom of this block).
-        // detail comes from explode() (boms/service/explode.ts): one line at
-        // a time, since explode() throws on the first unmapped line it hits.
+        // A named, actionable reason instead of the generic 500 this used to
+        // fall through to. detail comes from explode()
+        // (boms/service/explode.ts): one line at a time, since explode()
+        // throws on the first unmapped line it hits.
         const detail = e.detail as { bomId: number; bomLineId: number; componentSku: string } | undefined;
-        return {
-          ok: false as const,
-          error: "bom-line-unmapped" as const,
-          sellerId,
-          componentSku: detail?.componentSku,
-        };
+        errors.push({ sellerId, error: "bom-line-unmapped", componentSku: detail?.componentSku });
+        continue;
       }
       if (e instanceof InventoryError && e.code === "insufficient-stock") {
         const detail = e.detail as InsufficientStockDetail | undefined;
@@ -263,10 +283,9 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
             recordShortage(tx, detail.orderId, detail.items, actor.id),
           );
         }
-        return {
-          ok: false as const,
-          error: "insufficient-stock" as const,
+        errors.push({
           sellerId,
+          error: "insufficient-stock",
           // Named, not counted: "not enough stock" sends someone hunting.
           items: detail?.items?.map((i) => ({
             sku: i.sku,
@@ -274,14 +293,15 @@ export async function assignOrders(actor: Actor, raw: unknown, ctx: AuditContext
             required: i.required,
             available: i.available,
           })),
-        };
+        });
+        continue;
       }
       // Lost the UNIQUE(idempotencyKey) race — the other attempt did the work.
       if (isDuplicateKey(e)) continue;
       throw e;
     }
   }
-  return { ok: true as const, assigned, skipped, charges };
+  return { ok: true as const, assigned, skipped, charges, errors };
 }
 
 /** Soft delete — an order is financial history, so the column survives. */

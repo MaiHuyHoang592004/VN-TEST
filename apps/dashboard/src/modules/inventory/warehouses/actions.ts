@@ -4,20 +4,25 @@ import { revalidatePath } from "next/cache";
 
 import { requirePermission } from "../../core/guard.ts";
 import { auditContext } from "../../core/context.ts";
+import { withValidation } from "../../core/action-result.ts";
 import * as warehouses from "./service.ts";
 
 export async function createWarehouseAction(input: unknown) {
   const actor = await requirePermission("warehouses.manage");
-  const result = await warehouses.createWarehouse(actor, input, await auditContext(actor));
-  revalidatePath("/admin/warehouses");
-  return result;
+  return withValidation(async () => {
+    const result = await warehouses.createWarehouse(actor, input, await auditContext(actor));
+    revalidatePath("/admin/warehouses");
+    return result;
+  });
 }
 
 export async function updateWarehouseAction(id: number, input: unknown) {
   const actor = await requirePermission("warehouses.manage");
-  const result = await warehouses.updateWarehouse(actor, id, input, await auditContext(actor));
-  revalidatePath("/admin/warehouses");
-  return result;
+  return withValidation(async () => {
+    const result = await warehouses.updateWarehouse(actor, id, input, await auditContext(actor));
+    revalidatePath("/admin/warehouses");
+    return result;
+  });
 }
 
 export async function setWarehouseStatusAction(id: number, status: "ACTIVE" | "INACTIVE") {

@@ -4,20 +4,25 @@ import { revalidatePath } from "next/cache";
 
 import { requirePermission } from "../../core/guard.ts";
 import { auditContext } from "../../core/context.ts";
+import { withValidation } from "../../core/action-result.ts";
 import * as suppliers from "./service.ts";
 
 export async function createMaterialAction(input: unknown) {
   const actor = await requirePermission("suppliers.manage");
-  const result = await suppliers.createMaterial(actor, input, await auditContext(actor));
-  revalidatePath("/admin/materials");
-  return result;
+  return withValidation(async () => {
+    const result = await suppliers.createMaterial(actor, input, await auditContext(actor));
+    revalidatePath("/admin/materials");
+    return result;
+  });
 }
 
 export async function updateMaterialAction(id: number, input: unknown) {
   const actor = await requirePermission("suppliers.manage");
-  const result = await suppliers.updateMaterial(actor, id, input, await auditContext(actor));
-  revalidatePath("/admin/materials");
-  return result;
+  return withValidation(async () => {
+    const result = await suppliers.updateMaterial(actor, id, input, await auditContext(actor));
+    revalidatePath("/admin/materials");
+    return result;
+  });
 }
 
 export async function deleteMaterialAction(id: number) {

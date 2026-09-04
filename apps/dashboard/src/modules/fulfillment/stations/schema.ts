@@ -80,7 +80,7 @@ export const handoffSchema = z
 
 export const linkLabelSchema = z.object({
   orderIds: z.array(z.number().int().positive()).min(1, "Select at least one order"),
-  trackingNumber: z.string().trim().min(1, "A tracking number is required").max(60),
+  trackingNumber: z.string().trim().min(10, "A tracking number is at least 10 characters").max(60),
   labelUrl: z.string().trim().url("Enter a valid URL").max(1000),
   provider: z.string().trim().max(64).optional(),
   method: z.string().trim().max(64).optional(),

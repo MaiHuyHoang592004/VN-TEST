@@ -197,6 +197,8 @@ const EXPECTED_TONES: Record<string, Record<string, StatusTone>> = {
     RETURNED: "attention",
   },
   BomStatus: { DRAFT: "neutral", ACTIVE: "success", INACTIVE: "neutral" },
+  // Same two-value shape as TransactionStatus's COMPLETED/FAILED pair.
+  WebhookDeliveryStatus: { DELIVERED: "success", FAILED: "critical" },
 };
 
 test("the schema's *Status enums are exactly the ones pinned here", () => {

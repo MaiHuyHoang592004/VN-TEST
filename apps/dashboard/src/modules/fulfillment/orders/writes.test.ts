@@ -143,6 +143,27 @@ test("updateOrder: quantity is locked once the order leaves PENDING", async () =
   assert.equal(noop.ok, true);
 });
 
+test("updateOrder: a CANCELLED order locks marketplace/internalNote too, but note/deadline still move", async () => {
+  const created = await createOrder(admin(), row({ marketplace: "Etsy" }), ctx(), sellerId);
+  assert.equal(created.ok, true);
+  const id = created.ok ? created.id : 0;
+  orderIds.push(id);
+  await prisma.order.update({ where: { id }, data: { status: "CANCELLED" } });
+
+  const blocked = await updateOrder(admin(), id, row({ marketplace: "Amazon" }), ctx());
+  assert.equal(blocked.ok, false);
+  assert.equal(blocked.ok === false && blocked.error, "not-editable");
+  assert.equal(
+    (await prisma.order.findUniqueOrThrow({ where: { id }, select: { marketplace: true } })).marketplace,
+    "Etsy",
+    "the blocked write changed nothing",
+  );
+
+  // note is in EDITABLE_AFTER_PENDING (matches patchOrder) — still allowed.
+  const allowed = await updateOrder(admin(), id, row({ marketplace: "Etsy", note: "refund pending" }), ctx());
+  assert.equal(allowed.ok, true);
+});
+
 test("updateOrder: a stale expectedUpdatedAt loses the race", async () => {
   const created = await createOrder(admin(), row(), ctx(), sellerId);
   assert.equal(created.ok, true);

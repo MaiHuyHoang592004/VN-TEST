@@ -26,6 +26,7 @@ import {
   apiKeyCreateSchema,
 } from "./schema.ts";
 import { generateApiKey } from "../api-keys/service.ts";
+import { signWebhookBody } from "../../platform/index.ts";
 
 type Actor = AuditContext["actor"] & object; // non-null SessionUser
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -218,14 +219,17 @@ export async function testWebhook(actor: Actor) {
   });
   if (!user.webhookUrl) return { ok: false as const, error: "no-webhook" as const };
 
+  // Signed exactly like a real delivery (dispatchWebhook): same header, same
+  // HMAC-SHA256 scheme. A seller who verifies against a passing "Test
+  // webhook" call must also verify a real event — a different scheme here
+  // would pass the test and then reject every live delivery.
   const body = JSON.stringify({ type: "ping", at: new Date().toISOString() });
-  const signature = user.webhookSecret
-    ? createHash("sha256").update(`${user.webhookSecret}.${body}`).digest("hex")
-    : "";
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (user.webhookSecret) headers["X-Signature"] = signWebhookBody(user.webhookSecret, body);
   try {
     const res = await fetch(user.webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-GWPrint-Signature": signature },
+      headers,
       body,
       signal: AbortSignal.timeout(5000),
     });

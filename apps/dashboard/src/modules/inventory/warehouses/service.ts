@@ -12,6 +12,8 @@ import {
   WAREHOUSE_SELECT,
   USER_PUBLIC_SELECT,
   Prisma,
+  warehouseScopeIds,
+  canUseWarehouse,
   type AuditContext,
 } from "@gwprint/db";
 
@@ -20,17 +22,36 @@ import { warehouseSchema } from "./schema.ts";
 type Actor = NonNullable<AuditContext["actor"]>;
 const blankToNull = (v?: string) => (v && v.length ? v : null);
 
-export async function listWarehouses(_actor: Actor, opts: { includeInactive?: boolean } = {}) {
+/**
+ * WAREHOUSE/WAREHOUSE_ADMIN are site-bound everywhere else (stock, movements,
+ * receipts — see stock/service/scope.ts) but this master-data list had no
+ * scope filter at all, so a WAREHOUSE_ADMIN for one site saw every site in
+ * the company here. warehouses.read is deliberately granted to both roles —
+ * the fix is to filter, not to gate the permission tighter.
+ */
+export async function listWarehouses(actor: Actor, opts: { includeInactive?: boolean } = {}) {
+  const ids = await warehouseScopeIds(actor);
   return prisma.warehouse.findMany({
-    where: { deletedAt: null, ...(opts.includeInactive ? {} : { status: "ACTIVE" }) },
+    where: {
+      deletedAt: null,
+      ...(opts.includeInactive ? {} : { status: "ACTIVE" }),
+      ...(ids === null ? {} : { id: { in: ids } }),
+    },
     select: { ...WAREHOUSE_SELECT, _count: { select: { members: true, orders: true, inventory: true } } },
     orderBy: { name: "asc" },
   });
 }
 
-export function getWarehouse(_actor: Actor, id: number) {
+/** A miss here is a 404, not a 403 — an out-of-scope id resolves to nothing
+ * rather than confirming the warehouse exists (the scope goes in the WHERE,
+ * same as getOrder). */
+export async function getWarehouse(actor: Actor, id: number) {
+  const ids = await warehouseScopeIds(actor);
+  // -1 when out of scope: no row can ever have that id, so findFirstOrThrow
+  // throws the same not-found it would for a made-up id.
+  const scopedId = ids === null || ids.includes(id) ? id : -1;
   return prisma.warehouse.findFirstOrThrow({
-    where: { id, deletedAt: null },
+    where: { id: scopedId, deletedAt: null },
     select: {
       ...WAREHOUSE_SELECT,
       members: {
@@ -167,6 +188,9 @@ export async function deleteWarehouse(actor: Actor, id: number, ctx: AuditContex
 // ── Members ──────────────────────────────────────────────────────────────────
 
 export async function addWarehouseMember(actor: Actor, warehouseId: number, userId: string, isPrimary: boolean, ctx: AuditContext) {
+  if (!(await canUseWarehouse(actor, warehouseId))) {
+    return { ok: false as const, error: "not-your-site" as const };
+  }
   await prisma.$transaction(async (tx) => {
     await tx.warehouseMember.upsert({
       where: { userId_warehouseId: { userId, warehouseId } },
@@ -192,6 +216,9 @@ export async function addWarehouseMember(actor: Actor, warehouseId: number, user
 }
 
 export async function removeWarehouseMember(actor: Actor, warehouseId: number, userId: string, ctx: AuditContext) {
+  if (!(await canUseWarehouse(actor, warehouseId))) {
+    return { ok: false as const, error: "not-your-site" as const };
+  }
   await prisma.$transaction(async (tx) => {
     await tx.warehouseMember.deleteMany({ where: { warehouseId, userId } });
     // If this was their primary site, clear the denormalised pointer.

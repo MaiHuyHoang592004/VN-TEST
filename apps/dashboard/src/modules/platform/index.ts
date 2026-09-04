@@ -24,5 +24,6 @@ export {
 export {
   dispatchWebhook,
   dispatchWebhookMany,
+  signWebhookBody,
   type WebhookEvent,
 } from "./webhooks/service.ts";

@@ -100,9 +100,16 @@ export async function updateUser(actor: Actor, id: string, raw: unknown, ctx: Au
     roles: { set: input.roles },
     status: input.status,
     tier: input.tier ?? null,
-    warehouse: input.warehouseId ? { connect: { id: input.warehouseId } } : { disconnect: true },
     adminNote: input.adminNote || null,
   };
+  // undefined ("the caller didn't send this field") must leave the warehouse
+  // alone — EditUserDialog never sends warehouseId at all when it isn't the
+  // thing being changed, and `input.warehouseId ? connect : disconnect` used
+  // to treat that identically to an explicit `null`, silently disconnecting
+  // the warehouse on every save from that screen regardless of intent.
+  if (input.warehouseId !== undefined) {
+    data.warehouse = input.warehouseId ? { connect: { id: input.warehouseId } } : { disconnect: true };
+  }
   // Deactivating or banning revokes their sessions right away.
   if (input.status !== "ACTIVE" && before.status === "ACTIVE") {
     data.sessionsValidFrom = new Date();

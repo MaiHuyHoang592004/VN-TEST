@@ -6,6 +6,7 @@ import { requirePermission } from "../../core/guard.ts";
 import { auditContext } from "../../core/context.ts";
 import { StorageError } from "../../core/storage.ts";
 import { LabelProviderError } from "./provider.ts";
+import { VoidLabelError } from "./void.ts";
 import * as labels from "./service.ts";
 
 /**
@@ -71,4 +72,21 @@ export async function downloadLabelsAction(input: {
 export async function labelsEnabledAction() {
   await requirePermission("orders.labels.manage");
   return labels.labelsEnabled();
+}
+
+/**
+ * Cancel a bought label. Reason is required — this is the record of WHY a
+ * label that was paid for stopped being the one to ship, and "no reason
+ * given" is exactly the gap a later dispute finds.
+ */
+export async function voidLabelAction(shipmentId: number, reason: string) {
+  const actor = await requirePermission("orders.labels.manage");
+  try {
+    const result = await labels.voidLabel(actor, shipmentId, reason, await auditContext(actor));
+    revalidatePath("/orders");
+    return result;
+  } catch (e) {
+    if (e instanceof VoidLabelError) return { ok: false as const, error: e.code };
+    throw e;
+  }
 }

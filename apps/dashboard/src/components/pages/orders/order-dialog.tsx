@@ -27,6 +27,7 @@ const EMPTY = {
   marketplace: "",
   quantity: "1",
   shippingName: "",
+  shippingCompany: "",
   shippingEmail: "",
   shippingPhone: "",
   line1: "",
@@ -66,7 +67,18 @@ export function OrderDialog({
           externalId: order.externalId ?? "",
           marketplace: order.marketplace ?? "",
           quantity: String(order.quantity),
+          shippingName: order.shippingName ?? "",
+          shippingCompany: order.shippingCompany ?? "",
+          shippingEmail: order.shippingEmail ?? "",
+          shippingPhone: order.shippingPhone ?? "",
+          line1: order.line1 ?? "",
+          line2: order.line2 ?? "",
+          city: order.city ?? "",
+          state: order.state ?? "",
+          zip: order.zip ?? "",
+          country: order.country ?? "",
           note: order.note ?? "",
+          internalNote: order.internalNote ?? "",
         }
       : {}),
   });
@@ -81,7 +93,7 @@ export function OrderDialog({
    */
   const [skuCache, setSkuCache] = useState<{ forProduct: number; items: Option[] } | null>(null);
   const skus = skuCache && skuCache.forProduct === productId ? skuCache.items : [];
-  const [skuId, setSkuId] = useState<number | null>(null);
+  const [skuId, setSkuId] = useState<number | null>(order?.productVariantId ?? null);
   // Generated ONCE per dialog open, not per submit — so a double-click or a
   // retry after a dropped response creates the order exactly once, same
   // pattern as RefundDialog/AssignDialog. Unused on edit; updateOrderAction
@@ -110,12 +122,17 @@ export function OrderDialog({
 
   const { submit, pending, formError, fieldErrors } = useFormAction({
     action: (input: Record<string, unknown>) =>
-      order ? updateOrderAction(order.id, input) : createOrderAction(input, undefined, idempotencyKey),
+      order
+        ? updateOrderAction(order.id, input, order.updatedAt)
+        : createOrderAction(input, undefined, idempotencyKey),
     successMessage: t(order ? "orders.updated" : "orders.created"),
     errorMessages: {
       "unknown-sku": t("orders.errUnknownSku"),
       "sku-inactive": t("orders.errSkuInactive"),
       "cannot-create-for-others": t("orders.errNotYours"),
+      "quantity-locked": t("orders.errQuantityLocked"),
+      "not-editable": t("orders.errNotEditable"),
+      conflict: t("orders.errConflict"),
     },
     onSuccess: () => {
       onOpenChange(false);
@@ -135,7 +152,11 @@ export function OrderDialog({
       onSubmit={() =>
         submit({
           ...values,
-          quantity: Number(values.quantity) || 1,
+          // Send exactly what was typed — 0, blank, or garbage included.
+          // `|| 1` used to paper over those by silently sending 1, so the
+          // server's "quantity must be at least 1" validation could never
+          // actually fire from this form.
+          quantity: Number(values.quantity),
           productVariantId: skuId ?? undefined,
         })
       }
@@ -164,77 +185,90 @@ export function OrderDialog({
         </FormField>
       </div>
 
-      {!order && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <FormField label={t("orders.fProduct")} required className="sm:col-span-1">
-            {(props) => (
-              <Select
-                value={productId === null ? "" : String(productId)}
-                onValueChange={(v) => {
-                  setProductId(Number(v));
-                  // Clear the SKU here: keeping one from the previous variant
-                  // is how a mismatched pair would reach the server.
-                  setSkuId(null);
-                }}
-              >
-                <SelectTrigger {...props}>
-                  <SelectValue>
-                    {products.find((p) => p.id === productId)?.name ?? t("orders.pickProduct")}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {products.map((p) => (
-                    <SelectItem key={p.id} value={String(p.id)}>
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </FormField>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {!order && (
+          <>
+            <FormField label={t("orders.fProduct")} required className="sm:col-span-1">
+              {(props) => (
+                <Select
+                  value={productId === null ? "" : String(productId)}
+                  onValueChange={(v) => {
+                    setProductId(Number(v));
+                    // Clear the SKU here: keeping one from the previous variant
+                    // is how a mismatched pair would reach the server.
+                    setSkuId(null);
+                  }}
+                >
+                  <SelectTrigger {...props}>
+                    <SelectValue>
+                      {products.find((p) => p.id === productId)?.name ?? t("orders.pickProduct")}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </FormField>
 
-          <FormField
-            label={t("orders.fSku")}
-            required
-            hint={productId !== null && skus.length === 0 ? t("orders.noPricedSkus") : undefined}
-            error={fieldErrors.productVariantId}
-          >
-            {(props) => (
-              <Select
-                value={skuId === null ? "" : String(skuId)}
-                onValueChange={(v) => setSkuId(Number(v))}
-                disabled={productId === null || skus.length === 0}
-              >
-                <SelectTrigger {...props}>
-                  <SelectValue>
-                    {skus.find((s) => s.id === skuId)?.name ?? t("orders.pickSku")}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {skus.map((s) => (
-                    <SelectItem key={s.id} value={String(s.id)}>
-                      {s.name}
-                      {s.sku ? ` · ${s.sku}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </FormField>
+            <FormField
+              label={t("orders.fSku")}
+              required
+              hint={productId !== null && skus.length === 0 ? t("orders.noPricedSkus") : undefined}
+              error={fieldErrors.productVariantId}
+            >
+              {(props) => (
+                <Select
+                  value={skuId === null ? "" : String(skuId)}
+                  onValueChange={(v) => setSkuId(Number(v))}
+                  disabled={productId === null || skus.length === 0}
+                >
+                  <SelectTrigger {...props}>
+                    <SelectValue>
+                      {skus.find((s) => s.id === skuId)?.name ?? t("orders.pickSku")}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {skus.map((s) => (
+                      <SelectItem key={s.id} value={String(s.id)}>
+                        {s.name}
+                        {s.sku ? ` · ${s.sku}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </FormField>
+          </>
+        )}
 
-          <FormField label={t("orders.fQuantity")} required error={fieldErrors.quantity}>
-            {(props) => (
-              <Input
-                {...props}
-                value={values.quantity}
-                onChange={(e) => set("quantity", e.target.value)}
-                inputMode="numeric"
-                className="text-right tabular-nums"
-              />
-            )}
-          </FormField>
-        </div>
-      )}
+        {/* Quantity is priced and reserved at assign-time — the server
+            refuses this once the order has left PENDING (quantity-locked),
+            so the field is disabled here rather than letting someone fill it
+            in and only find out on submit. */}
+        <FormField
+          label={t("orders.fQuantity")}
+          required
+          hint={order && order.status !== "PENDING" ? t("orders.fQuantityLockedHint") : undefined}
+          error={fieldErrors.quantity}
+          className={order ? "sm:col-span-1" : undefined}
+        >
+          {(props) => (
+            <Input
+              {...props}
+              value={values.quantity}
+              onChange={(e) => set("quantity", e.target.value)}
+              inputMode="numeric"
+              className="text-right tabular-nums"
+              disabled={Boolean(order) && order?.status !== "PENDING"}
+            />
+          )}
+        </FormField>
+      </div>
 
       <div className="border-border mt-2 border-t pt-4">
         <p className="mb-3 text-sm font-medium">{t("orders.shippingSection")}</p>

@@ -151,9 +151,12 @@ export async function applyStatusChange(
  * Which transitions a seller's integration hears about (legacy prod's
  * NOTIFIABLE_ORDER_STATUSES, translated through doc 05's status dictionary).
  * SHIPPED is absent on purpose: it arrives as `shipping_added` with the
- * tracking number, which is the event a shop actually needs.
+ * tracking number, which is the event a shop actually needs. CANCELLED is
+ * included — a refund additionally fires its own `order_refunded` (with the
+ * amount) from refund.ts, since "money came back" is not implied by a plain
+ * status change alone.
  */
-const WEBHOOK_STATUSES: FulfillmentStatus[] = ["IN_PRODUCTION", "FULFILLED", "ON_HOLD"];
+const WEBHOOK_STATUSES: FulfillmentStatus[] = ["IN_PRODUCTION", "FULFILLED", "ON_HOLD", "CANCELLED"];
 
 /**
  * Tell the sellers. CALL AFTER THE TRANSACTION COMMITS — never inside one.

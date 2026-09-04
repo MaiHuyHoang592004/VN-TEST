@@ -22,7 +22,7 @@ import {
 } from '@gwprint/db';
 import { z } from 'zod';
 
-import { applyStatusChange } from './status-change.ts';
+import { applyStatusChange, dispatchStatusWebhooks, type StatusChange } from './status-change.ts';
 import { resumeTargetOf, type Actor } from './shared.ts';
 
 export type PatchErrorCode =
@@ -158,6 +158,10 @@ export async function patchOrder(
   const releases = Boolean(input.image_url) && order.status === 'ON_HOLD';
   const resumeTo = resumeTargetOf(order.configs) ?? 'PENDING';
 
+  // Set inside the transaction, dispatched after it commits — same rule as
+  // every other webhook in this codebase (status-change.ts's own doc-comment).
+  let statusChange: StatusChange | undefined;
+
   await prisma.$transaction(async (tx) => {
     const data = {
       ...(input.note !== undefined ? { note: input.note || null } : {}),
@@ -219,9 +223,11 @@ export async function patchOrder(
     // Through the status core, not a bare update: releasing a hold has to run
     // the same map, audit and seller notification every other move does.
     if (releases) {
-      await applyStatusChange(tx, ctx, order, resumeTo, 'design supplied');
+      statusChange = await applyStatusChange(tx, ctx, order, resumeTo, 'design supplied');
     }
   });
+
+  if (statusChange) await dispatchStatusWebhooks([statusChange]);
 
   return {
     ok: true as const,

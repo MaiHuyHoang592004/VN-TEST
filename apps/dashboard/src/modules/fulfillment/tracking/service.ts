@@ -100,6 +100,17 @@ export async function applyTrackingUpdate(
       order: { select: { id: true, externalId: true, customerId: true } },
     },
   });
+  if (!shipments.length) return { updated: 0, notified: 0 };
+
+  // The LAST SCAN reflects this event on every matching shipment regardless
+  // of whether the derived `status` below actually moved — a carrier
+  // resending the same status ("in transit" scanned at another facility) is
+  // still a real scan a support ticket should be able to show.
+  await prisma.shipment.updateMany({
+    where: { id: { in: shipments.map((s) => s.id) } },
+    data: { lastScanStatus: status, lastScanDetail: payload.detail ?? null, lastScanAt: new Date() },
+  });
+
   const changed = shipments.filter((s) => s.trackingStatus !== status);
   if (!changed.length) return { updated: 0, notified: 0 };
 

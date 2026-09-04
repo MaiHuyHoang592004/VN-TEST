@@ -72,7 +72,7 @@ const PURCHASE_SELECT = {
   product: { select: { id: true, configs: true } },
   productVariant: { select: { sku: true } },
   shipments: {
-    select: { id: true, labelUrl: true, trackingNumber: true },
+    select: { id: true, labelUrl: true, trackingNumber: true, voidedAt: true },
     orderBy: { createdAt: "desc" as const },
     take: 1,
   },
@@ -175,9 +175,11 @@ function planGroups(rows: Row[], allowMultiple: boolean): LabelGroupPreview[] {
     };
 
     if (key === "none" || !to) return { ...preview, skipReason: "missing-address" as const };
-    // Buying a second label for a parcel that already has one is how a carrier
-    // ends up with two shipments for one box and the seller with two charges.
-    if (!allowMultiple && group.some((r) => r.shipments[0]?.labelUrl)) {
+    // Buying a second label for a parcel that already has a LIVE one is how a
+    // carrier ends up with two shipments for one box and the seller with two
+    // charges. A voided one does not count — that is precisely what voiding
+    // is for: the old label stopped being live, on purpose.
+    if (!allowMultiple && group.some((r) => r.shipments[0]?.labelUrl && !r.shipments[0]?.voidedAt)) {
       return { ...preview, skipReason: "already-has-label" as const };
     }
     if (!parcels) return { ...preview, skipReason: "missing-dimensions" as const };

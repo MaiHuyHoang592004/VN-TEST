@@ -97,5 +97,11 @@ model Order {
   @@index([status])
   @@index([placedAt])
   @@index([externalId])
+  /// The list's default view (a status tab, sorted newest-first) and the
+  /// floor's per-site queue — both filter status/warehouse and sort by date,
+  /// which a single-column index on either alone cannot serve without a
+  /// separate sort step once the table is large.
+  @@index([status, placedAt])
+  @@index([warehouseId, status])
   @@map("orders")
 }

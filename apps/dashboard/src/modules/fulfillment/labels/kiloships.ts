@@ -136,4 +136,21 @@ export const kiloShips: LabelProvider = {
     });
     return toPurchased((body as { data?: KiloShipsLabel })?.data ?? (body as KiloShipsLabel));
   },
+
+  // ponytail: `void` is deliberately NOT implemented here. Same status as
+  // doc 05's own note on purchase() before it shipped — "the carrier has
+  // never been called" — except this endpoint has never even been SEEN: the
+  // legacy port (prod:1049-1103) covers purchase and the reference-recovery
+  // GET, nothing that cancels one. Guessing a REST shape (DELETE? a /void
+  // POST?) and shipping it unverified against a real payment-adjacent
+  // endpoint is worse than not having it — a wrong call could be silently
+  // ignored by KiloShips, or worse, do something unintended. voidLabel()
+  // (labels/void.ts) already works correctly without this: it records the
+  // void LOCALLY (voidedAt/voidReason) so the system stops claiming a live
+  // label, and leaves carrierVoided:false so nobody mistakes that for a
+  // confirmed carrier-side cancellation. Ceiling: an operator still has to
+  // cancel with KiloShips support directly until this is confirmed and
+  // added. Upgrade path: implement `void` here once real API docs (or a
+  // support contact who can confirm the endpoint) exist — the interface in
+  // provider.ts is already shaped for it.
 } as LabelProvider & { recover(referenceId: string): Promise<PurchasedLabel> };

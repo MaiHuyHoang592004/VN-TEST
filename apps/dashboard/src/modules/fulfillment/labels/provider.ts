@@ -62,6 +62,16 @@ export type LabelProvider = {
   /** MUST be idempotent on group.referenceId: a retry returns the SAME label,
    * never a second purchase. */
   purchase(group: LabelGroup): Promise<PurchasedLabel>;
+  /**
+   * Cancel a bought label with the carrier. Optional: a provider that
+   * cannot void anything (or a stub used before real credentials exist)
+   * simply omits it, and the caller records the void LOCALLY only — see
+   * voidLabel's own doc-comment for why that split matters. MUST NOT throw
+   * for "already voided" — that is success, not a retry target — but SHOULD
+   * throw for a genuine carrier rejection so the caller can tell the two
+   * apart.
+   */
+  void?(shipment: { trackingNumber: string; referenceId?: string }): Promise<void>;
 };
 
 /** A refusal the UI can render per group, with a code rather than prose. */

@@ -19,6 +19,7 @@ export { MAX_LABELS };
 export type { DownloadResult };
 export { previewLabels, purchaseLabels, labelsEnabled } from "./purchase.ts";
 export type { LabelGroupPreview, PurchaseOutcome } from "./purchase.ts";
+export { voidLabel, VoidLabelError, type VoidLabelErrorCode } from "./void.ts";
 
 /**
  * Collect the distinct labels behind a set of orders and bundle them.
@@ -44,13 +45,13 @@ export async function downloadLabels(
       ...(input.orderIds?.length
         ? { id: { in: input.orderIds } }
         : { placedAt: { gte: from, lte: to } }),
-      shipments: { some: { labelUrl: { not: null } } },
+      shipments: { some: { labelUrl: { not: null }, voidedAt: null } },
     },
     select: {
       id: true,
       externalId: true,
       shipments: {
-        select: { labelUrl: true, trackingNumber: true },
+        select: { labelUrl: true, trackingNumber: true, voidedAt: true },
         orderBy: { createdAt: "desc" },
         take: 1,
       },
@@ -62,7 +63,9 @@ export async function downloadLabels(
   const sources: LabelSource[] = [];
   for (const column of rows) {
     const url = column.shipments[0]?.labelUrl;
-    if (!url || seen.has(url)) continue;
+    // A void label is not one to print, even if it is the most recent
+    // shipment row on the order — see voidLabel's doc-comment.
+    if (!url || column.shipments[0]?.voidedAt || seen.has(url)) continue;
     seen.add(url);
     sources.push({
       reference: column.shipments[0]?.trackingNumber ?? column.externalId ?? String(column.id),

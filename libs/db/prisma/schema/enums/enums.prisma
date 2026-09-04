@@ -112,6 +112,7 @@ enum AuditAction {
   ORDER_PROOF_UPLOADED
   SHIPMENT_CREATED
   LABEL_PURCHASED
+  LABEL_VOIDED
   TRANSACTION_APPROVED
   TRANSACTION_REJECTED
   MATERIAL_CREATED
@@ -286,4 +287,12 @@ enum MaterialType {
 enum ExpenseType {
   EXPENSE
   INCOME
+}
+
+/// The outcome of ONE delivery attempt, logged so a seller's outage is
+/// visible after the fact rather than only a console.warn nobody was
+/// watching. See WebhookDelivery.
+enum WebhookDeliveryStatus {
+  DELIVERED
+  FAILED
 }

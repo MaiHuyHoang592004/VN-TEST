@@ -94,7 +94,10 @@ export function ImportDialog({
           all.push({ column: abs, ok: false, error: t("orders.importNoSku") });
           return;
         }
-        payload.push({ ...r, quantity: Number(r.quantity) || 1, productVariantId: ids[abs] });
+        // Send exactly what the cell held. `|| 1` used to turn 0/blank/garbage
+        // into a silent 1 — the server's real validation, and the per-row
+        // error this dialog already renders, could never see the real value.
+        payload.push({ ...r, quantity: Number(r.quantity), productVariantId: ids[abs] });
         rowIndex.push(abs);
       });
 

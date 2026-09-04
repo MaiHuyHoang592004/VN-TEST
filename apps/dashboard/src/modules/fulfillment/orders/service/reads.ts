@@ -38,14 +38,7 @@ export async function listOrders(actor: Actor, query: OrderListQuery = {}) {
     ...(query.warehouseId ? { warehouseId: query.warehouseId } : {}),
     ...(query.customerId ? { customerId: query.customerId } : {}),
     ...(query.ids?.length ? { id: { in: query.ids } } : {}),
-    ...(query.search
-      ? {
-          OR: [
-            { externalId: { contains: query.search, mode: "insensitive" } },
-            { shipments: { some: { trackingNumber: { contains: query.search, mode: "insensitive" } } } },
-          ],
-        }
-      : {}),
+    ...(query.search ? { OR: searchClauses(query.search) } : {}),
   };
   const [rows, total] = await Promise.all([
     prisma.order.findMany({
@@ -58,6 +51,19 @@ export async function listOrders(actor: Actor, query: OrderListQuery = {}) {
     prisma.order.count({ where }),
   ]);
   return { rows, total, page, pageSize };
+}
+
+/** Order ID, tracking number, recipient name, or SKU — one search box, four
+ * fields, shared by list/cursor/export so "search" means the same thing
+ * everywhere it appears. */
+export function searchClauses(search: string): Prisma.OrderWhereInput[] {
+  const contains = { contains: search, mode: "insensitive" as const };
+  return [
+    { externalId: contains },
+    { shipments: { some: { trackingNumber: contains } } },
+    { shippingAddress: { name: contains } },
+    { productVariant: { sku: contains } },
+  ];
 }
 
 const ORDER_LIST_SELECT = {
@@ -73,19 +79,33 @@ const ORDER_LIST_SELECT = {
   paid: true,
   baseCost: true,
   note: true,
+  internalNote: true,
   imageUrl: true,
   proofImageUrl: true,
+  updatedAt: true,
   warehouse: { select: { id: true, code: true, name: true } },
   // Where it is going — the check a packer makes against the box in their
-  // hand before trusting the code they just scanned.
-  shippingAddress: { select: { name: true, city: true, state: true, zip: true, country: true } },
+  // hand before trusting the code they just scanned. The extra fields
+  // (company/email/phone/line1/line2) are only read back here so the edit
+  // dialog has something to pre-fill; the row list itself only renders city/
+  // state/zip/country into `shipTo`.
+  shippingAddress: {
+    select: {
+      name: true, company: true, email: true, phone: true,
+      line1: true, line2: true, city: true, state: true, zip: true, country: true,
+    },
+  },
   customer: { select: { id: true, name: true, email: true } },
   variant: { select: { id: true, name: true, key: true } },
   product: { select: { id: true, name: true, key: true } },
   productVariant: { select: { id: true, sku: true } },
   mockup: { select: { id: true, name: true, thumbnail: true } },
   shipments: {
-    select: { trackingNumber: true, trackingStatus: true, provider: true },
+    select: {
+      id: true, trackingNumber: true, trackingStatus: true, provider: true,
+      lastScanStatus: true, lastScanDetail: true, lastScanAt: true,
+      voidedAt: true, voidReason: true,
+    },
     orderBy: { createdAt: "desc" as const },
     take: 1,
   },

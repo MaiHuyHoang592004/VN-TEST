@@ -125,6 +125,38 @@ test("routine scans update the column silently — only outcomes reach the bell"
   assert.equal(problem.notified, 1, "a problem is exactly what a seller must hear");
 });
 
+test("the last scan is recorded even when the status repeats", async () => {
+  await applyTrackingUpdate({
+    trackingNumber: "TRKTEST0001",
+    status: "in_transit",
+    detail: "Departed Louisville, KY facility",
+  });
+  const first = await prisma.shipment.findUniqueOrThrow({
+    where: { id: shipmentId },
+    select: { lastScanStatus: true, lastScanDetail: true, lastScanAt: true },
+  });
+  assert.equal(first.lastScanStatus, "in_transit");
+  assert.equal(first.lastScanDetail, "Departed Louisville, KY facility");
+  assert.ok(first.lastScanAt, "a scan time was recorded");
+
+  // Same status, a LATER scan along the route — trackingStatus does not
+  // change (updated: 0, per the idempotent test above) but the carrier did
+  // just say something, and that has to be visible.
+  await new Promise((r) => setTimeout(r, 5));
+  const repeat = await applyTrackingUpdate({
+    trackingNumber: "TRKTEST0001",
+    status: "in_transit",
+    detail: "Arrived Memphis, TN facility",
+  });
+  assert.equal(repeat.updated, 0, "trackingStatus itself did not change");
+  const second = await prisma.shipment.findUniqueOrThrow({
+    where: { id: shipmentId },
+    select: { lastScanDetail: true, lastScanAt: true },
+  });
+  assert.equal(second.lastScanDetail, "Arrived Memphis, TN facility", "the newer scan still landed");
+  assert.ok(second.lastScanAt!.getTime() >= first.lastScanAt!.getTime());
+});
+
 test("an unknown tracking number is a no-op, not an error", async () => {
   const result = await applyTrackingUpdate({ trackingNumber: "NOT-OURS-9999", status: "delivered" });
   assert.deepEqual(result, { updated: 0, notified: 0 });

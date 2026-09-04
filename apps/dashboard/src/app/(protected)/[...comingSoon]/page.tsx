@@ -1,18 +1,35 @@
 /**
  * Coming Soon — catch-all route.
- * Any path without a real page yet (/orders, /products, /wallet, footer links…)
- * lands here, fully themed. Building a real page at that path automatically
- * overrides this catch-all — no links to update, ever.
  *
- * Design: aurora orbs + grid backdrop, floating logo cube, shimmering gradient
- * title, staggered entrances, bouncing "building" dots. Self-contained.
+ * Any path without a real page yet lands here, fully themed. Building a real
+ * page at that path automatically overrides this catch-all — no links to
+ * update, ever.
+ *
+ * REWRITTEN off the archived Geist spec. What this page used to be was the
+ * densest concentration of design-system drift in the app, and it sat on the
+ * one route people reach by accident:
+ *
+ *   · three page-local @keyframes — the DS allows only the named gwp-* set
+ *   · three size-96 blur-[120px] colour orbs — "random blob decorations" and
+ *     "glassmorphism" are both on the DS's Generic-SaaS-drift list, and a
+ *     translucent film over the page contradicts "surfaces are opaque"
+ *   · a shimmering gradient headline — "heavy gradients", same list
+ *   · a 24px neon drop-shadow on the mark — same list again
+ *   · dark:hidden / dark:block variants, which have been dead since dark mode
+ *     was forced off (AppProviders' forcedTheme="light")
+ *   · /Geomatric/*.svg — the pre-rebrand mark, not GwpMark
+ *
+ * What replaces it is the DS's own way of making a page feel like GWP: sky
+ * canvas, one Craft Cut into the shell, the real mark, and motion that is a
+ * single named keyframe. Depth comes from a change of surface and the cut —
+ * the two mechanisms the DS names — and from nothing else.
  */
 
 "use client";
 
-import Image from "next/image";
 import { ArrowLeft, Hammer } from "lucide-react";
 
+import { GwpMark } from "@/components/ds";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/lib/i18n";
@@ -22,110 +39,52 @@ export default function ComingSoon() {
   const { t } = useTranslation();
 
   return (
-    // min-h fills the viewport below the 60px navbar — footer only appears on scroll
+    // min-h fills the viewport below the 60px navbar — footer only appears on
+    // scroll. The ground is --surface-canvas straight from <body>.
     <main className="relative flex min-h-[calc(100svh-60px)] flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-6 py-20 text-center">
-      {/* page-local keyframes */}
-      <style>{`
-        @keyframes cs-float {
-          0%, 100% { transform: translateY(0) rotate(-3deg); }
-          50% { transform: translateY(-14px) rotate(3deg); }
-        }
-        @keyframes cs-shimmer {
-          0% { background-position: 200% 50%; }
-          100% { background-position: -200% 50%; }
-        }
-        @keyframes cs-drift {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(40px, -30px) scale(1.1); }
-          66% { transform: translate(-30px, 20px) scale(0.95); }
-        }
-      `}</style>
+      {/* No Craft Cut. A cut marks the sky/cream boundary, and this page has
+          no boundary: it is a centred full-height panel on sky with nothing
+          after it, and the footer is signed-out-only so it never follows this
+          protected route. A cut here would be a curve into a colour that
+          begins nowhere. */}
 
-      {/* aurora orbs — brand colors, slow drift */}
-      <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className="bg-action-500/25 absolute -top-24 left-1/4 size-96 rounded-full blur-[120px]"
-          style={{ animation: "cs-drift 14s ease-in-out infinite" }}
-        />
-        <div
-          className="bg-sky-500/20 absolute top-1/3 -right-24 size-96 rounded-full blur-[120px]"
-          style={{ animation: "cs-drift 18s ease-in-out infinite reverse" }}
-        />
-        <div
-          className="bg-orange-500/15 absolute -bottom-32 left-1/3 size-96 rounded-full blur-[120px]"
-          style={{ animation: "cs-drift 16s ease-in-out infinite", animationDelay: "-6s" }}
-        />
+      {/* tone="cream" because the mark sits on bright sky — the DS's colour
+          rule for the logo, and the reason it is not the sky default here. */}
+      <div className="relative motion-safe:animate-[gwp-rise_var(--dur-slow)_var(--ease-out)_both]">
+        <GwpMark size={56} tone="cream" />
       </div>
 
-      {/* floating logo cube with glow */}
-      <div className="animate-in fade-in zoom-in-75 fill-mode-both relative duration-700">
-        <div
-          className="drop-shadow-[0_0_24px_var(--action-500)]"
-          style={{ animation: "cs-float 6s ease-in-out infinite" }}
-        >
-          <Image
-            src="/Geomatric/black.svg"
-            alt=""
-            width={56}
-            height={60}
-            className="block dark:hidden"
-            priority
-          />
-          <Image
-            src="/Geomatric/white.svg"
-            alt=""
-            width={56}
-            height={60}
-            className="hidden dark:block"
-            priority
-          />
-        </div>
-      </div>
-
-      <Badge
-        variant="secondary"
-        className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both gap-1.5 delay-100 duration-500"
-      >
-        <Hammer className="size-3" />
+      <Badge variant="secondary" className="relative gap-1.5">
+        <Hammer className="size-3" aria-hidden />
         {t("comingSoon.badge")}
       </Badge>
 
-      {/* shimmering gradient title */}
-      <h1
-        className="max-w-2xl bg-clip-text text-4xl font-semibold tracking-tighter text-balance text-transparent sm:text-5xl lg:text-7xl"
-        style={{
-          backgroundImage:
-            "linear-gradient(110deg, var(--action-500), var(--sky-500) 30%, var(--orange-500) 50%, var(--sky-500) 70%, var(--action-500))",
-          backgroundSize: "200% auto",
-          animation: "cs-shimmer 5s linear infinite",
-        }}
-      >
+      {/* Cream display ink, because the surface is saturated sky. A gradient
+          headline is the generic-SaaS look the DS names by name. */}
+      <h1 className="relative max-w-2xl font-display text-(length:--fs-display-lg) leading-(--lh-display) font-(--fw-display-heavy) tracking-(--ls-display) text-balance text-(--display-on-sky)">
         {t("comingSoon.title")}
       </h1>
 
-      <p className="text-muted-foreground animate-in fade-in slide-in-from-bottom-3 fill-mode-both max-w-md text-base text-balance delay-200 sm:text-lg duration-500">
+      <p className="relative max-w-md text-(length:--fs-body-lg) text-balance text-(--text-on-sky-secondary)">
         {t("comingSoon.description")}
       </p>
 
-      {/* bouncing "building" dots */}
-      <div
-        aria-hidden
-        className="animate-in fade-in fill-mode-both flex items-center gap-1.5 delay-300 duration-500"
-      >
-        <span className="bg-action-500 size-1.5 animate-bounce rounded-full" />
-        <span className="bg-sky-500 size-1.5 animate-bounce rounded-full [animation-delay:150ms]" />
-        <span className="bg-orange-500 size-1.5 animate-bounce rounded-full [animation-delay:300ms]" />
+      {/* The one moving thing on the page, and it says something: work is in
+          progress. gwp-pulse is a named DS keyframe; motion-safe: is what
+          honours prefers-reduced-motion, and a still row still reads. */}
+      <div aria-hidden className="relative flex items-center gap-1.5">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="size-1.5 rounded-full bg-(--action-500) motion-safe:animate-[gwp-pulse_1.4s_var(--ease-out)_infinite]"
+            style={{ animationDelay: `${i * 160}ms` }}
+          />
+        ))}
       </div>
 
-      <div className="animate-in fade-in slide-in-from-bottom-3 fill-mode-both delay-400 duration-500">
-        <Button
-          size="lg"
-          variant="outline"
-          className="hover-lift"
-          nativeButton={false}
-          render={<Link href="/" />}
-        >
-          <ArrowLeft data-icon="inline-start" />
+      <div className="relative">
+        <Button size="lg" variant="outline" nativeButton={false} render={<Link href="/" />}>
+          <ArrowLeft data-icon="inline-start" aria-hidden />
           {t("comingSoon.back")}
         </Button>
       </div>

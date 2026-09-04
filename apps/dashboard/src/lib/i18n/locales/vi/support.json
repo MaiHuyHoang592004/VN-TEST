@@ -56,7 +56,8 @@
       "attachHint": "PNG, JPG hoặc WEBP · tối đa 10 ảnh · mỗi ảnh 10MB",
       "submit": "Gửi yêu cầu",
       "created": "Đã tạo yêu cầu",
-      "orderDropped": "Đơn hàng bạn chọn không thuộc tài khoản này nên yêu cầu được tạo mà không gắn đơn."
+      "orderDropped": "Đơn hàng bạn chọn không thuộc tài khoản này nên yêu cầu được tạo mà không gắn đơn.",
+      "removeFile": "Xóa tệp"
     },
     "edit": {
       "title": "Sửa yêu cầu",
@@ -67,7 +68,8 @@
       "title": "Xóa yêu cầu này?",
       "body": "Yêu cầu và toàn bộ cuộc trao đổi sẽ bị xóa. Không thể hoàn tác.",
       "submit": "Xóa yêu cầu",
-      "deleted": "Đã xóa yêu cầu"
+      "deleted": "Đã xóa yêu cầu",
+      "failed": "Không thể xóa phiếu hỗ trợ. Vui lòng thử lại."
     },
     "detail": {
       "back": "Tất cả yêu cầu",

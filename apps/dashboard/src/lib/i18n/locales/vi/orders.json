@@ -24,6 +24,11 @@
   "noCommonMove": "Không có thao tác chung cho các đơn đã chọn",
   "statusMoved": "Đã chuyển {count} đơn sang {status}.",
   "statusPartial": "{failed}/{total} đơn không chuyển được. Hãy tải lại và thử lại.",
+  "statusFailed": "Không đổi được trạng thái đơn. Hãy tải lại trang để xem thay đổi thực tế.",
+  "cancelTitle": "Hủy các đơn hàng này?",
+  "cancelDesc": "Đơn đã hủy không thể chuyển ngược lại.",
+  "cancelBody": "{count} đơn hàng sẽ chuyển sang trạng thái Đã hủy.",
+  "cancelSubmit": "Hủy đơn hàng",
   "statuses": {
     "PENDING": "Chờ xử lý",
     "ASSIGNED": "Đã phân công",
@@ -56,6 +61,9 @@
   "shippingSection": "Shipping",
   "fRecipient": "Recipient",
   "fEmail": "Email",
+  "fPhone": "Điện thoại",
+  "fPhoneHint": "Một số hãng vận chuyển yêu cầu số điện thoại để giao hàng.",
+  "fCompany": "Công ty",
   "fLine1": "Address",
   "fLine2": "Address line 2",
   "fCity": "City",
@@ -80,6 +88,7 @@
   "fWarehouse": "Kho",
   "pickWarehouse": "Choose a warehouse",
   "assignCalculating": "Working out what this costs…",
+  "assignPreviewFailed": "Không tính được khoản phí. Hãy đóng và thử lại.",
   "assignCharges": "Charges",
   "assignNothing": "None of the selected orders can be assigned.",
   "assignSkipped": "{count} selected orders are already assigned and were skipped.",
@@ -109,6 +118,10 @@
   "importFailed": "{count} failed",
   "importLine": "Line {line}:",
   "importNoSku": "No SKU matches that code or product/variant pair.",
+  "importChecking": "Đang kiểm tra SKU…",
+  "importPreviewMore": "+ {count} dòng nữa",
+  "importUnresolved": "{count} dòng không khớp SKU nào và sẽ bị bỏ qua.",
+  "importUnresolvedLines": "Dòng {lines}.",
   "qr": {
     "column": "Mã QR",
     "show": "Hiện mã QR",
@@ -121,6 +134,7 @@
     "variant": "Biến thể",
     "shipTo": "Giao tới",
     "copied": "Đã sao chép mã đơn.",
+    "copyFailed": "Không sao chép được mã đơn.",
     "noTracking": "Chưa có mã vận đơn",
     "note": "Ghi chú",
     "format": {
@@ -146,6 +160,7 @@
     "previewTitle": "Mua nhãn vận chuyển",
     "previewDesc": "Không có gì được mua cho tới khi bạn xác nhận. Các đơn cùng địa chỉ sẽ gộp thành một kiện.",
     "loading": "Đang tính toán các kiện…",
+    "previewFailed": "Không tạo được bản xem trước nhãn. Hãy đóng và thử lại.",
     "tileGroups": "Kiện",
     "tileWillBuy": "Sẽ mua",
     "tileSkipped": "Bỏ qua",
@@ -181,6 +196,7 @@
   "refundSubmit": "Hoàn tiền và hủy đơn",
   "refundTotal": "Tổng hoàn",
   "refundNothing": "Không đơn nào được chọn có thể hoàn tiền.",
+  "refundQuoteFailed": "Không tính được số tiền hoàn. Hãy đóng và thử lại.",
   "refundDone": "Đã hoàn tiền",
   "refundReason": "Lý do",
   "refundReasonPlaceholder": "Lô hàng in sai chất liệu.",
@@ -202,6 +218,9 @@
     "design": "File thiết kế",
     "mockup": "Mockup",
     "slotHint": "Dán link hoặc tải ảnh lên — ưu tiên file tải lên.",
+    "previewAlt": "Ảnh hiện tại",
+    "previewNone": "Chưa có ảnh",
+    "previewBroken": "Không tải được ảnh đó",
     "upload": "Tải ảnh lên",
     "clearFile": "Xóa file",
     "saved": "Đã cập nhật hình",
@@ -212,10 +231,21 @@
   "summary": {
     "units": "sản phẩm",
     "breakdown": "Chi tiết bên trong",
+    "breakdownFor": "Chi tiết của {status}",
     "nothing": "Không có gì."
   },
   "dialogNewSubmit": "Tạo đơn hàng",
   "timeline": {
-    "toggle": "Xem tiến trình đơn"
-  }
+    "toggle": "Xem tiến trình đơn",
+    "failed": "Không tải được tiến trình đơn.",
+    "retry": "Thử lại",
+    "empty": "Đơn này chưa có mốc tiến trình nào."
+  },
+  "thumb": {
+    "design": "File in",
+    "mockup": "Ảnh mockup cho khách",
+    "label": "Nhãn vận chuyển",
+    "designFolder": "Mở thư mục artwork"
+  },
+  "colCostShip": "Chi phí + ship"
 }

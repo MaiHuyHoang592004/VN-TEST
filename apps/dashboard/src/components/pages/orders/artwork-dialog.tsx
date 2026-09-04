@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ImageOff } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,12 +21,18 @@ export function ArtworkDialog({
   orderId,
   label,
   designUrl,
+  mockupUrl,
   open,
   onOpenChange,
 }: {
   orderId: number;
   label: string;
   designUrl: string | null;
+  /** The mockup already on the order. Shown as a preview but deliberately NOT
+   * prefilled into the field: saving it back would create a second Mockup row
+   * holding the same URL, and the point of showing it is that you can see what
+   * you are about to replace. */
+  mockupUrl: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -82,6 +89,7 @@ export function ArtworkDialog({
       <FormField label={t("orders.artwork.design")} hint={t("orders.artwork.slotHint")}>
         {(props) => (
           <div className="flex flex-col gap-2">
+            <ArtworkPreview file={designFile} url={design} current={designUrl} />
             <Input
               {...props}
               value={designFile ? designFile.name : design}
@@ -118,6 +126,7 @@ export function ArtworkDialog({
       <FormField label={t("orders.artwork.mockup")} hint={t("orders.artwork.slotHint")}>
         {(props) => (
           <div className="flex flex-col gap-2">
+            <ArtworkPreview file={mockupFile} url={mockup} current={mockupUrl} />
             <Input
               {...props}
               value={mockupFile ? mockupFile.name : mockup}
@@ -151,5 +160,62 @@ export function ArtworkDialog({
         )}
       </FormField>
     </FormDialog>
+  );
+}
+
+/**
+ * The slot's current picture, in a CREAM well — the DS's rule for product and
+ * artwork imagery, never a grey one.
+ *
+ * Precedence is what the SAVE would use: a chosen file wins over a typed URL,
+ * and a typed URL wins over whatever is already on the order. So the preview
+ * always answers "what will this slot hold when I press Save", not merely
+ * "what does it hold now".
+ */
+function ArtworkPreview({
+  file,
+  url,
+  current,
+}: {
+  file: File | null;
+  url: string;
+  current: string | null;
+}) {
+  const { t } = useTranslation();
+  // Derived, not stored: a state-setting effect here would be a cascading
+  // render, and the URL is a pure function of the file.
+  const objectUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+
+  // The effect exists only to REVOKE. A dialog reopened a dozen times would
+  // otherwise pin a dozen images in memory for the life of the tab.
+  useEffect(() => {
+    if (!objectUrl) return;
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [objectUrl]);
+
+  const src = objectUrl ?? (url.trim() || current || null);
+
+  // The src that failed, not a boolean: a new src then gets its own chance to
+  // load, instead of one typo'd URL leaving the well permanently broken.
+  const [brokenSrc, setBrokenSrc] = useState<string | null>(null);
+  const broken = src !== null && brokenSrc === src;
+
+  return (
+    <div className="flex h-50 items-center justify-center overflow-hidden rounded-(--radius-card) bg-(--surface-content)">
+      {src && !broken ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={t("orders.artwork.previewAlt")}
+          onError={() => setBrokenSrc(src)}
+          className="size-full object-contain"
+        />
+      ) : (
+        <span className="flex flex-col items-center gap-2 text-(length:--fs-meta) text-(--text-muted)">
+          <ImageOff className="size-5 stroke-(--icon-muted)" />
+          {t(broken ? "orders.artwork.previewBroken" : "orders.artwork.previewNone")}
+        </span>
+      )}
+    </div>
   );
 }

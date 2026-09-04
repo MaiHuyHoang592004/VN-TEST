@@ -49,6 +49,10 @@ export function RefundDialog({
   const router = useRouter();
   const { t } = useTranslation();
   const [quote, setQuote] = useState<Quote | null>(null);
+  /** A quote that FAILED, as opposed to one still running — see AssignDialog:
+   * an uncaught rejection left this money dialog on "Calculating…" with both
+   * buttons dead. */
+  const [quoteError, setQuoteError] = useState(false);
   const [reason, setReason] = useState("");
   // Generated ONCE per dialog. Regenerating per submit would defeat the point.
   const [idempotencyKey] = useState(() => `refund-${Date.now()}-${crypto.randomUUID()}`);
@@ -56,9 +60,13 @@ export function RefundDialog({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    refundQuoteAction(orderIds).then((q) => {
-      if (!cancelled) setQuote(q as Quote);
-    });
+    refundQuoteAction(orderIds)
+      .then((q) => {
+        if (!cancelled) setQuote(q as Quote);
+      })
+      .catch(() => {
+        if (!cancelled) setQuoteError(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -85,13 +93,19 @@ export function RefundDialog({
       description={t("orders.refundDesc")}
       submitLabel={t("orders.refundSubmit")}
       destructive
-      pending={pending || !quote}
-      submitDisabled={refundable.length === 0}
+      // `pending` disables Cancel too, so it means "the refund is being sent",
+      // never "the quote is still loading" — the latter belongs here.
+      pending={pending}
+      submitDisabled={!quote || quoteError || refundable.length === 0}
       formError={formError}
       footerHint={quote ? `${t("orders.refundTotal")}: ${money(quote.total)}` : undefined}
       onSubmit={() => submit(undefined as never)}
     >
-      {!quote ? (
+      {quoteError ? (
+        <p role="alert" className="text-destructive text-sm">
+          {t("orders.refundQuoteFailed")}
+        </p>
+      ) : !quote ? (
         <p className="text-muted-foreground text-sm">{t("orders.assignCalculating")}</p>
       ) : (
         <div className="flex flex-col gap-2">

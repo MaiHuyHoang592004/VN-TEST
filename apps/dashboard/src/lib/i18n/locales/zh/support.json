@@ -56,7 +56,8 @@
       "attachHint": "PNG、JPG 或 WEBP · 最多 10 张 · 每张不超过 10MB",
       "submit": "提交工单",
       "created": "工单已创建",
-      "orderDropped": "所选订单不属于你的账户，工单已在不关联该订单的情况下创建。"
+      "orderDropped": "所选订单不属于你的账户，工单已在不关联该订单的情况下创建。",
+      "removeFile": "移除文件"
     },
     "edit": {
       "title": "编辑工单",
@@ -67,7 +68,8 @@
       "title": "删除该工单？",
       "body": "工单及其全部对话都会被删除，且无法恢复。",
       "submit": "删除工单",
-      "deleted": "工单已删除"
+      "deleted": "工单已删除",
+      "failed": "无法删除该工单，请重试。"
     },
     "detail": {
       "back": "全部工单",

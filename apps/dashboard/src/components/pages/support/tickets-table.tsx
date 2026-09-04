@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Pencil, Trash2 } from "lucide-react";
 
@@ -79,6 +80,9 @@ export function TicketsTable({
   const { t } = useTranslation();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<TicketRowView | null>(null);
+  // Which row is mid-delete. Without it the second click of an impatient
+  // double-click fires the action again against a row that is already gone.
+  const [deleting, setDeleting] = useState<number | null>(null);
 
   const hasFilters = Boolean(
     params.get("q") || params.get("status") || params.get("priority") || params.get("reason"),
@@ -191,10 +195,36 @@ export function TicketsTable({
             variant="ghost"
             size="icon-sm"
             aria-label={t("support.tickets.delete.submit")}
+            disabled={deleting === r.id}
             onClick={async (e) => {
               e.stopPropagation();
+              if (deleting !== null) return;
               if (!window.confirm(t("support.tickets.delete.body"))) return;
-              await deleteTicketAction(r.id);
+              setDeleting(r.id);
+              try {
+                // Two failure shapes: the guard turns a domain refusal into
+                // `{ ok: false }`, everything else throws. Neither said
+                // anything before — the row just sat there and the user's read
+                // was "the button is broken".
+                const result = await deleteTicketAction(r.id);
+                if (result && result.ok === false) {
+                  const code = result.error ?? "";
+                  toast.error(
+                    code === "not-yours"
+                      ? t("support.tickets.errors.not-yours")
+                      : code === "not-found"
+                        ? t("support.tickets.errors.not-found")
+                        : t("support.tickets.delete.failed"),
+                  );
+                  return;
+                }
+              } catch {
+                toast.error(t("support.tickets.delete.failed"));
+                return;
+              } finally {
+                setDeleting(null);
+              }
+              toast.success(t("support.tickets.delete.deleted"));
               router.refresh();
             }}
           >
@@ -232,7 +262,7 @@ export function TicketsTable({
                   value={params.get("status") || "ALL"}
                   onValueChange={(v) => params.setFilter("status", !v || v === "ALL" ? "" : v)}
                 >
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-40" aria-label={t("support.tickets.col.status")}>
                     <SelectValue>
                       {params.get("status")
                         ? t(`support.tickets.status.${params.get("status")}`)
@@ -253,7 +283,7 @@ export function TicketsTable({
                   value={params.get("priority") || "ALL"}
                   onValueChange={(v) => params.setFilter("priority", !v || v === "ALL" ? "" : v)}
                 >
-                  <SelectTrigger className="w-36">
+                  <SelectTrigger className="w-36" aria-label={t("support.tickets.col.priority")}>
                     <SelectValue>
                       {params.get("priority")
                         ? t(`support.tickets.priority.${params.get("priority")}`)
@@ -274,7 +304,7 @@ export function TicketsTable({
                   value={params.get("reason") || "ALL"}
                   onValueChange={(v) => params.setFilter("reason", !v || v === "ALL" ? "" : v)}
                 >
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-48" aria-label={t("support.tickets.col.reason")}>
                     <SelectValue>
                       {params.get("reason")
                         ? t(`support.tickets.reason.${params.get("reason")}`)

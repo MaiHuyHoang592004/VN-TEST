@@ -25,7 +25,8 @@
     "language": "Ngôn ngữ",
     "timezone": "Múi giờ",
     "saved": "Đã cập nhật hồ sơ",
-    "saveFailed": "Không thể lưu thay đổi. Kiểm tra kết nối và thử lại."
+    "saveFailed": "Không thể lưu thay đổi. Kiểm tra kết nối và thử lại.",
+    "emailReadOnly": "Đổi email của bạn ở tab Bảo mật."
   },
   "security": {
     "methods": "Phương thức đăng nhập",
@@ -44,7 +45,7 @@
     "emailChanged": "Đã cập nhật email",
     "changePassword": "Đổi mật khẩu",
     "changePasswordHint": "Bạn sẽ bị đăng xuất khỏi mọi thiết bị sau khi đổi.",
-    "setPasswordHint": "Tài khoản này đăng nhập bằng Google. Chưa thiết lập đăng nhập bằng mật khẩu.",
+    "setPasswordHint": "Tài khoản này đăng nhập bằng Google. Đặt mật khẩu để đăng nhập thêm bằng email.",
     "currentPassword": "Mật khẩu hiện tại",
     "newPassword": "Mật khẩu mới",
     "updatePassword": "Cập nhật mật khẩu",
@@ -60,7 +61,14 @@
     "errWeakPassword": "Dùng ít nhất 8 ký tự",
     "errEmailTaken": "Email này đã được sử dụng",
     "errInvalidCode": "Mã không hợp lệ hoặc đã hết hạn",
-    "errNoPending": "Không có yêu cầu đổi email"
+    "errNoPending": "Không có yêu cầu đổi email",
+    "signOutAllTitle": "Đăng xuất khỏi mọi thiết bị?",
+    "signOutAllBody": "Mọi thiết bị đang đăng nhập sẽ bị đăng xuất, kể cả thiết bị này. Bạn sẽ phải đăng nhập lại.",
+    "useDifferentEmail": "Dùng địa chỉ khác",
+    "useDifferentEmailHint": "Thay đổi đang chờ vẫn được giữ cho đến khi bạn gửi mã tới một địa chỉ mới.",
+    "setPassword": "Đặt mật khẩu",
+    "passwordSet": "Đã đặt mật khẩu",
+    "setPasswordFailed": "Không thể đặt mật khẩu. Vui lòng thử lại."
   },
   "api": {
     "title": "Khóa API",
@@ -88,8 +96,23 @@
       "colNow": "Hiện tại",
       "colNote": "Ghi chú",
       "retired": "Ngừng hỗ trợ",
-      "breaking": "Thay đổi lớn:"
-    }
+      "breaking": "Thay đổi lớn:",
+      "notes": {
+        "v3Orders": "Quản lý SKU của V3 đã bị bỏ; thay vào đó hãy gửi `product_variant_id` tới POST /api/v1/orders.",
+        "listOrders": "Phân trang theo con trỏ: truyền `cursor`, không phải `page`.",
+        "resolveDesign": "Gửi `image_url`. Đơn đang bị giữ sẽ tự động quay lại hàng đợi.",
+        "resolveLabel": "Gửi `label_url` và `tracking_number` cùng lúc.",
+        "pricing": "Giá trả về đã là giá của bạn — không cần tra bậc giá.",
+        "apiKey": "Không thay đổi. Các khóa hiện có đã được chuyển và vẫn hoạt động.",
+        "webhookSignature": "Vẫn cùng sự kiện và tên trường payload. Header chữ ký đã đổi: hãy xác minh X-Signature (HMAC-SHA256) thay vì so sánh x-api-key.",
+        "admin": "Các tích hợp quản trị đã ngừng. Mọi việc chúng làm nay đều có trong bảng điều khiển.",
+        "drivePipeline": "Ngừng cùng với quy trình Google Drive."
+      }
+    },
+    "revokeTitle": "Thu hồi khóa này?",
+    "revokeBody": "Mọi hệ thống đang dùng khóa này sẽ ngừng hoạt động ngay lập tức. Không thể hoàn tác.",
+    "revokeFailed": "Không thể thu hồi khóa. Vui lòng thử lại.",
+    "copyFailed": "Không thể sao chép. Hãy chọn văn bản và sao chép thủ công."
   },
   "webhooks": {
     "title": "Webhook",
@@ -165,6 +188,7 @@
       "not-an-image": "Hãy đính kèm ảnh PNG, JPG hoặc WEBP.",
       "too-many-files": "Tối đa 10 ảnh mỗi lần.",
       "storage-not-configured": "Hiện chưa thể tải tệp lên."
-    }
+    },
+    "removeFile": "Xóa tệp"
   }
 }

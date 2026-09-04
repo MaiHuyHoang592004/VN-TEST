@@ -145,7 +145,18 @@ export function QuickScan() {
                 ref={inputRef}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                onBlur={() => setTimeout(() => inputRef.current?.focus(), 0)}
+                // A gun fires wherever the cursor is, so the field takes focus
+                // back — but ONLY when focus went nowhere. Unconditional refocus
+                // is a trap: it yanks focus out of the status select and the note
+                // field, and it fights the focus containment of the two safety
+                // dialogs that mount while this input is still on screen, which
+                // are exactly the moments a packer must be able to answer. A real
+                // relatedTarget means a human deliberately moved to another
+                // control; only a null one means the gun would type into nothing.
+                onBlur={(e) => {
+                  if (e.relatedTarget) return;
+                  setTimeout(() => inputRef.current?.focus(), 0);
+                }}
                 autoFocus
                 autoComplete="off"
                 spellCheck={false}

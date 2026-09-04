@@ -24,6 +24,11 @@
   "noCommonMove": "選択した注文に共通の操作はありません",
   "statusMoved": "{count} 件の注文を{status}に変更しました。",
   "statusPartial": "{total} 件中 {failed} 件を変更できませんでした。更新して再試行してください。",
+  "statusFailed": "注文のステータスを変更できませんでした。ページを再読み込みして結果をご確認ください。",
+  "cancelTitle": "これらの注文をキャンセルしますか？",
+  "cancelDesc": "キャンセルした注文は元の状態に戻せません。",
+  "cancelBody": "{count} 件の注文がキャンセル済みになります。",
+  "cancelSubmit": "注文をキャンセル",
   "statuses": {
     "PENDING": "保留中",
     "ASSIGNED": "割当済み",
@@ -56,6 +61,9 @@
   "shippingSection": "Shipping",
   "fRecipient": "Recipient",
   "fEmail": "Email",
+  "fPhone": "電話番号",
+  "fPhoneHint": "一部の配送業者は配達に電話番号を必要とします。",
+  "fCompany": "会社名",
   "fLine1": "Address",
   "fLine2": "Address line 2",
   "fCity": "City",
@@ -80,6 +88,7 @@
   "fWarehouse": "倉庫",
   "pickWarehouse": "Choose a warehouse",
   "assignCalculating": "Working out what this costs…",
+  "assignPreviewFailed": "請求額を計算できませんでした。閉じてからもう一度お試しください。",
   "assignCharges": "Charges",
   "assignNothing": "None of the selected orders can be assigned.",
   "assignSkipped": "{count} selected orders are already assigned and were skipped.",
@@ -109,6 +118,10 @@
   "importFailed": "{count} failed",
   "importLine": "Line {line}:",
   "importNoSku": "No SKU matches that code or product/variant pair.",
+  "importChecking": "SKU を確認中…",
+  "importPreviewMore": "ほか {count} 行",
+  "importUnresolved": "{count} 行に一致する SKU がないため取り込まれません。",
+  "importUnresolvedLines": "{lines} 行目。",
   "qr": {
     "column": "QR",
     "show": "QR コードを表示",
@@ -121,6 +134,7 @@
     "variant": "バリエーション",
     "shipTo": "配送先",
     "copied": "注文 ID をコピーしました。",
+    "copyFailed": "注文 ID をコピーできませんでした。",
     "noTracking": "追跡番号はまだありません",
     "note": "メモ",
     "format": {
@@ -146,6 +160,7 @@
     "previewTitle": "配送ラベルを購入",
     "previewDesc": "確認するまで購入は行われません。同じ住所宛の注文は 1 つの荷物にまとまります。",
     "loading": "荷物を計算しています…",
+    "previewFailed": "ラベルのプレビューを作成できませんでした。閉じてからもう一度お試しください。",
     "tileGroups": "荷物",
     "tileWillBuy": "購入する",
     "tileSkipped": "スキップ",
@@ -181,6 +196,7 @@
   "refundSubmit": "返金してキャンセル",
   "refundTotal": "返金合計",
   "refundNothing": "選択した注文は返金できません。",
+  "refundQuoteFailed": "返金額を計算できませんでした。閉じてからもう一度お試しください。",
   "refundDone": "返金しました",
   "refundReason": "理由",
   "refundReasonPlaceholder": "このロットは誤った生地に印刷されました。",
@@ -202,6 +218,9 @@
     "design": "デザイン",
     "mockup": "モックアップ",
     "slotHint": "URL を貼るか画像をアップロード（アップロードが優先）。",
+    "previewAlt": "現在のアートワーク",
+    "previewNone": "画像はまだありません",
+    "previewBroken": "この画像を読み込めませんでした",
     "upload": "画像をアップロード",
     "clearFile": "ファイルを消す",
     "saved": "画像を更新しました",
@@ -212,10 +231,21 @@
   "summary": {
     "units": "点",
     "breakdown": "内訳",
+    "breakdownFor": "{status} の内訳",
     "nothing": "データがありません。"
   },
   "dialogNewSubmit": "注文を作成",
   "timeline": {
-    "toggle": "注文の進行状況を表示"
-  }
+    "toggle": "注文の進行状況を表示",
+    "failed": "進行状況を読み込めませんでした。",
+    "retry": "再試行",
+    "empty": "この注文にはまだ記録された進行状況がありません。"
+  },
+  "thumb": {
+    "design": "印刷データ",
+    "mockup": "顧客向けモックアップ",
+    "label": "配送ラベル",
+    "designFolder": "アートワークのフォルダを開く"
+  },
+  "colCostShip": "原価 + 送料"
 }

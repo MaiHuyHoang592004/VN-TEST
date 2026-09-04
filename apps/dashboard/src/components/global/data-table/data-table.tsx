@@ -1,9 +1,10 @@
 "use client";
 
-import { Fragment, useId, useState, type ReactNode } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -122,10 +123,10 @@ export function DataTable<T>({
   onRowClick,
   mobileCard,
   renderExpanded,
-  expandLabel = "Toggle details",
+  expandLabel,
 }: DataTableProps<T>) {
-  const headingId = useId();
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
   const selectable = Boolean(selected && onSelectedChange);
   const expandable = Boolean(renderExpanded);
   const [openRow, setOpenRow] = useState<string | null>(null);
@@ -193,7 +194,7 @@ export function DataTable<T>({
                       <Checkbox
                         checked={selected!.has(id)}
                         onCheckedChange={() => toggleOne(id)}
-                        aria-label="Select row"
+                        aria-label={t("common.table.selectRow")}
                         className="mt-1 shrink-0"
                       />
                     )}
@@ -228,7 +229,7 @@ export function DataTable<T>({
                     checked={allOnPageSelected}
                     indeterminate={someOnPageSelected}
                     onCheckedChange={toggleAll}
-                    aria-label="Select all rows on this page"
+                    aria-label={t("common.table.selectAll")}
                   />
                 </TableHead>
               )}
@@ -325,7 +326,6 @@ export function DataTable<T>({
                   <Fragment key={id}>
                     <TableRow
                       data-state={isSelected ? "selected" : undefined}
-                      aria-labelledby={headingId}
                       onClick={onRowClick ? () => onRowClick(row) : undefined}
                       className={cn(
                         onRowClick && "cursor-pointer",
@@ -342,7 +342,7 @@ export function DataTable<T>({
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => toggleOne(id)}
-                            aria-label="Select row"
+                            aria-label={t("common.table.selectRow")}
                           />
                         </TableCell>
                       )}
@@ -352,7 +352,7 @@ export function DataTable<T>({
                             <button
                               type="button"
                               aria-expanded={isOpen}
-                              aria-label={expandLabel}
+                              aria-label={expandLabel ?? t("common.table.toggleDetails")}
                               onClick={() => setOpenRow(isOpen ? null : id)}
                               className="inline-flex size-7 items-center justify-center rounded-(--radius-xs) text-(--icon-muted) transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
                             >

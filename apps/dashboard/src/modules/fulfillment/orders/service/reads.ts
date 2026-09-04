@@ -6,7 +6,13 @@
  * connects as one database role with rights to everything), so a findMany
  * without it is a data leak, reviewed like a missing await.
  */
-import { prisma, orderScope, Prisma, type FulfillmentStatus } from "@gwprint/db";
+import {
+  prisma,
+  orderScope,
+  resolveOrderMockup,
+  Prisma,
+  type FulfillmentStatus,
+} from "@gwprint/db";
 
 import { type Actor } from "./shared.ts";
 
@@ -99,12 +105,19 @@ const ORDER_LIST_SELECT = {
   variant: { select: { id: true, name: true, key: true } },
   product: { select: { id: true, name: true, key: true } },
   productVariant: { select: { id: true, sku: true } },
-  mockup: { select: { id: true, name: true, thumbnail: true } },
+  // `url` alongside the thumbnail: the thumbnail is a rendered preview, and
+  // "open the artwork" has to go to the file itself, not to a 400px png.
+  mockup: { select: { id: true, name: true, thumbnail: true, url: true } },
   shipments: {
     select: {
       id: true, trackingNumber: true, trackingStatus: true, provider: true,
       lastScanStatus: true, lastScanDetail: true, lastScanAt: true,
       voidedAt: true, voidReason: true,
+      // The row shows the carrier's SERVICE beside its name ("USPS · Ground
+      // Advantage"), the label thumbnail as the third image, and the shipping
+      // charge under the base cost. All three are columns on Shipment; the row
+      // was simply not asking for them.
+      method: true, labelUrl: true, cost: true,
     },
     orderBy: { createdAt: "desc" as const },
     take: 1,
@@ -140,6 +153,28 @@ export async function listOrdersCursor(
   const hasMore = rows.length > limit;
   const page = hasMore ? rows.slice(0, limit) : rows;
   return { rows: page, nextCursor: hasMore ? page[page.length - 1].id : null };
+}
+
+/**
+ * One order's artwork thumbnail, resolved from its Drive folder on the first
+ * ask and stored from then on.
+ *
+ * Only orders imported before the backfill ran, or created since, ever reach
+ * the resolve branch — everything else answers from the mockup row and never
+ * touches the network. The scope comes first as everywhere in this file: the
+ * id arrives in a URL, so an unscoped read here would let one seller probe
+ * another's artwork.
+ */
+export async function orderArtwork(actor: Actor, id: number) {
+  const order = await prisma.order.findFirst({
+    where: { ...(await orderScope(actor)), id, deletedAt: null },
+    select: { id: true, mockup: { select: { thumbnail: true, url: true } } },
+  });
+  if (!order) return null;
+  if (order.mockup) return order.mockup;
+
+  const mockup = await resolveOrderMockup(id);
+  return mockup ? { thumbnail: mockup.thumbnail, url: mockup.url } : null;
 }
 
 /** One order, re-read through the scope — an id alone proves nothing. */

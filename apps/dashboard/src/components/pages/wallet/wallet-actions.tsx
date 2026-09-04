@@ -31,10 +31,10 @@ export function WalletActions({ refundable }: { refundable: RefundableOrder[] })
           {t("wallet.actionsHint")}
         </p>
         <div className="flex flex-wrap gap-2">
-          <Button onClick={() => t("wallet.topup")}>
+          <Button onClick={() => setAsking("topup")}>
             {t("profile.billing.requestTopUp")}
           </Button>
-          <Button variant="outline" onClick={() => t("wallet.refund")}>
+          <Button variant="outline" onClick={() => setAsking("refund")}>
             {t("profile.billing.requestRefund")}
           </Button>
         </div>

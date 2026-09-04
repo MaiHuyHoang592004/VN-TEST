@@ -61,7 +61,11 @@ export function ProductCell({
       {image !== undefined && (
         <div
           className={cn(
-            "shrink-0 overflow-hidden rounded-(--radius-xs) bg-(--surface-content)",
+            // cream-200, not --surface-content (cream-100). README §9 and the
+            // Orders design both specify --cream-200 for the product well:
+            // one step down from the cream shell, so the well still reads as
+            // a recess when the row behind it is white.
+            "shrink-0 overflow-hidden rounded-(--radius-xs) bg-(--cream-200)",
             "[&_img]:size-full [&_img]:object-cover",
             s.well
           )}

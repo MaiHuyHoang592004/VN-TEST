@@ -4,5 +4,19 @@
   "copy": "Copier",
   "error": "Une erreur est survenue. Actualisez et réessayez.",
   "close": "Fermer",
-  "cancel": "Annuler"
+  "cancel": "Annuler",
+  "pagination": {
+    "selected": "{count} sélectionné(s)",
+    "empty": "Aucun résultat",
+    "range": "{first}–{last} sur {total}",
+    "rowsPerPage": "Lignes par page",
+    "prev": "Page précédente",
+    "next": "Page suivante"
+  },
+  "table": {
+    "selectRow": "Sélectionner cette ligne",
+    "selectAll": "Sélectionner toutes les lignes de cette page",
+    "toggleDetails": "Afficher les détails",
+    "search": "Rechercher…"
+  }
 }

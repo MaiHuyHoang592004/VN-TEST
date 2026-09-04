@@ -24,6 +24,11 @@
   "noCommonMove": "لا يوجد إجراء مشترك للطلبات المحددة",
   "statusMoved": "تم نقل {count} طلبات إلى {status}.",
   "statusPartial": "تعذّر نقل {failed} من أصل {total} طلبات. حدّث الصفحة وحاول مجددًا.",
+  "statusFailed": "تعذّر تغيير حالة الطلبات. حدّث الصفحة لمعرفة ما تغيّر.",
+  "cancelTitle": "إلغاء هذه الطلبات؟",
+  "cancelDesc": "لا يمكن إرجاع الطلب بعد إلغائه.",
+  "cancelBody": "سيتم نقل {count} طلبًا إلى حالة ملغى.",
+  "cancelSubmit": "إلغاء الطلبات",
   "statuses": {
     "PENDING": "قيد الانتظار",
     "ASSIGNED": "مُسند",
@@ -56,6 +61,9 @@
   "shippingSection": "Shipping",
   "fRecipient": "Recipient",
   "fEmail": "Email",
+  "fPhone": "الهاتف",
+  "fPhoneHint": "تطلبه بعض شركات الشحن للتسليم.",
+  "fCompany": "الشركة",
   "fLine1": "Address",
   "fLine2": "Address line 2",
   "fCity": "City",
@@ -80,6 +88,7 @@
   "fWarehouse": "المستودع",
   "pickWarehouse": "Choose a warehouse",
   "assignCalculating": "Working out what this costs…",
+  "assignPreviewFailed": "تعذّر حساب المبالغ. أغلق النافذة وحاول مرة أخرى.",
   "assignCharges": "Charges",
   "assignNothing": "None of the selected orders can be assigned.",
   "assignSkipped": "{count} selected orders are already assigned and were skipped.",
@@ -109,6 +118,10 @@
   "importFailed": "{count} failed",
   "importLine": "Line {line}:",
   "importNoSku": "No SKU matches that code or product/variant pair.",
+  "importChecking": "جارٍ التحقق من رموز SKU…",
+  "importPreviewMore": "+ {count} صفوف أخرى",
+  "importUnresolved": "{count} صفوف لا تطابق أي SKU وسيتم تخطيها.",
+  "importUnresolvedLines": "الأسطر {lines}.",
   "qr": {
     "column": "رمز QR",
     "show": "عرض رمز QR",
@@ -121,6 +134,7 @@
     "variant": "الخيار",
     "shipTo": "الشحن إلى",
     "copied": "تم نسخ رقم الطلب.",
+    "copyFailed": "تعذّر نسخ رقم الطلب.",
     "noTracking": "لا يوجد تتبع بعد",
     "note": "ملاحظة",
     "format": {
@@ -146,6 +160,7 @@
     "previewTitle": "شراء ملصقات الشحن",
     "previewDesc": "لن يتم شراء أي شيء قبل التأكيد. الطلبات المتجهة إلى العنوان نفسه تُشحن كطرد واحد.",
     "loading": "جارٍ حساب الطرود…",
+    "previewFailed": "تعذّر إنشاء معاينة الملصقات. أغلق النافذة وحاول مرة أخرى.",
     "tileGroups": "الطرود",
     "tileWillBuy": "سيتم الشراء",
     "tileSkipped": "تم تخطيها",
@@ -181,6 +196,7 @@
   "refundSubmit": "استرداد وإلغاء",
   "refundTotal": "إجمالي الاسترداد",
   "refundNothing": "لا يمكن استرداد أي من الطلبات المختارة.",
+  "refundQuoteFailed": "تعذّر حساب مبلغ الاسترداد. أغلق النافذة وحاول مرة أخرى.",
   "refundDone": "تم إرسال الاسترداد",
   "refundReason": "السبب",
   "refundReasonPlaceholder": "طُبعت هذه الدفعة على خامة خاطئة.",
@@ -202,6 +218,9 @@
     "design": "التصميم",
     "mockup": "المعاينة",
     "slotHint": "الصق رابطًا أو ارفع صورة — الملف المرفوع له الأولوية.",
+    "previewAlt": "التصميم الحالي",
+    "previewNone": "لا توجد صورة بعد",
+    "previewBroken": "تعذّر تحميل هذه الصورة",
     "upload": "رفع صورة",
     "clearFile": "إزالة الملف",
     "saved": "تم تحديث التصميم",
@@ -212,10 +231,21 @@
   "summary": {
     "units": "وحدة",
     "breakdown": "المكوّنات",
+    "breakdownFor": "مكوّنات {status}",
     "nothing": "لا شيء هنا."
   },
   "dialogNewSubmit": "إنشاء طلب",
   "timeline": {
-    "toggle": "عرض مسار الطلب"
-  }
+    "toggle": "عرض مسار الطلب",
+    "failed": "تعذّر تحميل مسار الطلب.",
+    "retry": "إعادة المحاولة",
+    "empty": "لا توجد مراحل مسجّلة لهذا الطلب بعد."
+  },
+  "thumb": {
+    "design": "ملف الطباعة",
+    "mockup": "نموذج العميل",
+    "label": "ملصق الشحن",
+    "designFolder": "فتح مجلد التصميم"
+  },
+  "colCostShip": "التكلفة + الشحن"
 }

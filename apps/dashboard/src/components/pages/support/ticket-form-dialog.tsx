@@ -141,7 +141,7 @@ export function TicketFormDialog({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label={t("support.tickets.form.reason")} error={fieldErrors.reason}>
-          {() => (
+          {(props) => (
             <Select
               value={reason}
               onValueChange={(v) => {
@@ -150,7 +150,7 @@ export function TicketFormDialog({
                 setPriority(REASON_PRIORITY[next]);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger {...props}>
                 <SelectValue>{t(`support.tickets.reason.${reason}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -169,9 +169,9 @@ export function TicketFormDialog({
           hint={t("support.tickets.form.priorityHint")}
           error={fieldErrors.priority}
         >
-          {() => (
+          {(props) => (
             <Select value={priority} onValueChange={(v) => setPriority(v || "MEDIUM")}>
-              <SelectTrigger>
+              <SelectTrigger {...props}>
                 <SelectValue>{t(`support.tickets.priority.${priority}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -188,9 +188,9 @@ export function TicketFormDialog({
 
       {!ticket && (
       <FormField label={t("support.tickets.form.order")} error={fieldErrors.orderId}>
-        {() => (
+        {(props) => (
           <Select value={orderId} onValueChange={(v) => setOrderId(v || NO_ORDER)}>
-            <SelectTrigger>
+            <SelectTrigger {...props}>
               <SelectValue>
                 {orders.find((o) => String(o.id) === orderId)?.label ??
                   t("support.tickets.form.orderNone")}
@@ -223,7 +223,9 @@ export function TicketFormDialog({
 
       {!ticket && (
       <FormField label={t("support.tickets.form.attach")} hint={t("support.tickets.form.attachHint")}>
-        {() => (
+        {/* The label targets the picker BUTTON: the file input is hidden, and a
+            <label htmlFor> aimed at a display:none control focuses nothing. */}
+        {(props) => (
           <div className="flex flex-col gap-2">
             <input
               ref={fileInput}
@@ -231,12 +233,15 @@ export function TicketFormDialog({
               accept="image/png,image/jpeg,image/webp"
               multiple
               className="hidden"
+              tabIndex={-1}
+              aria-hidden
               onChange={(e) => {
                 setFiles((f) => [...f, ...Array.from(e.target.files ?? [])].slice(0, 10));
                 e.target.value = "";
               }}
             />
             <Button
+              {...props}
               type="button"
               variant="outline"
               size="sm"
@@ -255,7 +260,8 @@ export function TicketFormDialog({
                     {file.name}
                     <button
                       type="button"
-                      aria-label={`Remove ${file.name}`}
+                      className="-my-1 -mr-1 inline-flex size-6 items-center justify-center rounded-(--radius-xs) hover:text-(--text-body)"
+                      aria-label={`${t("support.tickets.form.removeFile")}: ${file.name}`}
                       onClick={() => setFiles((f) => f.filter((_, i) => i !== index))}
                     >
                       <X className="size-3" />

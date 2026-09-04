@@ -53,7 +53,14 @@ function DialogContent({
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         className={cn(
-          "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-(--radius-card) border border-(--border-hairline) bg-(--surface-raised) p-4 text-sm text-popover-foreground shadow-(--shadow-lg) duration-300 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          // max-h + overflow-y: without them a tall dialog overflows a short
+          // viewport in BOTH directions from the -translate-y-1/2 centre, so
+          // its footer and its first fields are equally unreachable and there
+          // is nothing to scroll — the page behind is locked. The drawer path
+          // has always capped at 85svh; this is the same cap for the branch a
+          // 1366x768 laptop actually gets, since useIsMobile switches on WIDTH.
+          // FormDialog overrides the scroll to pin its own footer instead.
+          "fixed top-1/2 left-1/2 z-50 grid max-h-[85svh] w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-(--radius-card) border border-(--border-hairline) bg-(--surface-raised) p-4 text-sm text-popover-foreground shadow-(--shadow-lg) duration-300 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
           className
         )}
         {...props}

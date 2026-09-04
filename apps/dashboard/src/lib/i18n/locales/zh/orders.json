@@ -24,6 +24,11 @@
   "noCommonMove": "所选订单没有共同可用的操作",
   "statusMoved": "已将 {count} 个订单变更为{status}。",
   "statusPartial": "{total} 个订单中有 {failed} 个变更失败。请刷新后重试。",
+  "statusFailed": "无法变更订单状态。请刷新页面查看实际结果。",
+  "cancelTitle": "取消这些订单？",
+  "cancelDesc": "订单取消后无法恢复到之前的状态。",
+  "cancelBody": "将有 {count} 个订单被标记为已取消。",
+  "cancelSubmit": "取消订单",
   "statuses": {
     "PENDING": "待处理",
     "ASSIGNED": "已分配",
@@ -56,6 +61,9 @@
   "shippingSection": "Shipping",
   "fRecipient": "Recipient",
   "fEmail": "Email",
+  "fPhone": "电话",
+  "fPhoneHint": "部分承运商派送时需要电话号码。",
+  "fCompany": "公司",
   "fLine1": "Address",
   "fLine2": "Address line 2",
   "fCity": "City",
@@ -80,6 +88,7 @@
   "fWarehouse": "仓库",
   "pickWarehouse": "Choose a warehouse",
   "assignCalculating": "Working out what this costs…",
+  "assignPreviewFailed": "无法计算费用。请关闭后重试。",
   "assignCharges": "Charges",
   "assignNothing": "None of the selected orders can be assigned.",
   "assignSkipped": "{count} selected orders are already assigned and were skipped.",
@@ -109,6 +118,10 @@
   "importFailed": "{count} failed",
   "importLine": "Line {line}:",
   "importNoSku": "No SKU matches that code or product/variant pair.",
+  "importChecking": "正在核对 SKU…",
+  "importPreviewMore": "还有 {count} 行",
+  "importUnresolved": "{count} 行没有匹配的 SKU，将被跳过。",
+  "importUnresolvedLines": "第 {lines} 行。",
   "qr": {
     "column": "二维码",
     "show": "显示二维码",
@@ -121,6 +134,7 @@
     "variant": "变体",
     "shipTo": "收货信息",
     "copied": "已复制订单号。",
+    "copyFailed": "无法复制订单号。",
     "noTracking": "暂无运单号",
     "note": "备注",
     "format": {
@@ -146,6 +160,7 @@
     "previewTitle": "购买运输面单",
     "previewDesc": "确认前不会产生任何购买。寄往同一地址的订单会合并为一个包裹。",
     "loading": "正在计算包裹…",
+    "previewFailed": "无法生成面单预览。请关闭后重试。",
     "tileGroups": "包裹",
     "tileWillBuy": "将购买",
     "tileSkipped": "已跳过",
@@ -181,6 +196,7 @@
   "refundSubmit": "退款并取消",
   "refundTotal": "退款总额",
   "refundNothing": "所选订单均不可退款。",
+  "refundQuoteFailed": "无法计算退款金额。请关闭后重试。",
   "refundDone": "退款已完成",
   "refundReason": "原因",
   "refundReasonPlaceholder": "该批次印在了错误的材质上。",
@@ -202,6 +218,9 @@
     "design": "设计稿",
     "mockup": "效果图",
     "slotHint": "粘贴链接或上传图片——以上传为准。",
+    "previewAlt": "当前图稿",
+    "previewNone": "尚无图片",
+    "previewBroken": "无法加载该图片",
     "upload": "上传图片",
     "clearFile": "清除文件",
     "saved": "图稿已更新",
@@ -212,10 +231,21 @@
   "summary": {
     "units": "件",
     "breakdown": "明细构成",
+    "breakdownFor": "{status} 的明细构成",
     "nothing": "暂无数据。"
   },
   "dialogNewSubmit": "创建订单",
   "timeline": {
-    "toggle": "显示订单进度"
-  }
+    "toggle": "显示订单进度",
+    "failed": "无法加载订单进度。",
+    "retry": "重试",
+    "empty": "该订单还没有任何进度记录。"
+  },
+  "thumb": {
+    "design": "印刷设计稿",
+    "mockup": "客户效果图",
+    "label": "运输标签",
+    "designFolder": "打开设计文件夹"
+  },
+  "colCostShip": "成本 + 运费"
 }

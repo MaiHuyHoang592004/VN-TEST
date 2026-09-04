@@ -46,8 +46,14 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
   /** Cheapest SKU — what a card leads with. String compare would rank "9.00"
    * above "12.00", so parse for the COMPARISON only; the displayed value is
    * always the untouched string. */
+  // `skus` can legitimately be empty — a product whose variants are all
+  // inactive still lists. reduce() with p.skus[0] as the seed then returns
+  // undefined, and reading .price off it threw at render, taking down the whole
+  // catalogue rather than one card.
   const from = (p: CatalogProduct) =>
-    p.skus.reduce((min, s) => (Number(s.price) < Number(min.price) ? s : min), p.skus[0]);
+    p.skus.length === 0
+      ? null
+      : p.skus.reduce((min, s) => (Number(s.price) < Number(min.price) ? s : min), p.skus[0]);
 
   return (
     <>
@@ -128,12 +134,24 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
                   {p.skus.length}{" "}
                   {t(p.skus.length === 1 ? "catalog.browse.option" : "catalog.browse.options")}
                 </span>
-                <span className="mt-1 text-(length:--fs-body-sm) font-semibold text-(--text-body)">
-                  {t("catalog.browse.from")}{" "}
-                  <span className="font-mono tracking-(--ls-mono) tabular-nums">
-                    {money(from(p).price)}
-                  </span>
-                </span>
+                {/* A product with no active variant has no price to quote, and
+                    an em dash is the honest answer. Reading .price off the
+                    empty-array case is what used to throw during render. */}
+                {(() => {
+                  const cheapest = from(p);
+                  return cheapest ? (
+                    <span className="mt-1 text-(length:--fs-body-sm) font-semibold text-(--text-body)">
+                      {t("catalog.browse.from")}{" "}
+                      <span className="font-mono tracking-(--ls-mono) tabular-nums">
+                        {money(cheapest.price)}
+                      </span>
+                    </span>
+                  ) : (
+                    <span className="mt-1 font-mono text-(length:--fs-body-sm) text-(--text-muted)">
+                      —
+                    </span>
+                  );
+                })()}
               </span>
               {openId === p.id && (
                 <span className="flex flex-col gap-1 border-t border-(--border-hairline) p-3">

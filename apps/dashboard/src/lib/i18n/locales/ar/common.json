@@ -4,5 +4,19 @@
   "copy": "نسخ",
   "error": "حدث خطأ ما. حدّث الصفحة وحاول مجددًا.",
   "close": "إغلاق",
-  "cancel": "إلغاء"
+  "cancel": "إلغاء",
+  "pagination": {
+    "selected": "تم تحديد {count}",
+    "empty": "لا توجد نتائج",
+    "range": "{first}–{last} من {total}",
+    "rowsPerPage": "الصفوف لكل صفحة",
+    "prev": "الصفحة السابقة",
+    "next": "الصفحة التالية"
+  },
+  "table": {
+    "selectRow": "تحديد هذا الصف",
+    "selectAll": "تحديد كل الصفوف في هذه الصفحة",
+    "toggleDetails": "عرض التفاصيل",
+    "search": "بحث…"
+  }
 }

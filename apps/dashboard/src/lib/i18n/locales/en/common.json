@@ -4,5 +4,19 @@
   "copy": "Copy",
   "error": "Something went wrong. Refresh and try again.",
   "close": "Close",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "pagination": {
+    "selected": "{count} selected",
+    "empty": "No results",
+    "range": "{first}–{last} of {total}",
+    "rowsPerPage": "Rows per page",
+    "prev": "Previous page",
+    "next": "Next page"
+  },
+  "table": {
+    "selectRow": "Select this row",
+    "selectAll": "Select all rows on this page",
+    "toggleDetails": "Show details",
+    "search": "Search…"
+  }
 }

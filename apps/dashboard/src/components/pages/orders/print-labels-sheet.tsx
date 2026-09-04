@@ -17,6 +17,9 @@ export type PrintRow = {
   tracking: string | null;
   customerName: string | null;
   warehouseCode: string | null;
+  /** City, state, postcode, country — the destination line, already joined by
+   * the page from the same shippingAddress the table reads. */
+  shipTo: string | null;
 };
 
 /**
@@ -56,13 +59,16 @@ export function PrintLabelsSheet({ orders }: { orders: PrintRow[] }) {
           /* Everything the app draws around a page: not on paper. */
           nav, header, aside, footer, [data-slot="sidebar"], .no-print { display: none !important; }
           .print-block { page-break-inside: avoid; break-inside: avoid; }
+          /* Paper is always two-up, whatever the viewport was. This rule is
+             outside Tailwind's utility layer, so it wins over grid-cols-1
+             without an !important. */
+          .print-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
-        .print-block { max-width: 460px; }
       `}</style>
 
       {/* White ground, navy ink, no shadow: sky and a drop shadow cost toner
           and can render as grey blocks on a mono laser. */}
-      <main className="mx-auto w-full max-w-3xl bg-(--surface-data) p-8 text-navy-700">
+      <main className="mx-auto w-full max-w-5xl bg-(--surface-data) p-8 text-navy-700">
         <div className="no-print mb-6 flex items-center justify-between">
           <p className="text-sm text-navy-500">
             {t("orders.qr.printCount").replace("{count}", String(orders.length))}
@@ -75,7 +81,13 @@ export function PrintLabelsSheet({ orders }: { orders: PrintRow[] }) {
           </button>
         </div>
 
-        <div className="space-y-4">
+        {/* PAPER is always two blocks per row — one per row wasted half of
+            every sheet, and a warehouse printing 200 of these pays for that in
+            paper. The print rule in the stylesheet above forces that, so the
+            SCREEN is free to be honest: this is also a real route opened in a
+            browser tab, and unqualified `grid-cols-2` gave a phone two crushed
+            columns of it. */}
+        <div className="print-grid grid grid-cols-1 gap-4 sm:grid-cols-2">
           {orders.map((o) => (
             <article
               key={o.id}
@@ -98,6 +110,11 @@ export function PrintLabelsSheet({ orders }: { orders: PrintRow[] }) {
                 <p className="mt-1 text-xs text-navy-500">
                   {[o.customerName, o.warehouseCode].filter(Boolean).join(" · ")}
                 </p>
+                {/* Where the parcel is going. Not a full postal address — the
+                    carrier label carries that — but enough for a packer to
+                    catch a box on the wrong pallet. Omitted entirely when the
+                    order has no shipping address rather than printed blank. */}
+                {o.shipTo && <p className="text-xs text-navy-500">{o.shipTo}</p>}
                 {/* CODE128 as well as the QR: the floor's laser scanners read
                     one, phones read the other, and both resolve to this
                     order's id. */}

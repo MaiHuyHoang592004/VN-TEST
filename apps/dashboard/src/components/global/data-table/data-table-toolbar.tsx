@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SearchField } from "@/components/ds";
+import { useTranslation } from "@/lib/i18n";
 
 /**
  * Search + filters + bulk actions above a table.
@@ -16,7 +17,7 @@ import { SearchField } from "@/components/ds";
 export function DataTableToolbar({
   search,
   onSearchChange,
-  searchPlaceholder = "Search…",
+  searchPlaceholder,
   filters,
   actions,
   selectedCount = 0,
@@ -37,6 +38,7 @@ export function DataTableToolbar({
   onClearFilters?: () => void;
   hasFilters?: boolean;
 }) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState(search ?? "");
   const [lastSearch, setLastSearch] = useState(search ?? "");
 
@@ -68,7 +70,7 @@ export function DataTableToolbar({
           <SearchField
             value={draft}
             onChange={setDraft}
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder ?? t("common.table.search")}
             className="w-full sm:max-w-xs"
           />
         )}

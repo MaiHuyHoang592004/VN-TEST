@@ -4,5 +4,19 @@
   "copy": "复制",
   "error": "出错了，请刷新后重试。",
   "close": "关闭",
-  "cancel": "取消"
+  "cancel": "取消",
+  "pagination": {
+    "selected": "已选 {count} 项",
+    "empty": "无结果",
+    "range": "{first}–{last}，共 {total}",
+    "rowsPerPage": "每页行数",
+    "prev": "上一页",
+    "next": "下一页"
+  },
+  "table": {
+    "selectRow": "选择此行",
+    "selectAll": "选择本页所有行",
+    "toggleDetails": "查看详情",
+    "search": "搜索…"
+  }
 }

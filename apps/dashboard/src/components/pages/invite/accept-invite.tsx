@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { useFormAction } from "@/components/global/form";
+import { useTranslation } from "@/lib/i18n";
 import { acceptInviteAction } from "@/modules/identity/users/actions";
 
 /**
@@ -24,15 +25,16 @@ export function AcceptInvite({
   signedInAs: string | null;
 }) {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { submit, pending, formError } = useFormAction({
     action: () => acceptInviteAction(token),
-    successMessage: "Welcome aboard",
+    successMessage: t("invite.welcome"),
     errorMessages: {
-      "wrong-account": "You're signed in with a different email.",
-      expired: "This invitation has expired.",
-      "already-used": "This invitation has already been used.",
-      "not-found": "This invitation link isn't valid.",
+      "wrong-account": t("invite.errWrongAccount"),
+      expired: t("invite.errExpired"),
+      "already-used": t("invite.errUsed"),
+      "not-found": t("invite.errNotFound"),
     },
     onSuccess: () => router.push("/"),
   });
@@ -41,14 +43,13 @@ export function AcceptInvite({
     return (
       <div className="flex flex-col gap-3">
         <p className="text-muted-foreground text-sm">
-          Sign in with {invitedEmail} to accept. If you don&apos;t have an account
-          yet, create one with that address — you&apos;ll come straight back here.
+          {t("invite.signInPrompt")}
         </p>
         {/* Round-trips through login and returns to this exact invite. */}
         <Button
           render={<Link href={`/?callbackUrl=${encodeURIComponent(`/invite/${token}`)}`} />}
         >
-          Sign in to accept
+          {t("invite.signIn")}
         </Button>
       </div>
     );
@@ -58,14 +59,26 @@ export function AcceptInvite({
     return (
       <div className="flex flex-col gap-3">
         <p className="border-border rounded-md border px-3 py-2 text-sm">
-          This invitation is for <strong>{invitedEmail}</strong>, but you&apos;re
-          signed in as <strong>{signedInAs}</strong>.
+          {/* Split on the placeholders so word order stays the translator's —
+              Japanese and Arabic do not put the two addresses where English
+              does. */}
+          {t("invite.wrongAccount")
+            .split(/(\{invited\}|\{current\})/g)
+            .map((part, i) =>
+              part === "{invited}" ? (
+                <strong key={i}>{invitedEmail}</strong>
+              ) : part === "{current}" ? (
+                <strong key={i}>{signedInAs}</strong>
+              ) : (
+                <span key={i}>{part}</span>
+              ),
+            )}
         </p>
         <p className="text-muted-foreground text-sm">
-          Sign out and sign back in with the invited address to accept it.
+          {t("invite.wrongAccountHint")}
         </p>
         <Button variant="outline" render={<Link href="/api/auth/signout" />}>
-          Sign out
+          {t("invite.signOut")}
         </Button>
       </div>
     );
@@ -74,7 +87,7 @@ export function AcceptInvite({
   return (
     <div className="flex flex-col gap-3">
       <Button onClick={() => submit(undefined as never)} disabled={pending}>
-        {pending ? "Accepting…" : "Accept invitation"}
+        {pending ? t("invite.accepting") : t("invite.accept")}
       </Button>
       {formError && (
         <p role="alert" className="text-destructive text-sm">

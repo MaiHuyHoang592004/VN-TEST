@@ -18,7 +18,7 @@
 
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 
@@ -42,6 +42,15 @@ export function WorkspaceDropdown() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // A fast route change can unmount this between the leave and the timer, and
+  // the pending setOpen then fires on a dead component.
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    },
+    [],
+  );
 
   const groups = WORKSPACE_SECTIONS.map(({ prefix, titleKey }) => ({
     titleKey,

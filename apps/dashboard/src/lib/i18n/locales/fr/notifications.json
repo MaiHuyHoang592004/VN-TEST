@@ -98,5 +98,7 @@
       "title": "{from} a demandé un {kind}",
       "body": "{amount} en attente de validation."
     }
-  }
+  },
+  "confirmDelete": "Supprimer",
+  "deleteFailed": "Impossible de supprimer cette notification."
 }

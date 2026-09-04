@@ -17,6 +17,7 @@
     "selectRow": "Sélectionner cette ligne",
     "selectAll": "Sélectionner toutes les lignes de cette page",
     "toggleDetails": "Afficher les détails",
-    "search": "Rechercher…"
+    "search": "Rechercher…",
+    "clear": "Effacer"
   }
 }

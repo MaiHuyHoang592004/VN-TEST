@@ -41,8 +41,11 @@ export function AnalyticsPeriodControl({ period }: { period: TimePeriod }) {
           <Button
             key={p}
             size="sm"
-            // Selected is a FILL, never an underline.
+            // Selected is a FILL, never an underline — and a fill is colour,
+            // so the state is spoken too. These are filters, not links, which
+            // is why it is aria-pressed and not aria-current.
             variant={period === p ? "secondary" : "ghost"}
+            aria-pressed={period === p}
             onClick={() => setParams({ period: p, from: "", to: "" })}
           >
             {t(`analytics.periods.${p}`)}

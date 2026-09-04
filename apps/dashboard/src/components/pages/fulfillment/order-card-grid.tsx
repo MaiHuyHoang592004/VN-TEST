@@ -225,11 +225,12 @@ function OrderCard({
               <Button
                 variant="outline"
                 size="icon-lg"
+                aria-label={t("fulfillment.card.moreMoves")}
                 disabled={pending || options.length === 0}
               />
             }
           >
-            <ChevronDown className="size-4" />
+            <ChevronDown aria-hidden="true" className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {options.map((s) => (

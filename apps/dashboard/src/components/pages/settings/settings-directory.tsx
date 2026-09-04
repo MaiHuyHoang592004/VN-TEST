@@ -57,7 +57,10 @@ export function SettingsDirectory() {
             <li key={entry.key} className="border-b border-(--border-hairline) last:border-b-0">
               <Link
                 href={entry.href}
-                aria-label={`${t(`settings.links.${entry.key}.title`)} — ${t("settings.open")}`}
+                // No aria-label here: it REPLACED the row's own accessible
+                // name, so the second line describing the section was never
+                // announced. The row's content is its name; "open" is appended
+                // below as sr-only text instead.
                 // Hover DARKENS: the row sits on white, so the hover step is
                 // the palest sky rung, never a lighter tint.
                 className="flex items-center gap-4 px-5 py-4 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-(--surface-inset) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
@@ -73,6 +76,7 @@ export function SettingsDirectory() {
                     {t(`settings.links.${entry.key}.body`)}
                   </span>
                 </span>
+                <span className="sr-only">{t("settings.open")}</span>
                 <ChevronRight
                   aria-hidden="true"
                   className="size-4 shrink-0 stroke-(--text-label) rtl:rotate-180"

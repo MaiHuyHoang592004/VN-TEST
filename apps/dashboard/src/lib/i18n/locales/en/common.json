@@ -17,6 +17,7 @@
     "selectRow": "Select this row",
     "selectAll": "Select all rows on this page",
     "toggleDetails": "Show details",
-    "search": "Search…"
+    "search": "Search…",
+    "clear": "Clear"
   }
 }

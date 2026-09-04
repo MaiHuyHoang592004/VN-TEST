@@ -51,7 +51,8 @@
     "filled": "Đã đủ",
     "progress": "Đã làm",
     "fill": "Ghi nhận",
-    "fillAmount": "Số lượng thêm"
+    "fillAmount": "Số lượng thêm",
+    "moreMoves": "Thêm thao tác trạng thái"
   },
   "fill": {
     "basket": "Đã đặt vào giỏ {name}."

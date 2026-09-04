@@ -14,7 +14,10 @@
  * swipe left (touch) reveals a destructive button, long-press (touch) reveals
  * the same one for people who don't know the swipe, and a hover/focus trash
  * covers mouse and keyboard. The reveal-then-tap IS the confirmation — there
- * is no undo, so nothing deletes on the first gesture alone.
+ * is no undo, so nothing deletes on the first gesture alone. That last clause
+ * used to be false for a POINTER, where hovering a row revealed a trash that
+ * deleted on the first click; the pointer's trash now ARMS a labelled
+ * destructive button, the same two steps in the shape a mouse expects.
  *
  * Local state updates first and the server write follows un-awaited, the same
  * contract the bell panel keeps: the column responds now, the round trip catches
@@ -156,11 +159,35 @@ export function NotificationsList({
     if (n.href) router.push(n.href);
   };
 
+  /**
+   * The optimistic delete, with the failure path it was missing.
+   *
+   * The row left the column before the server was asked and the success toast
+   * fired regardless, so a failed write left a confirmation, a vanished row,
+   * and the row back again on the next load. The write is caught now: the row
+   * goes back where it was and the toast says so.
+   *
+   * The second step for a POINTER lives in <Row>: the hover trash arms, it does
+   * not delete. Nothing here deletes on a first gesture, on any input.
+   */
   const deleteRow = (id: string) => {
+    const index = items.findIndex((n) => n.id === id);
+    const row = items[index];
+    if (!row) return;
+
     setOpenId((cur) => (cur === id ? null : cur));
     setItems((prev) => prev.filter((n) => n.id !== id));
-    void deleteNotificationAction(id);
-    toast.success(t("notifications.deleted"));
+
+    void deleteNotificationAction(id)
+      .then(() => toast.success(t("notifications.deleted")))
+      .catch(() => {
+        setItems((prev) =>
+          prev.some((n) => n.id === row.id)
+            ? prev
+            : [...prev.slice(0, index), row, ...prev.slice(index)],
+        );
+        toast.error(t("notifications.deleteFailed"));
+      });
   };
 
   // Deleting rows never invalidates the cursor: it is an id bound, not an
@@ -183,19 +210,26 @@ export function NotificationsList({
 
   return (
     <div>
+      {/* No <h1> here. NotificationsHeader's PageHeader is already the page's
+          heading, and a second one repeating the same words is two h1s and the
+          title printed twice. What is left is the count and the bulk action. */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-semibold">{t("notifications.title")}</h1>
+        {/* The count changes with no navigation, so it announces itself —
+            otherwise "Mark all read" is silence to a screen reader. */}
+        <p aria-live="polite" className="min-h-6">
           {unread > 0 && (
             <span className="bg-action-500/15 text-action-500 rounded-full px-1.5 py-0.5 text-[11px] font-medium">
               {unread} {t("notifications.unread")}
             </span>
           )}
-        </div>
+        </p>
+        {/* Real padding: this was a bare inline-flex about 16px tall, under the
+            24x24 pointer-target floor WCAG 2.2 sets. */}
         <button
+          type="button"
           onClick={markAllRead}
           disabled={unread === 0}
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-sm text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+          className="text-muted-foreground hover:text-foreground inline-flex min-h-8 items-center gap-1 rounded-(--radius-pill) px-2.5 py-1.5 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
         >
           <CheckCheck className="size-3.5" />
           {t("notifications.markAllRead")}
@@ -225,7 +259,7 @@ export function NotificationsList({
           type="button"
           onClick={toggleUnreadOnly}
           aria-pressed={unreadOnly}
-          className={`rounded-(--radius-pill) border px-2 py-0.5 text-(length:--fs-micro) font-semibold transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
+          className={`inline-flex min-h-8 items-center rounded-(--radius-pill) border px-3 py-1.5 text-(length:--fs-micro) font-semibold transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
             unreadOnly
               ? "border-transparent bg-sky-200 text-navy-700"
               : "border-(--border-hairline) text-navy-500 hover:bg-sky-100 hover:text-navy-700"
@@ -290,6 +324,16 @@ function Row({
   const { t } = useTranslation();
   /** Live translate while a finger is on the column; null = settled. */
   const [drag, setDrag] = useState<number | null>(null);
+  /**
+   * The POINTER's reveal.
+   *
+   * Touch has two steps already — swipe or long-press reveals a destructive
+   * button and the tap on THAT is the confirmation. A mouse had one: hover the
+   * column, click the trash, gone, with only a toast afterwards. So the trash
+   * arms rather than deletes, and the armed control is a labelled destructive
+   * button; leaving the row, blurring it or pressing Escape disarms it.
+   */
+  const [armed, setArmed] = useState(false);
   const gesture = useRef<Gesture | null>(null);
   // A drag or long-press still ends in a click event; this eats it so the column
   // doesn't also navigate.
@@ -443,16 +487,43 @@ function Row({
         </button>
       </div>
 
-      {/* The mouse's and keyboard's path to the same delete. Hidden where the
-          pointer is a finger — swipe and long-press own that surface. */}
-      <button
-        type="button"
-        aria-label={t("notifications.delete")}
-        onClick={() => onDelete(n.id)}
-        className="text-muted-foreground hover:text-destructive border-border bg-background absolute top-1/2 right-3 -translate-y-1/2 rounded-md border p-2 opacity-0 shadow-sm transition-opacity group-hover/column:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:hidden"
+      {/* The mouse's and keyboard's path to the same delete, in the same two
+          steps the finger gets. Hidden where the pointer IS a finger — swipe
+          and long-press own that surface. */}
+      <div
+        onMouseLeave={() => setArmed(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Escape" && armed) {
+            e.stopPropagation();
+            setArmed(false);
+          }
+        }}
+        className="absolute top-1/2 right-3 -translate-y-1/2 pointer-coarse:hidden"
       >
-        <Trash2 className="size-3.5" />
-      </button>
+        {armed ? (
+          <button
+            type="button"
+            // Focus follows the reveal, so the keyboard path is two presses
+            // rather than a hidden second control to hunt for.
+            autoFocus
+            onClick={() => onDelete(n.id)}
+            onBlur={() => setArmed(false)}
+            className="bg-destructive inline-flex min-h-8 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Trash2 className="size-3.5" />
+            {t("notifications.confirmDelete")}
+          </button>
+        ) : (
+          <button
+            type="button"
+            aria-label={t("notifications.delete")}
+            onClick={() => setArmed(true)}
+            className="text-muted-foreground hover:text-destructive border-border bg-background rounded-md border p-2 opacity-0 shadow-sm transition-opacity group-hover/column:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

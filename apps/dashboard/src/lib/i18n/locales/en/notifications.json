@@ -98,5 +98,7 @@
       "title": "{from} requested a {kind}",
       "body": "{amount} is waiting for approval."
     }
-  }
+  },
+  "confirmDelete": "Delete",
+  "deleteFailed": "Couldn't delete that notification."
 }

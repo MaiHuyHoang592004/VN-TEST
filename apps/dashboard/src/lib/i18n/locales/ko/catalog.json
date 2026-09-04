@@ -156,6 +156,7 @@
     "listView": "목록 보기",
     "empty": "아직 주문 가능한 제품이 없습니다.",
     "emptyFiltered": "검색과 일치하는 제품이 없습니다.",
-    "option": "개 옵션"
+    "option": "개 옵션",
+    "resultCount": "제품 {count}개"
   }
 }

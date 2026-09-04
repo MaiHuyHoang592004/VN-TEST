@@ -53,7 +53,9 @@ export function Station() {
   }, []);
 
   return (
-    <div className="pb-28">
+    // Clears the action bar, which is taller below `md` because it reserves a
+    // band for the floating mobile dock (see station-actions.tsx).
+    <div className="pb-48 md:pb-28">
       <header className="mb-6">
         <h1 className="font-display text-(length:--fs-display-sm) leading-(--lh-heading) font-(--fw-display) text-(--text-strong)">
           {t("fulfillment.station.title")}

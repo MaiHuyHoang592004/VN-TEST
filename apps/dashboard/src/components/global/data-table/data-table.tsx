@@ -1,6 +1,12 @@
 "use client";
 
-import { Fragment, useState, type ReactNode } from "react";
+import {
+  Fragment,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from "react";
 import { ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -31,6 +37,25 @@ import {
  * definitions, selection and the three empty/loading/error states. A library
  * would add a dependency and a second mental model for less than it gives back.
  */
+
+/**
+ * Anything that is itself operable and therefore owns its own click.
+ *
+ * The desktop path guards the checkbox and expander cells with an explicit
+ * stopPropagation, but a `mobileCard` is rendered by the page and can hold any
+ * number of buttons and links, none of which can be reached from here to guard
+ * individually. So the row asks the event instead: a click that started inside
+ * something operable is that thing's click, not the row's.
+ */
+const INTERACTIVE_SELECTOR =
+  'a[href],button,input,select,textarea,label,[role="button"],[role="link"],[role="checkbox"],[role="menuitem"],[contenteditable="true"]';
+
+function isInteractiveTarget(e: ReactMouseEvent<HTMLElement>): boolean {
+  if (!(e.target instanceof Element)) return false;
+  const hit = e.target.closest(INTERACTIVE_SELECTOR);
+  // The row wrapper itself may carry role="button"; it is the row, not a child.
+  return hit !== null && hit !== e.currentTarget;
+}
 
 export type Column<T> = {
   /** Stable key; also the sort key sent to the server when `sortable`. */
@@ -74,6 +99,14 @@ export type DataTableProps<T> = {
   footer?: ReactNode;
 
   onRowClick?: (row: T) => void;
+
+  /**
+   * A name for this row, used to build the selection checkbox's accessible
+   * name. Without it fifty rows announce the same phrase fifty times, and a
+   * screen-reader user has nothing tying a checkbox to the row it selects.
+   * Falls back to the generic label when a page does not pass one.
+   */
+  rowLabel?: (row: T) => string;
 
   /**
    * Render each row as a CARD on phones instead of a table.
@@ -121,6 +154,7 @@ export function DataTable<T>({
   toolbar,
   footer,
   onRowClick,
+  rowLabel,
   mobileCard,
   renderExpanded,
   expandLabel,
@@ -152,6 +186,29 @@ export function DataTable<T>({
     if (next.has(id)) next.delete(id);
     else next.add(id);
     onSelectedChange!(next);
+  };
+
+  const selectLabel = (row: T) => {
+    const generic = t("common.table.selectRow");
+    const name = rowLabel?.(row);
+    return name ? `${generic}: ${name}` : generic;
+  };
+
+  // A clickable row must be operable without a mouse. Enter/Space only when the
+  // row itself holds focus — a key pressed inside a control in the row belongs
+  // to that control.
+  const rowKeyDown = (row: T) => (e: ReactKeyboardEvent<HTMLElement>) => {
+    if (!onRowClick) return;
+    if (e.target !== e.currentTarget) return;
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    onRowClick(row);
+  };
+
+  const rowClick = (row: T) => (e: ReactMouseEvent<HTMLElement>) => {
+    if (!onRowClick) return;
+    if (isInteractiveTarget(e)) return;
+    onRowClick(row);
   };
 
   const nextSortFor = (id: string): SortState => {
@@ -194,13 +251,20 @@ export function DataTable<T>({
                       <Checkbox
                         checked={selected!.has(id)}
                         onCheckedChange={() => toggleOne(id)}
-                        aria-label={t("common.table.selectRow")}
+                        aria-label={selectLabel(row)}
                         className="mt-1 shrink-0"
                       />
                     )}
                     <div
-                      className="min-w-0 flex-1"
-                      onClick={onRowClick ? () => onRowClick(row) : undefined}
+                      className={cn(
+                        "min-w-0 flex-1",
+                        onRowClick &&
+                          "cursor-pointer rounded-(--radius-xs) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none",
+                      )}
+                      role={onRowClick ? "button" : undefined}
+                      tabIndex={onRowClick ? 0 : undefined}
+                      onClick={onRowClick ? rowClick(row) : undefined}
+                      onKeyDown={onRowClick ? rowKeyDown(row) : undefined}
                     >
                       {mobileCard(row)}
                     </div>
@@ -326,9 +390,12 @@ export function DataTable<T>({
                   <Fragment key={id}>
                     <TableRow
                       data-state={isSelected ? "selected" : undefined}
-                      onClick={onRowClick ? () => onRowClick(row) : undefined}
+                      onClick={onRowClick ? rowClick(row) : undefined}
+                      onKeyDown={onRowClick ? rowKeyDown(row) : undefined}
+                      tabIndex={onRowClick ? 0 : undefined}
                       className={cn(
-                        onRowClick && "cursor-pointer",
+                        onRowClick &&
+                          "cursor-pointer focus-visible:shadow-(--shadow-focus) focus-visible:outline-none",
                         // The open row and its panel read as one object, so the
                         // row takes the panel's ground rather than the stripe.
                         isOpen && "bg-sky-50 hover:bg-sky-50",
@@ -342,7 +409,7 @@ export function DataTable<T>({
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={() => toggleOne(id)}
-                            aria-label={t("common.table.selectRow")}
+                            aria-label={selectLabel(row)}
                           />
                         </TableCell>
                       )}

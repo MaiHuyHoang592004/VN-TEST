@@ -98,5 +98,7 @@
       "title": "{from} đã gửi yêu cầu {kind}",
       "body": "{amount} đang chờ duyệt."
     }
-  }
+  },
+  "confirmDelete": "Xoá",
+  "deleteFailed": "Không xoá được thông báo đó."
 }

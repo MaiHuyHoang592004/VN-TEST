@@ -7,6 +7,9 @@
  * sheet header wants, `variant="row"` is the compact row the desktop avatar
  * menu wants. One component so the team you picked is the team you see.
  *
+ * There is no "Create team" item: it carried no onClick, so clicking it closed
+ * the menu and did nothing. It comes back with the route that creates a team.
+ *
  * ponytail: TEAMS is dummy data — wire to a real teams table later, at which
  * point the selection needs to live somewhere other than component state.
  */
@@ -14,7 +17,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -22,10 +25,8 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useTranslation } from "@/lib/i18n";
 
 const TEAMS = [
   { id: "personal", name: "HoangMh's projects", plan: "Hobby" },
@@ -33,7 +34,6 @@ const TEAMS = [
 ];
 
 export function TeamSwitcher({ variant = "block" }: { variant?: "block" | "row" }) {
-  const { t } = useTranslation();
   const [teamId, setTeamId] = useState(TEAMS[0].id);
   const team = TEAMS.find((x) => x.id === teamId) ?? TEAMS[0];
 
@@ -76,11 +76,6 @@ export function TeamSwitcher({ variant = "block" }: { variant?: "block" | "row" 
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem>
-          <Plus className="size-4" />
-          <span>{t("sidebar.createTeam")}</span>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

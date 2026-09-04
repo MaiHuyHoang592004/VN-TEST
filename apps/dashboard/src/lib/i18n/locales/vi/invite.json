@@ -1,0 +1,22 @@
+{
+  "title": "Bạn được mời",
+  "subtitle": "tham gia GWPrintz với tư cách",
+  "email": "Email",
+  "role": "Vai trò",
+  "expires": "Hết hạn",
+  "accept": "Chấp nhận lời mời",
+  "accepting": "Đang xử lý…",
+  "welcome": "Chào mừng bạn",
+  "signInPrompt": "Đăng nhập bằng địa chỉ này để chấp nhận. Chưa có tài khoản? Tạo một tài khoản với địa chỉ đó, bạn sẽ quay lại đây ngay.",
+  "signIn": "Đăng nhập để chấp nhận",
+  "wrongAccount": "Lời mời này dành cho {invited}, nhưng bạn đang đăng nhập bằng {current}.",
+  "wrongAccountHint": "Đăng xuất rồi đăng nhập lại bằng địa chỉ được mời để chấp nhận.",
+  "signOut": "Đăng xuất",
+  "unavailable": "Lời mời không dùng được",
+  "askAgain": "Hãy nhờ người mời gửi lại một lời mời mới.",
+  "goHome": "Về GWPrintz",
+  "errNotFound": "Liên kết mời này không hợp lệ.",
+  "errUsed": "Lời mời này đã được sử dụng.",
+  "errExpired": "Lời mời này đã hết hạn.",
+  "errWrongAccount": "Bạn đang đăng nhập bằng email khác."
+}

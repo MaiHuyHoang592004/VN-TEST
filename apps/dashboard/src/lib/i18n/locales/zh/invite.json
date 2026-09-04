@@ -1,0 +1,22 @@
+{
+  "title": "您受邀加入",
+  "subtitle": "加入 GWPrintz，身份为",
+  "email": "邮箱",
+  "role": "角色",
+  "expires": "到期",
+  "accept": "接受邀请",
+  "accepting": "处理中…",
+  "welcome": "欢迎加入",
+  "signInPrompt": "请使用该邮箱登录以接受邀请。还没有账户？用该邮箱注册，之后会直接回到这里。",
+  "signIn": "登录以接受",
+  "wrongAccount": "此邀请发给 {invited}，但您当前以 {current} 登录。",
+  "wrongAccountHint": "请退出后使用受邀邮箱重新登录。",
+  "signOut": "退出登录",
+  "unavailable": "邀请不可用",
+  "askAgain": "请邀请人重新发送一份。",
+  "goHome": "前往 GWPrintz",
+  "errNotFound": "此邀请链接无效。",
+  "errUsed": "此邀请已被使用。",
+  "errExpired": "此邀请已过期。",
+  "errWrongAccount": "您使用的是其他邮箱登录。"
+}

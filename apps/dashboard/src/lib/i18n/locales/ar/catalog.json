@@ -156,6 +156,7 @@
     "listView": "عرض قائمة",
     "empty": "لا يوجد شيء متاح للطلب بعد.",
     "emptyFiltered": "لا توجد منتجات تطابق البحث.",
-    "option": "خيار"
+    "option": "خيار",
+    "resultCount": "{count} منتج"
   }
 }

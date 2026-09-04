@@ -1,6 +1,9 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+
+import { useLocaleRouter } from "@/lib/i18n/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,11 +16,24 @@ import { TIME_PERIODS, type TimePeriod } from "@/lib/time-period";
  *
  * It writes to the URL and lets the server re-render: the numbers are computed
  * where the data is, and a chosen window can be shared as a link.
+ *
+ * The buttons are FILTERS, not navigation, so the selected one carries
+ * `aria-pressed` — the variant swap is colour, and colour alone is not a state.
+ *
+ * The push runs in a transition and the strip dims while the server re-renders:
+ * every one of these buttons re-renders the whole page, and without a pending
+ * signal a slow period reads as a dead click.
+ *
+ * The destination comes from usePathname(), not a literal "/": the control is
+ * mounted by the home page today, but a hardcoded path is how a control
+ * silently navigates away from the page it is sitting on.
  */
 export function PeriodControl({ period }: { period: TimePeriod }) {
-  const router = useRouter();
+  const router = useLocaleRouter();
+  const pathname = usePathname();
   const params = useSearchParams();
   const { t } = useTranslation();
+  const [pending, startTransition] = useTransition();
 
   const setParams = (patch: Record<string, string>) => {
     const next = new URLSearchParams(params.toString());
@@ -25,17 +41,26 @@ export function PeriodControl({ period }: { period: TimePeriod }) {
       if (value) next.set(key, value);
       else next.delete(key);
     }
-    router.push(`/?${next.toString()}`);
+    startTransition(() => {
+      router.push(`${pathname}?${next.toString()}`, { scroll: false });
+    });
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    // Dimmed, not disabled: disabling the button the pointer is on would drop
+    // focus to <body> in the middle of the interaction.
+    <div
+      aria-busy={pending}
+      data-pending={pending ? "" : undefined}
+      className="flex flex-wrap items-center gap-2 transition-opacity duration-(--dur-fast) data-pending:opacity-60 motion-reduce:transition-none"
+    >
       <div className="border-border flex flex-wrap gap-1 rounded-md border p-1">
         {TIME_PERIODS.filter((p) => p !== "custom").map((p) => (
           <Button
             key={p}
             size="sm"
             variant={period === p ? "secondary" : "ghost"}
+            aria-pressed={period === p}
             onClick={() => setParams({ period: p, from: "", to: "" })}
           >
             {t(`home.periods.${p}`)}

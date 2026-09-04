@@ -17,6 +17,7 @@
     "selectRow": "选择此行",
     "selectAll": "选择本页所有行",
     "toggleDetails": "查看详情",
-    "search": "搜索…"
+    "search": "搜索…",
+    "clear": "清除"
   }
 }

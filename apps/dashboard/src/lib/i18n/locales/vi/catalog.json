@@ -156,6 +156,7 @@
     "listView": "Dạng danh sách",
     "empty": "Chưa có sản phẩm nào để đặt.",
     "emptyFiltered": "Không có sản phẩm nào khớp.",
-    "option": "tùy chọn"
+    "option": "tùy chọn",
+    "resultCount": "{count} sản phẩm"
   }
 }

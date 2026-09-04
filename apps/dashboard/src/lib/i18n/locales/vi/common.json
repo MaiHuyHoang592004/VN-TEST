@@ -17,6 +17,7 @@
     "selectRow": "Chọn dòng này",
     "selectAll": "Chọn tất cả dòng trên trang này",
     "toggleDetails": "Xem chi tiết",
-    "search": "Tìm kiếm…"
+    "search": "Tìm kiếm…",
+    "clear": "Xoá bộ lọc"
   }
 }

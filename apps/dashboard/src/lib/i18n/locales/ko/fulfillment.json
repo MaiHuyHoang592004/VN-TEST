@@ -51,7 +51,8 @@
     "filled": "완료",
     "progress": "제작됨",
     "fill": "등록",
-    "fillAmount": "추가할 수량"
+    "fillAmount": "추가할 수량",
+    "moreMoves": "다른 상태 변경"
   },
   "fill": {
     "basket": "선반 {name}에 두었습니다."

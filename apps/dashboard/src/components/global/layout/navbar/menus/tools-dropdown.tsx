@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LineChart, Wallet } from "lucide-react";
 import { LocaleLink as Link } from "@/lib/i18n/navigation";
 import {
@@ -20,6 +20,15 @@ export function ToolsDropdown() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // A fast route change can unmount this between the leave and the timer, and
+  // the pending setOpen then fires on a dead component.
+  useEffect(
+    () => () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    },
+    [],
+  );
 
   const handleMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

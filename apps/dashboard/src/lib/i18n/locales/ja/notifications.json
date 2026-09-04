@@ -98,5 +98,7 @@
       "title": "{from} が {kind} を申請しました",
       "body": "{amount} が承認待ちです。"
     }
-  }
+  },
+  "confirmDelete": "削除する",
+  "deleteFailed": "その通知を削除できませんでした。"
 }

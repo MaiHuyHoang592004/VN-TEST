@@ -51,7 +51,8 @@
     "filled": "Complet",
     "progress": "Fabriqué",
     "fill": "Ajouter",
-    "fillAmount": "Quantité à ajouter"
+    "fillAmount": "Quantité à ajouter",
+    "moreMoves": "Autres changements de statut"
   },
   "fill": {
     "basket": "Rangé dans l'emplacement {name}."

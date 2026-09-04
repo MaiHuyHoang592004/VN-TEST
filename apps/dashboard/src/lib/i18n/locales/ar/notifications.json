@@ -98,5 +98,7 @@
       "title": "{from} قدّم طلب {kind}",
       "body": "{amount} بانتظار الموافقة."
     }
-  }
+  },
+  "confirmDelete": "حذف",
+  "deleteFailed": "تعذّر حذف هذا الإشعار."
 }

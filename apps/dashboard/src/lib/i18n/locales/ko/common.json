@@ -17,6 +17,7 @@
     "selectRow": "이 행 선택",
     "selectAll": "이 페이지의 모든 행 선택",
     "toggleDetails": "세부 정보 보기",
-    "search": "검색…"
+    "search": "검색…",
+    "clear": "초기화"
   }
 }

@@ -1,0 +1,22 @@
+{
+  "title": "招待が届いています",
+  "subtitle": "GWPrintz への参加（役割：",
+  "email": "メールアドレス",
+  "role": "役割",
+  "expires": "有効期限",
+  "accept": "招待を承認",
+  "accepting": "処理中…",
+  "welcome": "ようこそ",
+  "signInPrompt": "このアドレスでサインインすると承認できます。アカウントがない場合は同じアドレスで作成すると、ここに戻ります。",
+  "signIn": "サインインして承認",
+  "wrongAccount": "この招待は {invited} 宛ですが、現在 {current} でサインインしています。",
+  "wrongAccountHint": "サインアウトし、招待されたアドレスでサインインし直してください。",
+  "signOut": "サインアウト",
+  "unavailable": "招待を利用できません",
+  "askAgain": "招待した方に新しい招待を依頼してください。",
+  "goHome": "GWPrintz へ",
+  "errNotFound": "この招待リンクは無効です。",
+  "errUsed": "この招待はすでに使用されています。",
+  "errExpired": "この招待は期限切れです。",
+  "errWrongAccount": "別のメールアドレスでサインインしています。"
+}

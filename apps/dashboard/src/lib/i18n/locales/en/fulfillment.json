@@ -51,7 +51,8 @@
     "filled": "Filled",
     "progress": "Made",
     "fill": "Fill",
-    "fillAmount": "How many to add"
+    "fillAmount": "How many to add",
+    "moreMoves": "More status moves"
   },
   "fill": {
     "basket": "Staged in basket {name}."

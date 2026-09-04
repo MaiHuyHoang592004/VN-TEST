@@ -219,6 +219,14 @@ export function OrdersTable({
   const selectedIds = useMemo(() => [...selected].map(Number), [selected]);
   const clearSelection = () => setSelected(new Set());
 
+  // Who may see money on this table. `canCharge` is the platform side; the
+  // second is the seller side, recognised by SCOPE rather than by role name —
+  // a viewer who can read only their own orders can only ever be looking at
+  // their own money.
+  const canCharge = can("orders.assign");
+  const ownScopeOnly =
+    can("orders.read.own") && !can("orders.read.customer") && !can("orders.read.all");
+
   const status = params.get("status");
   const hasFilters = Boolean(params.get("q") || status);
 
@@ -434,34 +442,52 @@ export function OrdersTable({
         </span>
       ),
     },
-    // Money is gated: a customer packer has no business seeing what a seller
-    // was charged. Dropped from the row list entirely rather than rendered
-    // blank, so the table has no empty row hinting at hidden data.
-    {
-      id: "cost",
-      header: t("orders.colCostShip"),
-      className: "text-right tabular-nums",
-      hideOnMobile: true,
-      // NO LONGER gated on orders.assign. The seller's wallet is charged both
-      // the base cost and the shipping, so hiding the two figures hid what the
-      // seller was billed — from the person billed. Both are their own order's
-      // fields, read through the same scope as the rest of the row, so this
-      // exposes nothing that was not already theirs.
-      cell: (o: OrderRow) => (
-        <div className="whitespace-nowrap">
-          <p className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono) text-(--text-body)">
-            {money(o.baseCost)}
-          </p>
-          {/* A bought label costs what the carrier charged; before that it is
-              an ESTIMATE and says so, because the two are not the same promise. */}
-          {o.shipCost ? (
-            <p className="font-mono text-(length:--fs-micro) tracking-(--ls-mono) text-(--text-muted)">
-              + {money(o.shipCost)}
-            </p>
-          ) : null}
-        </div>
-      ),
-    } satisfies Column<OrderRow>,
+    // MONEY IS GATED, and the gate has two doors rather than one.
+    //
+    // It briefly had none. Dropping the orders.assign check to "show sellers
+    // what they were billed" also handed the column to every other role that
+    // can read orders — and orders.assign is exactly the permission WAREHOUSE,
+    // SUPPORT and DESIGNER lack (libs/shared/src/access/permissions.ts). A
+    // packer would have seen the charge on every seller shipping through their
+    // site; a designer, on every order on the platform. permissions.test.ts
+    // asserts that in as many words: "line staff cannot charge".
+    //
+    // So: staff who CHARGE see it (orders.assign), and the seller BEING charged
+    // sees it — recognised by scope, not by role name. Somebody whose read
+    // scope is their own orders and nothing wider is, definitionally, only ever
+    // looking at their own money.
+    ...(canCharge || ownScopeOnly
+      ? [
+          {
+            // Header follows what is actually in the column: a seller sees one
+            // figure, so promising "+ ship" would be a header describing a line
+            // that never renders for them.
+            id: "cost",
+            header: canCharge ? t("orders.colCostShip") : t("orders.colCost"),
+            className: "text-right tabular-nums",
+            hideOnMobile: true,
+            cell: (o: OrderRow) => (
+              <div className="whitespace-nowrap">
+                <p className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono) text-(--text-body)">
+                  {money(o.baseCost)}
+                </p>
+                {/* SHIPPING IS NOT THE SELLER'S LINE. Shipment.cost is what the
+                    carrier charged the PLATFORM when the label was bought —
+                    modules/fulfillment/labels/purchase.ts writes it to the
+                    shipment and creates no seller transaction; the seller is
+                    debited baseCost alone (orders/service/assign.ts). Showing
+                    it to them under their own cost would be presenting the
+                    platform's expense as their bill. */}
+                {canCharge && o.shipCost ? (
+                  <p className="font-mono text-(length:--fs-micro) tracking-(--ls-mono) text-(--text-muted)">
+                    + {money(o.shipCost)}
+                  </p>
+                ) : null}
+              </div>
+            ),
+          } satisfies Column<OrderRow>,
+        ]
+      : []),
     // The floor's row. Only for people who actually work orders — a seller
     // has no scanner and no printer in this loop, so the row would be a
     // decoration that costs them horizontal space.
@@ -582,6 +608,7 @@ export function OrdersTable({
           rows={rows}
           columns={columns}
           rowId={(o) => String(o.id)}
+          rowLabel={(o) => o.externalId ?? `#${o.id}`}
           mobileCard={(o) => (
             <OrderMobileCard
               order={o}

@@ -156,6 +156,7 @@
     "listView": "リスト表示",
     "empty": "注文できる商品はまだありません。",
     "emptyFiltered": "該当する商品がありません。",
-    "option": "種類"
+    "option": "種類",
+    "resultCount": "{count} 件の製品"
   }
 }

@@ -17,6 +17,7 @@
     "selectRow": "この行を選択",
     "selectAll": "このページの全行を選択",
     "toggleDetails": "詳細を表示",
-    "search": "検索…"
+    "search": "検索…",
+    "clear": "クリア"
   }
 }

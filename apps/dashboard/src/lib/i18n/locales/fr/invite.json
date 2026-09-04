@@ -1,0 +1,22 @@
+{
+  "title": "Vous êtes invité",
+  "subtitle": "à rejoindre GWPrintz en tant que",
+  "email": "E-mail",
+  "role": "Rôle",
+  "expires": "Expire le",
+  "accept": "Accepter l'invitation",
+  "accepting": "Acceptation…",
+  "welcome": "Bienvenue",
+  "signInPrompt": "Connectez-vous avec cette adresse pour accepter. Pas encore de compte ? Créez-en un avec cette adresse, vous reviendrez ici directement.",
+  "signIn": "Se connecter pour accepter",
+  "wrongAccount": "Cette invitation est destinée à {invited}, mais vous êtes connecté en tant que {current}.",
+  "wrongAccountHint": "Déconnectez-vous puis reconnectez-vous avec l'adresse invitée.",
+  "signOut": "Se déconnecter",
+  "unavailable": "Invitation indisponible",
+  "askAgain": "Demandez à la personne qui vous a invité d'en envoyer une nouvelle.",
+  "goHome": "Aller sur GWPrintz",
+  "errNotFound": "Ce lien d'invitation n'est pas valide.",
+  "errUsed": "Cette invitation a déjà été utilisée.",
+  "errExpired": "Cette invitation a expiré.",
+  "errWrongAccount": "Vous êtes connecté avec une autre adresse e-mail."
+}

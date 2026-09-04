@@ -5,6 +5,7 @@ import { getSessionUser } from "@/modules/core/session";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AcceptInvite } from "@/components/pages/invite/accept-invite";
+import { GwpMark, Surface } from "@/components/ds";
 
 /**
  * The page the emailed invitation link opens.
@@ -22,9 +23,17 @@ export default async function InvitePage({
   const { token } = await params;
   const [result, viewer] = await Promise.all([peekInvite(token), getSessionUser()]);
 
+  // A single centred white card on the sky ground, with the brand mark above
+  // it — the DS's system-page composition. Sky is the page, so the card is the
+  // only surface here and it does not need a second one behind it.
   const shell = (children: React.ReactNode) => (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-5 px-6 py-24">
-      {children}
+      <span className="flex justify-center">
+        <GwpMark size={40} tone="sky" />
+      </span>
+      <Surface radius="card" shadow="lg" className="flex flex-col gap-5">
+        {children}
+      </Surface>
     </main>
   );
 
@@ -36,8 +45,10 @@ export default async function InvitePage({
     }[result.error];
     return shell(
       <>
-        <h1 className="text-2xl font-medium">Invitation unavailable</h1>
-        <p className="text-muted-foreground text-sm">
+        <h1 className="font-display text-(length:--fs-display-sm) leading-(--lh-heading) font-(--fw-display) text-(--text-strong)">
+          Invitation unavailable
+        </h1>
+        <p className="text-(length:--fs-body-sm) text-(--text-muted)">
           {copy} Ask whoever invited you to send a new one.
         </p>
         <Button render={<Link href="/" />} className="self-start">

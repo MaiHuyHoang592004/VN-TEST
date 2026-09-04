@@ -1,26 +1,20 @@
 /**
  * The settings card every profile section is built from: title, description,
- * body, and a muted footer holding the hint and the action.
+ * body, and a quiet footer holding the hint and the action.
  *
- * Built on the house <Card>, which carries the Vercel chrome: a 1px hairline
- * ring on `--border`, and a fill identical to the page. Geist has no lifted-card
- * step — the ring is the ONLY thing separating a card from the page, which is
- * why it points at the shared border token rather than a hand-picked alpha.
+ * Built from the DS layer rather than re-implementing a panel: `Surface` is the
+ * white data rung of the SKY → SHELL → WHITE ladder, and `SectionHeading` is the
+ * app's one heading treatment, so a section title here is the same display type
+ * as one anywhere else. The footer strip sits on the inset rung, divided by a
+ * hairline, so the two read as one surface rather than two boxes.
  *
  * Defined once so five tabs can't drift into five slightly different cards —
- * the same reason the server has one guard.
+ * the same reason the server has one guard. Its props are unchanged.
  */
 import type { ReactNode } from "react";
 
+import { SectionHeading, Surface } from "@/components/ds";
 import { cn } from "@/lib/utils";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export function SettingsCard({
   title,
@@ -40,33 +34,26 @@ export function SettingsCard({
   className?: string;
 }) {
   return (
-    // py-0 removes the house vertical padding so each region owns its own —
-    // which means whichever region is LAST must close the card with pb-6, or
-    // text sits flush against the bottom edge.
-    <Card className={cn("gap-0 py-0", className)}>
-      <CardHeader className={cn("px-6 pt-6", !children && "pb-6")}>
-        <CardTitle className="text-lg font-medium">{title}</CardTitle>
-        {description && (
-          <CardDescription className="mt-1.5 text-sm">
-            {description}
-          </CardDescription>
-        )}
-      </CardHeader>
-
-      {children && (
-        <CardContent className="px-6 pt-5 pb-6">{children}</CardContent>
-      )}
+    // pad={false} because the footer strip must reach the card's edges; each
+    // region owns its own padding instead.
+    <Surface
+      pad={false}
+      radius="card"
+      shadow="xs"
+      className={cn("overflow-hidden", className)}
+    >
+      <div className="px-6 pt-6 pb-6">
+        <SectionHeading title={title} subtitle={description} />
+        {children && <div className="mt-5">{children}</div>}
+      </div>
 
       {(footer || action) && (
-        // Vercel's settings pattern: the card body sits on canvas (white) and
-        // the action bar is a canvas-soft strip divided by a hairline of the
-        // same weight as the card's ring, so the two read as one system.
-        <CardFooter className="border-border bg-muted/50 flex flex-col gap-3 rounded-b-xl border-t px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-muted-foreground text-sm">{footer}</div>
+        <div className="flex flex-col gap-3 border-t border-(--border-hairline) bg-(--surface-inset) px-6 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-(length:--fs-body-sm) text-(--text-muted)">{footer}</div>
           {action && <div className="flex shrink-0 gap-2">{action}</div>}
-        </CardFooter>
+        </div>
       )}
-    </Card>
+    </Surface>
   );
 }
 

@@ -352,10 +352,17 @@ function Row({
         <button
           type="button"
           onClick={click}
-          className={`flex w-full cursor-pointer gap-3 px-4 py-3 text-left transition-colors select-none [-webkit-touch-callout:none] hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none ${
-            n.read ? "" : "bg-accent/30"
-          }`}
+          className="flex w-full cursor-pointer gap-3 px-4 py-3 text-left transition-colors select-none [-webkit-touch-callout:none] hover:bg-sky-50 focus-visible:bg-sky-50 focus-visible:outline-none"
         >
+          {/* Unread is a DOT, not a background tint: a tinted row competes with
+              the status washes the rest of the app uses to mean something, and
+              a whole column of them reads as an alert state nobody chose. */}
+          <span
+            aria-hidden="true"
+            className={`mt-2 size-1.5 shrink-0 rounded-full ${
+              n.read ? "bg-transparent" : "bg-(--status-attention-dot)"
+            }`}
+          />
           <Icon className={`mt-0.5 size-4 shrink-0 ${CATEGORY_COLOR[meta.category]}`} />
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-2">

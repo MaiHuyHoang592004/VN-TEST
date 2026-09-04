@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { MetricCard, StatusBadge } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { SettingsCard, SettingsStack } from "./settings-card";
 import {
@@ -70,16 +70,25 @@ export function BillingPanel({
     {
       id: "type",
       header: t("profile.billing.colType"),
-      cell: (tx) => <Badge variant="secondary">{tx.type.toLowerCase().replace("_", " ")}</Badge>,
+      // A transaction TYPE is not a status: explicit neutral, never toneFor().
+      cell: (tx) => (
+        <StatusBadge status={tx.type} tone="neutral" dot={false}>
+          {tx.type.toLowerCase().replace("_", " ")}
+        </StatusBadge>
+      ),
     },
     {
       id: "amount",
       header: t("profile.billing.colAmount"),
-      className: "text-right tabular-nums",
+      className: "text-right font-mono tracking-(--ls-mono) tabular-nums",
       cell: (tx) => {
         const n = Number(tx.amount);
         return (
-          <span className={n < 0 ? "text-red-600" : "text-green-600"}>
+          <span
+            className={
+              n < 0 ? "text-(--status-critical-fg)" : "text-(--status-success-fg)"
+            }
+          >
             {n >= 0 ? "+" : ""}
             {money(tx.amount)}
           </span>
@@ -89,7 +98,7 @@ export function BillingPanel({
     {
       id: "balanceAfter",
       header: t("profile.billing.colBalanceAfter"),
-      className: "text-right tabular-nums",
+      className: "text-right font-mono tracking-(--ls-mono) tabular-nums",
       hideOnMobile: true,
       cell: (tx) => (tx.balanceAfter ? money(tx.balanceAfter) : "—"),
     },
@@ -97,18 +106,15 @@ export function BillingPanel({
       id: "status",
       header: t("profile.billing.colStatus"),
       hideOnMobile: true,
-      cell: (tx) => (
-        <Badge variant={tx.status === "COMPLETED" ? "default" : "secondary"}>
-          {tx.status.toLowerCase()}
-        </Badge>
-      ),
+      // TransactionStatus IS in STATUS_TONES.
+      cell: (tx) => <StatusBadge status={tx.status}>{tx.status.toLowerCase()}</StatusBadge>,
     },
     {
       id: "note",
       header: t("profile.billing.colNote"),
       hideOnMobile: true,
       cell: (tx) => (
-        <span className="text-muted-foreground line-clamp-1">{tx.note ?? "—"}</span>
+        <span className="line-clamp-1 text-(--text-muted)">{tx.note ?? "—"}</span>
       ),
     },
   ];
@@ -120,24 +126,24 @@ export function BillingPanel({
         description={t("profile.billing.balanceHint")}
       >
         <div className="flex flex-wrap items-end justify-between gap-6">
-        <div className="flex flex-wrap items-baseline gap-6">
-          <div>
-            <p className="text-muted-foreground text-xs uppercase">
-              {t("profile.billing.available")}
-            </p>
-            <p className="mt-1 text-3xl font-medium tabular-nums">{money(balance)}</p>
+          {/* The wallet is the strictest surface in the app for DS rule 4, so
+              the balance is a MetricCard in the display face and every figure
+              beside it is mono. The strings are the server's, untouched — this
+              component never does arithmetic on money. */}
+          <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
+            <MetricCard
+              tone="action"
+              label={t("profile.billing.available")}
+              value={money(balance)}
+            />
+            {Number(debt) > 0 && (
+              <MetricCard
+                tone="critical"
+                label={t("profile.billing.owed")}
+                value={money(debt)}
+              />
+            )}
           </div>
-          {Number(debt) > 0 && (
-            <div>
-              <p className="text-muted-foreground text-xs uppercase">
-                {t("profile.billing.owed")}
-              </p>
-              <p className="text-red-600 mt-1 text-3xl font-medium tabular-nums">
-                {money(debt)}
-              </p>
-            </div>
-          )}
-        </div>
 
           {/* The two things a seller can DO about the number they are reading. */}
           <div className="flex flex-wrap gap-2">

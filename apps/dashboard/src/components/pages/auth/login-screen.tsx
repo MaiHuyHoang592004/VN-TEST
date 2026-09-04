@@ -10,6 +10,7 @@ import { GoogleIcon } from "./google-icon";
 import { PasswordInput } from "./password-input";
 import { useTranslation } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { CraftCut, GwpMark } from "@/components/ds";
 import {
   Card,
   CardContent,
@@ -150,9 +151,17 @@ export function LoginScreen({
   return (
     // min-h fills the viewport below the 60px navbar — footer only appears on scroll
     <main className="relative flex min-h-[calc(100svh-60px)] flex-1 flex-col overflow-hidden px-6 py-16">
-      {/* The mesh and grid backdrops are gone with their Vercel-era utilities
-          (Task 16). Sky is the page now, and the login screen is deliberately
-          left plain: Task 26 rebuilds it as the app's second brand moment. */}
+      {/* The app's second brand moment. Sky is the page; ONE Craft Cut sweeps
+          the sky into the shell along the bottom, and the GwpMark sits above
+          the card. That is two marks on the screen, the DS's per-screen
+          maximum, so nothing else here may add a third. */}
+      <CraftCut
+        className="pointer-events-none absolute inset-x-0 bottom-0"
+        from="var(--surface-canvas-soft)"
+        to="var(--surface-shell)"
+        depth={72}
+        sweep="left"
+      />
 
       <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-14 lg:flex-row lg:items-center lg:justify-between lg:gap-20">
         {/* Brand side — the reason to sign in. Sits above the card on small
@@ -178,7 +187,7 @@ export function LoginScreen({
               { icon: ShieldCheck, key: "secure", tone: "stroke-green-600" },
             ].map(({ icon: Icon, key, tone }) => (
               <li key={key} className="flex items-center gap-3 text-sm">
-                <span className="bg-background/60 flex size-8 shrink-0 items-center justify-center rounded-md border">
+                <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--surface-content)">
                   <Icon className={`size-4 ${tone}`} />
                 </span>
                 {t(`auth.panel.features.${key}`)}
@@ -187,10 +196,16 @@ export function LoginScreen({
           </ul>
         </section>
 
-        {/* Vercel cards sit at canvas tone — depth comes from the hairline ring
-            plus a stacked shadow, never a lifted gray fill (DESIGN-VERCEL.md). */}
-        <Card className="bg-background shadow-ds-5 w-full max-w-sm lg:w-[380px] lg:max-w-none lg:shrink-0">
+        {/* The card is the DS's white data surface floating on sky, with the
+            drawer-weight shadow doing the lifting rather than a ring. */}
+        <Card className="w-full max-w-sm bg-(--surface-data) shadow-(--shadow-lg) lg:w-[380px] lg:max-w-none lg:shrink-0">
         <CardHeader className="text-center">
+          {/* The brand mark above the form — sky, never navy: navy "pulls the
+              brand toward SaaS/admin", which is the look this screen exists to
+              be the opposite of. */}
+          <span className="mx-auto mb-2 flex justify-center">
+            <GwpMark size={40} tone="sky" />
+          </span>
           {/* font-semibold restores the display token's 600: CardTitle's base
               font-medium sets --tw-font-weight, which beats the token default. */}
           <CardTitle className="text-display-md sm:text-display-lg font-semibold text-(--text-strong)">
@@ -284,9 +299,14 @@ export function LoginScreen({
                 {busy ? <Spinner /> : null}
                 {t("nav.login")}
               </Button>
-              <button
+              {/* The third sign-in. Each of the three reads as a different
+                  weight of action: password is the one Action Blue submit,
+                  Google is the outline pill, and the code path is a link. */}
+              <Button
                 type="button"
-                className="text-muted-foreground hover:text-foreground mx-auto text-xs underline-offset-4 transition-colors hover:underline"
+                variant="link"
+                size="sm"
+                className="mx-auto"
                 disabled={busy}
                 onClick={async () => {
                   if (!email) {
@@ -301,7 +321,7 @@ export function LoginScreen({
                 }}
               >
                 {t("auth.useCode")}
-              </button>
+              </Button>
             </form>
           )}
 

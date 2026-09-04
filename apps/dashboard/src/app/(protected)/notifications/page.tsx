@@ -1,5 +1,7 @@
 import { getMyNotificationsPage } from "@/modules/platform/notifications/queries";
 import { NotificationsList } from "@/components/pages/notifications/notifications-list";
+import { NotificationsHeader } from "@/components/pages/notifications/notifications-header";
+import { Page } from "@/components/ds";
 
 /**
  * The archive behind the bell's "View All". The panel is a 30-column glance;
@@ -10,8 +12,9 @@ export default async function NotificationsPage() {
   const { items, nextCursor } = await getMyNotificationsPage();
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+    <Page className="max-w-2xl">
+      <NotificationsHeader />
       <NotificationsList initialItems={items} initialCursor={nextCursor} />
-    </main>
+    </Page>
   );
 }

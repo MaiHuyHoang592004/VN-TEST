@@ -7,12 +7,12 @@
  * :id anyone could pass. The guard tests here are the proof that neither is
  * true any more — the menu being hidden is not evidence.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, can, type UserRole } from "@opcreative/db";
+import { prisma, can, type UserRole } from "@gwprint/db";
 
 import { adminReport, sellerReport, warehouseReport } from "./service.ts";
 import { searchFor } from "../search/service.ts";

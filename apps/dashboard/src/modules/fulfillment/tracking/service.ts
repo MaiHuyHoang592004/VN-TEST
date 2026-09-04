@@ -16,7 +16,7 @@
  */
 import { createHmac, timingSafeEqual } from "node:crypto";
 
-import { prisma } from "@opcreative/db";
+import { prisma } from "@gwprint/db";
 
 import { dispatchWebhook, notify } from "../../platform/index.ts";
 

@@ -111,7 +111,7 @@ A1. STORAGE — modules/core/storage.ts  (the app's first file upload)
     WHY: proof photos must live somewhere; doc 03 R2/R3 requires platform
     services behind a tiny interface (no @vercel/* in business logic).
 
-    1. `npm i @vercel/blob -w @opcreative/dashboard`.
+    1. `npm i @vercel/blob -w @gwprint/dashboard`.
     2. Create modules/core/storage.ts exporting exactly:
          export type StoredFile = { url: string; pathname: string };
          export async function putObject(input: {
@@ -352,7 +352,7 @@ A6. OUTBOUND SELLER WEBHOOKS — modules/platform/webhooks/service.ts
       dispatchWebhook(userId, event: "order_status"|"shipping_added"|
                       "tracking_status", data)
     · POST JSON {type: event, data}, headers: User-Agent
-      "OPCreative-Webhook/1.0", X-Signature: hex HMAC-SHA256 of the raw body
+      "GWPrint-Webhook/1.0", X-Signature: hex HMAC-SHA256 of the raw body
       with webhookSecret (legacy sent the secret ITSELF as x-api-key,
       dev webhook.service.ts:57-72 — sending the secret over the wire on
       every call is the bug, signing is the fix; document the header in the
@@ -512,7 +512,7 @@ PHASE C — LABEL OPS ON /orders  (+ the two integrations, both env-gated)
 --------------------------------------------------------------------------------
 
 C1. CODE CELL on the orders table (the doc 04 B3 leftover, confirmed unbuilt).
-    `npm i qrcode jsbarcode -w @opcreative/dashboard`. New column cell
+    `npm i qrcode jsbarcode -w @gwprint/dashboard`. New column cell
     (warehouse-visible roles): small QR of String(order.id) rendered
     client-side to canvas; click → a MODAL with the large code and the facts.
 
@@ -557,7 +557,7 @@ C4. BULK LABEL DOWNLOAD — action downloadLabels(actor, filter)
         product.key → {min, single, multiple} — port the lookup, dev
         repo:724-730), zip (use `archiver`), putObject
         `labels/labels-<date>.zip`, return {url}.
-      · `npm i pdf-lib archiver -w @opcreative/dashboard`.
+      · `npm i pdf-lib archiver -w @gwprint/dashboard`.
       · NOTE the ceiling: ~200 fetches + merge inside one 300s function is
         tight but fits; if it ever times out, halve the cap before
         reaching for a queue.

@@ -16,7 +16,7 @@ import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 
 /** Same-tab writes need their own notification: the browser fires `storage`
  * only in OTHER tabs. */
-const EVENT = "opcreative:local-storage";
+const EVENT = "gwprint:local-storage";
 
 function subscribe(onChange: () => void) {
   window.addEventListener("storage", onChange); // cross-tab

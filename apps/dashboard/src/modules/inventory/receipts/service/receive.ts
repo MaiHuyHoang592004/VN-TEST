@@ -13,7 +13,7 @@
  * only exercised concurrently — every sequential test passes without it, which
  * is exactly why doc 04 C1 insisted the test use Promise.all.
  */
-import { prisma, writeAudit, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, Prisma, type AuditContext } from "@gwprint/db";
 
 import {
   InventoryError,

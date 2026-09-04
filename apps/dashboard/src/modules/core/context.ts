@@ -6,8 +6,8 @@
 import "server-only";
 
 import { headers } from "next/headers";
-import type { AuditContext } from "@opcreative/db";
-import type { SessionUser } from "@opcreative/auth";
+import type { AuditContext } from "@gwprint/db";
+import type { SessionUser } from "@gwprint/auth";
 
 export async function auditContext(actor: SessionUser): Promise<AuditContext> {
   const h = await headers();

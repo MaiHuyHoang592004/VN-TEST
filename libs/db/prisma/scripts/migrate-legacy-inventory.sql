@@ -1,5 +1,5 @@
 -- ============================================================================
--- opcreative — legacy INVENTORY → new schema data migration  (doc 06 phase E)
+-- gwprint — legacy INVENTORY → new schema data migration  (doc 06 phase E)
 -- ============================================================================
 --
 -- ⚠ PROD ONLY, and RUN AFTER migrate-legacy.sql. That script migrates users,

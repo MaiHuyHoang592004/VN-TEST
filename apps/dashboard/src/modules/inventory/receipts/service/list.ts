@@ -2,7 +2,7 @@
  * Reads behind the Receipts tab: the list, one receipt in full, and the report
  * the tiles are built from.
  */
-import { prisma, Prisma } from "@opcreative/db";
+import { prisma, Prisma } from "@gwprint/db";
 
 import { InventoryError, readableSites, siteWhere, type Actor } from "../../stock/service.ts";
 import { reportSchema } from "../schema.ts";

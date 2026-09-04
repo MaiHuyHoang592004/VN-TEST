@@ -4,7 +4,7 @@
 # needs a real database, not a fake.
 set -euo pipefail
 
-DB="${RATELIMIT_TEST_DB:-opcreative_ratelimit_test}"
+DB="${RATELIMIT_TEST_DB:-gwprint_ratelimit_test}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG_ROOT="$(cd "$HERE/../../.." && pwd)"
 

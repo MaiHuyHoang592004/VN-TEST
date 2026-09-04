@@ -5,7 +5,7 @@
  * Nothing here touches stock — booking in happens in receive.ts, against
  * whatever physically shows up, which is routinely not what was ordered.
  */
-import { prisma, writeAudit, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, Prisma, type AuditContext } from "@gwprint/db";
 
 import { InventoryError, assertSite, type Actor } from "../../stock/service.ts";
 import { createReceiptSchema } from "../schema.ts";

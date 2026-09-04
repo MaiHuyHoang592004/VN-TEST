@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ScanLine } from "lucide-react";
-import type { FulfillmentStatus } from "@opcreative/db";
+import type { FulfillmentStatus } from "@gwprint/db";
 
 import { StatusBadge, Surface } from "@/components/ds";
 import { Button } from "@/components/ui/button";

@@ -7,11 +7,11 @@
  * in the service and is therefore identical here and in the web UI. When this
  * file starts growing logic, the service is missing something.
  */
-import { can } from "@opcreative/shared";
+import { can } from "@gwprint/shared";
 import { createOrder, listOrdersCursor } from "@/modules/fulfillment/orders/service.ts";
 import { withApiKey, apiError } from "../_lib/with-api-key.ts";
 import { orderToApi } from "../_lib/serialize.ts";
-import type { FulfillmentStatus } from "@opcreative/db";
+import type { FulfillmentStatus } from "@gwprint/db";
 
 export const dynamic = "force-dynamic";
 

@@ -20,13 +20,13 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npm run db:generate -w @opcreative/db
+      - run: npm run db:generate -w @gwprint/db
       # The authorization gate — pure, no DB. Must pass before anything ships.
       - run: node --test libs/shared/src/access/permissions.test.ts
       - run: node --test apps/dashboard/src/components/ds/status-tones.test.ts
       - run: bash apps/dashboard/scripts/check-ds-adherence.sh
-      - run: npx turbo run lint --filter=@opcreative/dashboard
-      - run: npx turbo run build --filter=@opcreative/dashboard
+      - run: npx turbo run lint --filter=@gwprint/dashboard
+      - run: npx turbo run build --filter=@gwprint/dashboard
         env:
           # Build-time only: `prisma generate` never connects, and no page is
           # statically rendered against real data.
@@ -40,13 +40,13 @@ jobs:
         image: postgres:17
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: opcreative_ci
+          POSTGRES_DB: gwprint_ci
         options: >-
           --health-cmd pg_isready --health-interval 10s
           --health-timeout 5s --health-retries 5
         ports: ["5432:5432"]
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/opcreative_ci?schema=public
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gwprint_ci?schema=public
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -80,7 +80,7 @@ jobs:
         working-directory: libs/db
         run: ./prisma/scripts/test/run-cutover-test.sh
         env:
-          CUTOVER_TEST_DB: opcreative_cutover_ci
+          CUTOVER_TEST_DB: gwprint_cutover_ci
           PGHOST: localhost
           PGUSER: postgres
           PGPASSWORD: postgres
@@ -91,7 +91,7 @@ jobs:
         working-directory: apps/dashboard
         run: ./scripts/run-money-test.sh
         env:
-          MONEY_TEST_DB: opcreative_money_ci
+          MONEY_TEST_DB: gwprint_money_ci
           PGHOST: localhost
           PGUSER: postgres
           PGPASSWORD: postgres
@@ -102,7 +102,7 @@ jobs:
         working-directory: libs/db
         run: ./prisma/scripts/test/run-rate-limit-test.sh
         env:
-          RATELIMIT_TEST_DB: opcreative_ratelimit_ci
+          RATELIMIT_TEST_DB: gwprint_ratelimit_ci
           PGHOST: localhost
           PGUSER: postgres
           PGPASSWORD: postgres

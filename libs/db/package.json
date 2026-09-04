@@ -1,5 +1,5 @@
 {
-  "name": "@opcreative/db",
+  "name": "@gwprint/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -17,7 +17,7 @@
     "db:seed:demo:prod": "ENV_FILE=.env.prod node --env-file-if-exists=.env.prod --experimental-strip-types prisma/scripts/seed-demo.ts"
   },
   "dependencies": {
-    "@opcreative/shared": "*",
+    "@gwprint/shared": "*",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0"
   },

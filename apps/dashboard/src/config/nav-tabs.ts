@@ -12,7 +12,7 @@
  * `permission` hides a tab the user can't use. That is cosmetics — the page
  * itself still calls requirePermission, which is the actual security.
  */
-import type { Permission } from "@opcreative/shared";
+import type { Permission } from "@gwprint/shared";
 
 export type NavTab = {
   /** Absolute route. */

@@ -25,7 +25,7 @@ import {
   consumeRateLimit,
   RATE_LIMITS,
   type UserRole,
-} from "@opcreative/db";
+} from "@gwprint/db";
 import { generateOtp, sendVerificationCode } from "./email.ts";
 
 export {
@@ -38,7 +38,7 @@ export {
 
 export { sendVerificationCode, sendInviteEmail } from "./email.ts";
 
-// The authorization kernel lives in @opcreative/shared (the browser needs it
+// The authorization kernel lives in @gwprint/shared (the browser needs it
 // too); re-exported here so app auth code has a single import surface.
 export {
   PERMISSIONS,
@@ -49,7 +49,7 @@ export {
   type Permission,
   type Scope,
   type SessionUser,
-} from "@opcreative/shared";
+} from "@gwprint/shared";
 
 declare module "next-auth" {
   interface Session {
@@ -148,9 +148,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     // Sends are rate-limited per email (see sendVerificationRequest below).
     Resend({
       apiKey: process.env.RESEND_API_KEY,
-      // TODO: switch to a verified opcreative.com sender before production —
+      // TODO: switch to a verified gwprint.com sender before production —
       // onboarding@resend.dev only delivers to the Resend account owner.
-      from: "OpCreative <onboarding@resend.dev>",
+      from: "GWPrint <onboarding@resend.dev>",
       maxAge: 10 * 60,
       generateVerificationToken: () => generateOtp(randomInt),
       async sendVerificationRequest({ identifier, token }) {

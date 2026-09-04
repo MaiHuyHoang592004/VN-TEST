@@ -4,7 +4,7 @@
  * Both live here because they are the same moment on the floor: the last two
  * things anyone does to a box, in order, at the same bench.
  */
-import { prisma, writeAudit, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, type AuditContext } from "@gwprint/db";
 
 import { assertImageUpload, putObject, storageSlug } from "../../../core/storage.ts";
 import { applyStatusChange, dispatchStatusWebhooks, type StatusChange } from "../../orders/service.ts";

@@ -6,7 +6,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, Prisma, type UserRole } from "@opcreative/db";
+import { prisma, Prisma, type UserRole } from "@gwprint/db";
 import { approveTransaction, rejectTransaction, listTransactions } from "./service.ts";
 
 let adminId: string;

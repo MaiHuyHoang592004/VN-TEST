@@ -1,4 +1,4 @@
-# opcreative
+# gwprint
 
 Turborepo monorepo. 100% Next.js, built to run on Vercel.
 
@@ -39,7 +39,7 @@ Each folder has its own `README.md` explaining what goes inside.
 ```bash
 npm install                          # install everything
 npm run dev                          # run all apps (Turbo TUI)
-npm run dev -w @opcreative/dashboard # run one app, raw Next.js logs (no Turbo)
+npm run dev -w @gwprint/dashboard # run one app, raw Next.js logs (no Turbo)
 npm run build                        # build all apps
-npx turbo run build --filter=@opcreative/dashboard   # build one app
+npx turbo run build --filter=@gwprint/dashboard   # build one app
 ```

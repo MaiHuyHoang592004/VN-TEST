@@ -1,4 +1,4 @@
-import type { ProductStatus } from "@opcreative/db";
+import type { ProductStatus } from "@gwprint/db";
 
 import { requirePermission } from "@/modules/core/guard";
 import { listProducts } from "@/modules/catalog/products/queries";

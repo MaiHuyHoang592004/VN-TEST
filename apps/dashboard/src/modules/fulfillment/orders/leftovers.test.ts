@@ -10,12 +10,12 @@
  *   · artwork can be attached while an order is PENDING and not after — the
  *     printer is downstream.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, Prisma, type UserRole } from "@opcreative/db";
+import { prisma, Prisma, type UserRole } from "@gwprint/db";
 
 import { exportOrders } from "./service/export.ts";
 import { recalcOrders, setOrderArtwork, ArtworkError } from "./service/artwork.ts";

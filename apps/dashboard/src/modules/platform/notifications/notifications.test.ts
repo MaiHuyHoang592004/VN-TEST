@@ -7,7 +7,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 import { deleteOne, listMinePage, notify } from "./service.ts";
 
 let mineId: string;

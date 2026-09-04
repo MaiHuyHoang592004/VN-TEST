@@ -13,7 +13,7 @@
  *     its password; Google login links by email — allowDangerousEmailAccount-
  *     Linking is on in libs/auth)
  *   · 4 seller accounts + 3 customer/support staff, password "demo1234",
- *     all under @demo.opcreative.dev
+ *     all under @demo.gwprint.dev
  *   · 8 products / 24 SKUs with tier prices, real Unsplash photography
  *   · ~150 parcels → ~230 orders across all 8 statuses over 60 days,
  *     shipments, proof photos, baskets
@@ -28,7 +28,7 @@
  *   · one API key for the first seller (raw key printed at the end)
  *
  * Safe to run repeatedly: every entity carries a demo marker (DEMO- external
- * ids, DM- skus/codes, "DEMO" notes, @demo.opcreative.dev emails) and the run
+ * ids, DM- skus/codes, "DEMO" notes, @demo.gwprint.dev emails) and the run
  * starts by removing the previous demo rows. `--wipe` removes everything and
  * exits — run that before go-live.
  *
@@ -58,7 +58,7 @@ if (!isLocal) {
 
 // ── Markers. One list of conventions, used by seed AND wipe: they cannot drift.
 const PREFIX = "DEMO-";                 // order externalIds
-const DEMO_DOMAIN = "@demo.opcreative.dev"; // every seeded account except the admin
+const DEMO_DOMAIN = "@demo.gwprint.dev"; // every seeded account except the admin
 const ADMIN_EMAIL = "niyamvora@gmail.com";
 const MAT_PREFIX = "DM-";               // material skus, vendor codes
 const NOTE_MARK = "DEMO seed";          // receipts.note, expenses.description prefix

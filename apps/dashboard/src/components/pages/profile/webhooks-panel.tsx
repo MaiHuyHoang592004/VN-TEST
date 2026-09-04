@@ -78,7 +78,7 @@ export function WebhooksPanel({
               id="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://your-app.com/webhooks/opcreative"
+              placeholder="https://your-app.com/webhooks/gwprint"
               className="mt-1.5"
             />
           </div>

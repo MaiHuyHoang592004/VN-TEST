@@ -17,7 +17,7 @@
  */
 
 import { useRef, useState } from "react";
-import type { NotificationType } from "@opcreative/db";
+import type { NotificationType } from "@gwprint/db";
 import { CheckCheck, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 

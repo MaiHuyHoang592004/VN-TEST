@@ -4,7 +4,7 @@
 # local dev nor prod.
 set -euo pipefail
 
-DB="${MONEY_TEST_DB:-opcreative_money_test}"
+DB="${MONEY_TEST_DB:-gwprint_money_test}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(cd "$HERE/../../.." && pwd)"
 

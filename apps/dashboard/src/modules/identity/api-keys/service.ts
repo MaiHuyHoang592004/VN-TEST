@@ -5,7 +5,7 @@
  */
 import { randomBytes, createHash } from "node:crypto";
 
-import { prisma, type SessionUser } from "@opcreative/db";
+import { prisma, type SessionUser } from "@gwprint/db";
 
 const PREFIX = "opc_live_";
 

@@ -27,7 +27,7 @@
 // No `server-only` here, deliberately: this is an internal service-layer file,
 // not a boundary one, and node --test must be able to import it. That is what
 // keeps the money rules directly testable (modules/README.md).
-import { prisma, writeAudit, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, Prisma, type AuditContext } from "@gwprint/db";
 
 /** The transaction client shape this needs — a subset of Prisma's. */
 export type LedgerTx = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];

@@ -1,4 +1,4 @@
-import type { AuditAction } from "@opcreative/db";
+import type { AuditAction } from "@gwprint/db";
 
 import { listAuditLog } from "@/modules/platform/audit/queries";
 import { AuditTable } from "@/components/pages/admin/audit/audit-table";

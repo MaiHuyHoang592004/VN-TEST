@@ -227,17 +227,17 @@ None were in scope. All were found by reading each layer closely.
 ## 9. Commands
 
 ```bash
-npm install && npm run db:generate -w @opcreative/db
-npm run dev -w @opcreative/dashboard
+npm install && npm run db:generate -w @gwprint/db
+npm run dev -w @gwprint/dashboard
 ```
 
 Full gate, all five must pass:
 
 ```bash
 bash apps/dashboard/scripts/check-ds-adherence.sh
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 (cd apps/dashboard && npx tsc --noEmit)
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 node --test apps/dashboard/src/components/ds/status-tones.test.ts apps/dashboard/src/config/nav-tabs.test.ts apps/dashboard/src/lib/time-period.test.ts apps/dashboard/src/components/pages/orders/import-columns.test.ts
 node --test libs/shared/src/access/permissions.test.ts
 ```

@@ -3,7 +3,7 @@
  * module that grows becomes the junk drawer modules/README.md bans, so
  * anything with real behaviour belongs in the act that owns it.
  */
-import { type AuditContext, type FulfillmentStatus, type Prisma } from "@opcreative/db";
+import { type AuditContext, type FulfillmentStatus, type Prisma } from "@gwprint/db";
 
 export type Actor = NonNullable<AuditContext["actor"]>;
 

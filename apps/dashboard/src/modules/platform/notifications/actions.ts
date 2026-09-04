@@ -1,6 +1,6 @@
 "use server";
 
-import type { NotificationType } from "@opcreative/db";
+import type { NotificationType } from "@gwprint/db";
 
 import { requireUser } from "../../core/guard.ts";
 import * as notifications from "./service.ts";

@@ -17,7 +17,7 @@
  * bundle returns a URL).
  */
 import XLSX from "xlsx-js-style";
-import { prisma, orderScope, can, Prisma, type FulfillmentStatus } from "@opcreative/db";
+import { prisma, orderScope, can, Prisma, type FulfillmentStatus } from "@gwprint/db";
 
 import { putObject } from "../../../core/storage.ts";
 import { exportQuerySchema, type ExportQuery } from "../schema.ts";
@@ -151,7 +151,7 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
   // Title block first, exactly as the legacy sheet opened — the person who
   // receives the file needs to know what it is a export OF.
   const sheetRows: unknown[][] = [
-    [{ v: "OpCreative — orders export", s: TITLE_STYLE }],
+    [{ v: "GWPrint — orders export", s: TITLE_STYLE }],
     [`Exported ${new Date().toISOString().slice(0, 19).replace("T", " ")} UTC`],
     [`Rows: ${rows.length}${total > rows.length ? ` of ${total} (capped)` : ""}`],
     [filters.length ? `Filters — ${filters.join(" · ")}` : "Filters — none (whole table)"],

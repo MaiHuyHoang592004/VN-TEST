@@ -18,7 +18,7 @@ import {
   Prisma,
   type AuditContext,
   type FulfillmentStatus,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { consumeForOrder, releaseForOrder } from "../../../inventory/index.ts";
 import { dispatchWebhook, notify, notifyMany, usersWithPermission } from "../../../platform/index.ts";

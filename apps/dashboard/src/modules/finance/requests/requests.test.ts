@@ -7,12 +7,12 @@
  * are the cap (it accepted any number the form posted) and the duplicate check
  * (five requests for one parcel, all approvable).
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import { approveTransaction } from "../transactions/service.ts";
 import { requestRefund, requestTopUp, RequestError } from "./service.ts";

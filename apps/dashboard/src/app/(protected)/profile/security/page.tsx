@@ -1,4 +1,4 @@
-import { prisma } from "@opcreative/db";
+import { prisma } from "@gwprint/db";
 
 import { requireUser } from "@/modules/core/guard";
 import { SecurityPanel } from "@/components/pages/profile/security-panel";

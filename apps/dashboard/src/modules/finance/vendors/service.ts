@@ -6,7 +6,7 @@
  * deleted supplier would leave last quarter's paperwork pointing at nothing,
  * and "who did we buy this from" is the question the table exists to answer.
  */
-import { prisma, writeAudit, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, Prisma, type AuditContext } from "@gwprint/db";
 
 import { vendorListSchema, vendorSchema, type VendorListQuery } from "./schema.ts";
 

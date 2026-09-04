@@ -9,7 +9,7 @@
   },
   "form": {
     "identity": "Your Details",
-    "identityHint": "How you appear across OpCreative.",
+    "identityHint": "How you appear across GWPrint.",
     "memberSince": "Member since",
     "avatarUrl": "Avatar URL",
     "avatarHint": "Leave blank to use your Google photo.",
@@ -64,7 +64,7 @@
   },
   "api": {
     "title": "API Keys",
-    "hint": "Keys let your own systems talk to OpCreative.",
+    "hint": "Keys let your own systems talk to GWPrint.",
     "shownOnce": "A new key is shown once and never again.",
     "create": "Create Key",
     "keyName": "Key name",

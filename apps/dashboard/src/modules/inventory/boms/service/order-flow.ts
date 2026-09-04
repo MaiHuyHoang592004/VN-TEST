@@ -23,7 +23,7 @@
  * a scan, a column menu, the API — and the second call must be a no-op rather
  * than a second helping.
  */
-import { Prisma } from "@opcreative/db";
+import { Prisma } from "@gwprint/db";
 
 import { availableOf } from "../../stock/counters.ts";
 import {

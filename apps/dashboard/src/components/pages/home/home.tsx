@@ -1,4 +1,4 @@
-import { can, type SessionUser } from "@opcreative/auth";
+import { can, type SessionUser } from "@gwprint/auth";
 
 import { Page } from "@/components/ds";
 

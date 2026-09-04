@@ -11,7 +11,7 @@ import {
   warehouseScope,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { availableOf } from "../stock/counters.ts";
 import { MATERIAL_TYPES, materialSchema } from "./schema.ts";

@@ -4,7 +4,7 @@
  * emailVerified and signs the user in.
  */
 import bcrypt from "bcryptjs";
-import { prisma } from "@opcreative/db";
+import { prisma } from "@gwprint/db";
 
 export type RegisterResult =
   | { ok: true }

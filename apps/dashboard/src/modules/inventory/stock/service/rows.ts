@@ -6,7 +6,7 @@
  * is what lets one adjust, one receipt flow and one reservation mechanism
  * serve both. When a third item type ever appears, it is added here.
  */
-import { prisma, Prisma } from "@opcreative/db";
+import { prisma, Prisma } from "@gwprint/db";
 
 import { InventoryError } from "./errors.ts";
 

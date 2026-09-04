@@ -58,7 +58,7 @@ loading pages from our own deployment. It is not something a native client can
 call, and it is not something we should ask anyone to integrate against.
 
 Whether Capacitor can use them at all depends on how the shell is configured:
-  (a) Remote URL mode (webview points at https://dashboard.opcreative.com):
+  (a) Remote URL mode (webview points at https://dashboard.gwprint.com):
       it is literally our website in a webview, so actions work — but the app
       is then a thin wrapper, which risks App Store rejection under the
       "minimum functionality" guideline, and it is useless offline.
@@ -318,7 +318,7 @@ apps/dashboard/src/modules/identity/users/money.test.ts    money invariants
      hashes, so existing integrations keep working unchanged.
 
 2.11 Validation — each feature's schema.ts
-     Add zod (`npm i zod -w @opcreative/dashboard`); it is not currently a
+     Add zod (`npm i zod -w @gwprint/dashboard`); it is not currently a
      dependency and hand-rolling validation across ~20 forms is the wrong kind
      of lazy. One schema per concern, imported by BOTH the action and the form.
      Parsing happens on the SERVER inside every action — client-side validation

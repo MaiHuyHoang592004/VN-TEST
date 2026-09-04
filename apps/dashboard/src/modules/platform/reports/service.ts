@@ -19,7 +19,7 @@ import {
   Prisma,
   type AuditContext,
   type FulfillmentStatus,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { countOpenTickets } from "../../support/index.ts";
 

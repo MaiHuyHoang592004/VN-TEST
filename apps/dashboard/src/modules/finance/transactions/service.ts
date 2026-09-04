@@ -14,7 +14,7 @@ import {
   TRANSACTION_ADMIN_SELECT,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { settlePendingTransaction, NegativeBalanceError } from "../../core/ledger.ts";
 import { notify } from "../../platform/index.ts";

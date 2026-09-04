@@ -20,8 +20,8 @@
  *   • 401 unauthenticated, 403 authenticated-but-not-allowed, 429 rate limited
  *     with Retry-After.
  */
-import { RateLimitError, RATE_LIMITS, enforceRateLimit } from "@opcreative/db";
-import type { SessionUser } from "@opcreative/auth";
+import { RateLimitError, RATE_LIMITS, enforceRateLimit } from "@gwprint/db";
+import type { SessionUser } from "@gwprint/auth";
 import { verifyApiKey } from "@/modules/identity";
 import { ForbiddenError } from "@/modules/core/guard.ts";
 

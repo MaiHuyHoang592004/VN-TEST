@@ -6,7 +6,7 @@
  * eventually lies — the same reasoning that keeps order pricing in
  * effectivePrice.
  */
-import { prisma, Prisma } from "@opcreative/db";
+import { prisma, Prisma } from "@gwprint/db";
 
 import { InventoryError, type ItemRef, type Tx } from "../../stock/service.ts";
 

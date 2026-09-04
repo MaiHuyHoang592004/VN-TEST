@@ -567,7 +567,7 @@ browser (legacy bug F5c):
 --------------------------------------------------------------------------------
 2.4  VALIDATION
 --------------------------------------------------------------------------------
-Zod is NOT currently a dependency. Add it (`npm i zod -w @opcreative/dashboard`)
+Zod is NOT currently a dependency. Add it (`npm i zod -w @gwprint/dashboard`)
 — hand-rolled validation across ~20 forms is the wrong kind of lazy.
 
 NEW: apps/dashboard/src/lib/validation/user.ts, warehouse.ts

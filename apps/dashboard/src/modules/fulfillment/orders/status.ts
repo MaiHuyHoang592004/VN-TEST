@@ -10,7 +10,7 @@
  * any screen, so an order could go from DELIVERED back to PENDING and nobody
  * would know it had.
  */
-import type { FulfillmentStatus } from "@opcreative/db";
+import type { FulfillmentStatus } from "@gwprint/db";
 
 /** Terminal: nothing moves out of these. */
 export const TERMINAL: readonly FulfillmentStatus[] = [

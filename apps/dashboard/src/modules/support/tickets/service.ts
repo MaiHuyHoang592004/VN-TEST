@@ -22,7 +22,7 @@ import {
   type AuditContext,
   type TicketPriority,
   type TicketStatus,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { assertImageBatch, storeImages } from "../../core/storage.ts";
 import { notify, usersWithPermission } from "../../platform/index.ts";

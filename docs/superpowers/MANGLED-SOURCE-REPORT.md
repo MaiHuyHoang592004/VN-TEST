@@ -4,7 +4,7 @@ Found while establishing a build baseline for the GWP design-system migration.
 All three local zips (`opcreative-team-main{,(1),(2)}.zip`) are byte-identical
 (md5 `dd172066a88c4f9e1282840ffa3e0787`), so the damage is committed upstream.
 
-`npx turbo run build --filter=@opcreative/dashboard` fails on the pristine tree.
+`npx turbo run build --filter=@gwprint/dashboard` fails on the pristine tree.
 `npx turbo run lint` passes (0 errors), which is why this was invisible until a build.
 
 ## Cause

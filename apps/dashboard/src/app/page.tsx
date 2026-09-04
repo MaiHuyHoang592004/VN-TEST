@@ -1,4 +1,4 @@
-import { auth } from "@opcreative/auth";
+import { auth } from "@gwprint/auth";
 
 import { Home } from "@/components/pages/home/home";
 import { LoginScreen } from "@/components/pages/auth/login-screen";

@@ -7,7 +7,7 @@ import {
   type Permission,
   type Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 type Actor = NonNullable<AuditContext["actor"]>;
 

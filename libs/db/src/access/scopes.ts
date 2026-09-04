@@ -11,7 +11,7 @@
  * Scope comes from the permission suffix (.own / .customer / .all) via
  * scopeFor(), so it is defined once in the policy, not re-derived per page.
  */
-import { scopeFor, type SessionUser } from "@opcreative/shared";
+import { scopeFor, type SessionUser } from "@gwprint/shared";
 import { prisma } from "../client.ts";
 // A value import, not `import type`: orderScopeSql builds Prisma.sql fragments.
 import { Prisma } from "../generated/prisma/client.ts";

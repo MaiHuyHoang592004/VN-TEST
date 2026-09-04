@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// opcreative — enums
+// gwprint — enums
 // Every status/type column is an enum (never a free string). Carrier-supplied
 // values (e.g. Shipment.trackingStatus) are the exception: external data we
 // don't control stays String.

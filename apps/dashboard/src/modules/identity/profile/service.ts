@@ -14,8 +14,8 @@ import {
   USER_SELF_SELECT,
   API_KEY_SELECT,
   type AuditContext,
-} from "@opcreative/db";
-import { changeOwnPassword, sendVerificationCode } from "@opcreative/auth";
+} from "@gwprint/db";
+import { changeOwnPassword, sendVerificationCode } from "@gwprint/auth";
 
 import {
   profileUpdateSchema,
@@ -225,7 +225,7 @@ export async function testWebhook(actor: Actor) {
   try {
     const res = await fetch(user.webhookUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-OpCreative-Signature": signature },
+      headers: { "Content-Type": "application/json", "X-GWPrint-Signature": signature },
       body,
       signal: AbortSignal.timeout(5000),
     });

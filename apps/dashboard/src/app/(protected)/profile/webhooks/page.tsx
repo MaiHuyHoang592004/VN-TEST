@@ -1,4 +1,4 @@
-import { prisma } from "@opcreative/db";
+import { prisma } from "@gwprint/db";
 
 import { requireUser } from "@/modules/core/guard";
 import { WebhooksPanel } from "@/components/pages/profile/webhooks-panel";

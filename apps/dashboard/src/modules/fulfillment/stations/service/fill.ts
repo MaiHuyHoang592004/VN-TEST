@@ -6,7 +6,7 @@
  * from a counter. Legacy carried both a counter and a Filled status, and they
  * disagreed on any order anyone edited.
  */
-import { prisma, writeAudit, orderScope, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, orderScope, type AuditContext } from "@gwprint/db";
 
 import { notifyMany, usersWithPermission, warehouseMemberIds } from "../../../platform/index.ts";
 import { StationError } from "./errors.ts";

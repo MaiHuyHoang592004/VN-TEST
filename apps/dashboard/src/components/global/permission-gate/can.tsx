@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { Permission } from "@opcreative/shared";
+import type { Permission } from "@gwprint/shared";
 
 import { usePermissions } from "@/hooks/use-permissions";
 

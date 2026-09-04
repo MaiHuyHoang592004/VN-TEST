@@ -1,9 +1,9 @@
 /**
- * @opcreative/shared — the isomorphic layer.
+ * @gwprint/shared — the isomorphic layer.
  *
  * Pure types, constants and logic that BOTH the server and the browser need,
- * with ZERO dependencies. Nothing here may import from @opcreative/db,
- * @opcreative/auth or an app: the arrow points shared ← db ← auth ← apps.
+ * with ZERO dependencies. Nothing here may import from @gwprint/db,
+ * @gwprint/auth or an app: the arrow points shared ← db ← auth ← apps.
  *
  * The test: if adding an import here would break a browser bundle, it doesn't
  * belong in this package.

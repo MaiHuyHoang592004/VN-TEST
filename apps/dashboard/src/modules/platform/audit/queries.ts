@@ -1,6 +1,6 @@
 import "server-only";
 
-import { prisma, AUDIT_SELECT, type AuditAction, type Prisma } from "@opcreative/db";
+import { prisma, AUDIT_SELECT, type AuditAction, type Prisma } from "@gwprint/db";
 
 import { requirePermission } from "../../core/guard.ts";
 

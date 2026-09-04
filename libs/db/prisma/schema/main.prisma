@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// opcreative — core schema (PostgreSQL · Prisma · deploys on Vercel + Neon)
+// gwprint — core schema (PostgreSQL · Prisma · deploys on Vercel + Neon)
 //
 // Conventions
 //   • DB names are snake_case (@map/@@map); Prisma client fields are camelCase.

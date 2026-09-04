@@ -1,5 +1,5 @@
 /**
- * @opcreative/db — the package's public surface. This file only re-exports;
+ * @gwprint/db — the package's public surface. This file only re-exports;
  * it defines nothing, so importing it can never create a cycle.
  *
  * What lives in this package:
@@ -21,7 +21,7 @@ export { prisma } from "./client.ts";
 export * from "./generated/prisma/client.ts";
 
 // Authorization. The role→permission kernel itself lives in
-// @opcreative/shared (the browser needs it too); re-exported here so server
+// @gwprint/shared (the browser needs it too); re-exported here so server
 // code has one import for "database + who may see what". ./access/roles.ts is
 // imported for its compile-time assertion that Prisma's enum matches shared's.
 // UserRole is deliberately NOT re-exported from shared: Prisma's generated
@@ -37,7 +37,7 @@ export {
   type Permission,
   type Scope,
   type SessionUser,
-} from "@opcreative/shared";
+} from "@gwprint/shared";
 import "./access/roles.ts";
 export * from "./access/selects.ts";
 export * from "./access/scopes.ts";

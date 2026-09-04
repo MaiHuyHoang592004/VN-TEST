@@ -7,12 +7,12 @@
  * especially the concurrent case, which is the ONLY test that exercises the
  * column lock. Every sequential test below passes with the lock deleted.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import {
   createReceipt,

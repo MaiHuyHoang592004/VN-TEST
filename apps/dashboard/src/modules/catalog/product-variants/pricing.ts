@@ -23,7 +23,7 @@
  * is not 0.3 and money that is off by a cent per order is off by real money at
  * the end of the month.
  */
-import { Prisma } from "@opcreative/db";
+import { Prisma } from "@gwprint/db";
 
 /** The minimum a caller must load: the SKU's own price plus its tier rows. */
 export type PricedSku = {

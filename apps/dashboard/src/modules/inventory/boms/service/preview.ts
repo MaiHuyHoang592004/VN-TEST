@@ -5,7 +5,7 @@
  * Read-only: no transaction, no lock, no writes. It explodes through the SAME
  * function reservation uses, so the panel and the reservation cannot disagree.
  */
-import { prisma } from "@opcreative/db";
+import { prisma } from "@gwprint/db";
 
 import { availableOf } from "../../stock/counters.ts";
 import { InventoryError, readableSites, siteWhere, type Actor } from "../../stock/service.ts";

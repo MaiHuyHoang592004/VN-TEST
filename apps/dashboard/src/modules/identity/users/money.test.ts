@@ -10,9 +10,9 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, Prisma, orderScope, UserRole } from "@opcreative/db";
+import { prisma, Prisma, orderScope, UserRole } from "@gwprint/db";
 import { topUpBalance, adjustBalance } from "./service.ts";
-import { USER_ROLES } from "@opcreative/shared";
+import { USER_ROLES } from "@gwprint/shared";
 
 let adminId: string;
 let sellerA: string;

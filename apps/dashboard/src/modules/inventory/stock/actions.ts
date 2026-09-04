@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { requirePermission } from "../../core/guard.ts";
 import { auditContext } from "../../core/context.ts";
-import { warehouseScopeIds } from "@opcreative/db";
+import { warehouseScopeIds } from "@gwprint/db";
 
 import { withValidation } from "../../core/action-result.ts";
 import { listWarehouses } from "../warehouses/service.ts";

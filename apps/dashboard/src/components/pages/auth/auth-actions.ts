@@ -5,7 +5,7 @@ import {
   registerUser,
   changePasswordForUser,
   type RegisterResult,
-} from "@opcreative/auth";
+} from "@gwprint/auth";
 
 export async function register(input: {
   name?: string;

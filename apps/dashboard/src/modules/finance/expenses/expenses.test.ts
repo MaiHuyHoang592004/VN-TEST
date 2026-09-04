@@ -9,12 +9,12 @@
  *   · a vendor something points at is DEACTIVATED, never deleted;
  *   · VND-n numbering continues rather than restarting.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import { createVendor, deleteVendor, listVendors } from "../vendors/service.ts";
 import {

@@ -15,8 +15,8 @@
  * is how the legacy API ended up able to create orders the UI would have
  * rejected.
  */
-import { prisma, writeAudit, orderScope, type AuditContext } from "@opcreative/db";
-import { can } from "@opcreative/shared";
+import { prisma, writeAudit, orderScope, type AuditContext } from "@gwprint/db";
+import { can } from "@gwprint/shared";
 
 import { isDuplicateKey } from "../../../core/ledger.ts";
 import { notify } from "../../../platform/index.ts";

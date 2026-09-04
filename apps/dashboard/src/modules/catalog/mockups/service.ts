@@ -15,7 +15,7 @@ import {
   MOCKUP_SELECT,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { mockupSchema } from "./schema.ts";
 

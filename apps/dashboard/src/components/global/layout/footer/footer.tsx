@@ -97,7 +97,7 @@ export function Footer() {
         {/* Bottom bar: copyright */}
         <div className="mt-10 border-t border-(--border-hairline) pt-6">
           <p className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">
-            © {new Date().getFullYear()} OpCreative. {t("footer.rights")}
+            © {new Date().getFullYear()} GWPrint. {t("footer.rights")}
           </p>
         </div>
       </div>

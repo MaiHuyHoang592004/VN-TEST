@@ -7,7 +7,7 @@
  * explains nothing. Legacy kept separate import-history tables recording the
  * same events a second time; `type` is the filter that replaces them.
  */
-import type { Prisma } from "@opcreative/db";
+import type { Prisma } from "@gwprint/db";
 
 import { unreservedOf } from "../counters.ts";
 import { addToNeeded, itemColumns, readStock, type ItemRef, type Tx } from "./rows.ts";

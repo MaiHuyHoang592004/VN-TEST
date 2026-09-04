@@ -11,7 +11,7 @@ import { test, before, after, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { createHmac } from "node:crypto";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 import { applyTrackingUpdate, verifyTrackingSignature } from "./service.ts";
 
 const SECRET = "tracking-test-secret";

@@ -5,7 +5,7 @@
  * Both are site-scoped at the query, not filtered afterwards — a list that
  * fetches everything and hides rows in the component has already sent them.
  */
-import { prisma, Prisma } from "@opcreative/db";
+import { prisma, Prisma } from "@gwprint/db";
 
 import { availableOf } from "../counters.ts";
 import type { MovementType } from "./ledger.ts";

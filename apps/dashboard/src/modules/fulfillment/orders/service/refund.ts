@@ -20,7 +20,7 @@ import {
   orderScope,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import {
   alreadyApplied,

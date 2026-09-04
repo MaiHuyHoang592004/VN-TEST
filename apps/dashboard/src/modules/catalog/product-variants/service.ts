@@ -12,7 +12,7 @@ import {
   SKU_SELECT,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { attachVariantsSchema, setPricesSchema, skuUpdateSchema } from "./schema.ts";
 

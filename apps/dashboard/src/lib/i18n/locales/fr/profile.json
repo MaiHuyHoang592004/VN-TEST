@@ -9,7 +9,7 @@
   },
   "form": {
     "identity": "Vos informations",
-    "identityHint": "Votre apparence sur OpCreative.",
+    "identityHint": "Votre apparence sur GWPrint.",
     "memberSince": "Membre depuis",
     "avatarUrl": "URL de l'avatar",
     "avatarHint": "Laissez vide pour utiliser votre photo Google.",
@@ -64,7 +64,7 @@
   },
   "api": {
     "title": "Clés API",
-    "hint": "Les clés permettent à vos systèmes de dialoguer avec OpCreative.",
+    "hint": "Les clés permettent à vos systèmes de dialoguer avec GWPrint.",
     "shownOnce": "Une nouvelle clé n'est affichée qu'une seule fois.",
     "create": "Créer une clé",
     "keyName": "Nom de la clé",

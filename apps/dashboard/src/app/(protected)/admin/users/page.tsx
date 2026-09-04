@@ -1,4 +1,4 @@
-import type { UserRole, UserStatus } from "@opcreative/db";
+import type { UserRole, UserStatus } from "@gwprint/db";
 
 import { listUsers } from "@/modules/identity/users/queries";
 import { UsersTable } from "@/components/pages/admin/users/users-table";

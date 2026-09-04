@@ -8,12 +8,12 @@
  * service against a real database, because a unit test with a mocked client
  * would pass just as happily with the scope deleted.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 import {
   listProducts,
   getProduct,

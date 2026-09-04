@@ -36,8 +36,8 @@ ENV DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder
 ENV AUTH_SECRET=build-only
 # Prisma client is generated into libs/db/src/generated and must exist before
 # the Next build type-checks against it.
-RUN npm run db:generate -w @opcreative/db
-RUN npx turbo run build --filter=@opcreative/dashboard
+RUN npm run db:generate -w @gwprint/db
+RUN npx turbo run build --filter=@gwprint/dashboard
 
 # ── runtime ──────────────────────────────────────────────────────────────────
 FROM node:24-alpine AS runner

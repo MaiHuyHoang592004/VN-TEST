@@ -8,7 +8,7 @@
  * Buying a label through a carrier (KiloShips) arrives in Phase C, behind a
  * provider interface; it will create the same Shipment rows this does.
  */
-import { prisma, writeAudit, orderScope, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, orderScope, Prisma, type AuditContext } from "@gwprint/db";
 
 import { dispatchWebhookMany, notify } from "../../../platform/index.ts";
 import { type Actor } from "./group.ts";

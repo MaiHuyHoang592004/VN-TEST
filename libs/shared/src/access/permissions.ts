@@ -9,7 +9,7 @@
  * so it is trivially unit-testable and safe to import from any app (web today,
  * storefront and the mobile API later).
  *
- * It lives in @opcreative/shared — the isomorphic layer — because BOTH the
+ * It lives in @gwprint/shared — the isomorphic layer — because BOTH the
  * server (guards, column scoping) and the browser (hiding tabs and buttons) need
  * the same answers, and the two must never disagree. Putting it in the db
  * package would mean client components importing a package whose barrel pulls

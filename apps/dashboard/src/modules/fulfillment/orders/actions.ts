@@ -8,7 +8,7 @@ import { auditContext } from "../../core/context.ts";
 import { withValidation } from "../../core/action-result.ts";
 import * as orders from "./service.ts";
 import { InvalidTransitionError } from "./status.ts";
-import type { FulfillmentStatus } from "@opcreative/db";
+import type { FulfillmentStatus } from "@gwprint/db";
 
 export async function createOrderAction(input: unknown, owner?: string) {
   const actor = await requirePermission("orders.create");

@@ -1,4 +1,4 @@
-# opcreative — Turborepo monorepo (100% Next.js, deploys on Vercel)
+# gwprint — Turborepo monorepo (100% Next.js, deploys on Vercel)
 
 Fulfillment platform for print-on-demand sellers. Structure:
 
@@ -28,14 +28,14 @@ So one-way is convention, not enforcement, until `opcreative-team` moves to an
 org. If a `push team` is ever rejected, a teammate pushed: do NOT `--force` (it
 silently deletes their commits) — look at what landed first. Never copy files
 between clones. Vercel is still linked to `origin`
-(`opcreative`) — move the deploy hook if `team` becomes the release source.
+(`gwprint`) — move the deploy hook if `team` becomes the release source.
 
 ## Commands
 
 ```bash
-npm run dev -w @opcreative/dashboard   # one app, raw Next.js logs (preferred for dev)
+npm run dev -w @gwprint/dashboard   # one app, raw Next.js logs (preferred for dev)
 npm run dev / build / lint             # all apps via Turbo (TUI mode)
-npx turbo run build --filter=@opcreative/dashboard
+npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Deploy: `vercel deploy --prod --yes` from the **repo root** (workspace libs must
@@ -47,7 +47,7 @@ to DigitalOcean later = swap DATABASE_URL in Vercel env + both `.env.prod`
 files, nothing else. Prod migrations: `npm run db:migrate:prod` from `libs/db`
 (uses the direct/non-pooled URL in its `.env.prod`).
 
-## Database (`libs/db` → `@opcreative/db`)
+## Database (`libs/db` → `@gwprint/db`)
 
 - Prisma 7 multi-file schema (native — no build scripts):
   `prisma/schema/main.prisma` (generator+datasource), `prisma/schema/enums/`,
@@ -60,7 +60,7 @@ files, nothing else. Prod migrations: `npm run db:migrate:prod` from `libs/db`
   (gitignored, as is `.env.prod` — Vercel gets DATABASE_URL from its env vars).
 - Legacy cutover: `prisma/scripts/migrate-legacy.sql` runs on **prod only**
   (old data lives there; local starts fresh). Tested end-to-end 2026-07-20.
-- Auth (`libs/auth` → `@opcreative/auth`): Auth.js v5, JWT sessions
+- Auth (`libs/auth` → `@gwprint/auth`): Auth.js v5, JWT sessions
   (Credentials provider requires JWT — do not switch to database sessions).
   Three sign-ins: Google OAuth, email+password (bcrypt in `passwordHash`),
   email OTP via Resend (signup verification + passwordless fallback).

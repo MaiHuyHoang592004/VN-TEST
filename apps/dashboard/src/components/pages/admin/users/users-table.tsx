@@ -29,7 +29,7 @@ import {
 } from "@/components/global/data-table";
 import { Can } from "@/components/global/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
-import { USER_ROLES } from "@opcreative/shared";
+import { USER_ROLES } from "@gwprint/shared";
 import { useTranslation } from "@/lib/i18n";
 
 import { InviteUserDialog } from "./invite-user-dialog";

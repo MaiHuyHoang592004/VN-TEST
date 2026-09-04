@@ -5,7 +5,7 @@
  * exists so an integration can prove its key works and show "you have $X"
  * without scraping the dashboard — the two things every one of them does first.
  */
-import { prisma } from "@opcreative/db";
+import { prisma } from "@gwprint/db";
 import { withApiKey, iso, money } from "../_lib/with-api-key.ts";
 
 export const dynamic = "force-dynamic";

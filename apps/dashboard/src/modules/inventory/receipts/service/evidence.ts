@@ -8,7 +8,7 @@
  * The validate-then-store half lives in core/storage.ts (`storeImages`) because
  * ticket attachments need exactly the same rules — one copy, one place to fix.
  */
-import { prisma, type AuditContext } from "@opcreative/db";
+import { prisma, type AuditContext } from "@gwprint/db";
 
 import { storeImages, type StoredUpload } from "../../../core/storage.ts";
 import { InventoryError, assertSite, type Actor } from "../../stock/service.ts";

@@ -8,12 +8,12 @@
  * The concurrent case is the only test that exercises the UNIQUE constraint on
  * the ledger column — every sequential test below passes with it dropped.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import { adminRefundOrders, refundQuote } from "./service.ts";
 

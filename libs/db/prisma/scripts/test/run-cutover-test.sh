@@ -16,7 +16,7 @@
 # =============================================================================
 set -euo pipefail
 
-DB="${CUTOVER_TEST_DB:-opcreative_cutover_test}"
+DB="${CUTOVER_TEST_DB:-gwprint_cutover_test}"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG_ROOT="$(cd "$HERE/../../.." && pwd)"
 

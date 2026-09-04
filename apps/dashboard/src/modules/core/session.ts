@@ -6,7 +6,7 @@
  */
 import "server-only";
 
-import { auth, type SessionUser } from "@opcreative/auth";
+import { auth, type SessionUser } from "@gwprint/auth";
 
 /** The current user, or null when signed out. */
 export async function getSessionUser(): Promise<SessionUser | null> {

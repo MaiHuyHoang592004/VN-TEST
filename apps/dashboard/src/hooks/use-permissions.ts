@@ -1,12 +1,12 @@
 "use client";
 
-import { can, type Permission } from "@opcreative/shared";
+import { can, type Permission } from "@gwprint/shared";
 
 import { useAuth } from "@/components/global/providers";
 
 /**
  * The client half of the permission model. Same role→permission map the server
- * uses (imported from @opcreative/db), so the UI and the guard can never
+ * uses (imported from @gwprint/db), so the UI and the guard can never
  * disagree about what a role means.
  *
  * FOR HIDING UI ONLY. Hiding a button is a courtesy, not a security boundary —

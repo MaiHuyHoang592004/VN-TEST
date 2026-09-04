@@ -11,7 +11,7 @@ import {
   VARIANT_SELECT,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { variantSchema } from "./schema.ts";
 

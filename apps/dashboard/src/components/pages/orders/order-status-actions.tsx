@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
-import type { FulfillmentStatus } from "@opcreative/db";
+import type { FulfillmentStatus } from "@gwprint/db";
 
 import { Button } from "@/components/ui/button";
 import {

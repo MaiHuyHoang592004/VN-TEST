@@ -1,5 +1,5 @@
 /**
- * Guarantees the role vocabulary in @opcreative/shared and the UserRole enum
+ * Guarantees the role vocabulary in @gwprint/shared and the UserRole enum
  * Prisma generates from the schema stay identical.
  *
  * Shared can't import Prisma (it must stay dependency-free for the browser),
@@ -8,7 +8,7 @@
  * bug: add a role to the schema without adding it here, and the build breaks
  * pointing at this file.
  */
-import type { UserRole as SharedUserRole } from "@opcreative/shared";
+import type { UserRole as SharedUserRole } from "@gwprint/shared";
 
 import type { UserRole as PrismaUserRole } from "../generated/prisma/client.ts";
 

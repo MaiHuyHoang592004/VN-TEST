@@ -3,7 +3,7 @@
  * provider (signup / passwordless) and by the profile email-change flow, so
  * there is a single sender to point at a verified domain later.
  */
-const FROM = "OpCreative <onboarding@resend.dev>";
+const FROM = "GWPrint <onboarding@resend.dev>";
 
 /** A cryptographically-uniform 6-digit code as a string. */
 export function generateOtp(randomInt: (min: number, max: number) => number): string {
@@ -26,11 +26,11 @@ export async function sendInviteEmail(to: string, acceptUrl: string): Promise<vo
     body: JSON.stringify({
       from: FROM,
       to,
-      subject: "You've been invited to OpCreative",
-      text: `You've been invited to OpCreative. Accept your invitation: ${acceptUrl} (expires in 7 days).`,
+      subject: "You've been invited to GWPrint",
+      text: `You've been invited to GWPrint. Accept your invitation: ${acceptUrl} (expires in 7 days).`,
       html: [
         `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:420px;margin:0 auto;padding:32px 24px">`,
-        `<p style="font-size:14px;color:#666;margin:0 0 8px">OpCreative</p>`,
+        `<p style="font-size:14px;color:#666;margin:0 0 8px">GWPrint</p>`,
         `<h1 style="font-size:20px;margin:0 0 16px">You've been invited</h1>`,
         `<p style="font-size:14px;margin:0 0 20px">Set up your account to get started.</p>`,
         `<a href="${acceptUrl}" style="display:inline-block;background:#000;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none;font-size:14px">Accept invitation</a>`,
@@ -58,11 +58,11 @@ export async function sendVerificationCode(to: string, code: string): Promise<vo
     body: JSON.stringify({
       from: FROM,
       to,
-      subject: `${code} is your OpCreative verification code`,
-      text: `Your OpCreative verification code is ${code}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`,
+      subject: `${code} is your GWPrint verification code`,
+      text: `Your GWPrint verification code is ${code}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`,
       html: [
         `<div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:420px;margin:0 auto;padding:32px 24px">`,
-        `<p style="font-size:14px;color:#666;margin:0 0 8px">OpCreative</p>`,
+        `<p style="font-size:14px;color:#666;margin:0 0 8px">GWPrint</p>`,
         `<h1 style="font-size:20px;margin:0 0 16px">Your verification code</h1>`,
         `<p style="font-size:32px;font-weight:700;letter-spacing:8px;margin:0 0 16px">${code}</p>`,
         `<p style="font-size:13px;color:#666;margin:0">This code expires in 10 minutes. If you didn't request it, ignore this email.</p>`,

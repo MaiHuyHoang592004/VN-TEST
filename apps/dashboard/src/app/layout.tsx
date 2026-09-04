@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Baloo_2, Nunito_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-import { auth } from "@opcreative/auth";
+import { auth } from "@gwprint/auth";
 
 import { AppProviders } from "@/components/global/providers";
 import { Navbar } from "@/components/global/layout/navbar";
@@ -34,7 +34,7 @@ const monoFont = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OpCreative — Dashboard",
+  title: "GWPrint — Dashboard",
   description: "Your orders, products and wallet in one place.",
 };
 

@@ -5,7 +5,7 @@
  * "begin production" button either, and adding one would mean a floor that
  * scans and then forgets to press it.
  */
-import { prisma, type AuditContext } from "@opcreative/db";
+import { prisma, type AuditContext } from "@gwprint/db";
 
 import { applyStatusChange, dispatchStatusWebhooks, type StatusChange } from "../../orders/service.ts";
 import { CONFIRM_THRESHOLD, StationError } from "./errors.ts";

@@ -6,7 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { Prisma } from "@opcreative/db";
+import { Prisma } from "@gwprint/db";
 import { effectivePrice, type PricedSku } from "./pricing.ts";
 
 const d = (v: string) => new Prisma.Decimal(v);

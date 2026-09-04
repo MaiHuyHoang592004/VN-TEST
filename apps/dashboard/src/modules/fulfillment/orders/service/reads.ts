@@ -6,7 +6,7 @@
  * connects as one database role with rights to everything), so a findMany
  * without it is a data leak, reviewed like a missing await.
  */
-import { prisma, orderScope, Prisma, type FulfillmentStatus } from "@opcreative/db";
+import { prisma, orderScope, Prisma, type FulfillmentStatus } from "@gwprint/db";
 
 import { type Actor } from "./shared.ts";
 

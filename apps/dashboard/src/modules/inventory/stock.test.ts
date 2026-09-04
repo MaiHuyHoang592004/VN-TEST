@@ -10,12 +10,12 @@
  *   · a manual change without its reason/note is refused before any write
  *   · a customer user cannot touch another site, however the id arrives
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import { availableOf } from "./stock/counters.ts";
 import { adjustStock, quickImport, listStock, listMovements } from "./stock/service.ts";

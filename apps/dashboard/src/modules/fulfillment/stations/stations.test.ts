@@ -23,7 +23,7 @@ const UPLOAD_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), ".sta
 process.env.UPLOAD_DIR = UPLOAD_DIR;
 process.env.STORAGE_DRIVER = "local";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 import {
   attachProof,
   completeHandoff,

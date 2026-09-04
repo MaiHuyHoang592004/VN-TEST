@@ -1,5 +1,5 @@
 -- ============================================================================
--- opcreative — legacy → new schema data migration
+-- gwprint — legacy → new schema data migration
 -- Maps the old backend's tables (.archive/oldproject/fulfillment-system-be,
 -- PascalCase names) into the new Prisma schema (snake_case names).
 -- ============================================================================

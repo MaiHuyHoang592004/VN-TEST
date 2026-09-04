@@ -13,7 +13,7 @@ import {
   prisma,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { assertImageBatch, storeImages } from "../../core/storage.ts";
 import { notifyMany, usersWithPermission } from "../../platform/index.ts";

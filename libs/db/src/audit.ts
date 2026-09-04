@@ -11,7 +11,7 @@
  * tokens) and diff changed fields only, not whole rows.
  */
 import type { AuditAction, Prisma } from "./generated/prisma/client.ts";
-import type { SessionUser } from "@opcreative/shared";
+import type { SessionUser } from "@gwprint/shared";
 
 export type AuditContext = {
   /** Who did it. Null only for system/cron actions. */

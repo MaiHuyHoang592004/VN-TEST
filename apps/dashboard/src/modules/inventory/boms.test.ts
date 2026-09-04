@@ -5,12 +5,12 @@
  * ACTIVE, on all three activation paths. Two active recipes make "what does
  * this order need?" ambiguous at the one moment it must not be.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import {
   activateBom,

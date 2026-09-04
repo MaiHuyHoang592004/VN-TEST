@@ -7,7 +7,7 @@
  * locale keys, category and icon a type maps to; adding a type means adding a
  * column here and nothing else.
  */
-import type { NotificationType } from "@opcreative/db";
+import type { NotificationType } from "@gwprint/db";
 
 export type NotificationCategory =
   | "orders"

@@ -8,7 +8,7 @@
  * "this order has the wrong picture on it, let me fix it", and that is a URL
  * or a file.
  */
-import { prisma, writeAudit, orderScope, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, orderScope, Prisma, type AuditContext } from "@gwprint/db";
 
 import { assertImageBatch, storeImages } from "../../../core/storage.ts";
 import { effectivePrice } from "../../../catalog/index.ts";

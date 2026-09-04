@@ -11,7 +11,7 @@
  * the whole filter (a groupBy, not a sum of the page), because the legacy page
  * added up whatever it had rendered and lied on every second page.
  */
-import { prisma, writeAudit, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, Prisma, type AuditContext } from "@gwprint/db";
 
 import {
   categorySchema,

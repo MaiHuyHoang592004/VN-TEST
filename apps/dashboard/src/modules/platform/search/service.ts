@@ -5,7 +5,7 @@ import {
   can,
   type Prisma,
   type SessionUser,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 /** The same explicit-actor shape every other service takes, so the scope can
  * be tested without a request. */

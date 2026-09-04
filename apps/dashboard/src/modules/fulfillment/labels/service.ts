@@ -10,7 +10,7 @@
  * This file is the public surface; every function takes an explicit actor and
  * re-reads through their scope, same as the rest of the domain.
  */
-import { prisma, orderScope } from "@opcreative/db";
+import { prisma, orderScope } from "@gwprint/db";
 
 import { buildLabelBundle, MAX_LABELS, type DownloadResult, type LabelSource } from "./download.ts";
 import { type Actor } from "../stations/service/group.ts";

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@opcreative/auth";
+import { auth } from "@gwprint/auth";
 
 import { ProtectedField } from "@/components/global/layout/protected-field";
 

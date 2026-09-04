@@ -23,7 +23,7 @@
  */
 import { createHmac } from "node:crypto";
 
-import { prisma } from "@opcreative/db";
+import { prisma } from "@gwprint/db";
 
 export type WebhookEvent = "order_status" | "shipping_added" | "tracking_status";
 
@@ -52,7 +52,7 @@ export async function dispatchWebhook(
     const body = JSON.stringify({ type: event, data });
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      "User-Agent": "OPCreative-Webhook/1.0",
+      "User-Agent": "GWPrint-Webhook/1.0",
     };
     if (seller.webhookSecret) {
       headers["X-Signature"] = createHmac("sha256", seller.webhookSecret).update(body).digest("hex");

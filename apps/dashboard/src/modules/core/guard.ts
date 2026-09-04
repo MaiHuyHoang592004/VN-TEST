@@ -12,7 +12,7 @@
 import "server-only";
 
 import { forbidden, redirect } from "next/navigation";
-import { can, type Permission, type SessionUser } from "@opcreative/auth";
+import { can, type Permission, type SessionUser } from "@gwprint/auth";
 import { getSessionUser } from "./session.ts";
 
 /** Thrown when a signed-in user lacks a permission. Transports map it: server

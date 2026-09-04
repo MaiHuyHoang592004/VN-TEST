@@ -11,12 +11,12 @@
  *   · replaying the same body lands on the same state (PATCH is idempotent by
  *     construction, which is why it needs no key).
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import { patchOrder, PatchError } from "./service/api-patch.ts";
 import { updateStatus } from "./service.ts";

@@ -12,7 +12,7 @@ import {
   PRODUCT_SELECT,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { productSchema } from "./schema.ts";
 

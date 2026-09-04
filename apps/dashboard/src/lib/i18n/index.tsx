@@ -43,7 +43,7 @@ const DEFAULT_LOCALE: Locale = "en";
 
 /** `storage` only fires in OTHER tabs, so same-tab switches need their own
  * notification for useSyncExternalStore to pick them up. */
-const LOCALE_EVENT = "opcreative:locale";
+const LOCALE_EVENT = "gwprint:locale";
 
 function subscribeLocale(onChange: () => void) {
   window.addEventListener("storage", onChange);

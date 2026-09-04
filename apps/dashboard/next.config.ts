@@ -11,15 +11,15 @@ const nextConfig: NextConfig = {
   },
 
   // Workspace libs ship raw TypeScript; Next compiles them with the app.
-  transpilePackages: ["@opcreative/auth", "@opcreative/db", "@opcreative/shared"],
+  transpilePackages: ["@gwprint/auth", "@gwprint/db", "@gwprint/shared"],
 
   // Emit a self-contained Node server (.next/standalone) that runs anywhere:
   // Docker, ECS, a bare EC2 box. Vercel ignores this, so it costs us nothing
   // today and keeps the exit door open — and because we build it in CI, the
   // door is verified rather than assumed.
   output: "standalone",
-  // Monorepo: trace from the repo root or the workspace libs (@opcreative/db,
-  // @opcreative/auth) are omitted from the bundle and the container dies at
+  // Monorepo: trace from the repo root or the workspace libs (@gwprint/db,
+  // @gwprint/auth) are omitted from the bundle and the container dies at
   // startup with a module-not-found.
   outputFileTracingRoot: path.join(process.cwd(), "../.."),
 };

@@ -14,7 +14,7 @@
  *   • the group is re-read after a write, so what the station renders is what
  *     the database holds, not what the caller hoped it wrote.
  */
-import { prisma, orderScope, Prisma, type AuditContext, type FulfillmentStatus } from "@opcreative/db";
+import { prisma, orderScope, Prisma, type AuditContext, type FulfillmentStatus } from "@gwprint/db";
 
 import { truncateTracking } from "../schema.ts";
 

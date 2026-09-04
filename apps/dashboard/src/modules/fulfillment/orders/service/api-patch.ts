@@ -19,7 +19,7 @@ import {
   writeAudit,
   orderScope,
   type AuditContext,
-} from '@opcreative/db';
+} from '@gwprint/db';
 import { z } from 'zod';
 
 import { applyStatusChange } from './status-change.ts';

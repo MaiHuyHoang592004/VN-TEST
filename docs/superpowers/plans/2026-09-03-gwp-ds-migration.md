@@ -75,11 +75,11 @@ Contrast floor: no text lighter than `navy-500` on a light ground; no opacity-ba
 ### Verification commands (every task ends with these two passing)
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Pure-logic tests run with the repo's existing runner (no new test dependency):
@@ -604,13 +604,13 @@ Fix every hit, then re-run until it prints `ADHERENCE: PASS`. Wire it into CI by
 - [ ] **Step 8: Verify lint and build**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 Expected: PASS.
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: PASS. If it fails on a missing `--font-sans`, Step 4's font remap was skipped.
@@ -618,7 +618,7 @@ Expected: PASS. If it fails on a missing `--font-sans`, Step 4's font remap was 
 - [ ] **Step 9: Look at the result before committing**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 Open `http://localhost:3000` signed in and confirm, by eye:
@@ -1018,7 +1018,7 @@ For each hit, confirm the surrounding row still aligns (a 32px icon button in a 
 - [ ] **Step 4: Verify lint, build and adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -1026,7 +1026,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -1034,7 +1034,7 @@ Expected: all three PASS.
 - [ ] **Step 5: Look at a dense toolbar and a dialog footer**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 Visit `/orders` (toolbar with `outline` bulk actions plus a `default` "New order") and open the create dialog. Confirm: one Action Blue button per region; pills read as pills; the destructive action is white-with-red-ink, not a red slab; keyboard focus shows the blue glow. Compare against `docs/design-system/screenshots/reference/` for the orders screen.
@@ -1258,7 +1258,7 @@ node --test apps/dashboard/src/components/ds/status-tones.test.ts
 ```
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -1266,7 +1266,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all four PASS. **StatusBadge has no call sites yet** — adoption happens per page in Layer 4, so that each page's status rendering can be checked against its own reference screenshot. Do not sweep `<Badge>` → `<StatusBadge>` globally here; a global sweep would recolour non-status badges too.
@@ -1365,7 +1365,7 @@ For each hit, delete the local `bg-*` class: the primitive now owns the field su
 - [ ] **Step 4: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -1373,7 +1373,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -1381,7 +1381,7 @@ Expected: all three PASS.
 - [ ] **Step 5: Prove a form still submits**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 Open `/profile`, change a field, submit. The point is not the look: it is that `profile-form.tsx`'s handler, its zod schema and its server action are untouched and still fire. Then open `/orders` → "New order" and confirm validation errors still render (the field turns `--status-critical-fg`).
@@ -1471,7 +1471,7 @@ In `checkbox.tsx`, replace only the `cn(...)` first argument on `CheckboxPrimiti
 - [ ] **Step 5: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -1479,7 +1479,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -1487,7 +1487,7 @@ Expected: all three PASS.
 - [ ] **Step 6: Prove selection and filtering still work**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 On `/orders`: open the status `Select`, arrow-key down, press Enter. The list must re-filter — that is `params.setFilter` firing, untouched. Confirm the highlighted item is pale sky (proving `data-highlighted` was used, not `:hover`), then click a row checkbox and confirm the bulk-action bar appears.
@@ -1580,7 +1580,7 @@ Expected: `clean`. `rounded-[`/`shadow-[` may legitimately survive in `custom/sp
 - [ ] **Step 4: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -1588,7 +1588,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -1596,7 +1596,7 @@ Expected: all three PASS.
 - [ ] **Step 5: Walk the four popup families**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 Open, in order: the user menu (top right), a row action menu on `/orders`, the language selector, and any tooltip. All four popups must share one radius, one border, one shadow and one highlight colour; the tooltip must be the dark chip. Keyboard-navigate one menu with arrow keys to confirm `data-highlighted` — not hover — drives the highlight.
@@ -1911,7 +1911,7 @@ export { Surface, type SurfaceProps } from "./surface";
 - [ ] **Step 6: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -1919,7 +1919,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS. `Surface`, `SectionHeading` and `KeyValueRow` have no call sites yet — Layer 4 adopts them. `Card`'s three existing call sites re-skin immediately.
@@ -2110,7 +2110,7 @@ export { MetricCard, type MetricCardProps } from "./metric-card";
 - [ ] **Step 3: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -2118,7 +2118,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS. No call sites yet — Tasks 19 and 23 adopt it.
@@ -2275,7 +2275,7 @@ Expected: `only class strings changed`. **If that prints anything else, revert a
 - [ ] **Step 4: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -2283,7 +2283,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -2291,7 +2291,7 @@ Expected: all three PASS.
 - [ ] **Step 5: Walk the table's nine behaviours on one real page**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 On `/orders`, confirm each of these still works — this is the Group B adapter's whole justification, so none may be taken on trust:
@@ -2560,7 +2560,7 @@ export { SearchField, type SearchFieldProps } from "./search-field";
 - [ ] **Step 7: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -2568,7 +2568,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -2576,7 +2576,7 @@ Expected: all three PASS.
 - [ ] **Step 8: Prove search, filter, paging and clear all still work**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 On `/orders`:
@@ -2679,7 +2679,7 @@ These three are Group B adapters that already exist and already do the right thi
 - [ ] **Step 5: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -2687,7 +2687,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -2695,7 +2695,7 @@ Expected: all three PASS.
 - [ ] **Step 6: Exercise one dialog of each kind, end to end**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 - [ ] **Create form** — `/orders` → "New order": fields render as inset wells, submit works, a validation error paints the field red and shows the message, Escape closes, the scrim is navy.
@@ -2907,7 +2907,7 @@ export { LoadingState, type LoadingStateProps } from "./loading-state";
 - [ ] **Step 8: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -2915,7 +2915,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -2923,7 +2923,7 @@ Expected: all three PASS.
 - [ ] **Step 9: Check the states against STATES.md**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 - [ ] `/profile` — the tab strip (profile / security / api / billing / webhooks) shows the Action Blue underline on the active tab and navigates as before
@@ -3143,7 +3143,7 @@ export { DateRangeField, type DateRangeFieldProps } from "./date-range-field";
 - [ ] **Step 6: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -3151,7 +3151,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS. Both new components are unmounted until Tasks 19–20, so there is nothing to click yet; the calendar and chart reskins are visible wherever `recharts` already renders (`/` home charts).
@@ -3295,7 +3295,7 @@ ls apps/dashboard/public/gwp
 
 Create `apps/dashboard/src/components/ds/brand/wood-rings.tsx` from `WoodRings.jsx`: concentric tree rings drawn with **gradients only** (the DS is explicit — no SVG circles), using `--wood-ring-stroke` (`rgba(15,58,95,0.10)`), `--wood-ring-stroke-soft` and `--wood-ring-gap` (14px). It is decorative: `aria-hidden="true"`, `pointer-events-none`, and it must not affect layout.
 
-Also replace the app icon while here — `apps/dashboard/public/Geomatric/black.svg` and `white.svg` are the old OpCreative monogram referenced by `navbar.tsx`. Leave the files (Task 17 removes the references); do not delete them yet, or the build breaks between tasks.
+Also replace the app icon while here — `apps/dashboard/public/Geomatric/black.svg` and `white.svg` are the old GWPrint monogram referenced by `navbar.tsx`. Leave the files (Task 17 removes the references); do not delete them yet, or the build breaks between tasks.
 
 - [ ] **Step 3: Create the `Page` primitives**
 
@@ -3516,7 +3516,7 @@ export { WoodRings } from "./brand/wood-rings";
 - [ ] **Step 5: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -3526,7 +3526,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 If the gate flags the `rgba(...)` inside `wood-rings.tsx`, that is a true positive worth fixing properly: move the gradient stops to `var(--wood-ring-stroke)` / `var(--wood-ring-stroke-soft)` rather than adding an exception to the script.
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -3654,7 +3654,7 @@ gradients themselves; do not preserve it. If a call site's element becomes unsty
 - [ ] **Step 4: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -3662,7 +3662,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -3670,7 +3670,7 @@ Expected: all three PASS.
 - [ ] **Step 5: Walk the shell on desktop and phone**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 - [ ] Signed in at 1440px: no left rail; the page ground is sky; content floats on it
@@ -3738,7 +3738,7 @@ The outer `px-4 pt-3` is what lets sky show *around* the shell. Without it the n
 
 - [ ] **Step 2: Swap the brand mark**
 
-Replace the `next/image` block pointing at `/Geomatric/black.svg` and `/Geomatric/white.svg` with `<GwpMark size={26} tone="sky" />`. **Not `navy`** — `GwpMark.prompt.md` is explicit that the floating nav shell takes `sky`, and that "navy is no longer the default: it reads heavy and corporate and pulls the brand toward SaaS/admin". That is the exact failure mode this migration exists to reverse, so a navy mark in the nav would undo the point of the shell for the signed-out lockup, and delete the `OpCreative` text node next to it if `GwpMark withWordmark` carries the wordmark. Then delete the now-unreferenced files:
+Replace the `next/image` block pointing at `/Geomatric/black.svg` and `/Geomatric/white.svg` with `<GwpMark size={26} tone="sky" />`. **Not `navy`** — `GwpMark.prompt.md` is explicit that the floating nav shell takes `sky`, and that "navy is no longer the default: it reads heavy and corporate and pulls the brand toward SaaS/admin". That is the exact failure mode this migration exists to reverse, so a navy mark in the nav would undo the point of the shell for the signed-out lockup, and delete the `GWPrint` text node next to it if `GwpMark withWordmark` carries the wordmark. Then delete the now-unreferenced files:
 
 ```bash
 grep -rn "Geomatric" --include='*.tsx' apps/dashboard/src || rm -rf apps/dashboard/public/Geomatric
@@ -3827,7 +3827,7 @@ That counts *section tabs*, which are per-section and therefore fine. What matte
 - [ ] **Step 9: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -3835,7 +3835,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -3843,7 +3843,7 @@ Expected: all three PASS.
 - [ ] **Step 10: Walk the whole shell**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 - [ ] the nav is a **cream pill floating on sky**, with sky visible on all sides of it
@@ -3939,7 +3939,7 @@ Apply it in `(protected)/layout.tsx`, wrapping `children` only. The `auth()` cal
 ```tsx
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { auth } from "@opcreative/auth";
+import { auth } from "@gwprint/auth";
 
 /**
  * Every page in this group requires a session; signed-out visitors land on
@@ -3998,7 +3998,7 @@ If it does not, **do not add middleware for this** — a middleware file changes
 - [ ] **Step 4: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -4006,7 +4006,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS. The `style={{ background: "var(--field-admin)" }}` will not trip the hex check — it is a token reference.
@@ -4014,7 +4014,7 @@ Expected: all three PASS. The `style={{ background: "var(--field-admin)" }}` wil
 - [ ] **Step 5: Check both chromes and the scan flow**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 - [ ] `/orders` (seller chrome): cream pill nav floating on flat sky
@@ -4171,7 +4171,7 @@ Each block below the KPI row ("Recent orders", "Production status") takes `<Sect
 - [ ] **Step 6: Verify lint, build, adherence**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -4179,7 +4179,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all three PASS.
@@ -4187,7 +4187,7 @@ Expected: all three PASS.
 - [ ] **Step 7: Walk the inventory from Step 1**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 Every box from Step 1 must tick. Then check the DS's per-screen definition of done against `docs/design-system/screenshots/reference/`:
@@ -4416,7 +4416,7 @@ node --test apps/dashboard/src/components/pages/orders/import-columns.test.ts
 ```
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -4424,7 +4424,7 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Expected: all four PASS.
@@ -4432,7 +4432,7 @@ Expected: all four PASS.
 - [ ] **Step 11: Walk all 26 interactions from Step 1**
 
 ```bash
-npm run dev -w @opcreative/dashboard
+npm run dev -w @gwprint/dashboard
 ```
 
 Tick every box in Step 1's list, in order. **26/26 or the page is not migrated.** Sign in as at least two roles (a seller and someone holding `orders.status.update`) so the gated interactions and the summary strip are actually exercised rather than assumed.
@@ -4508,11 +4508,11 @@ If the thread shape is flagged unconfirmed anywhere in the DS docs, keep the pla
 - [ ] **Step 5: Verify + walk**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
+npx turbo run lint --filter=@gwprint/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Then tick every box from Step 1 in the dev server, and check the reference PNG for the support screen.
@@ -4567,11 +4567,11 @@ Do not invent a rating: `guidelines/ALIGNMENT_AUDIT.md` § RESOLUTIONS closes th
 - [ ] **Step 4: Verify + walk + commit**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
+npx turbo run lint --filter=@gwprint/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -4621,11 +4621,11 @@ Stock levels, movements and receipts all use the reskinned `DataTable`. Per-tabl
 - [ ] **Step 4: Wrap the three routes** with `<Page><PageHeader tone="soft" …>`, then verify and walk
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
+npx turbo run lint --filter=@gwprint/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Tick every Step 1 box across all three routes, at two roles.
@@ -4672,11 +4672,11 @@ The two workstations were done in Task 18 (they needed the admin chrome). This t
 - [ ] **Step 3: Verify + walk + commit**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
+npx turbo run lint --filter=@gwprint/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 ```bash
@@ -4752,11 +4752,11 @@ Expected: `GATES UNCHANGED` (line numbers may shift; if the diff shows only line
 - [ ] **Step 6: Verify and walk all twelve routes**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
+npx turbo run lint --filter=@gwprint/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 For **each** of the twelve routes: search, filter, sort, paginate, create, edit, delete, and every gated action — signed in as an admin, then as a non-admin to confirm the gates still hide what they hid. Twelve routes × those checks is the bulk of this task's time; do not sample.
@@ -4828,11 +4828,11 @@ The wallet is money, so it is the strictest surface in the app for DS rule 4: **
 - [ ] **Step 5: Verify and walk all four sign-in paths**
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
+npx turbo run lint --filter=@gwprint/dashboard && apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Sign out and sign back in through **email+password** (the seeded local account is `test@opcreative.dev` / `newpass9`, per the repo's CLAUDE.md), then check that the Google button still initiates OAuth and the OTP form still sends. Then tick every remaining Step 1 box.
@@ -4970,11 +4970,11 @@ apps/dashboard/scripts/check-ds-adherence.sh
 ```
 
 ```bash
-npx turbo run lint --filter=@opcreative/dashboard
+npx turbo run lint --filter=@gwprint/dashboard
 ```
 
 ```bash
-DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@opcreative/dashboard
+DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder AUTH_SECRET=ci-build-only npx turbo run build --filter=@gwprint/dashboard
 ```
 
 All seven must pass. **Do not report the migration complete on fewer.** If one fails, say which and why in the report rather than in a commit message.

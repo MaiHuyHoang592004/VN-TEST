@@ -8,7 +8,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import type { UserStatus } from "@opcreative/db";
+import type { UserStatus } from "@gwprint/db";
 
 import { requirePermission, requireUser } from "../../core/guard.ts";
 import { auditContext } from "../../core/context.ts";

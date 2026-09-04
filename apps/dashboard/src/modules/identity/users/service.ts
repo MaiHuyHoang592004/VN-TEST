@@ -23,7 +23,7 @@ import {
   type AuditContext,
   type UserRole,
   type UserStatus,
-} from "@opcreative/db";
+} from "@gwprint/db";
 import { notify } from "../../platform/index.ts";
 import {
   applyBalanceMove,
@@ -341,7 +341,7 @@ export async function inviteUser(actor: Actor, raw: unknown, ctx: AuditContext) 
 
   // Lazy import: keeps the heavy NextAuth runtime out of the module graph for
   // the money/read paths (and out of `node --test`), which never send invites.
-  const { sendInviteEmail } = await import("@opcreative/auth");
+  const { sendInviteEmail } = await import("@gwprint/auth");
   await sendInviteEmail(input.email, `${appUrl()}/invite/${rawToken}`);
   return { ok: true as const, inviteId: invite.id };
 }

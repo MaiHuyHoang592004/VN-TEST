@@ -1,13 +1,13 @@
 import { z } from "zod";
 
-import { USER_ROLES as SHARED_USER_ROLES } from "@opcreative/shared";
+import { USER_ROLES as SHARED_USER_ROLES } from "@gwprint/shared";
 
 import { moneyAmountSchema, reasonSchema, emailSchema, phoneSchema } from "../../core/schema.ts";
 
-// Roles come from @opcreative/shared, the single source of truth that
+// Roles come from @gwprint/shared, the single source of truth that
 // libs/db asserts against Prisma's generated enum at compile time. Statuses
 // stay local until something else needs them.
-export { USER_ROLES } from "@opcreative/shared";
+export { USER_ROLES } from "@gwprint/shared";
 export const USER_STATUSES = ["ACTIVE", "INACTIVE", "BANNED"] as const;
 
 export const inviteSchema = z.object({

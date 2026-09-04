@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { FormDialog, FormField, useFormAction } from "@/components/global/form";
 import { inviteUserAction } from "@/modules/identity/users/actions";
-import { USER_ROLES } from "@opcreative/shared";
+import { USER_ROLES } from "@gwprint/shared";
 import { useTranslation } from "@/lib/i18n";
 
 /**

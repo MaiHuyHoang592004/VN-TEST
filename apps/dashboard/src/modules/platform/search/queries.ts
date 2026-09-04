@@ -1,6 +1,6 @@
 import "server-only";
 
-import { enforceRateLimit, RATE_LIMITS } from "@opcreative/db";
+import { enforceRateLimit, RATE_LIMITS } from "@gwprint/db";
 
 import { requireUser } from "../../core/guard.ts";
 import { MIN_QUERY_LENGTH, searchFor, type SearchHit } from "./service.ts";

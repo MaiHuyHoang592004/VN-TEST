@@ -10,7 +10,7 @@
  * same function the assignment charge uses. A price list that differs from
  * what you are billed is worse than no price list.
  */
-import { prisma, productScope } from "@opcreative/db";
+import { prisma, productScope } from "@gwprint/db";
 import { effectivePrice } from "@/modules/catalog";
 import { withApiKey, money } from "../_lib/with-api-key.ts";
 

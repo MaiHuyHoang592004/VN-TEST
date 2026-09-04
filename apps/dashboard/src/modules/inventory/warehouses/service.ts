@@ -13,7 +13,7 @@ import {
   USER_PUBLIC_SELECT,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { warehouseSchema } from "./schema.ts";
 

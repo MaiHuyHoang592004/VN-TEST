@@ -17,7 +17,7 @@ import {
 import { FormDialog, FormField, useFormAction } from "@/components/global/form";
 import { updateUserAction } from "@/modules/identity/users/actions";
 import { usePermissions } from "@/hooks/use-permissions";
-import { USER_ROLES } from "@opcreative/shared";
+import { USER_ROLES } from "@gwprint/shared";
 import { useTranslation } from "@/lib/i18n";
 
 import type { UserRow } from "./users-table";

@@ -9,7 +9,7 @@
   },
   "form": {
     "identity": "بياناتك",
-    "identityHint": "طريقة ظهورك في OpCreative.",
+    "identityHint": "طريقة ظهورك في GWPrint.",
     "memberSince": "عضو منذ",
     "avatarUrl": "رابط الصورة الرمزية",
     "avatarHint": "اتركه فارغًا لاستخدام صورة Google الخاصة بك.",
@@ -64,7 +64,7 @@
   },
   "api": {
     "title": "مفاتيح API",
-    "hint": "تتيح المفاتيح لأنظمتك التواصل مع OpCreative.",
+    "hint": "تتيح المفاتيح لأنظمتك التواصل مع GWPrint.",
     "shownOnce": "يُعرض المفتاح الجديد مرة واحدة فقط.",
     "create": "إنشاء مفتاح",
     "keyName": "اسم المفتاح",

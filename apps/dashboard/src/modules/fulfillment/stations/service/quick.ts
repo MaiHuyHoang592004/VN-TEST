@@ -12,7 +12,7 @@
  * illegal ones come back NAMED, with a code. Legacy reported everything it
  * touched as updated, including the rows it had silently mangled.
  */
-import { prisma, type AuditContext, type FulfillmentStatus } from "@opcreative/db";
+import { prisma, type AuditContext, type FulfillmentStatus } from "@gwprint/db";
 
 import { applyStatusChange, dispatchStatusWebhooks, type StatusChange } from "../../orders/service.ts";
 import { InvalidTransitionError } from "../../orders/status.ts";

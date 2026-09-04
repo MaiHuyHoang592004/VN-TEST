@@ -1,6 +1,6 @@
-import type { FulfillmentStatus } from "@opcreative/db";
+import type { FulfillmentStatus } from "@gwprint/db";
 
-import { can } from "@opcreative/shared";
+import { can } from "@gwprint/shared";
 
 import { requireUser } from "@/modules/core/guard";
 import { listOrders, orderStatusSummary } from "@/modules/fulfillment/orders/queries";

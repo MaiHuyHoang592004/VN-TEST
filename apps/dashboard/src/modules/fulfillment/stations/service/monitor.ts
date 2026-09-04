@@ -12,7 +12,7 @@
  * which is derived from the same policy primitives as orderScope. Never
  * interpolate anything else by hand: every value below is a bound parameter.
  */
-import { prisma, orderScopeSql, Prisma, type FulfillmentStatus } from "@opcreative/db";
+import { prisma, orderScopeSql, Prisma, type FulfillmentStatus } from "@gwprint/db";
 
 import { type Actor } from "./group.ts";
 

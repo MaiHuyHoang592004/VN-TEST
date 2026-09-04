@@ -9,12 +9,12 @@
  * The cases that only exist because of concurrency (double-reserve on one
  * unit) are the reason this runs against a real database.
  *
- * Run: npm run test:money -w @opcreative/dashboard (scratch DB, dropped after).
+ * Run: npm run test:money -w @gwprint/dashboard (scratch DB, dropped after).
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 
-import { prisma, type UserRole } from "@opcreative/db";
+import { prisma, type UserRole } from "@gwprint/db";
 
 import {
   consumeForOrder,

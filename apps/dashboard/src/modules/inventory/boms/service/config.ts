@@ -7,7 +7,7 @@
  * moment it must not be — assignment — so every path that activates
  * deactivates its siblings in the same transaction.
  */
-import { prisma, writeAudit, Prisma, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, Prisma, type AuditContext } from "@gwprint/db";
 
 import { InventoryError, type Actor } from "../../stock/service.ts";
 import { bomSchema } from "../schema.ts";

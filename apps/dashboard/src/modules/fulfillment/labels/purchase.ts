@@ -17,7 +17,7 @@ import {
   orderScope,
   Prisma,
   type AuditContext,
-} from "@opcreative/db";
+} from "@gwprint/db";
 
 import { notifyMany, usersWithPermission, dispatchWebhookMany } from "../../platform/index.ts";
 import { notifySellersOfLabel } from "../stations/service/labels.ts";
@@ -342,7 +342,7 @@ export async function purchaseLabels(
  */
 function warehouseAddress(): Address {
   return {
-    name: process.env.SHIP_FROM_NAME || "OPCreative",
+    name: process.env.SHIP_FROM_NAME || "GWPrint",
     company: process.env.SHIP_FROM_COMPANY || null,
     line1: process.env.SHIP_FROM_LINE1 || "",
     line2: process.env.SHIP_FROM_LINE2 || null,

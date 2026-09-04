@@ -3,7 +3,7 @@
  * the policy itself lives there, this turns it into the two shapes the domain
  * needs: a WHERE for reads, and a refusal for writes.
  */
-import { warehouseScopeIds, type AuditContext } from "@opcreative/db";
+import { warehouseScopeIds, type AuditContext } from "@gwprint/db";
 
 import { InventoryError } from "./errors.ts";
 

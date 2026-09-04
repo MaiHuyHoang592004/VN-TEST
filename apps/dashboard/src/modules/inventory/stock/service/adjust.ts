@@ -7,7 +7,7 @@
  * legacy system produced them routinely because the two writes were separate
  * calls.
  */
-import { prisma, writeAudit, type AuditContext } from "@opcreative/db";
+import { prisma, writeAudit, type AuditContext } from "@gwprint/db";
 
 import { adjustStockSchema, quickImportSchema } from "../schema.ts";
 import { resolveNeeded, writeMovement } from "./ledger.ts";

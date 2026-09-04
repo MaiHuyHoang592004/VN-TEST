@@ -10,7 +10,7 @@ next-themes · @tanstack/react-query · Fuse.js
 ## Run
 
 ```bash
-npm run dev -w @opcreative/dashboard   # from repo root — raw Next.js logs
+npm run dev -w @gwprint/dashboard   # from repo root — raw Next.js logs
 npm run dev                            # or via Turbo TUI (all apps)
 ```
 

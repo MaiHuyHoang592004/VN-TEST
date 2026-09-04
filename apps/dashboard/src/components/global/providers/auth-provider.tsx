@@ -9,7 +9,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import { signOut as nextAuthSignOut } from "next-auth/react";
-import type { UserRole } from "@opcreative/shared";
+import type { UserRole } from "@gwprint/shared";
 
 export interface AuthUser {
   displayName: string | null;

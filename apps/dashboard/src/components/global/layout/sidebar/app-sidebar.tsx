@@ -89,7 +89,7 @@ import {
 
 // ponytail: dummy teams until the teams table exists
 const TEAMS = [
-  { id: "personal", name: "Niyam's projects", plan: "Hobby" },
+  { id: "personal", name: "HoangMh's projects", plan: "Hobby" },
   { id: "gwprint", name: "GWPrint", plan: "Pro" },
 ];
 

@@ -120,7 +120,7 @@ jobs:
           file: apps/dashboard/Dockerfile
           push: false
           load: true
-          tags: opcreative-dashboard:ci
+          tags: gwprint-dashboard:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -132,7 +132,7 @@ jobs:
             -e DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder \
             -e AUTH_SECRET=ci-smoke-test \
             -e AUTH_TRUST_HOST=1 \
-            opcreative-dashboard:ci
+            gwprint-dashboard:ci
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
               echo "healthy after ${i}s"; curl -s http://localhost:3000/api/health; exit 0

@@ -7,28 +7,20 @@ Fulfillment platform for print-on-demand sellers. Structure:
 - `libs/db` — Prisma + shared backend logic (skeleton) · `libs/shared` — shared types/constants (skeleton)
 - `.archive/` — legacy projects, LOCAL ONLY (gitignored, each its own git repo). Never commit or scan it.
 
-## Two remotes: private WIP vs team
+## Remote
 
-One local folder, two GitHub repos (set up 2026-07-21, seeded by `git push --mirror`
-so history is identical — commits/branches/tags only; GitHub PRs and issues do NOT copy):
+One GitHub repo, one remote:
 
-- `origin` → `niyamvora/opcreative` — **private**, Niyam only. Default for all daily work.
-- `team` → `niyamvora/opcreative-team` — **shared** with collaborators. Publish here deliberately.
+- `origin` → `MaiHuyHoang592004/VN-TEST` — all daily work, and the source
+  Railway auto-deploys `main` from.
 
 ```bash
-git push origin phase-2-backend   # normal work, stays private
-git push team main                # publish: same commits, no copy-paste, no cherry-pick
+git push origin ds/layer-4-pages   # normal work
+git push origin main               # publish — triggers the Railway deploy
 ```
 
-**Strictly one-way.** `origin` is the source of truth; `team` is a publication
-target that is only ever pushed to, never pulled from. Caveat: `team` is a
-personal-account repo, where **every collaborator gets write access** — read-only
-roles and rulesets both need an org (Read role is free; rulesets need Team plan).
-So one-way is convention, not enforcement, until `opcreative-team` moves to an
-org. If a `push team` is ever rejected, a teammate pushed: do NOT `--force` (it
-silently deletes their commits) — look at what landed first. Never copy files
-between clones. Vercel is still linked to `origin`
-(`gwprint`) — move the deploy hook if `team` becomes the release source.
+Never copy files between clones; move commits with git, not with the file
+manager.
 
 ## Commands
 
@@ -39,10 +31,10 @@ npx turbo run build --filter=@gwprint/dashboard
 ```
 
 Deploy: `vercel deploy --prod --yes` from the **repo root** (workspace libs must
-upload too; project `opcreative-dashboard` has rootDirectory=apps/dashboard,
-live at opcreative-dashboard.vercel.app). `.vercelignore` keeps uploads under
+upload too; project `gwprint-dashboard` has rootDirectory=apps/dashboard,
+live at gwprint-dashboard.vercel.app). `.vercelignore` keeps uploads under
 the 100 MB limit. One Vercel project per app. Prod DB: Neon (free, via Vercel
-Marketplace, resource `opcreative-db`) — deliberately generic Postgres; moving
+Marketplace, resource `gwprint-db`) — deliberately generic Postgres; moving
 to DigitalOcean later = swap DATABASE_URL in Vercel env + both `.env.prod`
 files, nothing else. Prod migrations: `npm run db:migrate:prod` from `libs/db`
 (uses the direct/non-pooled URL in its `.env.prod`).
@@ -56,7 +48,7 @@ files, nothing else. Prod migrations: `npm run db:migrate:prod` from `libs/db`
 - **NEVER `prisma db push` or `prisma migrate reset`.** Schema change = edit
   models → `npm run db:migrate -- --name <change>` (from `libs/db`) → commit
   the migration. Prod: `npm run db:migrate:prod` (reads `.env.prod`).
-- Local DB: `opcreative_local` on Homebrew Postgres 17; URL in `.env.local`
+- Local DB: `gwprint_local` on Homebrew Postgres 17; URL in `.env.local`
   (gitignored, as is `.env.prod` — Vercel gets DATABASE_URL from its env vars).
 - Legacy cutover: `prisma/scripts/migrate-legacy.sql` runs on **prod only**
   (old data lives there; local starts fresh). Tested end-to-end 2026-07-20.
@@ -66,8 +58,8 @@ files, nothing else. Prod migrations: `npm run db:migrate:prod` from `libs/db`
   email OTP via Resend (signup verification + passwordless fallback).
   "/" renders login when signed out, dashboard home when signed in; the
   `(protected)` route group redirects to "/". `User.id` is a String cuid,
-  everything else keeps Int autoincrement ids. Local test login:
-  test@opcreative.dev / newpass9 (seeded in opcreative_local only).
+  everything else keeps Int autoincrement ids. The seeded ADMIN account is
+  `huyhoang5924@gmail.com` (Google sign-in; see `prisma/scripts/seed-demo.ts`).
 
 ## Conventions (learned the hard way — follow them)
 
@@ -106,5 +98,5 @@ files, nothing else. Prod migrations: `npm run db:migrate:prod` from `libs/db`
 ## Environment quirks
 
 - `git push` in this sandbox transfers fine but hangs after (~2 min timeout):
-  run it backgrounded, then verify with `gh api repos/niyamvora/opcreative/commits/main`.
+  run it backgrounded, then verify with `gh api repos/MaiHuyHoang592004/VN-TEST/commits/main`.
 - History was rewritten (2026-07-18) to purge `.archive`; old clones must re-clone.

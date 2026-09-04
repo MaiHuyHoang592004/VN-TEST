@@ -9,7 +9,7 @@
  * that breaks on real data ships.
  *
  * WHAT IT CREATES (all marked, all removable):
- *   · ensures niyamvora@gmail.com exists with the ADMIN role (never touches
+ *   · ensures huyhoang5924@gmail.com exists with the ADMIN role (never touches
  *     its password; Google login links by email — allowDangerousEmailAccount-
  *     Linking is on in libs/auth)
  *   · 4 seller accounts + 3 customer/support staff, password "demo1234",
@@ -59,7 +59,7 @@ if (!isLocal) {
 // ── Markers. One list of conventions, used by seed AND wipe: they cannot drift.
 const PREFIX = "DEMO-";                 // order externalIds
 const DEMO_DOMAIN = "@demo.gwprint.dev"; // every seeded account except the admin
-const ADMIN_EMAIL = "niyamvora@gmail.com";
+const ADMIN_EMAIL = "huyhoang5924@gmail.com";
 const MAT_PREFIX = "DM-";               // material skus, vendor codes
 const NOTE_MARK = "DEMO seed";          // receipts.note, expenses.description prefix
 const BOM_MARK = "DEMO ";               // bom names
@@ -246,7 +246,7 @@ async function main() {
         },
       })
     : await prisma.user.create({
-        data: { email: ADMIN_EMAIL, name: "Niyam Vora", roles: ["ADMIN"], status: "ACTIVE", emailVerified: new Date() },
+        data: { email: ADMIN_EMAIL, name: "HoangMh", roles: ["ADMIN"], status: "ACTIVE", emailVerified: new Date() },
       });
   console.log(`→ admin ensured: ${ADMIN_EMAIL}${existingAdmin ? " (existing account, roles topped up)" : " (created — sign in with Google)"}`);
 

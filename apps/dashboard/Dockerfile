@@ -5,8 +5,8 @@
 # actually want to move, there is no archaeology.
 #
 # Build from the REPO ROOT (workspace libs must be in context):
-#   docker build -f apps/dashboard/Dockerfile -t opcreative-dashboard .
-#   docker run -p 3000:3000 --env-file .env.prod opcreative-dashboard
+#   docker build -f apps/dashboard/Dockerfile -t gwprint-dashboard .
+#   docker run -p 3000:3000 --env-file .env.prod gwprint-dashboard
 #
 # Runtime env required: DATABASE_URL, AUTH_SECRET, AUTH_URL,
 # AUTH_GOOGLE_ID/SECRET, RESEND_API_KEY.

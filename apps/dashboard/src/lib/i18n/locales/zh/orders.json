@@ -213,5 +213,6 @@
     "units": "件",
     "breakdown": "明细构成",
     "nothing": "暂无数据。"
-  }
+  },
+  "dialogNewSubmit": "创建订单"
 }

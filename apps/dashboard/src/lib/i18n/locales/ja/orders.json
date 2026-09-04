@@ -213,5 +213,6 @@
     "units": "点",
     "breakdown": "内訳",
     "nothing": "データがありません。"
-  }
+  },
+  "dialogNewSubmit": "注文を作成"
 }

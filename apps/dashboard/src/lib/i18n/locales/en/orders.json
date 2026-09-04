@@ -213,5 +213,6 @@
     "units": "units",
     "breakdown": "What's inside",
     "nothing": "Nothing here."
-  }
+  },
+  "dialogNewSubmit": "Create order"
 }

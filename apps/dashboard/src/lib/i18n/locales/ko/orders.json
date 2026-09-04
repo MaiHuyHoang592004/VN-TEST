@@ -213,5 +213,6 @@
     "units": "개",
     "breakdown": "구성 내역",
     "nothing": "내용이 없습니다."
-  }
+  },
+  "dialogNewSubmit": "주문 생성"
 }

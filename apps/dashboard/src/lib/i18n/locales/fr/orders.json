@@ -213,5 +213,6 @@
     "units": "unités",
     "breakdown": "Contenu",
     "nothing": "Rien ici."
-  }
+  },
+  "dialogNewSubmit": "Créer la commande"
 }

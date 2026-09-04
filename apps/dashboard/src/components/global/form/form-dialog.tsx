@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/lib/i18n";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,7 @@ export function FormDialog({
   onOpenChange,
   title,
   description,
-  submitLabel = "Save",
+  submitLabel,
   pending = false,
   submitDisabled = false,
   destructive = false,
@@ -64,6 +65,7 @@ export function FormDialog({
   footerHint?: ReactNode;
 }) {
   const isMobile = useIsMobile();
+  const { t } = useTranslation();
 
   const body = (
     <>
@@ -87,14 +89,19 @@ export function FormDialog({
         onClick={() => onOpenChange(false)}
         disabled={pending}
       >
-        Cancel
+        {t("common.cancel")}
       </Button>
       <Button
         type="submit"
         variant={destructive ? "destructive" : "default"}
         disabled={pending || submitDisabled}
       >
-        {pending ? "Working…" : submitLabel}
+        {/* Three strings that used to be hardcoded English and therefore
+            reached every dialog in the app untranslated, in all seven locales.
+            `submitLabel` stays a prop because a dialog that CREATES something
+            should not say "Save Changes" — it just no longer defaults to an
+            English literal. */}
+        {pending ? t("common.saving") : (submitLabel ?? t("common.save"))}
       </Button>
     </>
   );

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ResponsiveDialog } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
+import { usePermissions } from "@/hooks/use-permissions";
 
 import type { OrderRow } from "./orders-table";
 
@@ -152,6 +153,9 @@ function OrderCodePanel({
   onFormatChange: (f: Format) => void;
 }) {
   const { t } = useTranslation();
+  const { can } = usePermissions();
+  // The print SHEET is floor work; the panel around it is not.
+  const canPrint = can("orders.status.update");
   const [copied, setCopied] = useState(false);
   const value = String(order.orderId);
   const complete = order.filled >= order.quantity;
@@ -343,14 +347,25 @@ function OrderCodePanel({
           {t("common.close")}
         </Button>
         {/* Reuses the print sheet rather than hand-rolling a print window: one
-            layout to maintain, and it already prints itself on load. */}
-        <Button
-          size="sm"
-          onClick={() => window.open(`/orders/print?ids=${order.orderId}`, "_blank", "noopener")}
-        >
-          <Printer className="size-4" />
-          {t("orders.qr.print")}
-        </Button>
+            layout to maintain, and it already prints itself on load.
+            GATED, and not for tidiness: this panel has TWO ways in. The floor
+            reaches it from the QR column, which is already behind
+            orders.status.update — but a seller reaches it by tapping their own
+            artwork thumbnail (orders-table.tsx, order-mobile-card.tsx), which is
+            deliberately ungated because looking at your own design is not floor
+            work. /orders/print calls requirePermission("orders.status.update"),
+            so without this check the seller's own thumbnail hands them a button
+            that opens a new tab and 403s. Hiding it is cosmetics; the page's
+            own guard is the security. */}
+        {canPrint && (
+          <Button
+            size="sm"
+            onClick={() => window.open(`/orders/print?ids=${order.orderId}`, "_blank", "noopener")}
+          >
+            <Printer className="size-4" />
+            {t("orders.qr.print")}
+          </Button>
+        )}
       </div>
     </div>
   );

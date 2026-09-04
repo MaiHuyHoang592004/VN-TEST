@@ -145,6 +145,9 @@ export function OrderDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={t(order ? "orders.dialogEditTitle" : "orders.dialogNewTitle")}
+      // A button says exactly what happens. "Save Changes" is the right words
+      // when editing and the wrong ones when the press CREATES the order.
+      submitLabel={order ? undefined : t("orders.dialogNewSubmit")}
       description={t("orders.dialogDesc")}
       pending={pending}
       submitDisabled={!values.externalId.trim() || !values.shippingName.trim() || !values.zip.trim() || (!order && skuId === null)}

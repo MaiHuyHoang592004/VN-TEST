@@ -18,7 +18,7 @@ COPY package.json package-lock.json* ./
 COPY apps/dashboard/package.json apps/dashboard/
 COPY libs/db/package.json libs/db/
 COPY libs/auth/package.json libs/auth/
-# libs/shared has no package.json yet — add a COPY line here when it gets one.
+COPY libs/shared/package.json libs/shared/
 # libs/db postinstall runs `prisma generate`, which needs the schema present.
 COPY libs/db/prisma libs/db/prisma
 RUN npm ci
@@ -28,6 +28,12 @@ FROM node:24-alpine AS builder
 WORKDIR /repo
 COPY --from=deps /repo/node_modules ./node_modules
 COPY . .
+# Build-time only, and deliberately fake: `prisma generate` never connects and
+# no page is statically rendered against live data. These mirror the
+# placeholders CI uses, so a failure here is a real failure and not a missing
+# secret. They live in the builder stage and never reach the runtime image.
+ENV DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder
+ENV AUTH_SECRET=build-only
 # Prisma client is generated into libs/db/src/generated and must exist before
 # the Next build type-checks against it.
 RUN npm run db:generate -w @opcreative/db

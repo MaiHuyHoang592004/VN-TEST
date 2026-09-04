@@ -1,0 +1,22 @@
+# The Dockerfile builds from the repo root. Keep the context small and never
+# let a host node_modules (wrong platform, wrong versions) shadow the one
+# `npm ci` builds inside the deps stage.
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+out
+build
+.git
+.github
+.archive
+.vercel
+.claude
+coverage
+libs/db/src/generated
+.env
+.env.*
+!.env.example

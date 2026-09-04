@@ -14,6 +14,7 @@
  *   service/export.ts         the table as a spreadsheet (money columns gated)
  *   service/artwork.ts        re-pricing, and attaching design/mockup by hand
  *   service/api-patch.ts      the public API's partial update (doc 07 F1)
+ *   service/timeline.ts       the five milestones, read from the audit log
  *   service/shared.ts         actor type, resumeTo helpers
  *
  * Transport-agnostic throughout: the web actions, the spreadsheet importer and
@@ -56,3 +57,9 @@ export {
   type ArtworkErrorCode,
 } from "./service/artwork.ts";
 export { patchOrder, PatchError, type PatchErrorCode } from "./service/api-patch.ts";
+export {
+  orderTimeline,
+  TIMELINE_STEPS,
+  type TimelineEntry,
+  type TimelineStep,
+} from "./service/timeline.ts";

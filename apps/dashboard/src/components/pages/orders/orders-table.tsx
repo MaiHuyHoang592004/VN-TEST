@@ -34,6 +34,7 @@ import { RefundDialog } from "./refund-dialog";
 import { ArtworkDialog } from "./artwork-dialog";
 import { ExportButton } from "./export-button";
 import { StatusSummary, type StatusSummaryRow } from "./status-summary";
+import { OrderTimeline } from "./order-timeline";
 import { BuyLabelsButton } from "./buy-labels-button";
 import { DownloadLabelsButton } from "./download-labels-button";
 import { OrderDialog } from "./order-dialog";
@@ -419,6 +420,11 @@ export function OrdersTable({
         columns={columns}
         rowId={(o) => String(o.id)}
         mobileCard={(o) => <OrderMobileCard order={o} />}
+        // Every order has a line to show, so the expander is on every row. The
+        // panel fetches its own dates when it opens; nothing is loaded for the
+        // twenty-four rows nobody expanded.
+        renderExpanded={(o) => <OrderTimeline orderId={o.id} />}
+        expandLabel={t("orders.timeline.toggle")}
         loading={params.pending}
         selected={selected}
         onSelectedChange={setSelected}

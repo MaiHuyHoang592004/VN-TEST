@@ -214,5 +214,8 @@
     "breakdown": "Chi tiết bên trong",
     "nothing": "Không có gì."
   },
-  "dialogNewSubmit": "Tạo đơn hàng"
+  "dialogNewSubmit": "Tạo đơn hàng",
+  "timeline": {
+    "toggle": "Xem tiến trình đơn"
+  }
 }

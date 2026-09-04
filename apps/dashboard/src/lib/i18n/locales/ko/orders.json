@@ -214,5 +214,8 @@
     "breakdown": "구성 내역",
     "nothing": "내용이 없습니다."
   },
-  "dialogNewSubmit": "주문 생성"
+  "dialogNewSubmit": "주문 생성",
+  "timeline": {
+    "toggle": "주문 진행 상황 보기"
+  }
 }

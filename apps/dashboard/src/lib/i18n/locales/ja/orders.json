@@ -214,5 +214,8 @@
     "breakdown": "内訳",
     "nothing": "データがありません。"
   },
-  "dialogNewSubmit": "注文を作成"
+  "dialogNewSubmit": "注文を作成",
+  "timeline": {
+    "toggle": "注文の進行状況を表示"
+  }
 }

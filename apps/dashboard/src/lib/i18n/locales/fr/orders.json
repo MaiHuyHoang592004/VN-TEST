@@ -214,5 +214,8 @@
     "breakdown": "Contenu",
     "nothing": "Rien ici."
   },
-  "dialogNewSubmit": "Créer la commande"
+  "dialogNewSubmit": "Créer la commande",
+  "timeline": {
+    "toggle": "Afficher le suivi de la commande"
+  }
 }

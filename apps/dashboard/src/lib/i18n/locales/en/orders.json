@@ -214,5 +214,8 @@
     "breakdown": "What's inside",
     "nothing": "Nothing here."
   },
-  "dialogNewSubmit": "Create order"
+  "dialogNewSubmit": "Create order",
+  "timeline": {
+    "toggle": "Show order timeline"
+  }
 }

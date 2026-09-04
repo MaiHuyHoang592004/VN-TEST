@@ -214,5 +214,8 @@
     "breakdown": "明细构成",
     "nothing": "暂无数据。"
   },
-  "dialogNewSubmit": "创建订单"
+  "dialogNewSubmit": "创建订单",
+  "timeline": {
+    "toggle": "显示订单进度"
+  }
 }

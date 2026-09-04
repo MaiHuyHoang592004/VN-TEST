@@ -46,3 +46,23 @@ export async function orderStatusSummary(
   );
   return orders.orderStatusSummary(actor, query);
 }
+
+/**
+ * The five milestones behind one order's expanded row.
+ *
+ * Same guard as the list, and the service applies the same scope on top, so a
+ * seller asking for someone else's order id gets an empty timeline rather than
+ * a 403 that would confirm the row exists.
+ *
+ * Fetched per row on expand rather than for all 25 up front: the panel is one
+ * row at a time, and joining an audit trail onto every page of the list to
+ * render one of them is work nobody asked for.
+ */
+export async function orderTimeline(id: number) {
+  const actor = await requireAnyPermission(
+    "orders.read.own",
+    "orders.read.customer",
+    "orders.read.all",
+  );
+  return orders.orderTimeline(actor, id);
+}

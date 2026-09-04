@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ScanLine } from "lucide-react";
 
+import { Surface } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
@@ -83,7 +84,9 @@ export function ScanInput({
 
   return (
     <>
-      <div className="border-border bg-card rounded-lg border p-4">
+      {/* The scan target is the workstation's one job, so it sits on the
+          inset rung: a pale sky well inside the white data surface. */}
+      <Surface level="inset" radius="card" shadow="none" className="p-4">
         <div className="mb-3 flex items-center gap-1">
           {(["tracking", "order"] as const).map((m) => (
             <button
@@ -94,10 +97,10 @@ export function ScanInput({
                 setError(null);
               }}
               aria-pressed={mode === m}
-              className={`rounded-md px-3 py-1.5 text-sm transition-colors ${
+              className={`rounded-(--radius-pill) px-3 py-1.5 font-sans text-(length:--fs-body) font-semibold transition-colors duration-(--dur-fast) ease-(--ease-out) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
                 mode === m
-                  ? "bg-secondary text-secondary-foreground font-medium"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-sky-200 text-navy-700"
+                  : "text-navy-500 hover:bg-sky-100 hover:text-navy-700"
               }`}
             >
               {t(`fulfillment.scan.mode.${m}`)}
@@ -113,7 +116,7 @@ export function ScanInput({
           className="flex items-center gap-2"
         >
           <div className="relative flex-1">
-            <ScanLine className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+            <ScanLine className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-(--icon-muted)" />
             <Input
               ref={inputRef}
               value={value}
@@ -129,15 +132,20 @@ export function ScanInput({
               placeholder={t(`fulfillment.scan.placeholder.${mode}`)}
               aria-label={t(`fulfillment.scan.placeholder.${mode}`)}
               aria-invalid={error ? true : undefined}
-              className="pl-9 font-mono"
+              // 48px, monospaced: this field receives barcodes and order IDs,
+              // and it is read standing up at arm's length.
+              className="h-12 pl-11 font-mono text-(length:--fs-body-lg)"
             />
           </div>
-          <Button type="submit" disabled={pending || !value.trim()}>
+          {/* The one Action Blue on the station: scan. lg because it is hit
+              with a glove or a scanner trigger. */}
+          <Button type="submit" size="lg" disabled={pending || !value.trim()}>
             {pending ? <Spinner className="size-4" /> : t("fulfillment.scan.submit")}
           </Button>
           <Button
             type="button"
             variant="ghost"
+            size="lg"
             onClick={() => {
               setValue("");
               setError(null);
@@ -150,17 +158,20 @@ export function ScanInput({
         </form>
 
         {error ? (
-          <p role="alert" className="text-destructive mt-2 text-sm">
+          <p
+            role="alert"
+            className="mt-2 font-sans text-(length:--fs-body) font-semibold text-(--status-critical-fg)"
+          >
             {error}
           </p>
         ) : (
-          <p className="text-muted-foreground mt-2 text-xs">
+          <p className="mt-2 font-sans text-(length:--fs-body-sm) text-(--text-muted)">
             {mode === "tracking"
               ? t("fulfillment.scan.hintTracking").replace("{n}", String(TRACKING_LENGTH))
               : t("fulfillment.scan.hintOrder")}
           </p>
         )}
-      </div>
+      </Surface>
 
       {confirm && (
         <ConfirmScanDialog

@@ -82,6 +82,14 @@ export function Navbar() {
   // /orders, and an item asked on its own answers about itself only.
   const activeTab = activeHref(pathname, dockTabs.map((d) => d.href));
 
+  // The DS ships two chromes: the seller's cream shell floating on sky, and
+  // the admin bar — white ground, full-bleed, one bright CTA. Admin screens
+  // are dense tables where a floating shell wastes a row of vertical space, so
+  // they take the bar. Derived from the route rather than added as a prop, so
+  // no caller changes and no page can get it wrong.
+  const isAdminChrome =
+    pathname.startsWith("/admin") || pathname.startsWith("/fulfillment");
+
   return (
     // The root layout has no rail and no SidebarProvider any more (the DS:
     // "GWP never uses a dark or vertical sidebar"). SidebarNavButtons and
@@ -95,13 +103,25 @@ export function Navbar() {
       <AppSidebar />
       <nav
         data-slot="top-nav"
-        className="sticky top-0 z-50 w-full px-4 pt-3 lg:px-8"
+        data-surface={isAdminChrome ? "white" : "cream"}
+        className={
+          isAdminChrome
+            ? "sticky top-0 z-50 w-full border-b border-(--border-hairline) bg-(--surface-data)"
+            : "sticky top-0 z-50 w-full px-4 pt-3 lg:px-8"
+        }
         style={{ overflowAnchor: "none" }}
       >
-        {/* The outer px/pt is what lets sky show AROUND the shell. Without it
-            the nav is a full-bleed cream bar — the DS's explicitly
-            non-canonical fallback. */}
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 rounded-(--radius-pill) bg-(--surface-nav) px-4 shadow-(--shadow-sm) lg:px-6">
+        {/* On seller chrome the outer px/pt is what lets sky show AROUND the
+            shell. Without it the nav is a full-bleed cream bar — the DS's
+            explicitly non-canonical fallback. Everything INSIDE the container
+            is identical in both chromes; the children are never forked. */}
+        <div
+          className={
+            isAdminChrome
+              ? "mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 px-6 lg:px-20"
+              : "mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 rounded-(--radius-pill) bg-(--surface-nav) px-4 shadow-(--shadow-sm) lg:px-6"
+          }
+        >
           {/* Left - Logo + Navigation Links シノビデータ */}
           <div className="flex h-full min-w-0 items-center gap-4 lg:gap-8">
             <SidebarNavButtons />

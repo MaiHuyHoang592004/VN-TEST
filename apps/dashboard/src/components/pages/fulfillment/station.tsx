@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 // A TYPE-only import: it is erased at compile time, so pulling the shape from
 // the service does NOT drag prisma and the pg driver into the client bundle
@@ -54,8 +55,12 @@ export function Station() {
   return (
     <div className="pb-28">
       <header className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("fulfillment.station.title")}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t("fulfillment.station.subtitle")}</p>
+        <h1 className="font-display text-(length:--fs-display-sm) leading-(--lh-heading) font-(--fw-display) text-(--text-strong)">
+          {t("fulfillment.station.title")}
+        </h1>
+        <p className="mt-1 font-sans text-(length:--fs-body-sm) text-(--text-muted)">
+          {t("fulfillment.station.subtitle")}
+        </p>
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -68,7 +73,7 @@ export function Station() {
           {blocker && (
             <p
               role="alert"
-              className="border-destructive/40 bg-destructive/10 text-destructive rounded-lg border px-4 py-3 text-sm font-medium"
+              className="rounded-(--radius-card) border border-(--status-critical-bg) bg-(--status-critical-bg) px-4 py-3 font-sans text-(length:--fs-body) font-semibold text-(--status-critical-fg)"
             >
               {blocker}
             </p>
@@ -80,9 +85,14 @@ export function Station() {
               <OrderCardGrid group={group} onGroup={load} onBlocked={setBlocker} />
             </>
           ) : (
-            <div className="border-border text-muted-foreground rounded-lg border border-dashed px-6 py-16 text-center text-sm">
+            <Surface
+              level="inset"
+              radius="card"
+              shadow="none"
+              className="border border-dashed border-(--border-soft) px-6 py-16 text-center font-sans text-(length:--fs-body) text-(--text-muted)"
+            >
               {t("fulfillment.station.idle")}
-            </div>
+            </Surface>
           )}
         </div>
 

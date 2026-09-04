@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { ScanLine } from "lucide-react";
 import type { FulfillmentStatus } from "@opcreative/db";
 
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge, Surface } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -112,11 +112,16 @@ export function QuickScan() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">{t("fulfillment.quick.title")}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t("fulfillment.quick.subtitle")}</p>
+        <h1 className="font-display text-(length:--fs-display-sm) leading-(--lh-heading) font-(--fw-display) text-(--text-strong)">
+          {t("fulfillment.quick.title")}
+        </h1>
+        <p className="mt-1 font-sans text-(length:--fs-body-sm) text-(--text-muted)">
+          {t("fulfillment.quick.subtitle")}
+        </p>
       </header>
 
-      <div className="border-border bg-card space-y-3 rounded-lg border p-4">
+      {/* The scan target sits on the inset rung, as it does on the station. */}
+      <Surface level="inset" radius="card" shadow="none" className="space-y-3 p-4">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -125,9 +130,11 @@ export function QuickScan() {
           className="flex flex-wrap items-end gap-3"
         >
           <div className="min-w-56 flex-1 space-y-1.5">
-            <span className="text-sm font-medium">{t("fulfillment.scan.mode.tracking")}</span>
+            <span className="font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase">
+              {t("fulfillment.scan.mode.tracking")}
+            </span>
             <div className="relative">
-              <ScanLine className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+              <ScanLine className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-(--icon-muted)" />
               <Input
                 ref={inputRef}
                 value={value}
@@ -140,15 +147,21 @@ export function QuickScan() {
                 placeholder={t("fulfillment.scan.placeholder.tracking")}
                 aria-label={t("fulfillment.scan.placeholder.tracking")}
                 aria-invalid={error ? true : undefined}
-                className="pl-9 font-mono"
+                // 48px and monospaced, for the same reason as the station.
+                className="h-12 pl-11 font-mono text-(length:--fs-body-lg)"
               />
             </div>
           </div>
 
           <div className="w-52 space-y-1.5">
-            <span className="text-sm font-medium">{t("fulfillment.quick.status")}</span>
+            <span className="font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase">
+              {t("fulfillment.quick.status")}
+            </span>
             <Select value={status} onValueChange={(v) => setStatus(v as FulfillmentStatus)}>
-              <SelectTrigger aria-label={t("fulfillment.quick.status")}>
+              <SelectTrigger
+                aria-label={t("fulfillment.quick.status")}
+                className="h-12"
+              >
                 <SelectValue>{t(`orders.statuses.${status}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -161,7 +174,8 @@ export function QuickScan() {
             </Select>
           </div>
 
-          <Button type="submit" disabled={pending || !value.trim()}>
+          {/* The screen's one Action Blue, at 48px. */}
+          <Button type="submit" size="lg" disabled={pending || !value.trim()}>
             {pending ? <Spinner className="size-4" /> : t("fulfillment.quick.submit")}
           </Button>
         </form>
@@ -176,11 +190,14 @@ export function QuickScan() {
         />
 
         {error && (
-          <p role="alert" className="text-destructive text-sm">
+          <p
+            role="alert"
+            className="font-sans text-(length:--fs-body) font-semibold text-(--status-critical-fg)"
+          >
             {error}
           </p>
         )}
-      </div>
+      </Surface>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <Tile label={t("fulfillment.quick.lastScanned")} value={log[0]?.tracking ?? "—"} mono />
@@ -195,12 +212,20 @@ export function QuickScan() {
 
 function Tile({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="border-border bg-card rounded-lg border p-4">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className={`mt-1 truncate text-lg font-semibold ${mono ? "font-mono text-sm" : "tabular-nums"}`}>
+    <Surface level="data" radius="card" shadow="sm">
+      <p className="font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase">
+        {label}
+      </p>
+      <p
+        className={`mt-1 truncate ${
+          mono
+            ? "font-mono text-(length:--fs-body) font-semibold text-(--text-strong)"
+            : "font-display text-(length:--fs-display-sm) font-(--fw-display-heavy) tabular-nums text-(--display-kpi)"
+        }`}
+      >
         {value}
       </p>
-    </div>
+    </Surface>
   );
 }
 
@@ -209,39 +234,57 @@ function QuickLog({ log }: { log: LogEntry[] }) {
 
   if (!log.length) {
     return (
-      <p className="border-border text-muted-foreground rounded-lg border border-dashed px-6 py-12 text-center text-sm">
+      <p className="rounded-(--radius-card) border border-dashed border-(--border-soft) bg-(--surface-inset) px-6 py-12 text-center font-sans text-(length:--fs-body) text-(--text-muted)">
         {t("fulfillment.quick.empty")}
       </p>
     );
   }
 
   return (
-    <div className="border-border overflow-x-auto rounded-lg border">
-      <table className="w-full text-sm">
-        <thead className="bg-muted/50 text-muted-foreground text-xs">
-          <tr>
-            <th className="px-3 py-2 text-left font-medium">{t("fulfillment.quick.colCustomer")}</th>
-            <th className="px-3 py-2 text-left font-medium">{t("fulfillment.quick.colTracking")}</th>
-            <th className="px-3 py-2 text-left font-medium">{t("fulfillment.quick.colStatus")}</th>
-            <th className="px-3 py-2 text-right font-medium">{t("fulfillment.quick.colQty")}</th>
-            <th className="px-3 py-2 text-left font-medium">{t("fulfillment.quick.colProduct")}</th>
-            <th className="px-3 py-2 text-left font-medium">{t("fulfillment.quick.colNote")}</th>
+    <div className="overflow-x-auto rounded-(--radius-card) border border-(--border-soft) bg-(--surface-data)">
+      <table className="w-full font-sans text-(length:--fs-body-sm)">
+        <thead className="bg-(--surface-inset) text-(length:--fs-micro) text-(--text-label)">
+          <tr className="tracking-(--ls-label) uppercase">
+            <th className="px-3 py-2 text-left font-semibold">
+              {t("fulfillment.quick.colCustomer")}
+            </th>
+            <th className="px-3 py-2 text-left font-semibold">
+              {t("fulfillment.quick.colTracking")}
+            </th>
+            <th className="px-3 py-2 text-left font-semibold">
+              {t("fulfillment.quick.colStatus")}
+            </th>
+            <th className="px-3 py-2 text-right font-semibold">
+              {t("fulfillment.quick.colQty")}
+            </th>
+            <th className="px-3 py-2 text-left font-semibold">
+              {t("fulfillment.quick.colProduct")}
+            </th>
+            <th className="px-3 py-2 text-left font-semibold">
+              {t("fulfillment.quick.colNote")}
+            </th>
           </tr>
         </thead>
-        <tbody className="divide-border divide-y">
+        <tbody className="divide-y divide-(--border-hairline)">
           {log.flatMap((entry) => [
             ...entry.rows.map((column) => (
               <tr key={`${entry.tracking}-${column.id}`}>
                 <td className="px-3 py-2">{entry.customer ?? "—"}</td>
-                <td className="px-3 py-2 font-mono text-xs">{entry.tracking}</td>
-                <td className="px-3 py-2">
-                  <Badge variant="secondary">{t(`orders.statuses.${entry.status}`)}</Badge>
+                <td className="px-3 py-2 font-mono text-(length:--fs-meta)">
+                  {entry.tracking}
                 </td>
-                <td className="px-3 py-2 text-right tabular-nums">{column.quantity}</td>
+                <td className="px-3 py-2">
+                  <StatusBadge status={entry.status}>
+                    {t(`orders.statuses.${entry.status}`)}
+                  </StatusBadge>
+                </td>
+                <td className="px-3 py-2 text-right font-mono tabular-nums">
+                  {column.quantity}
+                </td>
                 <td className="px-3 py-2">
                   {[column.variant, column.product].filter(Boolean).join(" · ") || "—"}
                 </td>
-                <td className="text-muted-foreground px-3 py-2">{entry.note ?? "—"}</td>
+                <td className="px-3 py-2 text-(--text-muted)">{entry.note ?? "—"}</td>
               </tr>
             )),
             // The column legacy never showed. A skip is the thing a supervisor
@@ -249,7 +292,10 @@ function QuickLog({ log }: { log: LogEntry[] }) {
             ...(entry.skipped.length
               ? [
                   <tr key={`${entry.tracking}-skipped`} className="bg-(--status-attention-bg)">
-                    <td colSpan={6} className="text-status-attention-fg px-3 py-2 text-xs">
+                    <td
+                      colSpan={6}
+                      className="px-3 py-2 text-(length:--fs-meta) text-(--status-attention-fg)"
+                    >
                       {t("fulfillment.quick.skipped").replace(
                         "{orders}",
                         entry.skipped

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Check, ChevronDown, Package } from "lucide-react";
 import type { FulfillmentStatus } from "@opcreative/db";
 
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge, Surface } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -99,7 +99,7 @@ function OrderCard({
   const options = allowedTransitions(order.status as FulfillmentStatus);
 
   return (
-    <article className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
+    <Surface level="data" radius="card" shadow="sm" className="flex flex-col gap-3">
       <div className="flex items-start gap-3">
         {order.mockupThumb || order.designUrl ? (
           // The design a customer prints. Click opens it full size — a packer
@@ -114,67 +114,87 @@ function OrderCard({
             <img
               src={order.mockupThumb ?? order.designUrl ?? ""}
               alt=""
-              className="border-border size-14 rounded-md border object-cover transition-transform hover:scale-105"
+              className="size-14 rounded-(--radius-card) border border-(--border-soft) object-cover transition-transform hover:scale-105 motion-reduce:transition-none"
             />
           </a>
         ) : (
-          <span className="bg-muted text-muted-foreground flex size-14 shrink-0 items-center justify-center rounded-md">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-(--radius-card) bg-(--surface-inset) text-(--icon-muted)">
             <Package className="size-5" />
           </span>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{order.variant ?? "—"}</p>
-          <p className="text-muted-foreground truncate text-xs">
-            {[order.product, order.sku].filter(Boolean).join(" · ") || "—"}
+          <p className="truncate font-sans text-(length:--fs-body) font-semibold text-(--text-strong)">
+            {order.variant ?? "—"}
           </p>
-          <p className="text-muted-foreground mt-1 truncate font-mono text-xs">
+          {/* Product name is prose; the SKU is an identifier, so only the SKU
+              takes the mono face. */}
+          <p className="truncate font-sans text-(length:--fs-body-sm) text-(--text-muted)">
+            {order.product ?? "—"}
+            {order.sku ? (
+              <>
+                {" · "}
+                <span className="font-mono">{order.sku}</span>
+              </>
+            ) : null}
+          </p>
+          <p className="mt-1 truncate font-mono text-(length:--fs-meta) text-(--text-muted)">
             {order.externalId ?? `#${order.id}`}
           </p>
         </div>
 
         <div className="text-right">
-          <p className="text-2xl leading-none font-semibold tabular-nums">{order.quantity}</p>
-          <p className="text-muted-foreground text-xs">{t("fulfillment.card.qty")}</p>
+          <p className="font-display text-(length:--fs-display-sm) leading-none font-(--fw-display-heavy) tabular-nums text-(--display-kpi)">
+            {order.quantity}
+          </p>
+          <p className="font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase">
+            {t("fulfillment.card.qty")}
+          </p>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        <Badge variant={order.status === "ON_HOLD" ? "destructive" : "secondary"}>
+        {/* Every status is a StatusBadge, tone derived from the literal
+            backend value — never a hand-picked Badge variant. */}
+        <StatusBadge status={order.status}>
           {t(`orders.statuses.${order.status}`)}
-        </Badge>
+        </StatusBadge>
+        {/* "filled" is derived from the counter, not a backend status, so it
+            carries an explicit tone rather than going through toneFor(). */}
         {complete && (
-          <Badge className="bg-green-600/15 text-green-600 gap-1">
+          <StatusBadge status="filled" tone="success" dot={false} className="gap-1">
             <Check className="size-3" />
             {t("fulfillment.card.filled")}
-          </Badge>
+          </StatusBadge>
         )}
         {order.basket && (
-          <span className="text-muted-foreground text-xs">{order.basket.name}</span>
+          <span className="font-sans text-(length:--fs-meta) text-(--text-muted)">
+            {order.basket.name}
+          </span>
         )}
       </div>
 
       {/* Progress, not a status: "filled" is derived from the counter. */}
       <div>
-        <div className="text-muted-foreground mb-1 flex justify-between text-xs">
+        <div className="mb-1 flex justify-between font-sans text-(length:--fs-meta) text-(--text-muted)">
           <span>{t("fulfillment.card.progress")}</span>
-          <span className="tabular-nums">
+          <span className="font-mono tabular-nums">
             {order.filled}/{order.quantity}
           </span>
         </div>
-        <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+        <div className="h-1.5 overflow-hidden rounded-(--radius-pill) bg-(--surface-inset)">
           <div
-            className={`h-full rounded-full transition-all ${complete ? "bg-green-600" : "bg-action-500"}`}
+            className={`h-full rounded-(--radius-pill) transition-all motion-reduce:transition-none ${complete ? "bg-(--status-success-dot)" : "bg-sky-500"}`}
             style={{ width: `${Math.min(100, (order.filled / order.quantity) * 100)}%` }}
           />
         </div>
       </div>
 
       {(order.note || order.internalNote) && (
-        <div className="space-y-1 text-xs">
-          {order.note && <p className="text-muted-foreground">{order.note}</p>}
+        <div className="space-y-1 font-sans text-(length:--fs-meta)">
+          {order.note && <p className="text-(--text-muted)">{order.note}</p>}
           {order.internalNote && (
-            <p className="text-status-attention-fg">{order.internalNote}</p>
+            <p className="text-(--status-attention-fg)">{order.internalNote}</p>
           )}
         </div>
       )}
@@ -188,9 +208,10 @@ function OrderCard({
           onChange={(e) => setAmount(Math.max(1, Number(e.target.value) || 1))}
           disabled={complete || order.status !== "IN_PRODUCTION"}
           aria-label={t("fulfillment.card.fillAmount")}
-          className="w-20 tabular-nums"
+          className="h-12 w-24 font-mono tabular-nums"
         />
         <Button
+          size="lg"
           onClick={fill}
           disabled={pending || complete || order.status !== "IN_PRODUCTION"}
           className="flex-1"
@@ -201,7 +222,11 @@ function OrderCard({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="outline" size="icon" disabled={pending || options.length === 0} />
+              <Button
+                variant="outline"
+                size="icon-lg"
+                disabled={pending || options.length === 0}
+              />
             }
           >
             <ChevronDown className="size-4" />
@@ -219,6 +244,6 @@ function OrderCard({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </article>
+    </Surface>
   );
 }

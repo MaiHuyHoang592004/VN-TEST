@@ -224,13 +224,17 @@ export function CameraPanel({
   if (!supported) return null;
 
   return (
-    <aside className="border-border bg-card h-fit space-y-3 rounded-lg border p-4">
-      <h2 className="text-sm font-medium">{t("fulfillment.camera.title")}</h2>
+    <aside className="h-fit space-y-3 rounded-(--radius-card) border border-(--border-soft) bg-(--surface-data) p-4 shadow-(--shadow-sm)">
+      <h2 className="font-sans text-(length:--fs-body) font-semibold text-(--text-strong)">
+        {t("fulfillment.camera.title")}
+      </h2>
 
       {error ? (
-        <div className="border-border space-y-3 rounded-md border border-dashed p-4 text-center">
-          <CameraOff className="text-muted-foreground mx-auto size-6" />
-          <p className="text-muted-foreground text-sm">{error}</p>
+        <div className="space-y-3 rounded-(--radius-card) border border-dashed border-(--border-soft) p-4 text-center">
+          <CameraOff className="mx-auto size-6 text-(--icon-muted)" />
+          <p className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">
+            {error}
+          </p>
           <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
             {t("fulfillment.camera.retry")}
           </Button>
@@ -241,7 +245,7 @@ export function CameraPanel({
             ref={videoRef}
             muted
             playsInline
-            className={`bg-muted aspect-video w-full rounded-md object-cover ${
+            className={`aspect-video w-full rounded-(--radius-card) border border-(--border-soft) bg-(--surface-inset) object-cover ${
               mirrored ? "-scale-x-100" : ""
             }`}
           />

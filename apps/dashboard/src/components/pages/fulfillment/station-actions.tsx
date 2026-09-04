@@ -27,6 +27,11 @@ import type { StationGroup } from "./station";
  * The bench's controls, pinned to the bottom because they are what an operator
  * reaches for with a parcel in one hand: photograph it, hand it over, or move
  * the whole thing.
+ *
+ * Everything here is size="lg" (48px): the station is used standing up, at
+ * arm's length, with a glove or a scanner trigger. Destructive moves stay on
+ * the DS's `destructive` variant — a white pill with red ink, never a filled
+ * red target sitting next to a filled blue one.
  */
 export function StationActions({
   group,
@@ -77,9 +82,9 @@ export function StationActions({
 
   return (
     <>
-      <div className="bg-background/95 border-border fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-(--border-hairline) bg-(--surface-data)">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-2 px-6 py-3 lg:px-20">
-          <span className="text-muted-foreground mr-auto text-sm">
+          <span className="mr-auto font-sans text-(length:--fs-body) text-(--text-muted)">
             {t("fulfillment.actions.summary")
               .replace("{orders}", String(group.orders.length))
               .replace("{units}", String(group.orders.reduce((n, o) => n + o.quantity, 0)))}
@@ -88,7 +93,11 @@ export function StationActions({
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
-                <Button variant="outline" disabled={pending || options.length === 0}>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  disabled={pending || options.length === 0}
+                >
                   {t("fulfillment.actions.updateAll")}
                   <ChevronDown className="ml-1 size-4" />
                 </Button>
@@ -112,7 +121,12 @@ export function StationActions({
           </DropdownMenu>
 
           <Can permission="orders.labels.manage">
-            <Button variant="outline" onClick={() => setLinking(true)} disabled={pending}>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setLinking(true)}
+              disabled={pending}
+            >
               <Tag className="size-4" />
               {t("fulfillment.actions.linkLabel")}
             </Button>
@@ -133,12 +147,19 @@ export function StationActions({
               if (file) await upload(file);
             }}
           />
-          <Button variant="outline" onClick={() => fileRef.current?.click()} disabled={pending}>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => fileRef.current?.click()}
+            disabled={pending}
+          >
             <Camera className="size-4" />
             {t("fulfillment.actions.proof")}
           </Button>
 
-          <Button onClick={() => setHandoff(true)} disabled={pending}>
+          {/* The bench's one Action Blue. 48px — this is the button a packer
+              hits with a parcel in the other hand. */}
+          <Button size="lg" onClick={() => setHandoff(true)} disabled={pending}>
             <PackageCheck className="size-4" />
             {t("fulfillment.actions.handoff")}
           </Button>

@@ -62,7 +62,7 @@ the code before touching it; "verified" is what was exercised in a browser.
 | 23 | Inventory | 6 | 4/6 | the two write dialogs (adjust, import) not exercised |
 | 24 | Fulfillment | 3 | 2/3 | monitor filters + board; the station's scan flow needs a barcode |
 | 25 | Admin (12 routes) | 22 gates, 13 tables, 20 `<Can>` | gates 22/22, routes 12/12 | see below |
-| 26 | Profile/wallet/etc | 8 | 6/8 | see below |
+| 26 | Profile/wallet/etc | 8 | 6/8 | all five profile tabs, notifications and invite walked as a seller; see below |
 
 ### Task 20 — the four Orders interactions not ticked
 
@@ -115,6 +115,47 @@ the hero reads "Products" (the section, via `activeTabHref`'s nested-route
 rule) while the record is named in the page body below it. Tickets' detail
 route instead puts the record in the hero. Both are defensible; they are not
 the same.
+
+### The seller's side, walked end to end
+
+Signed in as `maya@demo.opcreative.dev` (role `SELLER`), every screen a seller
+can reach was opened: home, orders, catalogue, tickets, one ticket's
+conversation, all five profile tabs, notifications, and the two nav items that
+are still placeholders. All render correctly.
+
+Orders is the strongest gate evidence in the app, because the same screen was
+walked as an admin an hour earlier. As a seller it loses, exactly as the code
+says it should:
+
+- the **COST** column (gated on `orders.assign`),
+- the **QR** column with its proof and artwork actions (`orders.status.update`),
+- the whole **status summary strip** (`showSummary`, same permission),
+- and every staff bulk action — "Today's labels", Assign, Recalculate, Refund,
+  Delete. Only Export, Import and New order remain.
+
+The Layer 3 navigation repair was re-checked here too: at 1118px the sheet opens
+and carries exactly the seller's items — Home, Orders, Catalogue, Wallet,
+Support, Analytics, Profile, Settings, Billing, Help, Log Out — with no admin,
+fulfillment or inventory section in it.
+
+**FINDING — the coming-soon page was never migrated.** `/wallet` and
+`/analytics` are both in the seller's own sidebar, and both land on the
+`[...comingSoon]` catch-all, which is the one seller-reachable screen still
+wearing pre-migration clothes:
+
+- it is the last file referencing `public/Geomatric/*`, the black/white logo
+  cube Task 17 replaced with `GwpMark` everywhere else —
+  `MIGRATION-STATUS.md` §8 trap 5 predicted exactly this and said the asset
+  "can be deleted once that page is migrated";
+- its title is a shimmering tri-colour gradient that routes `--orange-500`
+  through TEXT. The plan's own correction #4 records orange-500 as a FILL
+  token that fails as text, so this is the one place in the app that still
+  does what that correction forbids.
+
+It passes the adherence gate because every colour in it is a token — the gate
+checks provenance, not role. It is out of Layer 4's declared scope (no task
+lists the catch-all among its files), so it is reported rather than fixed, but
+it is the most visible thing left undone.
 
 ### Task 26 — the sign-in paths
 

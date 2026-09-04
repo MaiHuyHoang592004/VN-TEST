@@ -97,7 +97,7 @@ export async function dispatchWebhook(
   const body = JSON.stringify({ type: event, data });
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "User-Agent": "GWPrint-Webhook/1.0",
+    "User-Agent": "GWPrintz-Webhook/1.0",
   };
   if (seller.webhookSecret) {
     headers["X-Signature"] = signWebhookBody(seller.webhookSecret, body);

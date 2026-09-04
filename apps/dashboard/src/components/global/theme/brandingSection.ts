@@ -1,5 +1,5 @@
 /**
- * GWPrint Branding Section for Excel Export
+ * GWPrintz Branding Section for Excel Export
  * Adds company information and branding to the right side of the spreadsheet.
  * ponytail: unused until an Excel-export feature exists — wired and rebranded so it drops in.
  */
@@ -93,13 +93,13 @@ const BRAND_STYLES: Record<string, CellStyle> = {
 // ============================================
 
 const BRANDING_INFO = {
-  companyName: "GWPrint",
+  companyName: "GWPrintz",
   tagline: "Print-on-demand fulfillment, simplified",
   downloadedFrom: "www.gwprint.com",
   website: "https://gwprint.com",
   email: "support@gwprint.com",
   description:
-    "GWPrint is a fulfillment platform for print-on-demand sellers — " +
+    "GWPrintz is a fulfillment platform for print-on-demand sellers — " +
     "orders, products, inventory and payouts in one dashboard.",
 };
 
@@ -218,7 +218,7 @@ export function addBrandingSection(
 
   // Footer with year
   const year = new Date().getFullYear();
-  setCell(rows.footer, startCol, `© ${year} GWPrint`, BRAND_STYLES.footer);
+  setCell(rows.footer, startCol, `© ${year} GWPrintz`, BRAND_STYLES.footer);
   setCell(rows.footer, startCol + 1, "", BRAND_STYLES.footer);
 
   // Set row widths for branding section

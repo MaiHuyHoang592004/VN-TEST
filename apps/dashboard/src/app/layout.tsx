@@ -34,7 +34,7 @@ const monoFont = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GWPrint — Dashboard",
+  title: "GWPrintz — Dashboard",
   description: "Your orders, products and wallet in one place.",
 };
 

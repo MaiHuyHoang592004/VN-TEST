@@ -52,7 +52,7 @@ export default async function InvitePage({
           {copy} Ask whoever invited you to send a new one.
         </p>
         <Button render={<Link href="/" />} className="self-start">
-          Go to GWPrint
+          Go to GWPrintz
         </Button>
       </>,
     );
@@ -65,7 +65,7 @@ export default async function InvitePage({
       <div>
         <h1 className="text-2xl font-medium">You&apos;ve been invited</h1>
         <p className="text-muted-foreground mt-1.5 text-sm">
-          to join GWPrint as <strong>{invite.email}</strong>
+          to join GWPrintz as <strong>{invite.email}</strong>
         </p>
       </div>
 

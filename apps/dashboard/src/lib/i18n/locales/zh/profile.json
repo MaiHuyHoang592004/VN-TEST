@@ -9,7 +9,7 @@
   },
   "form": {
     "identity": "您的资料",
-    "identityHint": "您在 GWPrint 上的显示方式。",
+    "identityHint": "您在 GWPrintz 上的显示方式。",
     "memberSince": "注册于",
     "avatarUrl": "头像链接",
     "avatarHint": "留空则使用您的 Google 头像。",
@@ -64,7 +64,7 @@
   },
   "api": {
     "title": "API 密钥",
-    "hint": "密钥让您的系统与 GWPrint 通信。",
+    "hint": "密钥让您的系统与 GWPrintz 通信。",
     "shownOnce": "新密钥仅显示一次，之后无法再查看。",
     "create": "创建密钥",
     "keyName": "密钥名称",

@@ -131,7 +131,7 @@ export function Navbar() {
               <>
             <Link
               href="/"
-              aria-label="GoodWoodPrint"
+              aria-label="GWPrintz"
               className="flex shrink-0 items-center rounded-(--radius-pill) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
             >
               {/* One mark, one theme. The monogram already carries the

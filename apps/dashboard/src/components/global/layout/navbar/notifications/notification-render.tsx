@@ -32,11 +32,16 @@ export const CATEGORY_ICON: Record<NotificationCategory, LucideIcon> = {
   system: Info,
 };
 
+/**
+ * Category ink. Deliberately NOT Action Blue: the DS allows Action Blue once
+ * per nav region and that one is the CTA, so a list of category icons reads in
+ * navy, sky and the status ramps instead.
+ */
 export const CATEGORY_COLOR: Record<NotificationCategory, string> = {
-  orders: "stroke-action-500",
+  orders: "stroke-navy-600",
   warehouse: "stroke-sky-500",
   payments: "stroke-green-600",
-  system: "stroke-muted-foreground",
+  system: "stroke-(--icon-muted)",
 };
 
 /** t() has no interpolation — fill {placeholders} locally. */

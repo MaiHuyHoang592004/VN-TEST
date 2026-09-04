@@ -81,7 +81,7 @@ export function FooterSocial() {
             rel="noopener noreferrer"
             aria-label={label}
             style={{ "--brand": brand } as CSSProperties}
-            className="text-muted-foreground hover:text-(--brand) hover:bg-accent hover:drop-shadow-[0_0_10px_var(--brand)] focus-visible:ring-ring flex size-9 -translate-y-0 items-center justify-center rounded-md transition-all duration-200 hover:-translate-y-0.5 focus-visible:ring-1 focus-visible:outline-none"
+            className="flex size-9 -translate-y-0 items-center justify-center rounded-(--radius-pill) text-(--icon-muted) transition-all duration-200 hover:-translate-y-0.5 hover:bg-cream-200 hover:text-(--brand) hover:drop-shadow-[0_0_10px_var(--brand)] focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
           >
             <Icon className="size-4" />
           </a>

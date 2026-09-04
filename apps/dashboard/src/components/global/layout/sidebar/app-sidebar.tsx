@@ -158,14 +158,14 @@ function TeamSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <button className="border-border hover:bg-accent/50 flex w-full items-center gap-2 rounded-lg border p-2 text-left transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1" />
+          <button className="flex w-full items-center gap-2 rounded-(--radius-card) border border-(--border-hairline) p-2 text-left transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:p-1" />
         }
       >
-        <span className="from-action-500 to-orange-500 flex size-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-br text-xs font-semibold text-white">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-(--radius-pill) bg-sky-200 text-(length:--fs-micro) font-semibold text-navy-700">
           {team.name[0]}
         </span>
         <span className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-          <span className="block truncate text-sm font-medium">
+          <span className="block truncate font-sans text-(length:--fs-body-sm) font-semibold text-navy-700">
             {team.name}
           </span>
         </span>
@@ -175,18 +175,20 @@ function TeamSwitcher() {
         >
           {team.plan}
         </Badge>
-        <ChevronsUpDown className="text-muted-foreground size-4 shrink-0 group-data-[collapsible=icon]:hidden" />
+        <ChevronsUpDown className="size-4 shrink-0 text-(--icon-muted) group-data-[collapsible=icon]:hidden" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-64 dark:bg-black" align="start">
+      <DropdownMenuContent className="w-64" align="start">
         <DropdownMenuGroup>
           {TEAMS.map(({ id, name, plan }) => (
             <DropdownMenuItem key={id} onClick={() => setTeamId(id)}>
-              <span className="from-action-500 to-orange-500 mr-1 flex size-5 items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-semibold text-white">
+              <span className="mr-1 flex size-5 items-center justify-center rounded-(--radius-pill) bg-sky-200 text-(length:--fs-micro) font-semibold text-navy-700">
                 {name[0]}
               </span>
               <span className="flex-1 truncate">{name}</span>
-              <span className="text-muted-foreground text-xs">{plan}</span>
-              {id === teamId && <Check className="stroke-action-500 size-4" />}
+              <span className="text-(length:--fs-meta) text-(--text-muted)">
+                {plan}
+              </span>
+              {id === teamId && <Check className="size-4 stroke-navy-700" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>
@@ -200,7 +202,16 @@ function TeamSwitcher() {
   );
 }
 
-/** Navbar hamburger, mobile only — opens the sidebar as a sheet. */
+/**
+ * The navbar's way into the navigation, below the DS's 1024px kit floor.
+ *
+ * lg:hidden, not md:hidden. Task 16 removed the persistent 240px rail; while
+ * this button hid at 768px and the sheet only mounted below 768px, a
+ * 768—1023px viewport had no route into the nav at all. RESPONSIVE.md puts the
+ * kit floor at 1024 and the admin Sidebar off-canvas below it, so the sheet is
+ * the navigation for everything under 1024 — and this button has to reach the
+ * same width. The paired change is SidebarProvider's useIsBelowDesktop().
+ */
 export function SidebarNavButtons() {
   const { user } = useAuth();
   const { t } = useTranslation();
@@ -217,9 +228,9 @@ export function SidebarNavButtons() {
     <button
       aria-label={t("sidebar.open")}
       onClick={() => setOpenMobile(true)}
-      className="border-border hover:border-foreground/20 hover:bg-accent/50 inline-flex size-9 shrink-0 items-center justify-center rounded-md border transition-colors md:hidden"
+      className="inline-flex size-9 shrink-0 items-center justify-center rounded-(--radius-pill) text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none lg:hidden"
     >
-      <Menu className="text-muted-foreground size-4" />
+      <Menu className="size-4" />
     </button>
   );
 }
@@ -237,6 +248,9 @@ export function AppSidebar() {
 
   const initial = (user.displayName || user.email || "?")[0].toUpperCase();
 
+  // The sheet panel is already cream with the drawer shadow: --sidebar maps to
+  // --surface-nav (globals.css) and SheetContent carries
+  // shadow-(--shadow-drawer). Nothing to override on <Sidebar> itself.
   return (
     <Sidebar collapsible="offcanvas">
       <SidebarHeader className="gap-3 p-3 group-data-[collapsible=icon]:p-2">
@@ -249,7 +263,7 @@ export function AppSidebar() {
               aria-label={t("sidebar.close")}
               title={t("sidebar.close")}
               onClick={() => setOpenMobile(false)}
-              className="text-muted-foreground hover:bg-accent hover:text-foreground inline-flex size-8 shrink-0 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex size-8 shrink-0 items-center justify-center rounded-(--radius-pill) text-navy-500 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             >
               <X className="size-4" />
             </button>
@@ -272,6 +286,7 @@ export function AppSidebar() {
                     isActive={href === activeHref(pathname, MAIN_NAV.map((i) => i.href))}
                     tooltip={t(key)}
                     render={<Link href={href} />}
+                    className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                   >
                     <Icon className="size-4" />
                     <span>{t(key)}</span>
@@ -288,7 +303,7 @@ export function AppSidebar() {
           <>
             <SidebarSeparator />
             <SidebarGroup>
-              <SidebarGroupLabel>{t("fulfillment.nav.section")}</SidebarGroupLabel>
+              <SidebarGroupLabel className="font-sans text-(length:--fs-micro) font-semibold uppercase tracking-(--ls-label) text-(--text-label)">{t("fulfillment.nav.section")}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {sectionNav("/fulfillment").map(({ key, href, icon: Icon }) => (
@@ -297,6 +312,7 @@ export function AppSidebar() {
                         isActive={href === activeHref(pathname, sectionNav("/fulfillment").map((i) => i.href))}
                         tooltip={t(key)}
                         render={<Link href={href} />}
+                        className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                       >
                         <Icon className="size-4" />
                         <span>{t(key)}</span>
@@ -313,7 +329,7 @@ export function AppSidebar() {
           <>
             <SidebarSeparator />
             <SidebarGroup>
-              <SidebarGroupLabel>{t("inventory.nav.section")}</SidebarGroupLabel>
+              <SidebarGroupLabel className="font-sans text-(length:--fs-micro) font-semibold uppercase tracking-(--ls-label) text-(--text-label)">{t("inventory.nav.section")}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {sectionNav("/inventory").map(({ key, href, icon: Icon }) => (
@@ -322,6 +338,7 @@ export function AppSidebar() {
                         isActive={href === activeHref(pathname, sectionNav("/inventory").map((i) => i.href))}
                         tooltip={t(key)}
                         render={<Link href={href} />}
+                        className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                       >
                         <Icon className="size-4" />
                         <span>{t(key)}</span>
@@ -338,7 +355,7 @@ export function AppSidebar() {
           <>
             <SidebarSeparator />
             <SidebarGroup>
-              <SidebarGroupLabel>{t("admin.title")}</SidebarGroupLabel>
+              <SidebarGroupLabel className="font-sans text-(length:--fs-micro) font-semibold uppercase tracking-(--ls-label) text-(--text-label)">{t("admin.title")}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
                   {adminNav.map(({ key, href, icon: Icon }) => (
@@ -347,6 +364,7 @@ export function AppSidebar() {
                         isActive={href === activeHref(pathname, adminNav.map((i) => i.href))}
                         tooltip={t(key)}
                         render={<Link href={href} />}
+                        className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                       >
                         <Icon className="size-4" />
                         <span>{t(key)}</span>
@@ -361,7 +379,7 @@ export function AppSidebar() {
 
         <SidebarSeparator />
         <SidebarGroup>
-          <SidebarGroupLabel>{t("sidebar.account")}</SidebarGroupLabel>
+          <SidebarGroupLabel className="font-sans text-(length:--fs-micro) font-semibold uppercase tracking-(--ls-label) text-(--text-label)">{t("sidebar.account")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {ACCOUNT_NAV.map(({ key, href, icon: Icon }) => (
@@ -370,6 +388,7 @@ export function AppSidebar() {
                     isActive={href === activeHref(pathname, ACCOUNT_NAV.map((i) => i.href))}
                     tooltip={t(key)}
                     render={<Link href={href} />}
+                    className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                   >
                     <Icon className="size-4" />
                     <span>{t(key)}</span>
@@ -381,7 +400,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-border border-t p-3 group-data-[collapsible=icon]:p-2">
+      <SidebarFooter className="border-t border-(--border-hairline) p-3 group-data-[collapsible=icon]:p-2">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
           <Avatar className="size-8 shrink-0">
             {user.photoURL ? <AvatarImage src={user.photoURL} /> : null}
@@ -391,7 +410,7 @@ export function AppSidebar() {
           <Tooltip>
             <TooltipTrigger
               render={
-                <p className="min-w-0 flex-1 truncate text-sm font-medium group-data-[collapsible=icon]:hidden" />
+                <p className="min-w-0 flex-1 truncate font-sans text-(length:--fs-body-sm) font-semibold text-navy-700 group-data-[collapsible=icon]:hidden" />
               }
             >
               {user.displayName || user.email}
@@ -404,7 +423,7 @@ export function AppSidebar() {
             <button
               aria-label={t("nav.logout")}
               onClick={() => void signOut()}
-              className="text-muted-foreground hover:bg-accent hover:text-destructive inline-flex size-8 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex size-8 items-center justify-center rounded-(--radius-pill) text-navy-500 transition-colors duration-(--dur-fast) hover:bg-(--status-critical-bg) hover:text-(--status-critical-fg) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             >
               <LogOut className="size-4" />
             </button>

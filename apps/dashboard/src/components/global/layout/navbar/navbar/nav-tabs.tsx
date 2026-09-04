@@ -14,9 +14,9 @@ import { sectionFor, activeTabHref } from "@/config/nav-tabs";
  * Renders nothing on routes without tabs, so pages that don't need them lose
  * nothing to empty space.
  *
- * Active tab carries an underline sitting ON the navbar's bottom border
- * (Vercel's treatment) rather than a filled pill, which keeps navigation quiet
- * next to page content.
+ * Active tab is the DS's pale SKY PILL. The underline that used to sit on the
+ * navbar's bottom border went with the border: inside a floating pill-shaped
+ * cream shell there is no bottom edge for one to land on.
  */
 export function NavTabs() {
   const pathname = usePathname();
@@ -36,9 +36,7 @@ export function NavTabs() {
   const active = activeTabHref(pathname, tabs);
 
   return (
-    // h-full + items-stretch so each tab fills the navbar's height and its
-    // underline can land exactly on the bottom border.
-    <div className="flex h-full min-w-0 items-stretch gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div className="flex min-w-0 items-center gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {tabs.map((tab) => {
         const isActive = tab.href === active;
         return (
@@ -46,17 +44,13 @@ export function NavTabs() {
             key={tab.href}
             href={tab.href}
             aria-current={isActive ? "page" : undefined}
-            className={`relative inline-flex shrink-0 items-center rounded-sm px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset ${
+            className={`relative inline-flex shrink-0 items-center rounded-(--radius-pill) px-3 font-sans text-(length:--fs-body-sm) font-semibold transition-colors duration-(--dur-fast) ease-(--ease-out) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
               isActive
-                ? "text-foreground"
-                : "text-muted-foreground hover:text-foreground"
+                ? "bg-sky-200 text-navy-700"
+                : "text-navy-500 hover:bg-sky-100 hover:text-navy-700"
             }`}
           >
             {t(tab.labelKey)}
-            {/* -bottom-px covers the navbar's own border line */}
-            {isActive && (
-              <span className="bg-foreground absolute inset-x-3 -bottom-px h-[2px] rounded-full" />
-            )}
           </Link>
         );
       })}

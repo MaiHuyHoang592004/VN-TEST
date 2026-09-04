@@ -45,14 +45,14 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <button className="border-border hover:border-foreground/20 hover:bg-accent/50 inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" />
+          <button className="inline-flex h-9 items-center gap-1.5 rounded-(--radius-pill) px-3 font-sans text-(length:--fs-body-sm) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none" />
         }
       >
         <span className="max-w-[120px] truncate">{displayName}</span>
-        <ChevronDown className="text-muted-foreground h-4 w-4" />
+        <ChevronDown className="h-4 w-4 text-(--icon-muted)" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-56 dark:bg-black"
+        className="w-56"
         align="end"
         sideOffset={8}
       >
@@ -60,8 +60,13 @@ export function UserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm leading-none font-medium">{displayName}</p>
-              <p className="text-muted-foreground text-xs leading-none">
+              <p className="font-sans text-(length:--fs-body-sm) leading-none font-semibold text-navy-700">
+                {displayName}
+              </p>
+              {/* The role label under the name comes from the session's real
+                  roles and nothing else — NavUserProps allows only the seven
+                  the backend issues, so none is invented here. */}
+              <p className="font-sans text-(length:--fs-micro) leading-none text-(--text-muted)">
                 {user.email}
               </p>
             </div>

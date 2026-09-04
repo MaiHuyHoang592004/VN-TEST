@@ -126,15 +126,15 @@ export function NotificationBell() {
         render={
           <button
             aria-label={t("notifications.title")}
-            className="border-border hover:border-foreground/20 hover:bg-accent/50 relative inline-flex size-9 items-center justify-center rounded-md border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="relative inline-flex size-9 items-center justify-center rounded-(--radius-pill) text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
           />
         }
       >
-        <Bell className="text-muted-foreground size-4" />
+        <Bell className="size-4" />
         {unreadCount > 0 && (
           <span
             aria-label={`${unreadCount} ${t("notifications.unread")}`}
-            className="bg-action-500 absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-white"
+            className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-(--radius-pill) bg-(--status-critical-bg) px-1 font-mono text-(length:--fs-micro) font-semibold text-(--status-critical-fg)"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
@@ -148,7 +148,7 @@ export function NotificationBell() {
         // the 100vw mobile panel inside it, so it never sits flush. On desktop
         // the 380px panel never reaches an edge, so nothing changes there.
         collisionPadding={0}
-        className="w-screen max-w-[100vw] rounded-none p-0 data-[side=bottom]:slide-in-from-top-6 sm:w-[380px] sm:max-w-[380px] sm:rounded-lg sm:data-[side=bottom]:slide-in-from-top-2 dark:bg-black"
+        className="w-screen max-w-[100vw] rounded-none p-0 data-[side=bottom]:slide-in-from-top-6 sm:w-[380px] sm:max-w-[380px] sm:rounded-(--radius-card) sm:data-[side=bottom]:slide-in-from-top-2"
       >
         {/* Header */}
         <div className="flex items-center justify-between gap-2 px-4 py-3">
@@ -158,15 +158,17 @@ export function NotificationBell() {
               render={
                 <button
                   aria-label={t("notifications.back")}
-                  className="text-muted-foreground hover:text-foreground -ml-1 inline-flex size-7 items-center justify-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:hidden"
+                  className="-ml-1 inline-flex size-7 items-center justify-center rounded-(--radius-pill) text-navy-600 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none sm:hidden"
                 />
               }
             >
               <ArrowLeft className="size-4" />
             </PopoverClose>
-            <h3 className="text-sm font-semibold">{t("notifications.title")}</h3>
+            <h3 className="font-sans text-(length:--fs-body-sm) font-semibold text-navy-700">
+              {t("notifications.title")}
+            </h3>
             {unreadCount > 0 && (
-              <span className="bg-action-500/15 text-action-500 rounded-full px-1.5 py-0.5 text-[11px] font-medium">
+              <span className="rounded-(--radius-pill) bg-(--status-critical-bg) px-1.5 py-0.5 text-(length:--fs-micro) font-semibold text-(--status-critical-fg)">
                 {unreadCount} {t("notifications.unread")}
               </span>
             )}
@@ -174,7 +176,7 @@ export function NotificationBell() {
           <button
             onClick={markAllRead}
             disabled={unreadCount === 0}
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-sm text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+            className="inline-flex items-center gap-1 rounded-(--radius-pill) px-2 py-1 font-sans text-(length:--fs-micro) font-semibold text-navy-600 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none disabled:opacity-45 motion-reduce:transition-none"
           >
             <CheckCheck className="size-3.5" />
             {t("notifications.markAllRead")}
@@ -202,10 +204,10 @@ export function NotificationBell() {
         <div className="px-4 pb-2">
           <button
             onClick={toggleUnreadOnly}
-            className={`rounded-full border px-2 py-0.5 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+            className={`rounded-(--radius-pill) border px-2 py-0.5 text-(length:--fs-micro) font-semibold transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
               unreadOnly
-                ? "border-action-500/40 bg-action-500/10 text-action-500"
-                : "border-border text-muted-foreground hover:text-foreground"
+                ? "border-transparent bg-sky-200 text-navy-700"
+                : "border-(--border-hairline) text-navy-500 hover:bg-sky-100 hover:text-navy-700"
             }`}
           >
             {t("notifications.unreadOnly")}
@@ -217,14 +219,14 @@ export function NotificationBell() {
         {/* List */}
         <div className="max-h-[360px] overflow-y-auto">
           {visible.length === 0 ? (
-            <p className="text-muted-foreground px-4 py-10 text-center text-sm">
+            <p className="px-4 py-10 text-center font-sans text-(length:--fs-body-sm) text-(--text-muted)">
               {t("notifications.empty")}
             </p>
           ) : (
             visible.map((n) => {
               const Icon = CATEGORY_ICON[NOTIFICATION_META[n.type].category];
-              const rowClass = `hover:bg-accent/60 focus-visible:bg-accent/60 flex w-full cursor-pointer gap-3 px-4 py-3 text-left transition-colors focus-visible:outline-none ${
-                n.read ? "" : "bg-accent/30"
+              const rowClass = `flex w-full cursor-pointer gap-3 px-4 py-3 text-left transition-colors duration-(--dur-fast) hover:bg-sky-100 focus-visible:bg-sky-100 focus-visible:outline-none motion-reduce:transition-none ${
+                n.read ? "" : "bg-(--surface-inset)"
               }`;
               const body = (
                 <>
@@ -232,15 +234,15 @@ export function NotificationBell() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <p
-                        className={`truncate text-sm ${n.read ? "text-foreground/90" : "font-medium"}`}
+                        className={`truncate font-sans text-(length:--fs-body-sm) text-navy-700 ${n.read ? "" : "font-semibold"}`}
                       >
                         {fmt(t(`notifications.items.${NOTIFICATION_META[n.type].key}.title`), n.values)}
                       </p>
-                      <span className="text-muted-foreground shrink-0 text-[11px]">
+                      <span className="shrink-0 font-sans text-(length:--fs-micro) text-(--text-muted)">
                         {relativeTime(n.createdAt, t)}
                       </span>
                     </div>
-                    <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs">
+                    <p className="mt-0.5 line-clamp-2 font-sans text-(length:--fs-micro) text-(--text-muted)">
                       {fmt(t(`notifications.items.${NOTIFICATION_META[n.type].key}.body`), n.values)}
                     </p>
                   </div>
@@ -248,7 +250,7 @@ export function NotificationBell() {
                     <>
                       <span
                         aria-hidden="true"
-                        className="bg-action-500 mt-1.5 size-2 shrink-0 rounded-full"
+                        className="mt-1.5 size-2 shrink-0 rounded-(--radius-pill) bg-(--status-attention-dot)"
                       />
                       <span className="sr-only">{t("notifications.unread")}</span>
                     </>
@@ -280,7 +282,7 @@ export function NotificationBell() {
         <Separator />
         <Link
           href="/notifications"
-          className="text-muted-foreground hover:text-foreground focus-visible:bg-accent block px-4 py-2.5 text-center text-xs transition-colors focus-visible:outline-none"
+          className="block px-4 py-2.5 text-center font-sans text-(length:--fs-micro) font-semibold text-navy-600 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:bg-sky-100 focus-visible:outline-none motion-reduce:transition-none"
         >
           {t("notifications.viewAll")}
         </Link>

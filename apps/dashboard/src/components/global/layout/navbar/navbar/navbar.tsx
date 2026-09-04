@@ -1,15 +1,21 @@
 /**
- * Unified Navbar Component
- * Clean navbar for all pages with search, auth buttons, and theme toggle
- * Includes mobile tab bar with geometric logo symbol
+ * The GWP TopNav: a warm cream shell FLOATING on the sky canvas, with sky
+ * visible around a rounded pill and one quiet shadow. The DS rules out the
+ * three things this bar used to be — full bleed, translucent, backdrop-blurred.
+ *
+ * Passive items are navy, the active item is a pale sky pill, and Action Blue
+ * appears exactly ONCE in the whole nav (the signup CTA).
+ *
+ * Also carries the mobile dock and the sheet's SidebarProvider.
  */
 
 "use client";
 
 import { usePathname } from "next/navigation";
-import Image from "next/image";
 import { Home, User, Package, Boxes, ScanLine } from "lucide-react";
 import { Search } from "@/components/global/search";
+import { Button } from "@/components/ui/button";
+import { GwpMark } from "@/components/ds";
 import { useAuth } from "@/components/global/providers";
 import { usePermissions } from "@/hooks/use-permissions";
 import { activeHref } from "@/config/nav-tabs";
@@ -59,6 +65,14 @@ function useDockTabs() {
   ];
 }
 
+/**
+ * The DS's nav-item treatment: navy ink, a pale sky pill on hover, and the
+ * sky-200 pill for aria-current="page". No underline — inside a pill-shaped
+ * shell there is no bottom border for one to land on.
+ */
+const NAV_ITEM =
+  "inline-flex h-9 items-center rounded-(--radius-pill) px-3 font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none aria-[current=page]:bg-sky-200 aria-[current=page]:text-navy-700";
+
 export function Navbar() {
   const { user, loading } = useAuth();
   const pathname = usePathname();
@@ -80,10 +94,14 @@ export function Navbar() {
     <SidebarProvider defaultOpen={false} className="contents">
       <AppSidebar />
       <nav
-        className="border-border bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 h-[60px] w-full border-b backdrop-blur"
+        data-slot="top-nav"
+        className="sticky top-0 z-50 w-full px-4 pt-3 lg:px-8"
         style={{ overflowAnchor: "none" }}
       >
-        <div className="mx-auto flex h-full w-full items-center justify-between px-6 lg:px-20">
+        {/* The outer px/pt is what lets sky show AROUND the shell. Without it
+            the nav is a full-bleed cream bar — the DS's explicitly
+            non-canonical fallback. */}
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between gap-4 rounded-(--radius-pill) bg-(--surface-nav) px-4 shadow-(--shadow-sm) lg:px-6">
           {/* Left - Logo + Navigation Links シノビデータ */}
           <div className="flex h-full min-w-0 items-center gap-4 lg:gap-8">
             <SidebarNavButtons />
@@ -93,42 +111,20 @@ export function Navbar() {
               <>
             <Link
               href="/"
-              className="flex items-center gap-2 text-xl font-semibold"
+              aria-label="GoodWoodPrint"
+              className="flex shrink-0 items-center rounded-(--radius-pill) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
             >
-              {/* Mobile symbol - before text */}
-              <span className="lg:hidden">
-                <Image
-                  src="/Geomatric/black.svg"
-                  alt="Logo"
-                  width={24}
-                  height={26}
-                  className="block dark:hidden"
-                  priority
-                />
-                <Image
-                  src="/Geomatric/white.svg"
-                  alt="Logo"
-                  width={24}
-                  height={26}
-                  className="hidden dark:block"
-                  priority
-                />
-              </span>
-              OpCreative
+              {/* One mark, one theme. The monogram already carries the
+                  letterform, so there is no separate wordmark text node. */}
+              <GwpMark size={26} tone="navy" />
             </Link>
 
             {/* Navigation Links (Desktop only) */}
-            <div className="hidden items-center gap-6 md:flex">
-              <Link
-                href="/orders"
-                className="text-muted-foreground hover:text-foreground after:bg-foreground relative text-sm font-medium transition-colors after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-150 hover:after:w-full"
-              >
+            <div className="hidden items-center gap-1 md:flex">
+              <Link href="/orders" className={NAV_ITEM}>
                 {t("nav.orders")}
               </Link>
-              <Link
-                href="/catalog"
-                className="text-muted-foreground hover:text-foreground after:bg-foreground relative text-sm font-medium transition-colors after:absolute after:bottom-[-4px] after:left-0 after:h-[2px] after:w-0 after:transition-all after:duration-150 hover:after:w-full"
-              >
+              <Link href="/catalog" className={NAV_ITEM}>
                 {t("nav.products")}
               </Link>
               <ToolsDropdown />
@@ -153,21 +149,28 @@ export function Navbar() {
             <div className="hidden items-center gap-2 md:flex">
               {loading ? (
                 // Skeleton while loading auth state
-                <div className="bg-muted h-9 w-24 animate-pulse rounded-md" />
+                <div className="h-8 w-24 animate-pulse rounded-(--radius-pill) bg-sky-100" />
               ) : user ? null : (
                 <>
-                  <Link
-                    href="/"
-                    className="border-border hover:border-foreground/20 hover:bg-accent/50 inline-flex h-9 items-center justify-center rounded-md border px-4 text-sm font-medium transition-colors"
+                  {/* nativeButton={false} is required whenever Button renders a
+                      non-button element in this Base UI build. */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    render={<Link href="/" />}
+                    nativeButton={false}
                   >
                     {t("nav.login")}
-                  </Link>
-                  <Link
-                    href="/?signup=1"
-                    className="bg-foreground text-background hover:bg-foreground/90 inline-flex h-9 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors"
+                  </Button>
+                  {/* THE one Action Blue element in the entire nav. */}
+                  <Button
+                    variant="default"
+                    size="sm"
+                    render={<Link href="/?signup=1" />}
+                    nativeButton={false}
                   >
                     {t("nav.signup")}
-                  </Link>
+                  </Button>
                 </>
               )}
             </div>
@@ -190,17 +193,17 @@ export function Navbar() {
 
       {/* Mobile dock — floating pill, icons only, active state per route */}
       <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 md:hidden">
-        <div className="border-border bg-background/80 supports-[backdrop-filter]:bg-background/60 flex items-center gap-1 rounded-full border p-1.5 shadow-ds-4 backdrop-blur">
+        <div className="flex items-center gap-1 rounded-(--radius-pill) bg-(--surface-nav) p-1.5 shadow-(--shadow-md)">
           {dockTabs.map(({ href, icon: Icon, key }) => (
             <Link
               key={href}
               href={href}
               aria-label={t(key)}
               aria-current={activeTab === href ? "page" : undefined}
-              className={`inline-flex size-10 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`inline-flex size-10 items-center justify-center rounded-(--radius-pill) transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
                 activeTab === href
-                  ? "bg-accent text-foreground"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                  ? "bg-sky-200 text-navy-700"
+                  : "text-navy-500 hover:bg-sky-100 hover:text-navy-700"
               }`}
             >
               <Icon className="size-5" />
@@ -213,7 +216,7 @@ export function Navbar() {
             <Link
               href="/"
               aria-label={t("nav.login")}
-              className="text-muted-foreground hover:bg-accent/60 hover:text-foreground inline-flex size-10 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex size-10 items-center justify-center rounded-(--radius-pill) text-navy-500 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             >
               <User className="size-5" />
             </Link>

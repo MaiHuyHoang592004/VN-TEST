@@ -53,18 +53,21 @@ export function MobileUserMenu() {
     <Drawer open={open} onOpenChange={setOpen}>
       <DrawerTrigger
         render={
-          <button aria-label={t("nav.profile")} className="text-muted-foreground hover:bg-accent/60 hover:text-foreground inline-flex size-10 items-center justify-center rounded-full transition-colors" />
+          <button
+            aria-label={t("nav.profile")}
+            className="inline-flex size-10 items-center justify-center rounded-(--radius-pill) text-navy-500 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
+          />
         }
       >
         <Avatar className="size-6">
           <AvatarImage src={user.photoURL || undefined} alt={displayName} />
-          <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-medium">
+          <AvatarFallback className="bg-sky-200 text-(length:--fs-micro) font-semibold text-navy-700">
             {initials}
           </AvatarFallback>
         </Avatar>
       </DrawerTrigger>
       <DrawerContent>
-        <DrawerHeader className="border-b pb-4">
+        <DrawerHeader className="border-b border-(--border-hairline) pb-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
@@ -72,18 +75,22 @@ export function MobileUserMenu() {
                   src={user.photoURL || undefined}
                   alt={displayName}
                 />
-                <AvatarFallback className="bg-primary text-primary-foreground text-lg font-medium">
+                <AvatarFallback className="bg-sky-200 text-(length:--fs-body-lg) font-semibold text-navy-700">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="text-left">
-                <DrawerTitle className="text-base">{displayName}</DrawerTitle>
-                <p className="text-muted-foreground text-sm">{user.email}</p>
+                <DrawerTitle className="text-(length:--fs-body-lg)">
+                  {displayName}
+                </DrawerTitle>
+                <p className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">
+                  {user.email}
+                </p>
               </div>
             </div>
             <DrawerClose
               render={
-                <button className="text-muted-foreground hover:text-foreground rounded-full p-2 transition-colors" />
+                <button className="rounded-(--radius-pill) p-2 text-(--icon-muted) transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none" />
               }
             >
               <X className="h-5 w-5" />
@@ -100,16 +107,16 @@ export function MobileUserMenu() {
           <nav className="space-y-1">
             <button
               onClick={() => handleNavigation("/profile")}
-              className="hover:bg-accent flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors"
+              className="flex w-full items-center gap-3 rounded-(--radius-card) px-3 py-3 font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             >
               <User className="h-5 w-5" />
               <span>{t("nav.profile")}</span>
             </button>
           </nav>
-          <div className="mt-4 border-t pt-4">
+          <div className="mt-4 border-t border-(--border-hairline) pt-4">
             <button
               onClick={handleSignOut}
-              className="text-destructive hover:bg-destructive/10 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm transition-colors"
+              className="flex w-full items-center gap-3 rounded-(--radius-card) px-3 py-3 font-sans text-(length:--fs-body) font-semibold text-(--status-critical-fg) transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-(--status-critical-bg) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             >
               <LogOut className="h-5 w-5" />
               <span>{t("nav.logout")}</span>

@@ -44,18 +44,22 @@
     "subheading": "Chacun de ces indicateurs demande une requête qui n'existe pas encore. Rien ici n'est estimé.",
     "trend": {
       "title": "Commandes dans le temps",
+      "ask": "Le volume de commandes augmente-t-il, et à quelle vitesse ?",
       "body": "Un décompte jour par jour demande un agrégat de commandes réparti par intervalle."
     },
     "revenue": {
       "title": "Dépenses dans le temps",
+      "ask": "Les dépenses augmentent-elles plus vite que le nombre de commandes ?",
       "body": "Une courbe de dépenses demande le même agrégat appliqué au coût de base."
     },
     "marketplace": {
       "title": "Par place de marché",
+      "ask": "Quelle boutique porte le volume ?",
       "body": "Répartir les commandes par boutique demande un comptage groupé sur le champ marketplace."
     },
     "leadTime": {
       "title": "Délai de traitement",
+      "ask": "Combien de temps s'écoule entre la commande et l'expédition ?",
       "body": "De la commande à l'expédition, il faut agréger les horodatages de changement de statut."
     }
   },

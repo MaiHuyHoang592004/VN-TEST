@@ -1,10 +1,16 @@
 /// A print/design mockup file attached to orders.
+///
+/// `folderId` is the Google Drive folder the artwork lives in, and it is
+/// UNIQUE: legacy `orders.image_url` stores that same folder link, so one
+/// folder is one mockup no matter how many orders point at it (489 orders,
+/// 426 folders). The constraint is what lets a resolver upsert by folder
+/// instead of racing two rows into existence for one folder.
 model Mockup {
   id        Int     @id @default(autoincrement())
   name      String
   thumbnail String?
   url       String
-  folderId  String? @map("folder_id")
+  folderId  String? @unique @map("folder_id")
   status    String  @default("active")
 
   orders Order[]

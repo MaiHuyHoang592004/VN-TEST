@@ -33,6 +33,19 @@ export async function getOrder(id: number) {
 }
 
 /**
+ * The artwork thumbnail behind /api/orders/<id>/thumb. Same three read grants
+ * as the list: if you may see the order, you may see its design.
+ */
+export async function orderArtwork(id: number) {
+  const actor = await requireAnyPermission(
+    "orders.read.own",
+    "orders.read.customer",
+    "orders.read.all",
+  );
+  return orders.orderArtwork(actor, id);
+}
+
+/**
  * The status card strip above the table. Same guard as the list — the cards
  * ARE the list, counted.
  */

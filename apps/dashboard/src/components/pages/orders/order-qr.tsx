@@ -13,6 +13,7 @@ import { useTranslation } from "@/lib/i18n";
 import { usePermissions } from "@/hooks/use-permissions";
 
 import type { OrderRow } from "./orders-table";
+import { thumbSrc } from "./order-thumb";
 
 /**
  * The order's scannable code — the physical link between this table and the
@@ -50,9 +51,12 @@ type QrProps = {
   marketplace?: string | null;
   note?: string | null;
   proofImageUrl?: string | null;
-  /** The design the customer prints — mockup if there is one, variant image
-   * otherwise. Resolved by the caller, since only the column knows which it has. */
+  /** The design the customer prints, as something an <img> can actually
+   * render. Resolved by the caller, since only the column knows which it has. */
   designImageUrl?: string | null;
+  /** Where "see the real pixels" goes — the Drive folder holding the artwork,
+   * which is a page for a human and not an image source. */
+  designHref?: string | null;
 };
 
 type Format = "qr" | "barcode" | "image";
@@ -82,7 +86,12 @@ export const orderQrProps = (o: OrderRow): QrProps => ({
   marketplace: o.marketplace,
   note: o.note,
   proofImageUrl: o.proofImageUrl,
-  designImageUrl: o.mockupThumbnail ?? o.imageUrl,
+  // The picture and the place it lives are two different urls. `thumbSrc` is
+  // something an <img> can render; `imageUrl` is the Drive FOLDER the artwork
+  // sits in — useless in an <img>, and exactly where "open the original"
+  // should go.
+  designImageUrl: thumbSrc(o),
+  designHref: o.imageUrl ?? o.mockupThumbnail,
 });
 
 export function OrderQr({
@@ -166,7 +175,15 @@ function OrderCodePanel({
     : ["qr", "barcode"];
 
   const copy = async () => {
-    await navigator.clipboard.writeText(value);
+    // navigator.clipboard is absent outside a secure context and throws when
+    // the permission is denied — unguarded, the button just did nothing and the
+    // operator was left guessing whether the id had been copied.
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      toast.error(t("orders.qr.copyFailed"));
+      return;
+    }
     setCopied(true);
     toast.success(t("orders.qr.copied"));
     setTimeout(() => setCopied(false), 1500);
@@ -187,7 +204,13 @@ function OrderCodePanel({
             {format === "image" && order.designImageUrl ? (
               // Click through to the original: this plate is 172px wide, and
               // "is the artwork right" is a question that needs real pixels.
-              <a href={order.designImageUrl} target="_blank" rel="noopener noreferrer">
+              // For a legacy order that lands on the Drive FOLDER — better
+              // than the rendered preview, since the print files are there too.
+              <a
+                href={order.designHref ?? order.designImageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={order.designImageUrl}

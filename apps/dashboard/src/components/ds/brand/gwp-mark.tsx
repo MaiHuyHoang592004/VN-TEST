@@ -12,10 +12,14 @@ import { cn } from "@/lib/utils";
  * ── COLOUR RULE ────────────────────────────────────────────────────────────
  * The logo is BRAND LIGHT, not information ink:
  *   · on cream, white or the floating nav shell → `tone="sky"` (the default)
+ *   · small, or inside a dense data zone        → `tone="sky-strong"`
  *   · on bright sky                             → `tone="cream"`
  *   · `tone="navy"`                             → technical / utility only
  * A navy mark reads heavy, corporate and administrative, so it is never the
- * default. Logotypes are exempt from WCAG 1.4.3.
+ * default. Logotypes are exempt from WCAG 1.4.3 — `sky-strong` exists because
+ * legibility is not the same thing as compliance: sky-500 at 24px thins out
+ * against cream, and sky-600 (3.7:1) is the same brand light one step deeper,
+ * not a different, heavier mark.
  */
 export type GwpMarkProps = {
   /** Rendered height in px. The mark keeps its own aspect ratio. */
@@ -30,6 +34,17 @@ const TONES = {
   /** Light sky on cream, white and the nav shell — the brand default. */
   sky: {
     mark: "var(--logo-on-light)",
+    word: "var(--logo-technical)",
+    accent: "var(--logo-on-light-accent)",
+  },
+  /**
+   * One step deeper (sky-600, 3.7:1 on cream). The DS's own note: "use at small
+   * sizes or inside dense data zones where the mark must hold up." A CONTRAST
+   * affordance, not a second brand colour — reach for this before reaching for
+   * `navy`, which changes what the mark MEANS.
+   */
+  "sky-strong": {
+    mark: "var(--logo-on-light-strong)",
     word: "var(--logo-technical)",
     accent: "var(--logo-on-light-accent)",
   },

@@ -67,7 +67,32 @@ const HERO_TONES = {
   },
 } as const;
 
+/**
+ * Title sizes are the DS's, verbatim from `_ds_bundle.js` → `function PageHero`:
+ *
+ *   titleSize = size === "sm" ? --fs-display-md
+ *             : size === "lg" ? --fs-display-xl
+ *             :                 --fs-display-lg
+ *
+ * The port had been one step down the ramp at every size (sm/md/lg), which made
+ * every hero in the app quieter than the design: 24→32px at `sm`, 32→44px at
+ * `md`. The DS ration on the display face (rule 4) assumes the title is the
+ * largest thing on the screen; at 32px an `md` hero title was barely above a
+ * section heading, so the sky field read as a coloured band rather than as the
+ * page's brand moment. No hero in the app uses `lg`, so the 56px step only
+ * exists for future module landing pages.
+ *
+ * RESPONSIVE.md steps hero type down at `sm` for MARKETING heroes (56–64 → 36).
+ * The operational ceiling here is 44px, which holds at 375px, so there is no
+ * breakpoint step — add one if a page ever adopts `size="lg"`.
+ */
 const HERO_SIZES = {
+  // ONE STEP BELOW the DS ramp (which is md/lg/xl), and deliberately so. The
+  // DS sizes assume a hero introducing a cream content section; here every
+  // hero sits on the page's own sky and the pages carry their own display
+  // figures. Bumping to the DS ramp put `size="md"` at --fs-display-lg, the
+  // exact size of the wallet's balance figure — the screen's headline number
+  // stopped outranking the page title. Raise per-call with `size` instead.
   sm: { pad: "px-6 pt-6 pb-8 lg:px-10", title: "text-(length:--fs-display-sm)" },
   md: { pad: "px-6 pt-8 pb-10 lg:px-10", title: "text-(length:--fs-display-md)" },
   lg: { pad: "px-6 pt-10 pb-14 lg:px-10", title: "text-(length:--fs-display-lg)" },
@@ -97,6 +122,7 @@ export function PageHeader({
   tone = "sky",
   rings = false,
   cut = true,
+  cutTo = "var(--surface-shell)",
   size = "md",
   children,
   className,
@@ -109,6 +135,14 @@ export function PageHeader({
   rings?: boolean;
   /** Render the Craft Cut into the surface below. */
   cut?: boolean;
+  /**
+   * What the Craft Cut sweeps INTO. Defaults to --surface-content (cream), as
+   * the DS's PageHero does — the cut exists to cross the sky/cream boundary,
+   * and this was hard-coded to --surface-shell (neutral-50), so every hero in
+   * the app cut into grey and quietly defeated the rule the motif is for.
+   * Pass --surface-shell explicitly on a page whose body really is the shell.
+   */
+  cutTo?: string;
   size?: keyof typeof HERO_SIZES;
   children?: React.ReactNode;
   className?: string;
@@ -156,7 +190,7 @@ export function PageHeader({
         {children && <div className="mt-6">{children}</div>}
       </div>
 
-      {cut && <CraftCut from={t.cutFrom} to="var(--surface-shell)" depth={56} sweep="right" />}
+      {cut && <CraftCut from={t.cutFrom} to={cutTo} depth={56} sweep="right" />}
     </header>
   );
 }

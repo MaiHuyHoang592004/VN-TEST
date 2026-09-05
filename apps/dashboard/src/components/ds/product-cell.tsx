@@ -21,13 +21,29 @@ import { cn } from "@/lib/utils";
  *                     a product whose thumbnail is missing
  *   image={<img />}   the picture, inside the well
  *
+ * KNOWN INVERSION, kept on purpose: ProductCell.d.ts says "the cream well shows
+ * through when omitted", and the compiled DS agrees — it renders the well
+ * unconditionally and puts `image` inside it, so an omitted `image` there means
+ * the EMPTY well. The port swaps the two: omitted means no well, and the empty
+ * well is asked for explicitly with `image={null}`. Reverting would put a cream
+ * square on every text-only identity cell in the app (inventory stock and
+ * movements tables pass no image at all) — a decoration the caller never asked
+ * for and cannot remove, since the allowlist has no prop to suppress it. The
+ * DS's placeholder is still reachable, just spelled `image={null}`.
+ *
  * DOMAIN-BOUND, verbatim from ProductCell.d.ts: render whatever code string the
  * caller supplies. Do not construct, parse, validate or split a SKU here.
  */
+// The DS's own scale, verbatim:
+//   const px = size === "sm" ? 32 : size === "lg" ? 52 : 40;
+// 32 / 40 / 52 — NOT 32/36/48. The port had shrunk md and lg by 4px each,
+// which is enough to make a thumbnail row read as a different density than the
+// design. size-10 = 40px and size-13 = 52px on Tailwind v4's dynamic spacing
+// scale (0.25rem step).
 const SIZES = {
   sm: { well: "size-8", gap: "gap-2.5", name: "text-(length:--fs-body-sm)" },
-  md: { well: "size-9", gap: "gap-3", name: "text-(length:--fs-body)" },
-  lg: { well: "size-12", gap: "gap-3", name: "text-(length:--fs-body-lg)" },
+  md: { well: "size-10", gap: "gap-3", name: "text-(length:--fs-body)" },
+  lg: { well: "size-13", gap: "gap-3", name: "text-(length:--fs-body-lg)" },
 } as const;
 
 export type ProductCellProps = {
@@ -65,7 +81,15 @@ export function ProductCell({
             // Orders design both specify --cream-200 for the product well:
             // one step down from the cream shell, so the well still reads as
             // a recess when the row behind it is white.
-            "shrink-0 overflow-hidden rounded-(--radius-xs) bg-(--cream-200)",
+            //
+            // The hairline is half the recess. The DS well is BOTH:
+            //   background: "var(--cream-200)",
+            //   border: "1px solid var(--border-hairline)",
+            // Cream-200 alone is too close to a white row to draw its own edge,
+            // so without the border the well dissolves and an empty one
+            // (image={null}) disappears entirely. Tailwind's bare `border` is
+            // the 1px solid; the token supplies the colour.
+            "shrink-0 overflow-hidden rounded-(--radius-xs) border border-(--border-hairline) bg-(--cream-200)",
             "[&_img]:size-full [&_img]:object-cover",
             s.well
           )}

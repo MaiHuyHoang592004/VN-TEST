@@ -6,7 +6,7 @@
  * scrolling past anything that cannot move a balance. Callers import the layer
  * name (modules/README.md) and never reach into `service/` directly.
  *
- *   service/reads.ts          listOrders / listOrdersCursor / getOrder
+ *   service/reads.ts          listOrders / listOrdersCursor / getOrder / orderArtwork
  *   service/writes.ts         create, import, edit, soft delete
  *   service/status-change.ts  THE status core — the map, audit, notifications
  *   service/assign.ts         THE MONEY PATH, and its preview
@@ -25,6 +25,7 @@ export {
   listOrders,
   listOrdersCursor,
   getOrder,
+  orderArtwork,
   orderStatusSummary,
   type OrderListQuery,
 } from "./service/reads.ts";

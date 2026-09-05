@@ -1,15 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, MapPin, Package, Truck } from "lucide-react";
+import {
+  Ban,
+  ChevronDown,
+  Image as ImageIcon,
+  MapPin,
+  Package,
+  Pencil,
+  RefreshCw,
+  Truck,
+} from "lucide-react";
 
 import { StatusBadge } from "@/components/ds";
+import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Can } from "@/components/global/permission-gate";
 import { useTranslation } from "@/lib/i18n";
 import { usePermissions } from "@/hooks/use-permissions";
 
 import { OrderQr, orderQrProps } from "./order-qr";
 import { OrderProofAction } from "./order-proof-action";
+import { OrderThumb } from "./order-thumb";
 import type { OrderRow } from "./orders-table";
 
 /**
@@ -24,7 +36,24 @@ import type { OrderRow } from "./orders-table";
  * The app is going into a Capacitor shell where a phone is the primary
  * surface, not a fallback: this is the layout, not a degraded table.
  */
-export function OrderMobileCard({ order }: { order: OrderRow }) {
+export function OrderMobileCard({
+  order,
+  onEdit,
+  onVoidLabel,
+  onArtwork,
+  onRecalc,
+  recalcPending = false,
+}: {
+  order: OrderRow;
+  /** The four row actions the desktop table has. Optional so the card still
+   * renders where a caller has no dialogs to open — the buttons are simply not
+   * drawn, rather than drawn dead. */
+  onEdit?: () => void;
+  onVoidLabel?: () => void;
+  onArtwork?: () => void;
+  onRecalc?: () => void;
+  recalcPending?: boolean;
+}) {
   const { t } = useTranslation();
   const { can } = usePermissions();
   const [open, setOpen] = useState(false);
@@ -42,14 +71,7 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
           <OrderQr
             {...orderQrProps(order)}
             initialFormat="image"
-            trigger={
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={order.mockupThumbnail ?? order.imageUrl ?? ""}
-                alt=""
-                className="size-10 rounded-(--radius-xs) bg-(--surface-content) object-cover"
-              />
-            }
+            trigger={<OrderThumb order={order} className="size-10" />}
           />
         ) : (
           <span className="flex size-10 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--surface-content)">
@@ -134,9 +156,79 @@ export function OrderMobileCard({ order }: { order: OrderRow }) {
               )}
               {order.note && <p className="text-muted-foreground">{order.note}</p>}
 
-              <div className="flex items-center gap-2 pt-1">
+              {/* The SAME six actions the desktop row-action column carries,
+                  behind the SAME gates. The tray used to stop at QR and proof,
+                  so a phone — the primary surface once this ships in the
+                  Capacitor shell — simply could not edit an order, void a
+                  label, fix artwork or re-price. flex-wrap because six 40px
+                  targets do not fit one 390px line. */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
                 <OrderQr {...orderQrProps(order)} />
                 <OrderProofAction orderId={order.id} hasProof={Boolean(order.proofImageUrl)} />
+
+                {/* Always available — the service decides what a non-PENDING
+                    order still allows and reports that back as a field error,
+                    rather than the button guessing. */}
+                {onEdit && (
+                  <Can permission="orders.update">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t("orders.edit")}
+                      title={t("orders.edit")}
+                      onClick={onEdit}
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                  </Can>
+                )}
+
+                {/* Only when there is a live label to cancel. */}
+                {onVoidLabel && order.shipmentId && !order.labelVoided && order.tracking && (
+                  <Can permission="orders.labels.manage">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t("orders.labels.voidTitle")}
+                      title={t("orders.labels.voidTitle")}
+                      onClick={onVoidLabel}
+                    >
+                      <Ban className="size-4" />
+                    </Button>
+                  </Can>
+                )}
+
+                {/* Artwork and re-price are only offered while the order is
+                    PENDING — the service refuses later, so the buttons follow
+                    it, exactly as the desktop column does. */}
+                {order.status === "PENDING" && (onArtwork || onRecalc) && (
+                  <Can permission="orders.update">
+                    {onArtwork && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t("orders.artwork.title")}
+                        title={t("orders.artwork.title")}
+                        onClick={onArtwork}
+                      >
+                        <ImageIcon className="size-4" />
+                      </Button>
+                    )}
+                    {onRecalc && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t("orders.recalc.action")}
+                        title={t("orders.recalc.action")}
+                        disabled={recalcPending}
+                        onClick={onRecalc}
+                      >
+                        <RefreshCw className="size-4" />
+                      </Button>
+                    )}
+                  </Can>
+                )}
+
                 {order.proofImageUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img

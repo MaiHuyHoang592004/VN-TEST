@@ -44,18 +44,22 @@
     "subheading": "Mỗi mục dưới đây cần một truy vấn mà hệ thống chưa có. Không có con số nào ở đây là ước lượng.",
     "trend": {
       "title": "Đơn hàng theo thời gian",
+      "ask": "Lượng đơn có đang tăng không, và tăng nhanh đến đâu?",
       "body": "Đếm theo từng ngày cần một truy vấn tổng hợp đơn hàng theo mốc thời gian."
     },
     "revenue": {
       "title": "Chi tiêu theo thời gian",
+      "ask": "Chi tiêu có tăng nhanh hơn số lượng đơn không?",
       "body": "Đường chi tiêu cần cùng truy vấn tổng hợp đó trên giá gốc."
     },
     "marketplace": {
       "title": "Theo sàn bán hàng",
+      "ask": "Gian hàng nào đang gánh phần lớn sản lượng?",
       "body": "Tách đơn theo cửa hàng cần một truy vấn nhóm theo trường marketplace."
     },
     "leadTime": {
       "title": "Thời gian hoàn thành đơn",
+      "ask": "Một đơn mất bao lâu từ lúc đặt đến lúc giao vận?",
       "body": "Từ lúc đặt đến lúc giao cần tổng hợp các mốc đổi trạng thái."
     }
   },

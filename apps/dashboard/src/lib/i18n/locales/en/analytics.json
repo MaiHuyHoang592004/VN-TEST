@@ -44,18 +44,22 @@
     "subheading": "Each of these needs a query the platform does not have yet. Nothing here is estimated.",
     "trend": {
       "title": "Orders over time",
+      "ask": "Is order volume growing, and how fast?",
       "body": "A day-by-day count needs a time-bucketed order aggregate."
     },
     "revenue": {
       "title": "Spend over time",
+      "ask": "Is spend rising faster than order count?",
       "body": "A spend curve needs the same aggregate over base cost."
     },
     "marketplace": {
       "title": "By marketplace",
+      "ask": "Which store is carrying the volume?",
       "body": "Splitting orders by store needs a grouped count on the marketplace field."
     },
     "leadTime": {
       "title": "Fulfillment lead time",
+      "ask": "How long does an order take from placed to shipped?",
       "body": "Placed to shipped needs the status-change timestamps aggregated."
     }
   },

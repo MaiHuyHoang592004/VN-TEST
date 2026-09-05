@@ -56,7 +56,8 @@
       "attachHint": "PNG, JPG or WEBP · up to 10 images · 10MB each",
       "submit": "Open ticket",
       "created": "Ticket opened",
-      "orderDropped": "The order you picked is not on your account, so the ticket was filed without it."
+      "orderDropped": "The order you picked is not on your account, so the ticket was filed without it.",
+      "removeFile": "Remove file"
     },
     "edit": {
       "title": "Edit ticket",
@@ -67,7 +68,8 @@
       "title": "Delete this ticket?",
       "body": "The ticket and its whole thread are removed. This cannot be undone.",
       "submit": "Delete ticket",
-      "deleted": "Ticket deleted"
+      "deleted": "Ticket deleted",
+      "failed": "Could not delete the ticket. Try again."
     },
     "detail": {
       "back": "All tickets",

@@ -98,5 +98,7 @@
       "title": "{from} 提交了一笔{kind}申请",
       "body": "{amount} 正在等待审批。"
     }
-  }
+  },
+  "confirmDelete": "确认删除",
+  "deleteFailed": "无法删除该通知。"
 }

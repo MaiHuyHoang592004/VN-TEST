@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Image as ImageIcon, Package, Pencil, RefreshCw, Ban } from "lucide-react";
+import { Image as ImageIcon, Package, Pencil, RefreshCw, Ban, StickyNote, FolderOpen } from "lucide-react";
 
-import { FilterChip, ProductCell, StatusBadge } from "@/components/ds";
+import { ProductCell, StatusBadge } from "@/components/ds";
 import {
   Select,
   SelectContent,
@@ -38,6 +38,16 @@ import { OrderTimeline } from "./order-timeline";
 import { BuyLabelsButton } from "./buy-labels-button";
 import { DownloadLabelsButton } from "./download-labels-button";
 import { OrderDialog } from "./order-dialog";
+/**
+ * True when the url is a Drive FOLDER — a container, never an image.
+ *
+ * Deliberately a local one-liner rather than the richer `parseDriveUrl` in
+ * @gwprint/shared: all this column needs to know is "can this go in an <img>",
+ * and answering it here keeps the orders table independent of the Drive
+ * resolver work landing separately. Swap to parseDriveUrl once that ships.
+ */
+const driveFolder = (url: string | null) =>
+  Boolean(url && url.includes("/drive/folders/"));
 import { VoidLabelDialog } from "./void-label-dialog";
 import { AssignDialog } from "./assign-dialog";
 import { ImportDialog } from "./import-dialog";
@@ -60,6 +70,8 @@ export type OrderRow = {
   productName: string | null;
   variantName: string | null;
   sku: string | null;
+  /** The MOCKUP, already an image endpoint — the row's one renderable
+   *  picture. The design is `imageUrl`, and that one is a folder. */
   mockupThumbnail: string | null;
   imageUrl: string | null;
   proofImageUrl: string | null;
@@ -67,6 +79,13 @@ export type OrderRow = {
   labelVoided: boolean;
   tracking: string | null;
   trackingStatus: string | null;
+  /** Carrier name and its service level, e.g. "USPS" · "Ground Advantage". */
+  carrier: string | null;
+  service: string | null;
+  /** The purchased label, shown as the row's third thumbnail. */
+  labelUrl: string | null;
+  /** What the carrier charged. Null until a label is bought. */
+  shipCost: string | null;
   shipTo: string | null;
   note: string | null;
   internalNote: string | null;
@@ -84,7 +103,50 @@ export type OrderRow = {
   country: string | null;
 };
 
-const TABS = ["all", "processing", "attention"] as const;
+
+/**
+ * One 32px image in the order row's strip, corner-tagged so the three are
+ * telling apart at a glance: D design · M mockup · L shipping label.
+ *
+ * The tag is a one-letter chip, not a colour: three thumbnails distinguished
+ * only by hue would be unreadable to anyone who does not see the hues, and
+ * would need a legend nobody reads. The full word is the accessible name.
+ *
+ * Cream well, never grey — the DS's rule for anything holding a product image.
+ *
+ * A load failure is handled here rather than left to the browser: every source
+ * is third-party (a Drive file whose sharing can change, a carrier's label
+ * host), and a broken-image glyph in a dense table reads as "the app is
+ * broken". An empty well reads as "no picture", which is the truth, and keeps
+ * its tag so the row still says which slot came up empty.
+ */
+function Thumb({ src, tag, label }: { src: string; tag: string; label: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className="relative block shrink-0">
+      {failed ? (
+        <span className="flex size-8 items-center justify-center rounded-(--radius-xs) bg-(--cream-200)">
+          <ImageIcon className="size-4 stroke-(--icon-muted)" aria-hidden />
+          <span className="sr-only">{label}</span>
+        </span>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={label}
+          onError={() => setFailed(true)}
+          className="size-8 rounded-(--radius-xs) bg-(--cream-200) object-cover"
+        />
+      )}
+      <span
+        aria-hidden
+        className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-(--radius-pill) bg-(--navy-700) font-mono text-[0.5625rem] leading-none font-bold text-(--gwp-white)"
+      >
+        {tag}
+      </span>
+    </span>
+  );
+}
 
 const STATUSES = [
   "PENDING",
@@ -147,10 +209,24 @@ export function OrdersTable({
   const [assigning, setAssigning] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const selectedIds = [...selected].map(Number);
+  /**
+   * MEMOISED, and not for speed. AssignDialog, RefundDialog and BuyLabelsButton
+   * each take this array as an effect dependency and re-run a server-side
+   * PREVIEW when it changes. Rebuilt inline it was a new array identity on every
+   * render of this component, so any unrelated re-render while one of those
+   * dialogs was open fired the preview action again.
+   */
+  const selectedIds = useMemo(() => [...selected].map(Number), [selected]);
   const clearSelection = () => setSelected(new Set());
 
-  const tab = params.get("tab") || "all";
+  // Who may see money on this table. `canCharge` is the platform side; the
+  // second is the seller side, recognised by SCOPE rather than by role name —
+  // a viewer who can read only their own orders can only ever be looking at
+  // their own money.
+  const canCharge = can("orders.assign");
+  const ownScopeOnly =
+    can("orders.read.own") && !can("orders.read.customer") && !can("orders.read.all");
+
   const status = params.get("status");
   const hasFilters = Boolean(params.get("q") || status);
 
@@ -159,40 +235,94 @@ export function OrdersTable({
       id: "order",
       header: t("orders.colOrder"),
       cell: (o) => (
-        <div className="flex min-w-0 items-center gap-3">
-          {/* The design a customer prints, and the way into a real look at it
-              — 32px answers "is there artwork", never "is it the RIGHT
-              artwork", so the thumbnail opens the panel on its image view. */}
-          {o.mockupThumbnail || o.imageUrl ? (
-            <OrderQr
-              {...orderQrProps(o)}
-              initialFormat="image"
-              trigger={
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={o.mockupThumbnail ?? o.imageUrl ?? ""}
-                  alt=""
-                  className="size-8 rounded-(--radius-xs) bg-(--surface-content) object-cover"
-                />
-              }
-            />
-          ) : (
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--surface-content)">
-              <Package className="size-4 stroke-(--icon-muted)" />
-            </span>
-          )}
-          {/* The packed-parcel photo, when there is one. Beside the design
-              rather than instead of it: a packer comparing the two is the
-              whole reason both exist. */}
-          {o.proofImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={o.proofImageUrl}
-              alt=""
-              title={t("orders.proof.thumb")}
-              className="size-8 shrink-0 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
-            />
-          )}
+        <div className="flex min-w-0 items-start gap-3">
+          {/* THREE thumbnails, corner-tagged D · M · L — design, mockup and
+              the purchased shipping label. 32px answers "is there artwork",
+              never "is it the RIGHT artwork", so D and M open the panel on its
+              image view and L opens the label itself.
+
+              Each slot is drawn only when its image exists. A row with no
+              artwork keeps ONE empty cream well as the column's anchor, so the
+              text beside it starts at the same x on every row; a row missing
+              only its label simply has two. Nothing renders a grey box
+              standing in for a picture that was never taken. */}
+          <div className="flex shrink-0 items-center gap-1">
+            {/* D is the DESIGN, and in this database the design is a Google
+                Drive FOLDER, not a picture — 489 of 489 rows. A folder url in
+                an <img> asks Drive for a login page and gets one, which is
+                what used to draw a broken glyph on every row.
+
+                So D is drawn as what it is: a folder you can open. The picture
+                lives in M. Two wells, two different things, neither of them a
+                guess. If imageUrl ever holds a real image it is rendered as
+                one — the branch below stays for that day. */}
+            {driveFolder(o.imageUrl) ? (
+              <a
+                href={o.imageUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                title={t("orders.thumb.designFolder")}
+                aria-label={t("orders.thumb.designFolder")}
+                className="relative flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200) transition-colors duration-(--dur-fast) hover:bg-(--cream-300) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
+              >
+                <FolderOpen className="size-4 stroke-(--icon-default)" aria-hidden />
+                <span
+                  aria-hidden
+                  className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-(--radius-pill) bg-(--navy-700) font-mono text-[0.5625rem] leading-none font-bold text-(--gwp-white)"
+                >
+                  D
+                </span>
+              </a>
+            ) : o.imageUrl ? (
+              <OrderQr
+                {...orderQrProps(o)}
+                initialFormat="image"
+                trigger={<Thumb src={o.imageUrl} tag="D" label={t("orders.thumb.design")} />}
+              />
+            ) : null}
+
+            {/* M — the customer-facing mockup, and the row's one real picture.
+                mockups.thumbnail is already a drive.google.com/thumbnail?id=
+                url, i.e. an image endpoint, so it needs no resolving. */}
+            {o.mockupThumbnail ? (
+              <OrderQr
+                {...orderQrProps(o)}
+                initialFormat="image"
+                trigger={<Thumb src={o.mockupThumbnail} tag="M" label={t("orders.thumb.mockup")} />}
+              />
+            ) : !o.imageUrl ? (
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200)">
+                <Package className="size-4 stroke-(--icon-muted)" aria-hidden />
+              </span>
+            ) : null}
+
+            {o.labelUrl && (
+              <a
+                href={o.labelUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="rounded-(--radius-xs) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
+              >
+                <Thumb src={o.labelUrl} tag="L" label={t("orders.thumb.label")} />
+              </a>
+            )}
+
+            {/* The packed-parcel photo. Beside the others rather than instead
+                of them: a packer comparing design to parcel is why both exist.
+                Its green ring is not the only signal — the alt text says what
+                it is. */}
+            {o.proofImageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={o.proofImageUrl}
+                alt={t("orders.proof.thumb")}
+                className="size-8 shrink-0 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
+              />
+            )}
+          </div>
+
           <div className="min-w-0">
             <p className="truncate font-mono text-(length:--fs-meta) font-medium tracking-(--ls-mono) text-(--text-body)">
               {o.externalId ?? `#${o.id}`}
@@ -200,6 +330,29 @@ export function OrdersTable({
             <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
               {o.marketplace ?? t("orders.noMarketplace")}
             </p>
+            {/* Third line: the note. The customer's note reads as ordinary
+                meta; the INTERNAL note is orange and ops-only, because the
+                schema says in as many words that it is never shown to the
+                customer. title= carries the full text for a note longer than
+                the column. */}
+            {o.note && (
+              <p
+                title={o.note}
+                className="flex items-center gap-1 truncate text-(length:--fs-meta) text-(--text-muted)"
+              >
+                <StickyNote className="size-3 shrink-0 stroke-(--icon-muted)" aria-hidden />
+                <span className="truncate">{o.note}</span>
+              </p>
+            )}
+            {o.internalNote && can("orders.status.update") && (
+              <p
+                title={o.internalNote}
+                className="flex items-center gap-1 truncate text-(length:--fs-meta) text-(--status-attention-fg)"
+              >
+                <StickyNote className="size-3 shrink-0 stroke-(--status-attention-dot)" aria-hidden />
+                <span className="truncate">{o.internalNote}</span>
+              </p>
+            )}
           </div>
         </div>
       ),
@@ -261,6 +414,14 @@ export function OrdersTable({
             <p className="truncate font-mono text-(length:--fs-meta) tracking-(--ls-mono) text-(--text-body)">
               {o.tracking}
             </p>
+            {/* Who is carrying it, and on what service. Rendered only when the
+                shipment actually has them — an order with no label bought yet
+                leaves this blank rather than guessing a carrier. */}
+            {(o.carrier || o.service) && (
+              <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
+                {[o.carrier, o.service].filter(Boolean).join(" · ")}
+              </p>
+            )}
             {o.trackingStatus && (
               <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
                 {o.trackingStatus}
@@ -281,20 +442,48 @@ export function OrdersTable({
         </span>
       ),
     },
-    // Money is gated: a customer packer has no business seeing what a seller
-    // was charged. Dropped from the row list entirely rather than rendered
-    // blank, so the table has no empty row hinting at hidden data.
-    ...(can("orders.assign")
+    // MONEY IS GATED, and the gate has two doors rather than one.
+    //
+    // It briefly had none. Dropping the orders.assign check to "show sellers
+    // what they were billed" also handed the column to every other role that
+    // can read orders — and orders.assign is exactly the permission WAREHOUSE,
+    // SUPPORT and DESIGNER lack (libs/shared/src/access/permissions.ts). A
+    // packer would have seen the charge on every seller shipping through their
+    // site; a designer, on every order on the platform. permissions.test.ts
+    // asserts that in as many words: "line staff cannot charge".
+    //
+    // So: staff who CHARGE see it (orders.assign), and the seller BEING charged
+    // sees it — recognised by scope, not by role name. Somebody whose read
+    // scope is their own orders and nothing wider is, definitionally, only ever
+    // looking at their own money.
+    ...(canCharge || ownScopeOnly
       ? [
           {
+            // Header follows what is actually in the column: a seller sees one
+            // figure, so promising "+ ship" would be a header describing a line
+            // that never renders for them.
             id: "cost",
-            header: t("orders.colCost"),
+            header: canCharge ? t("orders.colCostShip") : t("orders.colCost"),
             className: "text-right tabular-nums",
             hideOnMobile: true,
             cell: (o: OrderRow) => (
-              <span className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono)">
-                {money(o.baseCost)}
-              </span>
+              <div className="whitespace-nowrap">
+                <p className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono) text-(--text-body)">
+                  {money(o.baseCost)}
+                </p>
+                {/* SHIPPING IS NOT THE SELLER'S LINE. Shipment.cost is what the
+                    carrier charged the PLATFORM when the label was bought —
+                    modules/fulfillment/labels/purchase.ts writes it to the
+                    shipment and creates no seller transaction; the seller is
+                    debited baseCost alone (orders/service/assign.ts). Showing
+                    it to them under their own cost would be presenting the
+                    platform's expense as their bill. */}
+                {canCharge && o.shipCost ? (
+                  <p className="font-mono text-(length:--fs-micro) tracking-(--ls-mono) text-(--text-muted)">
+                    + {money(o.shipCost)}
+                  </p>
+                ) : null}
+              </div>
             ),
           } satisfies Column<OrderRow>,
         ]
@@ -399,140 +588,153 @@ export function OrdersTable({
 
   return (
     <>
-      {/* Chips, not tabs: these FILTER the same query rather than navigating,
-          so they carry aria-pressed. `x === "all" ? "" : x` is the URL
-          contract — "all" is the absence of the param, not a value. */}
-      <div className="flex gap-2">
-        {TABS.map((x) => (
-          <FilterChip
-            key={x}
-            label={t(`orders.tabs.${x}`)}
-            active={tab === x}
-            onClick={() => params.setFilter("tab", x === "all" ? "" : x)}
-          />
-        ))}
-      </div>
-
       <StatusSummary rows={summary} />
 
-      <DataTable
-        rows={rows}
-        columns={columns}
-        rowId={(o) => String(o.id)}
-        mobileCard={(o) => <OrderMobileCard order={o} />}
-        // Every order has a line to show, so the expander is on every row. The
-        // panel fetches its own dates when it opens; nothing is loaded for the
-        // twenty-four rows nobody expanded.
-        renderExpanded={(o) => <OrderTimeline orderId={o.id} />}
-        expandLabel={t("orders.timeline.toggle")}
-        loading={params.pending}
-        selected={selected}
-        onSelectedChange={setSelected}
-        empty={hasFilters ? t("orders.emptyFiltered") : t("orders.empty")}
-        toolbar={
-          <DataTableToolbar
-            search={params.get("q")}
-            onSearchChange={(v) => params.setFilter("q", v)}
-            searchPlaceholder={t("orders.search")}
-            hasFilters={hasFilters}
-            onClearFilters={() => params.clearFilters(["q", "status"])}
-            selectedCount={selected.size}
-            filters={
-              <Select
-                value={status || "all"}
-                onValueChange={(v) => params.setFilter("status", v === "all" ? "" : String(v))}
-              >
-                <SelectTrigger className="w-44" aria-label={t("orders.colStatus")}>
-                  <SelectValue>
-                    {status ? t(`orders.statuses.${status}`) : t("orders.allStatuses")}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("orders.allStatuses")}</SelectItem>
-                  {STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {t(`orders.statuses.${s}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            }
-            actions={
-              <div className="flex flex-wrap gap-2">
-                <OrderStatusActions
-                  selected={selectedIds}
-                  rows={rows}
-                  onDone={clearSelection}
-                />
-                {selectedIds.length > 0 && (
-                  <>
-                    <Can permission="orders.status.update">
-                      {/* A real route, opened in a new tab: the sheet prints
-                          itself, and the operator keeps their place in the
-                          table behind it. */}
-                      <Button
-                        variant="outline"
-                        onClick={() =>
-                          window.open(`/orders/print?ids=${selectedIds.join(",")}`, "_blank", "noopener")
-                        }
-                      >
-                        {t("orders.qr.print")} ({selectedIds.length})
-                      </Button>
-                    </Can>
-                    <Can permission="orders.labels.manage">
-                      <BuyLabelsButton orderIds={selectedIds} onDone={clearSelection} />
-                    </Can>
-                    <Can permission="orders.assign">
-                      <Button variant="outline" onClick={() => setAssigning(true)}>
-                        {t("orders.assign")} ({selectedIds.length})
-                      </Button>
-                    </Can>
-                    <Can permission="orders.update">
-                      <Button
-                        variant="outline"
-                        disabled={recalcPending}
-                        onClick={() => void recalc(selectedIds)}
-                      >
-                        {t("orders.recalc.action")}
-                      </Button>
-                    </Can>
-                    <Can permission="orders.refund">
-                      <Button variant="outline" onClick={() => setRefunding(true)}>
-                        {t("orders.refund")}
-                      </Button>
-                    </Can>
-                    <Can permission="orders.delete">
-                      <Button variant="outline" onClick={() => setDeleting(true)}>
-                        {t("orders.delete")}
-                      </Button>
-                    </Can>
-                  </>
-                )}
-                <Can permission="orders.labels.manage">
-                  <DownloadLabelsButton orderIds={selectedIds} />
-                </Can>
-                <ExportButton orderIds={selectedIds} />
-                <Can permission="orders.create">
-                  <Button variant="outline" onClick={() => setImporting(true)}>
-                    {t("orders.import")}
-                  </Button>
-                  <Button onClick={() => setCreating(true)}>{t("orders.new")}</Button>
-                </Can>
-              </div>
-            }
-          />
+      {/* `params.pending` DIMS the table, it does not blank it. useTableParams
+          runs the navigation in a transition precisely so the rows that are
+          already on screen stay there; feeding `pending` to DataTable's
+          `loading` threw them away and flashed a skeleton on every search
+          keystroke, status change and page turn. aria-busy tells AT the same
+          thing without removing the content it is reading. */}
+      <div
+        aria-busy={params.pending || undefined}
+        className={
+          params.pending
+            ? "opacity-60 transition-opacity duration-(--dur-fast) motion-reduce:transition-none"
+            : "transition-opacity duration-(--dur-fast) motion-reduce:transition-none"
         }
-        footer={
-          <DataTablePagination
-            page={params.page}
-            pageSize={params.pageSize}
-            total={total}
-            onPageChange={params.setPage}
-            onPageSizeChange={params.setPageSize}
-            selectedCount={selected.size}
-          />
-        }
-      />
+      >
+        <DataTable
+          rows={rows}
+          columns={columns}
+          rowId={(o) => String(o.id)}
+          rowLabel={(o) => o.externalId ?? `#${o.id}`}
+          mobileCard={(o) => (
+            <OrderMobileCard
+              order={o}
+              // The phone gets the SAME row actions the desktop row does, behind
+              // the same permission gates — the card is the row on a smaller
+              // screen, not a reduced one.
+              onEdit={() => setEditing(o)}
+              onVoidLabel={() => setVoidingLabelFor(o)}
+              onArtwork={() => setArtworkFor(o)}
+              onRecalc={() => void recalc([o.id])}
+              recalcPending={recalcPending}
+            />
+          )}
+          // Every order has a line to show, so the expander is on every row. The
+          // panel fetches its own dates when it opens; nothing is loaded for the
+          // twenty-four rows nobody expanded.
+          renderExpanded={(o) => <OrderTimeline orderId={o.id} />}
+          expandLabel={t("orders.timeline.toggle")}
+          selected={selected}
+          onSelectedChange={setSelected}
+          empty={hasFilters ? t("orders.emptyFiltered") : t("orders.empty")}
+          toolbar={
+            <DataTableToolbar
+              search={params.get("q")}
+              onSearchChange={(v) => params.setFilter("q", v)}
+              searchPlaceholder={t("orders.search")}
+              hasFilters={hasFilters}
+              onClearFilters={() => params.clearFilters(["q", "status"])}
+              selectedCount={selected.size}
+              filters={
+                <Select
+                  value={status || "all"}
+                  onValueChange={(v) => params.setFilter("status", v === "all" ? "" : String(v))}
+                >
+                  <SelectTrigger className="w-44" aria-label={t("orders.colStatus")}>
+                    <SelectValue>
+                      {status ? t(`orders.statuses.${status}`) : t("orders.allStatuses")}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("orders.allStatuses")}</SelectItem>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {t(`orders.statuses.${s}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              }
+              actions={
+                <div className="flex flex-wrap gap-2">
+                  <OrderStatusActions
+                    selected={selectedIds}
+                    rows={rows}
+                    onDone={clearSelection}
+                  />
+                  {selectedIds.length > 0 && (
+                    <>
+                      <Can permission="orders.status.update">
+                        {/* A real route, opened in a new tab: the sheet prints
+                            itself, and the operator keeps their place in the
+                            table behind it. */}
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            window.open(`/orders/print?ids=${selectedIds.join(",")}`, "_blank", "noopener")
+                          }
+                        >
+                          {t("orders.qr.print")} ({selectedIds.length})
+                        </Button>
+                      </Can>
+                      <Can permission="orders.labels.manage">
+                        <BuyLabelsButton orderIds={selectedIds} onDone={clearSelection} />
+                      </Can>
+                      <Can permission="orders.assign">
+                        <Button variant="outline" onClick={() => setAssigning(true)}>
+                          {t("orders.assign")} ({selectedIds.length})
+                        </Button>
+                      </Can>
+                      <Can permission="orders.update">
+                        <Button
+                          variant="outline"
+                          disabled={recalcPending}
+                          onClick={() => void recalc(selectedIds)}
+                        >
+                          {t("orders.recalc.action")}
+                        </Button>
+                      </Can>
+                      <Can permission="orders.refund">
+                        <Button variant="outline" onClick={() => setRefunding(true)}>
+                          {t("orders.refund")}
+                        </Button>
+                      </Can>
+                      <Can permission="orders.delete">
+                        <Button variant="outline" onClick={() => setDeleting(true)}>
+                          {t("orders.delete")}
+                        </Button>
+                      </Can>
+                    </>
+                  )}
+                  <Can permission="orders.labels.manage">
+                    <DownloadLabelsButton orderIds={selectedIds} />
+                  </Can>
+                  <ExportButton orderIds={selectedIds} />
+                  <Can permission="orders.create">
+                    <Button variant="outline" onClick={() => setImporting(true)}>
+                      {t("orders.import")}
+                    </Button>
+                    <Button onClick={() => setCreating(true)}>{t("orders.new")}</Button>
+                  </Can>
+                </div>
+              }
+            />
+          }
+          footer={
+            <DataTablePagination
+              page={params.page}
+              pageSize={params.pageSize}
+              total={total}
+              onPageChange={params.setPage}
+              onPageSizeChange={params.setPageSize}
+              selectedCount={selected.size}
+            />
+          }
+        />
+      </div>
 
       {creating && <OrderDialog open onOpenChange={(o) => !o && setCreating(false)} />}
       {editing && (
@@ -565,6 +767,10 @@ export function OrdersTable({
           orderId={artworkFor.id}
           label={artworkFor.externalId ?? `#${artworkFor.id}`}
           designUrl={artworkFor.imageUrl}
+          // The mockup's thumbnail IS its url for anything this dialog set —
+          // setOrderArtwork writes the same string to both — and it is the
+          // only mockup field the orders query selects.
+          mockupUrl={artworkFor.mockupThumbnail}
           open
           onOpenChange={(o) => !o && setArtworkFor(null)}
         />

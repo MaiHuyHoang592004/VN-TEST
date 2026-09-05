@@ -24,6 +24,11 @@
   "noCommonMove": "선택한 주문에 공통 작업이 없습니다",
   "statusMoved": "주문 {count}건을 {status}(으)로 변경했습니다.",
   "statusPartial": "{total}건 중 {failed}건을 변경하지 못했습니다. 새로고침 후 다시 시도하세요.",
+  "statusFailed": "주문 상태를 변경하지 못했습니다. 페이지를 새로 고쳐 실제 결과를 확인하세요.",
+  "cancelTitle": "이 주문을 취소할까요?",
+  "cancelDesc": "취소한 주문은 이전 상태로 되돌릴 수 없습니다.",
+  "cancelBody": "주문 {count}건이 취소됨 상태로 바뀝니다.",
+  "cancelSubmit": "주문 취소",
   "statuses": {
     "PENDING": "대기 중",
     "ASSIGNED": "배정됨",
@@ -56,6 +61,9 @@
   "shippingSection": "Shipping",
   "fRecipient": "Recipient",
   "fEmail": "Email",
+  "fPhone": "전화번호",
+  "fPhoneHint": "일부 배송사는 배송에 전화번호를 요구합니다.",
+  "fCompany": "회사",
   "fLine1": "Address",
   "fLine2": "Address line 2",
   "fCity": "City",
@@ -80,6 +88,7 @@
   "fWarehouse": "창고",
   "pickWarehouse": "Choose a warehouse",
   "assignCalculating": "Working out what this costs…",
+  "assignPreviewFailed": "청구 금액을 계산하지 못했습니다. 닫았다가 다시 시도해 주세요.",
   "assignCharges": "Charges",
   "assignNothing": "None of the selected orders can be assigned.",
   "assignSkipped": "{count} selected orders are already assigned and were skipped.",
@@ -109,6 +118,10 @@
   "importFailed": "{count} failed",
   "importLine": "Line {line}:",
   "importNoSku": "No SKU matches that code or product/variant pair.",
+  "importChecking": "SKU 확인 중…",
+  "importPreviewMore": "외 {count}개 행",
+  "importUnresolved": "{count}개 행에 일치하는 SKU가 없어 건너뜁니다.",
+  "importUnresolvedLines": "{lines}행.",
   "qr": {
     "column": "QR",
     "show": "QR 코드 보기",
@@ -121,6 +134,7 @@
     "variant": "옵션",
     "shipTo": "배송지",
     "copied": "주문 ID를 복사했습니다.",
+    "copyFailed": "주문 ID를 복사하지 못했습니다.",
     "noTracking": "아직 운송장이 없습니다",
     "note": "메모",
     "format": {
@@ -146,6 +160,7 @@
     "previewTitle": "배송 라벨 구매",
     "previewDesc": "확인하기 전에는 아무것도 구매되지 않습니다. 같은 주소로 가는 주문은 한 소포로 묶입니다.",
     "loading": "소포를 계산하는 중…",
+    "previewFailed": "라벨 미리보기를 만들지 못했습니다. 닫았다가 다시 시도해 주세요.",
     "tileGroups": "소포",
     "tileWillBuy": "구매 예정",
     "tileSkipped": "건너뜀",
@@ -181,6 +196,7 @@
   "refundSubmit": "환불 후 취소",
   "refundTotal": "환불 합계",
   "refundNothing": "선택한 주문은 환불할 수 없습니다.",
+  "refundQuoteFailed": "환불 금액을 계산하지 못했습니다. 닫았다가 다시 시도해 주세요.",
   "refundDone": "환불이 완료되었습니다",
   "refundReason": "사유",
   "refundReasonPlaceholder": "해당 배치가 잘못된 원단에 인쇄되었습니다.",
@@ -202,6 +218,9 @@
     "design": "디자인",
     "mockup": "목업",
     "slotHint": "URL을 붙여넣거나 이미지를 업로드하세요 — 업로드가 우선입니다.",
+    "previewAlt": "현재 아트워크",
+    "previewNone": "아직 이미지가 없습니다",
+    "previewBroken": "이미지를 불러올 수 없습니다",
     "upload": "이미지 업로드",
     "clearFile": "파일 지우기",
     "saved": "이미지를 업데이트했습니다",
@@ -212,10 +231,21 @@
   "summary": {
     "units": "개",
     "breakdown": "구성 내역",
+    "breakdownFor": "{status} 구성 내역",
     "nothing": "내용이 없습니다."
   },
   "dialogNewSubmit": "주문 생성",
   "timeline": {
-    "toggle": "주문 진행 상황 보기"
-  }
+    "toggle": "주문 진행 상황 보기",
+    "failed": "진행 상황을 불러오지 못했습니다.",
+    "retry": "다시 시도",
+    "empty": "이 주문에는 아직 기록된 단계가 없습니다."
+  },
+  "thumb": {
+    "design": "인쇄 디자인",
+    "mockup": "고객용 목업",
+    "label": "배송 라벨",
+    "designFolder": "아트워크 폴더 열기"
+  },
+  "colCostShip": "원가 + 배송비"
 }

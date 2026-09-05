@@ -106,16 +106,32 @@ export function ImportStockDialog({
     >
       <FormField label={t("inventory.import.item")} required error={fieldErrors.itemId}>
         {(props) => (
-          <div className="flex flex-col gap-2">
+          // TWO controls, one field: a filter box that narrows the list and a
+          // Select that holds the answer. FormField's default wiring puts the
+          // label, aria-describedby and aria-required on whatever gets
+          // {...props} — and that used to be the FILTER, i.e. the control that
+          // does not carry the value. So the field is a named GROUP, and the
+          // required-ness and the error live on the Select, which is what a
+          // submit actually validates.
+          <div
+            role="group"
+            aria-labelledby={props.labelId}
+            aria-describedby={props["aria-describedby"]}
+            className="flex flex-col gap-2"
+          >
             <Input
-              {...props}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("inventory.import.itemPlaceholder")}
               autoComplete="off"
+              aria-label={t("inventory.import.itemPlaceholder")}
             />
             <Select value={itemId} onValueChange={(v) => v && setItemId(v)}>
-              <SelectTrigger>
+              <SelectTrigger
+                id={props.id}
+                aria-required={props["aria-required"]}
+                aria-invalid={props["aria-invalid"]}
+              >
                 <SelectValue placeholder={t("inventory.import.noItem")} />
               </SelectTrigger>
               <SelectContent>

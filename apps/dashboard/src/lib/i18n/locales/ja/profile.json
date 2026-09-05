@@ -25,7 +25,8 @@
     "language": "言語",
     "timezone": "タイムゾーン",
     "saved": "プロフィールを更新しました",
-    "saveFailed": "変更を保存できませんでした。接続を確認して再試行してください。"
+    "saveFailed": "変更を保存できませんでした。接続を確認して再試行してください。",
+    "emailReadOnly": "メールアドレスは「セキュリティ」タブで変更します。"
   },
   "security": {
     "methods": "サインイン方法",
@@ -44,7 +45,7 @@
     "emailChanged": "メールアドレスを更新しました",
     "changePassword": "パスワードの変更",
     "changePasswordHint": "変更後、すべての端末からサインアウトされます。",
-    "setPasswordHint": "このアカウントは Google でサインインします。パスワードは未設定です。",
+    "setPasswordHint": "このアカウントは Google でサインインします。パスワードを設定すればメールでもサインインできます。",
     "currentPassword": "現在のパスワード",
     "newPassword": "新しいパスワード",
     "updatePassword": "パスワードを更新",
@@ -60,7 +61,14 @@
     "errWeakPassword": "8文字以上で入力してください",
     "errEmailTaken": "そのメールアドレスは既に使用されています",
     "errInvalidCode": "コードが無効か有効期限が切れています",
-    "errNoPending": "保留中のメールアドレス変更はありません"
+    "errNoPending": "保留中のメールアドレス変更はありません",
+    "signOutAllTitle": "すべての端末からサインアウトしますか？",
+    "signOutAllBody": "この端末を含め、サインイン中のすべての端末がサインアウトされます。もう一度サインインが必要です。",
+    "useDifferentEmail": "別のアドレスを使う",
+    "useDifferentEmailHint": "新しいアドレスにコードを送るまで、保留中の変更はそのまま残ります。",
+    "setPassword": "パスワードを設定",
+    "passwordSet": "パスワードを設定しました",
+    "setPasswordFailed": "パスワードを設定できませんでした。もう一度お試しください。"
   },
   "api": {
     "title": "APIキー",
@@ -88,8 +96,23 @@
       "colNow": "現在",
       "colNote": "備考",
       "retired": "廃止",
-      "breaking": "破壊的変更:"
-    }
+      "breaking": "破壊的変更:",
+      "notes": {
+        "v3Orders": "V3 の SKU 管理は廃止されました。代わりに POST /api/v1/orders へ `product_variant_id` を送ってください。",
+        "listOrders": "カーソルページングです。`page` ではなく `cursor` を渡してください。",
+        "resolveDesign": "`image_url` を送ってください。保留中の注文は自動的にキューへ戻ります。",
+        "resolveLabel": "`label_url` と `tracking_number` は一緒に送ってください。",
+        "pricing": "価格はすでにあなた向けのものです。ティアの参照は不要です。",
+        "apiKey": "変更ありません。既存のキーは移行済みで、そのまま使えます。",
+        "webhookSignature": "イベントとペイロードのフィールド名は同じです。署名ヘッダーが変わりました。x-api-key の比較ではなく X-Signature（HMAC-SHA256）を検証してください。",
+        "admin": "管理者向け連携は廃止されました。その機能はすべてダッシュボードにあります。",
+        "drivePipeline": "Google ドライブのパイプラインとともに廃止されました。"
+      }
+    },
+    "revokeTitle": "このキーを失効させますか？",
+    "revokeBody": "このキーを使っているものはすべて直ちに動かなくなります。元に戻せません。",
+    "revokeFailed": "キーを失効できませんでした。もう一度お試しください。",
+    "copyFailed": "コピーできませんでした。テキストを選択して手動でコピーしてください。"
   },
   "webhooks": {
     "title": "Webhook",
@@ -165,6 +188,7 @@
       "not-an-image": "PNG・JPG・WEBP の画像を添付してください。",
       "too-many-files": "一度に添付できる画像は 10 枚までです。",
       "storage-not-configured": "現在アップロードを利用できません。"
-    }
+    },
+    "removeFile": "ファイルを削除"
   }
 }

@@ -296,6 +296,37 @@ export function OrderDialog({
             )}
           </FormField>
         </div>
+        {/* Phone and company were in this form's state and in its submit long
+            before they had anywhere to be typed: orderSchema accepts both, and
+            the spreadsheet importer maps a "Phone" column onto shippingPhone —
+            so an imported order could hold a phone number that nobody could
+            read or correct here. The fields are the fix, not deleting the
+            state. */}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <FormField
+            label={t("orders.fPhone")}
+            hint={t("orders.fPhoneHint")}
+            error={fieldErrors.shippingPhone}
+          >
+            {(props) => (
+              <Input
+                {...props}
+                value={values.shippingPhone}
+                onChange={(e) => set("shippingPhone", e.target.value)}
+                inputMode="tel"
+              />
+            )}
+          </FormField>
+          <FormField label={t("orders.fCompany")} error={fieldErrors.shippingCompany}>
+            {(props) => (
+              <Input
+                {...props}
+                value={values.shippingCompany}
+                onChange={(e) => set("shippingCompany", e.target.value)}
+              />
+            )}
+          </FormField>
+        </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <FormField label={t("orders.fLine1")} error={fieldErrors.line1}>
             {(props) => (

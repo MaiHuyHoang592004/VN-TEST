@@ -261,14 +261,19 @@ export function Navbar() {
 
       {/* Mobile dock — floating pill, icons only, active state per route */}
       <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 md:hidden">
-        <div className="flex items-center gap-1 rounded-(--radius-pill) bg-(--surface-nav) p-1.5 shadow-(--shadow-md)">
+        {/* 44px targets and an 8px row gap: this is the primary navigation on
+            a phone and is heading into a Capacitor shell, so it takes the
+            platform floor rather than the 40px a desktop icon button can get
+            away with. The size-5 icons are unchanged — the box grew, not the
+            glyph. */}
+        <div className="flex items-center gap-2 rounded-(--radius-pill) bg-(--surface-nav) p-1.5 shadow-(--shadow-md)">
           {dockTabs.map(({ href, icon: Icon, key }) => (
             <Link
               key={href}
               href={href}
               aria-label={t(key)}
               aria-current={activeTab === href ? "page" : undefined}
-              className={`inline-flex size-10 items-center justify-center rounded-(--radius-pill) transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
+              className={`inline-flex size-11 items-center justify-center rounded-(--radius-pill) transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
                 activeTab === href
                   ? "bg-sky-200 text-navy-700"
                   : "text-navy-500 hover:bg-sky-100 hover:text-navy-700"
@@ -284,7 +289,7 @@ export function Navbar() {
             <Link
               href="/"
               aria-label={t("nav.login")}
-              className="inline-flex size-10 items-center justify-center rounded-(--radius-pill) text-navy-500 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
+              className="inline-flex size-11 items-center justify-center rounded-(--radius-pill) text-navy-500 transition-colors duration-(--dur-fast) hover:bg-sky-100 hover:text-navy-700 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
             >
               <User className="size-5" />
             </Link>

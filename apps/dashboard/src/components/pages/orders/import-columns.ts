@@ -59,6 +59,30 @@ export const TEMPLATE_HEADERS = [
 ];
 
 /**
+ * The columns the import dialog previews before committing.
+ *
+ * `header` is the TEMPLATE's own text, verbatim from TEMPLATE_HEADERS, and is
+ * deliberately not translated: the preview's job is to show the operator their
+ * own spreadsheet back, and the file they downloaded and filled in says
+ * "Recipient Name", not "Destinataire". `field` is the parsed name that
+ * COLUMN_ALIASES maps that header onto.
+ */
+export const PREVIEW_COLUMNS: {
+  header: string;
+  field: string;
+  /** IBM Plex Mono — machine truth only: ids, SKUs and counts. */
+  mono: boolean;
+  /** Right-aligned, because a column of figures reads down its units. */
+  numeric?: boolean;
+}[] = [
+  { header: "Order ID", field: "externalId", mono: true },
+  { header: "Marketplace", field: "marketplace", mono: false },
+  { header: "SKU", field: "sku", mono: true },
+  { header: "Quantity", field: "quantity", mono: true, numeric: true },
+  { header: "Recipient Name", field: "shippingName", mono: false },
+];
+
+/**
  * Minimal RFC-4180 CSV: quoted fields, embedded commas, doubled quotes, and
  * CRLF. Hand-written rather than pulled from a package — this is the whole
  * grammar, and it is smaller than the argument for a dependency.

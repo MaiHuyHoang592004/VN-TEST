@@ -25,7 +25,8 @@
     "language": "语言",
     "timezone": "时区",
     "saved": "资料已更新",
-    "saveFailed": "无法保存更改。请检查网络后重试。"
+    "saveFailed": "无法保存更改。请检查网络后重试。",
+    "emailReadOnly": "在“安全”标签页中更改邮箱地址。"
   },
   "security": {
     "methods": "登录方式",
@@ -44,7 +45,7 @@
     "emailChanged": "邮箱已更新",
     "changePassword": "更改密码",
     "changePasswordHint": "更改后您将在所有设备上退出登录。",
-    "setPasswordHint": "此账户使用 Google 登录，尚未设置密码登录。",
+    "setPasswordHint": "此账户使用 Google 登录。设置密码后也可以用邮箱登录。",
     "currentPassword": "当前密码",
     "newPassword": "新密码",
     "updatePassword": "更新密码",
@@ -60,7 +61,14 @@
     "errWeakPassword": "请至少使用 8 个字符",
     "errEmailTaken": "该邮箱已被使用",
     "errInvalidCode": "验证码无效或已过期",
-    "errNoPending": "没有待处理的邮箱更改"
+    "errNoPending": "没有待处理的邮箱更改",
+    "signOutAllTitle": "在所有设备上退出登录？",
+    "signOutAllBody": "所有已登录的设备都会退出，包括当前这台。你需要重新登录。",
+    "useDifferentEmail": "改用其他邮箱地址",
+    "useDifferentEmailHint": "在你向新地址发送验证码之前，待验证的变更会一直保留。",
+    "setPassword": "设置密码",
+    "passwordSet": "密码已设置",
+    "setPasswordFailed": "无法设置密码，请重试。"
   },
   "api": {
     "title": "API 密钥",
@@ -88,8 +96,23 @@
       "colNow": "现在",
       "colNote": "说明",
       "retired": "已停用",
-      "breaking": "重大变更："
-    }
+      "breaking": "重大变更：",
+      "notes": {
+        "v3Orders": "V3 的 SKU 管理已移除；改为向 POST /api/v1/orders 发送 `product_variant_id`。",
+        "listOrders": "改为游标分页：传 `cursor`，不要传 `page`。",
+        "resolveDesign": "发送 `image_url`。被暂停的订单会自动回到队列。",
+        "resolveLabel": "`label_url` 与 `tracking_number` 需要一起发送。",
+        "pricing": "返回的价格已是你的专属价——无需再查询等级。",
+        "apiKey": "未变更。现有密钥已迁移，可继续使用。",
+        "webhookSignature": "事件和载荷字段名不变。签名请求头已更改：改为校验 X-Signature（HMAC-SHA256），不要再比对 x-api-key。",
+        "admin": "管理端集成已停用。相关功能都已在控制台中提供。",
+        "drivePipeline": "随 Google Drive 流程一同停用。"
+      }
+    },
+    "revokeTitle": "撤销此密钥？",
+    "revokeBody": "使用此密钥的所有集成会立即失效。此操作无法撤销。",
+    "revokeFailed": "无法撤销密钥，请重试。",
+    "copyFailed": "无法复制。请手动选中文本复制。"
   },
   "webhooks": {
     "title": "Webhook",
@@ -165,6 +188,7 @@
       "not-an-image": "请上传 PNG、JPG 或 WEBP 图片。",
       "too-many-files": "一次最多上传 10 张图片。",
       "storage-not-configured": "当前无法上传文件。"
-    }
+    },
+    "removeFile": "移除文件"
   }
 }

@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Can } from "@/components/global/permission-gate";
+import { FormDialog } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 // Imported from status.ts DIRECTLY, not through the domain index: that barrel
 // also re-exports the order service, which pulls prisma and the pg driver into
@@ -49,6 +50,11 @@ export function OrderStatusActions({
   const router = useRouter();
   const { t } = useTranslation();
   const [pending, setPending] = useState(false);
+  /** Set when CANCELLED is picked: the move waits on a confirmation, the same
+   * as Delete and Refund. Cancelling a batch of orders is not undoable from
+   * this menu — CANCELLED has no transition back to PENDING — so it does not
+   * get to be a one-click item sitting next to the routine moves. */
+  const [confirming, setConfirming] = useState(false);
 
   if (selected.length === 0) return null;
 
@@ -62,27 +68,41 @@ export function OrderStatusActions({
 
   const move = async (to: FulfillmentStatus) => {
     setPending(true);
-    const results = await Promise.all(selected.map((id) => updateStatusAction(id, to)));
-    setPending(false);
+    try {
+      const results = await Promise.all(selected.map((id) => updateStatusAction(id, to)));
 
-    const failed = results.filter((r) => !r.ok).length;
-    if (failed > 0) {
-      // A stale page is the only way to get here — the menu is built from the
-      // map — so say which, rather than pretending it all worked.
-      toast.error(
-        t("orders.statusPartial")
-          .replace("{failed}", String(failed))
-          .replace("{total}", String(selected.length)),
-      );
-    } else {
-      toast.success(
-        t("orders.statusMoved")
-          .replace("{count}", String(selected.length))
-          .replace("{status}", t(`orders.statuses.${to}`)),
-      );
+      const failed = results.filter((r) => !r.ok).length;
+      if (failed > 0) {
+        // A stale page is the only way to get here — the menu is built from the
+        // map — so say which, rather than pretending it all worked.
+        toast.error(
+          t("orders.statusPartial")
+            .replace("{failed}", String(failed))
+            .replace("{total}", String(selected.length)),
+        );
+      } else {
+        toast.success(
+          t("orders.statusMoved")
+            .replace("{count}", String(selected.length))
+            .replace("{status}", t(`orders.statuses.${to}`)),
+        );
+      }
+      onDone();
+      router.refresh();
+    } catch {
+      // One rejected action used to escape Promise.all and skip the
+      // setPending(false) below it, leaving the trigger disabled for good with
+      // nothing on screen saying why.
+      toast.error(t("orders.statusFailed"));
+    } finally {
+      setPending(false);
     }
-    onDone();
-    router.refresh();
+  };
+
+  /** CANCELLED asks first; everything else is a routine move. */
+  const pick = (to: FulfillmentStatus) => {
+    if (to === "CANCELLED") setConfirming(true);
+    else void move(to);
   };
 
   return (
@@ -104,7 +124,7 @@ export function OrderStatusActions({
               <DropdownMenuItem
                 key={s}
                 variant={s === "CANCELLED" ? "destructive" : undefined}
-                onClick={() => move(s)}
+                onClick={() => pick(s)}
               >
                 {t(`orders.statuses.${s}`)}
               </DropdownMenuItem>
@@ -112,6 +132,26 @@ export function OrderStatusActions({
           )}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      {confirming && (
+        <FormDialog
+          open
+          onOpenChange={(o) => !o && setConfirming(false)}
+          title={t("orders.cancelTitle")}
+          description={t("orders.cancelDesc")}
+          submitLabel={t("orders.cancelSubmit")}
+          destructive
+          pending={pending}
+          onSubmit={() => {
+            setConfirming(false);
+            void move("CANCELLED");
+          }}
+        >
+          <p className="text-muted-foreground text-sm">
+            {t("orders.cancelBody").replace("{count}", String(selected.length))}
+          </p>
+        </FormDialog>
+      )}
     </Can>
   );
 }

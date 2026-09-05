@@ -51,7 +51,8 @@
     "filled": "已完成",
     "progress": "已制作",
     "fill": "登记",
-    "fillAmount": "本次登记数量"
+    "fillAmount": "本次登记数量",
+    "moreMoves": "更多状态操作"
   },
   "fill": {
     "basket": "已放入货位 {name}。"

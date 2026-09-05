@@ -25,7 +25,8 @@
     "language": "Language",
     "timezone": "Timezone",
     "saved": "Profile updated",
-    "saveFailed": "Could not save changes. Check your connection and try again."
+    "saveFailed": "Could not save changes. Check your connection and try again.",
+    "emailReadOnly": "Change your email on the Security tab."
   },
   "security": {
     "methods": "Sign-In Methods",
@@ -44,7 +45,7 @@
     "emailChanged": "Email updated",
     "changePassword": "Change Password",
     "changePasswordHint": "You'll be signed out everywhere after changing it.",
-    "setPasswordHint": "This account signs in with Google. Password sign-in isn't set up.",
+    "setPasswordHint": "This account signs in with Google. Set a password to also sign in with email.",
     "currentPassword": "Current password",
     "newPassword": "New password",
     "updatePassword": "Update Password",
@@ -60,7 +61,14 @@
     "errWeakPassword": "Use at least 8 characters",
     "errEmailTaken": "That email is already in use",
     "errInvalidCode": "That code isn't valid or has expired",
-    "errNoPending": "No pending email change"
+    "errNoPending": "No pending email change",
+    "signOutAllTitle": "Sign out everywhere?",
+    "signOutAllBody": "Every signed-in device is signed out, including this one. You will need to sign in again.",
+    "useDifferentEmail": "Use a different address",
+    "useDifferentEmailHint": "The pending change stays until you send a code to a new address.",
+    "setPassword": "Set Password",
+    "passwordSet": "Password set",
+    "setPasswordFailed": "Could not set the password. Try again."
   },
   "api": {
     "title": "API Keys",
@@ -88,8 +96,23 @@
       "colNow": "Now",
       "colNote": "Notes",
       "retired": "Retired",
-      "breaking": "Breaking:"
-    }
+      "breaking": "Breaking:",
+      "notes": {
+        "v3Orders": "V3 SKU management is gone; send `product_variant_id` to POST /api/v1/orders instead.",
+        "listOrders": "Cursor paged: pass `cursor`, not `page`.",
+        "resolveDesign": "Send `image_url`. A held order returns to the queue automatically.",
+        "resolveLabel": "Send `label_url` and `tracking_number` together.",
+        "pricing": "Prices are already yours — no tier lookup needed.",
+        "apiKey": "Unchanged. Existing keys were migrated and keep working.",
+        "webhookSignature": "Same events, same payload field names. The signature header changed: verify X-Signature (HMAC-SHA256) instead of comparing x-api-key.",
+        "admin": "Admin integrations are retired. Everything they did is in the dashboard.",
+        "drivePipeline": "Retired with the Google Drive pipeline."
+      }
+    },
+    "revokeTitle": "Revoke this key?",
+    "revokeBody": "Anything using this key stops working immediately. This cannot be undone.",
+    "revokeFailed": "Could not revoke the key. Try again.",
+    "copyFailed": "Could not copy. Select the text and copy it manually."
   },
   "webhooks": {
     "title": "Webhooks",
@@ -165,6 +188,7 @@
       "not-an-image": "Attach a PNG, JPG or WEBP image.",
       "too-many-files": "Attach 10 images at most.",
       "storage-not-configured": "Uploads are not available right now."
-    }
+    },
+    "removeFile": "Remove file"
   }
 }

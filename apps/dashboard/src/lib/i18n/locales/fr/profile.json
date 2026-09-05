@@ -25,7 +25,8 @@
     "language": "Langue",
     "timezone": "Fuseau horaire",
     "saved": "Profil mis à jour",
-    "saveFailed": "Impossible d'enregistrer. Vérifiez votre connexion et réessayez."
+    "saveFailed": "Impossible d'enregistrer. Vérifiez votre connexion et réessayez.",
+    "emailReadOnly": "Modifiez votre e-mail dans l'onglet Sécurité."
   },
   "security": {
     "methods": "Méthodes de connexion",
@@ -44,7 +45,7 @@
     "emailChanged": "E-mail mis à jour",
     "changePassword": "Changer le mot de passe",
     "changePasswordHint": "Vous serez déconnecté partout après le changement.",
-    "setPasswordHint": "Ce compte se connecte avec Google. La connexion par mot de passe n'est pas configurée.",
+    "setPasswordHint": "Ce compte se connecte avec Google. Définissez un mot de passe pour vous connecter aussi par e-mail.",
     "currentPassword": "Mot de passe actuel",
     "newPassword": "Nouveau mot de passe",
     "updatePassword": "Mettre à jour",
@@ -60,7 +61,14 @@
     "errWeakPassword": "Utilisez au moins 8 caractères",
     "errEmailTaken": "Cet e-mail est déjà utilisé",
     "errInvalidCode": "Ce code est invalide ou a expiré",
-    "errNoPending": "Aucun changement d'e-mail en attente"
+    "errNoPending": "Aucun changement d'e-mail en attente",
+    "signOutAllTitle": "Se déconnecter partout ?",
+    "signOutAllBody": "Tous les appareils connectés sont déconnectés, y compris celui-ci. Vous devrez vous reconnecter.",
+    "useDifferentEmail": "Utiliser une autre adresse",
+    "useDifferentEmailHint": "Le changement en attente reste actif jusqu'à l'envoi d'un code à une nouvelle adresse.",
+    "setPassword": "Définir un mot de passe",
+    "passwordSet": "Mot de passe défini",
+    "setPasswordFailed": "Impossible de définir le mot de passe. Réessayez."
   },
   "api": {
     "title": "Clés API",
@@ -88,8 +96,23 @@
       "colNow": "Aujourd'hui",
       "colNote": "Notes",
       "retired": "Retiré",
-      "breaking": "Rupture :"
-    }
+      "breaking": "Rupture :",
+      "notes": {
+        "v3Orders": "La gestion des SKU de la V3 a disparu ; envoyez plutôt `product_variant_id` à POST /api/v1/orders.",
+        "listOrders": "Pagination par curseur : envoyez `cursor`, pas `page`.",
+        "resolveDesign": "Envoyez `image_url`. Une commande en attente retourne automatiquement dans la file.",
+        "resolveLabel": "Envoyez `label_url` et `tracking_number` ensemble.",
+        "pricing": "Les prix sont déjà les vôtres — inutile de consulter un palier.",
+        "apiKey": "Inchangé. Les clés existantes ont été migrées et fonctionnent toujours.",
+        "webhookSignature": "Mêmes événements, mêmes noms de champs. L'en-tête de signature a changé : vérifiez X-Signature (HMAC-SHA256) au lieu de comparer x-api-key.",
+        "admin": "Les intégrations admin sont retirées. Tout ce qu'elles faisaient est dans le tableau de bord.",
+        "drivePipeline": "Retiré en même temps que le pipeline Google Drive."
+      }
+    },
+    "revokeTitle": "Révoquer cette clé ?",
+    "revokeBody": "Tout ce qui utilise cette clé cesse de fonctionner immédiatement. Action irréversible.",
+    "revokeFailed": "Impossible de révoquer la clé. Réessayez.",
+    "copyFailed": "Copie impossible. Sélectionnez le texte et copiez-le manuellement."
   },
   "webhooks": {
     "title": "Webhooks",
@@ -165,6 +188,7 @@
       "not-an-image": "Joignez une image PNG, JPG ou WEBP.",
       "too-many-files": "Joignez 10 images au maximum.",
       "storage-not-configured": "Les envois de fichiers sont indisponibles pour le moment."
-    }
+    },
+    "removeFile": "Retirer le fichier"
   }
 }

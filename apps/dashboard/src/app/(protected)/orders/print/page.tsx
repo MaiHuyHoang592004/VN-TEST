@@ -48,6 +48,18 @@ export default async function PrintOrdersPage({
         tracking: o.shipments[0]?.trackingNumber ?? null,
         customerName: o.customer?.name ?? o.customer?.email ?? null,
         warehouseCode: o.warehouse?.code ?? null,
+        // Same join the table's `shipTo` column uses, off the same
+        // listOrders result — the address is already on the order, so this
+        // costs no extra query.
+        shipTo:
+          [
+            o.shippingAddress?.city,
+            o.shippingAddress?.state,
+            o.shippingAddress?.zip,
+            o.shippingAddress?.country,
+          ]
+            .filter(Boolean)
+            .join(", ") || null,
       }))}
     />
   );

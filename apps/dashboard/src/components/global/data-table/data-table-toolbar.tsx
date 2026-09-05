@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { SearchField } from "@/components/ds";
+import { useTranslation } from "@/lib/i18n";
 
 /**
  * Search + filters + bulk actions above a table.
@@ -16,7 +17,7 @@ import { SearchField } from "@/components/ds";
 export function DataTableToolbar({
   search,
   onSearchChange,
-  searchPlaceholder = "Search…",
+  searchPlaceholder,
   filters,
   actions,
   selectedCount = 0,
@@ -37,6 +38,7 @@ export function DataTableToolbar({
   onClearFilters?: () => void;
   hasFilters?: boolean;
 }) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState(search ?? "");
   const [lastSearch, setLastSearch] = useState(search ?? "");
 
@@ -49,14 +51,23 @@ export function DataTableToolbar({
     setDraft(search ?? "");
   }
 
+  // Every caller passes an inline arrow, so `onSearchChange` is a new function
+  // on every parent render. Held in a ref and kept out of the effect's deps: as
+  // a dependency it restarted the 300ms timer on each of those renders, and a
+  // parent that re-renders faster than the debounce delayed the search forever.
+  const onSearchChangeRef = useRef(onSearchChange);
+  useEffect(() => {
+    onSearchChangeRef.current = onSearchChange;
+  });
+
   // Debounce: typing five letters shouldn't mean five server round-trips and
   // five history entries. The callback fires from a timer, never synchronously
   // during the effect.
   useEffect(() => {
-    if (!onSearchChange || draft === (search ?? "")) return;
-    const id = setTimeout(() => onSearchChange(draft), 300);
+    if (draft === (search ?? "")) return;
+    const id = setTimeout(() => onSearchChangeRef.current?.(draft), 300);
     return () => clearTimeout(id);
-  }, [draft, search, onSearchChange]);
+  }, [draft, search]);
 
   return (
     <div
@@ -68,7 +79,7 @@ export function DataTableToolbar({
           <SearchField
             value={draft}
             onChange={setDraft}
-            placeholder={searchPlaceholder}
+            placeholder={searchPlaceholder ?? t("common.table.search")}
             className="w-full sm:max-w-xs"
           />
         )}
@@ -78,7 +89,7 @@ export function DataTableToolbar({
         {hasFilters && onClearFilters && selectedCount === 0 && (
           <Button variant="ghost" size="sm" onClick={onClearFilters}>
             <X className="size-4" />
-            Clear
+            {t("common.table.clear")}
           </Button>
         )}
       </div>

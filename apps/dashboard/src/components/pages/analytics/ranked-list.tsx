@@ -39,8 +39,10 @@ export function RankedList({
         <p className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">{empty}</p>
       ) : (
         <ul className="flex flex-col gap-3">
-          {rows.map((row) => (
-            <li key={row.label} className="flex flex-col gap-1.5">
+          {/* Index in the key, not the label alone: two sellers can share a
+              display name, and a duplicate key collapses them into one row. */}
+          {rows.map((row, i) => (
+            <li key={`${i}-${row.label}`} className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-2 text-(length:--fs-body-sm)">
                 <span
                   className={cn(

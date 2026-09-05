@@ -72,7 +72,9 @@ const SOCIAL_LINKS: SocialLink[] = [
 
 export function FooterSocial() {
   return (
-    <ul className="flex flex-wrap items-center gap-1">
+    // gap-2: eighteen small targets in a wrapping grid need at least 8px
+    // between adjacent ones, or a mistap lands on the neighbouring network.
+    <ul className="flex flex-wrap items-center gap-2">
       {SOCIAL_LINKS.map(({ label, href, Icon, brand }) => (
         <li key={label}>
           <a

@@ -1,10 +1,7 @@
-import Link from "next/link";
 
 import { peekInvite } from "@/modules/identity/users/service";
 import { getSessionUser } from "@/modules/core/session";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { AcceptInvite } from "@/components/pages/invite/accept-invite";
+import { InviteCard, InviteUnavailable } from "@/components/pages/invite/invite-card";
 import { GwpMark, Surface } from "@/components/ds";
 
 /**
@@ -37,51 +34,24 @@ export default async function InvitePage({
     </main>
   );
 
+  // The copy lives in a CLIENT component: there is no server-side t() in this
+  // app, so a server page cannot translate its own words.
   if (!result.ok) {
-    const copy = {
-      "not-found": "This invitation link isn't valid.",
-      "already-used": "This invitation has already been used.",
-      expired: "This invitation has expired.",
-    }[result.error];
     return shell(
-      <>
-        <h1 className="font-display text-(length:--fs-display-sm) leading-(--lh-heading) font-(--fw-display) text-(--text-strong)">
-          Invitation unavailable
-        </h1>
-        <p className="text-(length:--fs-body-sm) text-(--text-muted)">
-          {copy} Ask whoever invited you to send a new one.
-        </p>
-        <Button render={<Link href="/" />} className="self-start">
-          Go to GWPrintz
-        </Button>
-      </>,
+      <InviteUnavailable reason={result.error} />,
     );
   }
 
   const { invite } = result;
 
   return shell(
-    <>
-      <div>
-        <h1 className="text-2xl font-medium">You&apos;ve been invited</h1>
-        <p className="text-muted-foreground mt-1.5 text-sm">
-          to join GWPrintz as <strong>{invite.email}</strong>
-        </p>
-      </div>
-
-      <div className="flex flex-wrap gap-1.5">
-        {invite.roles.map((r) => (
-          <Badge key={r} variant="secondary">
-            {r.toLowerCase().replace("_", " ")}
-          </Badge>
-        ))}
-      </div>
-
-      <AcceptInvite
-        token={token}
-        invitedEmail={invite.email}
-        signedInAs={viewer?.email ?? null}
-      />
-    </>,
+    <InviteCard
+      token={token}
+      email={invite.email}
+      roles={invite.roles}
+      // ISO across the boundary: a Date does not survive it intact.
+      expiresAt={invite.expiresAt.toISOString()}
+      signedInAs={viewer?.email ?? null}
+    />,
   );
 }

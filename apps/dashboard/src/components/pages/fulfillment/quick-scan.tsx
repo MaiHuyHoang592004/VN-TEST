@@ -136,16 +136,33 @@ export function QuickScan() {
           className="flex flex-wrap items-end gap-3"
         >
           <div className="min-w-56 flex-1 space-y-1.5">
-            <span className="font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase">
+            {/* A real <label>, not a caption: both controls were already named
+                by aria-label, but clicking the words did nothing. */}
+            <label
+              htmlFor="quick-scan-tracking"
+              className="block font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase"
+            >
               {t("fulfillment.scan.mode.tracking")}
-            </span>
+            </label>
             <div className="relative">
               <ScanLine className="pointer-events-none absolute top-1/2 left-4 size-5 -translate-y-1/2 text-(--icon-muted)" />
               <Input
+                id="quick-scan-tracking"
                 ref={inputRef}
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
-                onBlur={() => setTimeout(() => inputRef.current?.focus(), 0)}
+                // A gun fires wherever the cursor is, so the field takes focus
+                // back — but ONLY when focus went nowhere. Unconditional refocus
+                // is a trap: it yanks focus out of the status select and the note
+                // field, and it fights the focus containment of the two safety
+                // dialogs that mount while this input is still on screen, which
+                // are exactly the moments a packer must be able to answer. A real
+                // relatedTarget means a human deliberately moved to another
+                // control; only a null one means the gun would type into nothing.
+                onBlur={(e) => {
+                  if (e.relatedTarget) return;
+                  setTimeout(() => inputRef.current?.focus(), 0);
+                }}
                 autoFocus
                 autoComplete="off"
                 spellCheck={false}
@@ -160,11 +177,15 @@ export function QuickScan() {
           </div>
 
           <div className="w-52 space-y-1.5">
-            <span className="font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase">
+            <label
+              htmlFor="quick-scan-status"
+              className="block font-sans text-(length:--fs-micro) font-semibold tracking-(--ls-label) text-(--text-label) uppercase"
+            >
               {t("fulfillment.quick.status")}
-            </span>
+            </label>
             <Select value={status} onValueChange={(v) => setStatus(v as FulfillmentStatus)}>
               <SelectTrigger
+                id="quick-scan-status"
                 aria-label={t("fulfillment.quick.status")}
                 className="h-12"
               >

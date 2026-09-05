@@ -43,7 +43,10 @@ function EvidenceField({
       label={t("profile.billing.fEvidence")}
       hint={t("profile.billing.fEvidenceHint")}
     >
-      {() => (
+      {/* The label targets the picker BUTTON — the file input itself is hidden,
+          and a <label htmlFor> pointing at a display:none control focuses
+          nothing. A button is a labelable element, so the pairing is real. */}
+      {(props) => (
         <div className="flex flex-col gap-2">
           <input
             ref={input}
@@ -51,12 +54,15 @@ function EvidenceField({
             accept="image/png,image/jpeg,image/webp"
             multiple
             className="hidden"
+            tabIndex={-1}
+            aria-hidden
             onChange={(e) => {
               onChange([...files, ...Array.from(e.target.files ?? [])].slice(0, 10));
               e.target.value = "";
             }}
           />
           <Button
+            {...props}
             type="button"
             variant="outline"
             size="sm"
@@ -73,9 +79,11 @@ function EvidenceField({
                   className="border-border text-muted-foreground flex items-center gap-1 rounded-md border px-2 py-1 text-xs"
                 >
                   {file.name}
+                  {/* -my-1 keeps the 24px target from growing the chip. */}
                   <button
                     type="button"
-                    aria-label={`Remove ${file.name}`}
+                    className="-my-1 -mr-1 inline-flex size-6 items-center justify-center rounded-(--radius-xs) hover:text-(--text-body)"
+                    aria-label={`${t("profile.billing.removeFile")}: ${file.name}`}
                     onClick={() => onChange(files.filter((_, i) => i !== index))}
                   >
                     <X className="size-3" />
@@ -156,9 +164,9 @@ export function TopUpRequestDialog({
       </FormField>
 
       <FormField label={t("profile.billing.fMethod")} error={fieldErrors.method}>
-        {() => (
+        {(props) => (
           <Select value={method} onValueChange={(v) => setMethod(v || "bank-transfer")}>
-            <SelectTrigger>
+            <SelectTrigger {...props}>
               <SelectValue>{t(`profile.billing.methods.${method}`)}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -258,11 +266,28 @@ export function RefundRequestDialog({
         hint={t("profile.billing.fOrdersHint")}
         error={fieldErrors.orderIds}
       >
-        {() =>
+        {/* A list of checkboxes has no single control for the label to point
+            at, so the group carries the field name itself and each row keeps
+            its own <label>. */}
+        {(props) =>
           orders.length === 0 ? (
-            <p className="text-muted-foreground text-sm">{t("profile.billing.noOrders")}</p>
+            <p id={props.id} className="text-muted-foreground text-sm">
+              {t("profile.billing.noOrders")}
+            </p>
           ) : (
-            <div className="border-border divide-border max-h-56 divide-y overflow-y-auto rounded-md border">
+            <div
+              {...props}
+              // A checkbox LIST, not one control — so the FormField's <Label>
+              // is pointed at by aria-labelledby rather than htmlFor, which can
+              // only address a single form element. Without this the label
+              // referenced an id nothing carried, and the group reported a name
+              // that resolved to empty. `id` is dropped from the spread for the
+              // same reason: it belongs to a control that does not exist here.
+              id={undefined}
+              role="group"
+              aria-labelledby={props.labelId}
+              className="border-border divide-border max-h-56 divide-y overflow-y-auto rounded-md border"
+            >
               {orders.map((order) => (
                 <label
                   key={order.id}

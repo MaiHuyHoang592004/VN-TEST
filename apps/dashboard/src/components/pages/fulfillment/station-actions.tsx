@@ -83,7 +83,14 @@ export function StationActions({
   return (
     <>
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-(--border-hairline) bg-(--surface-data)">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-2 px-6 py-3 lg:px-20">
+        {/* The mobile dock (navbar.tsx) is a floating pill at `bottom-4
+            left-1/2 z-50 md:hidden` — dead centre of this bar, over "Handoff",
+            the button a packer hits with a parcel in the other hand. Below `md`
+            the bar reserves the dock's band as bottom padding, so the dock
+            lands on empty bar instead of on a control. Nothing is hidden: the
+            packer keeps the dock AND the bench. station.tsx's own bottom
+            padding matches. */}
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center gap-2 px-6 pt-3 pb-24 md:pb-3 lg:px-20">
           <span className="mr-auto font-sans text-(length:--fs-body) text-(--text-muted)">
             {t("fulfillment.actions.summary")
               .replace("{orders}", String(group.orders.length))

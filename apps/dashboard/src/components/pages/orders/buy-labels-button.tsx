@@ -34,6 +34,9 @@ export function BuyLabelsButton({ orderIds, onDone }: { orderIds: number[]; onDo
   const [enabled, setEnabled] = useState(false);
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<{ groups: LabelGroupPreview[]; skippedOrders: number } | null>(null);
+  /** A preview that FAILED, as opposed to one still running: an uncaught
+   * rejection left this dialog on "Loading…" forever with nothing to press. */
+  const [previewError, setPreviewError] = useState(false);
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
@@ -45,9 +48,13 @@ export function BuyLabelsButton({ orderIds, onDone }: { orderIds: number[]; onDo
     let cancelled = false;
     // The reset happens where the dialog is OPENED, not here: clearing state
     // synchronously inside an effect is a render-then-correct.
-    previewLabelsAction(orderIds).then((p) => {
-      if (!cancelled) setPreview(p);
-    });
+    previewLabelsAction(orderIds)
+      .then((p) => {
+        if (!cancelled) setPreview(p);
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewError(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -85,6 +92,7 @@ export function BuyLabelsButton({ orderIds, onDone }: { orderIds: number[]; onDo
         variant="outline"
         onClick={() => {
           setPreview(null);
+          setPreviewError(false);
           setOpen(true);
         }}
       >
@@ -99,11 +107,15 @@ export function BuyLabelsButton({ orderIds, onDone }: { orderIds: number[]; onDo
           title={t("orders.labels.previewTitle")}
           description={t("orders.labels.previewDesc")}
           submitLabel={t("orders.labels.confirm").replace("{count}", String(willBuy.length))}
-          submitDisabled={!preview || willBuy.length === 0}
+          submitDisabled={!preview || previewError || willBuy.length === 0}
           pending={pending}
           onSubmit={confirm}
         >
-          {!preview ? (
+          {previewError ? (
+            <p role="alert" className="text-destructive text-sm">
+              {t("orders.labels.previewFailed")}
+            </p>
+          ) : !preview ? (
             <p className="text-muted-foreground text-sm">{t("orders.labels.loading")}</p>
           ) : (
             <>

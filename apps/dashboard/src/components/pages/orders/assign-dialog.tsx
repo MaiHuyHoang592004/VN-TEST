@@ -78,15 +78,24 @@ export function AssignDialog({
     warehouses.length === 1 ? warehouses[0].id : null,
   );
   const [preview, setPreview] = useState<Preview | null>(null);
+  /** A preview that FAILED, as opposed to one still running. Without this the
+   * dialog sat on "Calculating…" forever and — because the loading state was
+   * fed to FormDialog's `pending`, which also disables Cancel — could not even
+   * be closed from the keyboard. */
+  const [previewError, setPreviewError] = useState(false);
   // Generated ONCE per dialog. Regenerating per submit would defeat the point.
   const [idempotencyKey] = useState(() => `assign-${Date.now()}-${crypto.randomUUID()}`);
 
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    previewAssignmentAction(orderIds).then((p) => {
-      if (!cancelled) setPreview(p as Preview);
-    });
+    previewAssignmentAction(orderIds)
+      .then((p) => {
+        if (!cancelled) setPreview(p as Preview);
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewError(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -134,8 +143,18 @@ export function AssignDialog({
       title={t("orders.assignTitle")}
       description={t("orders.assignDesc")}
       submitLabel={t("orders.assignSubmit")}
-      pending={pending || !preview}
-      submitDisabled={warehouseId === null || unaffordable || preview?.sellers.length === 0}
+      // ONLY the submit is in flight. A still-loading preview belongs in
+      // `submitDisabled`: `pending` also disables Cancel, so folding the two
+      // together meant a preview that never resolved locked the operator inside
+      // a dialog that spends money, with both buttons dead.
+      pending={pending}
+      submitDisabled={
+        !preview ||
+        previewError ||
+        warehouseId === null ||
+        unaffordable ||
+        preview.sellers.length === 0
+      }
       formError={formError}
       onSubmit={() => submit(undefined as never)}
     >
@@ -161,7 +180,11 @@ export function AssignDialog({
         )}
       </FormField>
 
-      {!preview ? (
+      {previewError ? (
+        <p role="alert" className="text-destructive text-sm">
+          {t("orders.assignPreviewFailed")}
+        </p>
+      ) : !preview ? (
         <p className="text-muted-foreground text-sm">{t("orders.assignCalculating")}</p>
       ) : preview.sellers.length === 0 ? (
         <p className="text-muted-foreground text-sm">{t("orders.assignNothing")}</p>

@@ -9,6 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { signIn } from "next-auth/react";
 import { GoogleIcon } from "@/components/pages/auth/google-icon";
+// The forgot-password action: the SESSION is the proof of identity, so it sets
+// a password without asking for one that does not exist yet. Reused here rather
+// than forked, so a Google-only account has exactly one way to gain a password.
+import { changePassword as setFirstPassword } from "@/components/pages/auth/auth-actions";
+import { FormDialog } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   changePasswordAction,
@@ -28,6 +33,9 @@ function messageFor(t: (k: string) => string, code: string) {
     "email-taken": "profile.security.errEmailTaken",
     "invalid-code": "profile.security.errInvalidCode",
     "no-pending": "profile.security.errNoPending",
+    // Only reachable if the session expired mid-form — say so in words rather
+    // than showing the wire code.
+    unauthorized: "profile.security.setPasswordFailed",
   };
   return map[code] ? t(map[code]) : code;
 }
@@ -53,6 +61,7 @@ export function SecurityPanel({
   const [newEmail, setNewEmail] = useState("");
   const [code, setCode] = useState("");
   const [awaitingCode, setAwaitingCode] = useState(Boolean(pendingEmail));
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
   const run = (fn: () => Promise<unknown>, onOk: () => void, okMsg: string) =>
     startTransition(async () => {
@@ -124,21 +133,39 @@ export function SecurityPanel({
         }
         action={
           awaitingCode ? (
-            <Button
-              disabled={pending || code.length < 6}
-              onClick={() =>
-                run(
-                  () => confirmEmailChangeAction(code),
-                  () => {
-                    setAwaitingCode(false);
-                    setCode("");
-                  },
-                  t("profile.security.emailChanged"),
-                )
-              }
-            >
-              {t("profile.security.verify")}
-            </Button>
+            <>
+              {/* The way out of the code step. Without it, one mistyped address
+                  is a dead end that SURVIVES A RELOAD — `pendingEmail` puts the
+                  card straight back into this state. There is no server action
+                  that clears a pending change, so this resets the client and
+                  the next Send Code overwrites `pendingEmail` and its token. */}
+              <Button
+                variant="outline"
+                disabled={pending}
+                onClick={() => {
+                  setAwaitingCode(false);
+                  setCode("");
+                  setNewEmail("");
+                }}
+              >
+                {t("profile.security.useDifferentEmail")}
+              </Button>
+              <Button
+                disabled={pending || code.length < 6}
+                onClick={() =>
+                  run(
+                    () => confirmEmailChangeAction(code),
+                    () => {
+                      setAwaitingCode(false);
+                      setCode("");
+                    },
+                    t("profile.security.emailChanged"),
+                  )
+                }
+              >
+                {t("profile.security.verify")}
+              </Button>
+            </>
           ) : (
             <Button
               disabled={pending || !newEmail}
@@ -167,6 +194,9 @@ export function SecurityPanel({
               className="mt-1.5 tracking-[0.4em]"
               placeholder="000000"
             />
+            <p className="mt-1.5 text-(length:--fs-meta) text-(--text-muted)">
+              {t("profile.security.useDifferentEmailHint")}
+            </p>
           </div>
         ) : (
           <div className="max-w-sm">
@@ -183,8 +213,17 @@ export function SecurityPanel({
         )}
       </SettingsCard>
 
+      {/* A Google-only account used to get this card as decoration: the copy
+          invited you to set a password, no fields rendered, and the button
+          could never enable. It now renders the one field that case needs and
+          posts to the forgot-password action, which takes the session as proof
+          instead of a current password that does not exist. */}
       <SettingsCard
-        title={t("profile.security.changePassword")}
+        title={
+          hasPassword
+            ? t("profile.security.changePassword")
+            : t("profile.security.setPassword")
+        }
         description={
           hasPassword
             ? t("profile.security.changePasswordHint")
@@ -192,29 +231,37 @@ export function SecurityPanel({
         }
         action={
           <Button
-            disabled={pending || !hasPassword || !current || next.length < 8}
+            disabled={pending || next.length < 8 || (hasPassword && !current)}
             onClick={() =>
-              run(
-                () =>
-                  changePasswordAction({
-                    currentPassword: current,
-                    newPassword: next,
-                  }),
-                () => {
-                  setCurrent("");
-                  setNext("");
-                },
-                t("profile.security.passwordChanged"),
-              )
+              hasPassword
+                ? run(
+                    () =>
+                      changePasswordAction({
+                        currentPassword: current,
+                        newPassword: next,
+                      }),
+                    () => {
+                      setCurrent("");
+                      setNext("");
+                    },
+                    t("profile.security.passwordChanged"),
+                  )
+                : run(
+                    () => setFirstPassword({ password: next }),
+                    () => setNext(""),
+                    t("profile.security.passwordSet"),
+                  )
             }
           >
-            {t("profile.security.updatePassword")}
+            {hasPassword
+              ? t("profile.security.updatePassword")
+              : t("profile.security.setPassword")}
           </Button>
         }
-        footer={t("profile.security.passwordSignsOut")}
+        footer={hasPassword ? t("profile.security.passwordSignsOut") : undefined}
       >
-        {hasPassword && (
-          <div className="grid max-w-lg gap-4 sm:grid-cols-2">
+        <div className="grid max-w-lg gap-4 sm:grid-cols-2">
+          {hasPassword && (
             <div>
               <Label htmlFor="current">
                 {t("profile.security.currentPassword")}
@@ -222,44 +269,63 @@ export function SecurityPanel({
               <Input
                 id="current"
                 type="password"
+                autoComplete="current-password"
                 value={current}
                 onChange={(e) => setCurrent(e.target.value)}
                 className="mt-1.5"
               />
             </div>
-            <div>
-              <Label htmlFor="next">{t("profile.security.newPassword")}</Label>
-              <Input
-                id="next"
-                type="password"
-                value={next}
-                onChange={(e) => setNext(e.target.value)}
-                className="mt-1.5"
-              />
-            </div>
+          )}
+          <div>
+            <Label htmlFor="next">{t("profile.security.newPassword")}</Label>
+            <Input
+              id="next"
+              type="password"
+              autoComplete="new-password"
+              value={next}
+              onChange={(e) => setNext(e.target.value)}
+              className="mt-1.5"
+            />
           </div>
-        )}
+        </div>
       </SettingsCard>
 
       <SettingsCard
         title={t("profile.security.signOutAll")}
         description={t("profile.security.signOutAllHint")}
         action={
+          // Confirmed, like every other destructive action in the app: this one
+          // ends the session running the click, so an accidental hit costs a
+          // full sign-in and there is nothing to undo it with.
           <Button
             variant="destructive"
             disabled={pending}
-            onClick={() =>
-              run(
-                () => signOutEverywhereAction(),
-                () => {},
-                t("profile.security.signedOutAll"),
-              )
-            }
+            onClick={() => setConfirmingSignOut(true)}
           >
             {t("profile.security.signOutAll")}
           </Button>
         }
       />
+
+      <FormDialog
+        open={confirmingSignOut}
+        onOpenChange={setConfirmingSignOut}
+        title={t("profile.security.signOutAllTitle")}
+        submitLabel={t("profile.security.signOutAll")}
+        destructive
+        pending={pending}
+        onSubmit={() =>
+          run(
+            () => signOutEverywhereAction(),
+            () => setConfirmingSignOut(false),
+            t("profile.security.signedOutAll"),
+          )
+        }
+      >
+        <p className="text-(length:--fs-body-sm) text-(--text-muted)">
+          {t("profile.security.signOutAllBody")}
+        </p>
+      </FormDialog>
     </SettingsStack>
   );
 }

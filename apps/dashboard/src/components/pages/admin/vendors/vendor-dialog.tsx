@@ -87,9 +87,9 @@ export function VendorDialog({
         </FormField>
 
         <FormField label={t("finance.vendors.fStatus")} error={fieldErrors.status}>
-          {() => (
+          {(props) => (
             <Select value={form.status} onValueChange={(v) => set({ status: v || "ACTIVE" })}>
-              <SelectTrigger>
+              <SelectTrigger {...props}>
                 <SelectValue>{t(`finance.vendors.status.${form.status}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>

@@ -98,5 +98,7 @@
       "title": "{from} 님이 {kind} 요청을 보냈습니다",
       "body": "{amount} 승인 대기 중입니다."
     }
-  }
+  },
+  "confirmDelete": "삭제",
+  "deleteFailed": "해당 알림을 삭제하지 못했습니다."
 }

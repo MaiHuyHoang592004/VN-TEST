@@ -24,6 +24,11 @@
   "noCommonMove": "Aucune action commune aux commandes sélectionnées",
   "statusMoved": "{count} commandes passées à {status}.",
   "statusPartial": "{failed} commandes sur {total} n'ont pas pu être modifiées. Actualisez et réessayez.",
+  "statusFailed": "Impossible de changer le statut des commandes. Actualisez la page pour voir ce qui a changé.",
+  "cancelTitle": "Annuler ces commandes ?",
+  "cancelDesc": "Une commande annulée ne peut pas être rétablie.",
+  "cancelBody": "{count} commandes passeront au statut Annulée.",
+  "cancelSubmit": "Annuler les commandes",
   "statuses": {
     "PENDING": "En attente",
     "ASSIGNED": "Affectée",
@@ -56,6 +61,9 @@
   "shippingSection": "Shipping",
   "fRecipient": "Recipient",
   "fEmail": "Email",
+  "fPhone": "Téléphone",
+  "fPhoneHint": "Certains transporteurs l'exigent pour la livraison.",
+  "fCompany": "Société",
   "fLine1": "Address",
   "fLine2": "Address line 2",
   "fCity": "City",
@@ -80,6 +88,7 @@
   "fWarehouse": "Entrepôt",
   "pickWarehouse": "Choose a warehouse",
   "assignCalculating": "Working out what this costs…",
+  "assignPreviewFailed": "Impossible de calculer les montants. Fermez et réessayez.",
   "assignCharges": "Charges",
   "assignNothing": "None of the selected orders can be assigned.",
   "assignSkipped": "{count} selected orders are already assigned and were skipped.",
@@ -109,6 +118,10 @@
   "importFailed": "{count} failed",
   "importLine": "Line {line}:",
   "importNoSku": "No SKU matches that code or product/variant pair.",
+  "importChecking": "Vérification des SKU…",
+  "importPreviewMore": "+ {count} lignes de plus",
+  "importUnresolved": "{count} lignes n'ont aucun SKU correspondant et seront ignorées.",
+  "importUnresolvedLines": "Lignes {lines}.",
   "qr": {
     "column": "QR",
     "show": "Afficher le QR code",
@@ -121,6 +134,7 @@
     "variant": "Variante",
     "shipTo": "Livrer à",
     "copied": "Numéro de commande copié.",
+    "copyFailed": "Impossible de copier le numéro de commande.",
     "noTracking": "Pas encore de suivi",
     "note": "Note",
     "format": {
@@ -146,6 +160,7 @@
     "previewTitle": "Acheter des étiquettes d'expédition",
     "previewDesc": "Rien n'est acheté avant votre confirmation. Les commandes allant à la même adresse partent en un seul colis.",
     "loading": "Calcul des colis…",
+    "previewFailed": "Impossible de générer l’aperçu des étiquettes. Fermez et réessayez.",
     "tileGroups": "Colis",
     "tileWillBuy": "À acheter",
     "tileSkipped": "Ignorés",
@@ -181,6 +196,7 @@
   "refundSubmit": "Rembourser et annuler",
   "refundTotal": "Total remboursé",
   "refundNothing": "Aucune des commandes sélectionnées n'est remboursable.",
+  "refundQuoteFailed": "Impossible de calculer le remboursement. Fermez et réessayez.",
   "refundDone": "Remboursements envoyés",
   "refundReason": "Motif",
   "refundReasonPlaceholder": "Lot imprimé sur le mauvais support.",
@@ -202,6 +218,9 @@
     "design": "Visuel",
     "mockup": "Maquette",
     "slotHint": "Collez une URL ou téléversez une image — le fichier l'emporte.",
+    "previewAlt": "Visuel actuel",
+    "previewNone": "Aucune image",
+    "previewBroken": "Impossible de charger cette image",
     "upload": "Téléverser une image",
     "clearFile": "Retirer le fichier",
     "saved": "Visuel mis à jour",
@@ -212,10 +231,21 @@
   "summary": {
     "units": "unités",
     "breakdown": "Contenu",
+    "breakdownFor": "Détail pour {status}",
     "nothing": "Rien ici."
   },
   "dialogNewSubmit": "Créer la commande",
   "timeline": {
-    "toggle": "Afficher le suivi de la commande"
-  }
+    "toggle": "Afficher le suivi de la commande",
+    "failed": "Impossible de charger le suivi.",
+    "retry": "Réessayer",
+    "empty": "Aucune étape enregistrée pour cette commande."
+  },
+  "thumb": {
+    "design": "Fichier d'impression",
+    "mockup": "Maquette client",
+    "label": "Étiquette d'expédition",
+    "designFolder": "Ouvrir le dossier des fichiers"
+  },
+  "colCostShip": "Coût + livraison"
 }

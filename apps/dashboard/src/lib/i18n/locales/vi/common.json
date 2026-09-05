@@ -4,5 +4,20 @@
   "copy": "Sao chép",
   "error": "Đã xảy ra lỗi. Hãy tải lại trang và thử lại.",
   "close": "Đóng",
-  "cancel": "Huỷ"
+  "cancel": "Huỷ",
+  "pagination": {
+    "selected": "Đã chọn {count}",
+    "empty": "Không có kết quả",
+    "range": "{first}–{last} trên {total}",
+    "rowsPerPage": "Số dòng mỗi trang",
+    "prev": "Trang trước",
+    "next": "Trang sau"
+  },
+  "table": {
+    "selectRow": "Chọn dòng này",
+    "selectAll": "Chọn tất cả dòng trên trang này",
+    "toggleDetails": "Xem chi tiết",
+    "search": "Tìm kiếm…",
+    "clear": "Xoá bộ lọc"
+  }
 }

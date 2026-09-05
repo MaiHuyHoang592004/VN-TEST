@@ -91,7 +91,7 @@ export function EntryDialog({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField label={t("finance.expenses.fCategory")} required error={fieldErrors.categoryId}>
-          {() => (
+          {(props) => (
             <Select
               value={form.categoryId}
               onValueChange={(v) => {
@@ -101,7 +101,7 @@ export function EntryDialog({
                 set({ categoryId: v || "", type: next?.type ?? form.type });
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger {...props}>
                 <SelectValue>
                   {selectedCategory?.name ?? t("finance.expenses.pickCategory")}
                 </SelectValue>
@@ -122,9 +122,9 @@ export function EntryDialog({
           hint={t("finance.expenses.fTypeHint")}
           error={fieldErrors.type}
         >
-          {() => (
+          {(props) => (
             <Select value={form.type} onValueChange={(v) => set({ type: v || "EXPENSE" })}>
-              <SelectTrigger>
+              <SelectTrigger {...props}>
                 <SelectValue>{t(`finance.expenses.types.${form.type}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -159,9 +159,9 @@ export function EntryDialog({
         </FormField>
 
         <FormField label={t("finance.expenses.fVendor")} error={fieldErrors.vendorId}>
-          {() => (
+          {(props) => (
             <Select value={form.vendorId} onValueChange={(v) => set({ vendorId: v || NO_VENDOR })}>
-              <SelectTrigger>
+              <SelectTrigger {...props}>
                 <SelectValue>
                   {vendors.find((x) => String(x.id) === form.vendorId)?.name ??
                     t("finance.expenses.noVendor")}

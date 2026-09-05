@@ -52,6 +52,32 @@ const TIMEZONES = [
   "UTC",
 ];
 
+/**
+ * "Asia/Ho Chi Minh (GMT+7)" — the id stays the stored value, the offset is
+ * only ever decoration.
+ *
+ * The offset is ASKED OF THE RUNTIME, never looked up in a table: half these
+ * zones move twice a year, and a hardcoded map does not fail when it goes
+ * stale, it just quietly lies. A runtime that declines to produce one (an
+ * older ICU build, a zone it does not know) falls back to the bare name
+ * rather than rendering "(undefined)".
+ */
+function timezoneLabel(tz: string): string {
+  const name = tz.replace(/_/g, " ");
+  let offset: string | undefined;
+  try {
+    offset = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      timeZoneName: "shortOffset",
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === "timeZoneName")?.value;
+  } catch {
+    offset = undefined;
+  }
+  return offset ? `${name} (${offset})` : name;
+}
+
 export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
   const { t, setLocale } = useTranslation();
   const [values, setValues] = useState(initial);
@@ -172,8 +198,21 @@ export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
             <div>
               <Label htmlFor="email">{t("profile.form.email")}</Label>
               {/* Read-only on purpose: changing it goes through the verified
-                  flow on the Security tab. */}
-              <Input id="email" value={values.email} readOnly disabled className="mt-1.5" />
+                  flow on the Security tab. That used to be explained ONLY in
+                  this comment, which the person staring at the dead field
+                  cannot read — so it is on the screen too, and described by
+                  the field rather than floating beside it. */}
+              <Input
+                id="email"
+                value={values.email}
+                readOnly
+                disabled
+                aria-describedby="email-hint"
+                className="mt-1.5"
+              />
+              <p id="email-hint" className="text-muted-foreground mt-1.5 text-xs">
+                {t("profile.form.emailReadOnly")}
+              </p>
             </div>
             <div>
               <FormField label={t("profile.form.phone")} error={details.fieldErrors.phone}>
@@ -211,7 +250,6 @@ export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
       <SettingsCard
         title={t("profile.form.preferences")}
         description={t("profile.form.preferencesHint")}
-        footer={prefs.formError ?? undefined}
         action={
           <Button
             onClick={() => prefs.submit({ locale: values.locale, timezone: values.timezone })}
@@ -221,6 +259,18 @@ export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
           </Button>
         }
       >
+        {/* Same treatment as the identity card's failure: a save that did not
+            happen is an ERROR, not a footnote — announced, and coloured like
+            one. It used to sit in the muted footer strip, unstyled and silent
+            to a screen reader. */}
+        {prefs.formError && (
+          <p
+            role="alert"
+            className="border-destructive/30 bg-destructive/10 text-destructive mb-4 rounded-md border px-3 py-2 text-sm"
+          >
+            {prefs.formError}
+          </p>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="locale">{t("profile.form.language")}</Label>
@@ -247,12 +297,12 @@ export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
               onValueChange={(v) => v && set("timezone", v)}
             >
               <SelectTrigger id="timezone" className="mt-1.5 w-full">
-                <SelectValue />
+                <SelectValue>{timezoneLabel(values.timezone)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {TIMEZONES.map((tz) => (
                   <SelectItem key={tz} value={tz}>
-                    {tz.replace(/_/g, " ")}
+                    {timezoneLabel(tz)}
                   </SelectItem>
                 ))}
               </SelectContent>

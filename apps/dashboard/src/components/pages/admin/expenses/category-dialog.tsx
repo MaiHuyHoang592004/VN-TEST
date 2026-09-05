@@ -71,9 +71,9 @@ export function CategoryDialog({
       </FormField>
 
       <FormField label={t("finance.expenses.fType")} error={fieldErrors.type}>
-        {() => (
+        {(props) => (
           <Select value={form.type} onValueChange={(v) => set({ type: v || "EXPENSE" })}>
-            <SelectTrigger>
+            <SelectTrigger {...props}>
               <SelectValue>{t(`finance.expenses.types.${form.type}`)}</SelectValue>
             </SelectTrigger>
             <SelectContent>

@@ -156,6 +156,7 @@
     "listView": "List view",
     "empty": "Nothing is available to order yet.",
     "emptyFiltered": "No products match that search.",
-    "option": "option"
+    "option": "option",
+    "resultCount": "{count} products"
   }
 }

@@ -51,7 +51,8 @@
     "filled": "完了",
     "progress": "作成済み",
     "fill": "登録",
-    "fillAmount": "追加する数量"
+    "fillAmount": "追加する数量",
+    "moreMoves": "その他のステータス変更"
   },
   "fill": {
     "basket": "棚位置 {name} に置きました。"

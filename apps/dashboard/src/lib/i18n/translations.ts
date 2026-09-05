@@ -37,6 +37,7 @@ import enWallet from "./locales/en/wallet.json";
 import enAnalytics from "./locales/en/analytics.json";
 import enSettings from "./locales/en/settings.json";
 import enHelp from "./locales/en/help.json";
+import enInvite from "./locales/en/invite.json";
 
 import zhCommon from "./locales/zh/common.json";
 import zhProfile from "./locales/zh/profile.json";
@@ -59,6 +60,7 @@ import zhWallet from "./locales/zh/wallet.json";
 import zhAnalytics from "./locales/zh/analytics.json";
 import zhSettings from "./locales/zh/settings.json";
 import zhHelp from "./locales/zh/help.json";
+import zhInvite from "./locales/zh/invite.json";
 
 import frCommon from "./locales/fr/common.json";
 import frProfile from "./locales/fr/profile.json";
@@ -81,6 +83,7 @@ import frWallet from "./locales/fr/wallet.json";
 import frAnalytics from "./locales/fr/analytics.json";
 import frSettings from "./locales/fr/settings.json";
 import frHelp from "./locales/fr/help.json";
+import frInvite from "./locales/fr/invite.json";
 
 import viCommon from "./locales/vi/common.json";
 import viProfile from "./locales/vi/profile.json";
@@ -103,6 +106,7 @@ import viWallet from "./locales/vi/wallet.json";
 import viAnalytics from "./locales/vi/analytics.json";
 import viSettings from "./locales/vi/settings.json";
 import viHelp from "./locales/vi/help.json";
+import viInvite from "./locales/vi/invite.json";
 
 import jaCommon from "./locales/ja/common.json";
 import jaProfile from "./locales/ja/profile.json";
@@ -125,6 +129,7 @@ import jaWallet from "./locales/ja/wallet.json";
 import jaAnalytics from "./locales/ja/analytics.json";
 import jaSettings from "./locales/ja/settings.json";
 import jaHelp from "./locales/ja/help.json";
+import jaInvite from "./locales/ja/invite.json";
 
 import koCommon from "./locales/ko/common.json";
 import koProfile from "./locales/ko/profile.json";
@@ -147,6 +152,7 @@ import koWallet from "./locales/ko/wallet.json";
 import koAnalytics from "./locales/ko/analytics.json";
 import koSettings from "./locales/ko/settings.json";
 import koHelp from "./locales/ko/help.json";
+import koInvite from "./locales/ko/invite.json";
 
 import arCommon from "./locales/ar/common.json";
 import arProfile from "./locales/ar/profile.json";
@@ -169,6 +175,7 @@ import arWallet from "./locales/ar/wallet.json";
 import arAnalytics from "./locales/ar/analytics.json";
 import arSettings from "./locales/ar/settings.json";
 import arHelp from "./locales/ar/help.json";
+import arInvite from "./locales/ar/invite.json";
 
 export const translations = {
   en: {
@@ -193,6 +200,7 @@ export const translations = {
     analytics: enAnalytics,
     settings: enSettings,
     help: enHelp,
+    invite: enInvite,
   },
   zh: {
     common: zhCommon,
@@ -216,6 +224,7 @@ export const translations = {
     analytics: zhAnalytics,
     settings: zhSettings,
     help: zhHelp,
+    invite: zhInvite,
   },
   fr: {
     common: frCommon,
@@ -239,6 +248,7 @@ export const translations = {
     analytics: frAnalytics,
     settings: frSettings,
     help: frHelp,
+    invite: frInvite,
   },
   vi: {
     common: viCommon,
@@ -262,6 +272,7 @@ export const translations = {
     analytics: viAnalytics,
     settings: viSettings,
     help: viHelp,
+    invite: viInvite,
   },
   ja: {
     common: jaCommon,
@@ -285,6 +296,7 @@ export const translations = {
     analytics: jaAnalytics,
     settings: jaSettings,
     help: jaHelp,
+    invite: jaInvite,
   },
   ko: {
     common: koCommon,
@@ -308,6 +320,7 @@ export const translations = {
     analytics: koAnalytics,
     settings: koSettings,
     help: koHelp,
+    invite: koInvite,
   },
   ar: {
     common: arCommon,
@@ -331,5 +344,6 @@ export const translations = {
     analytics: arAnalytics,
     settings: arSettings,
     help: arHelp,
+    invite: arInvite,
   },
 };

@@ -44,10 +44,15 @@ export default async function OrdersPage({
   // warehouses.read, which a seller does not hold.
   const warehouses = can(actor.roles, "orders.assign") ? await listWarehouses() : [];
 
-  // The card strip is for people who work the floor: it answers "what is in
-  // production right now", which is not a question a seller's own two orders
-  // raise. Fetched alongside the page rather than in the client.
-  const showSummary = can(actor.roles, "orders.status.update");
+  // The card strip is for EVERYONE who can read orders, seller included.
+  //
+  // It used to be gated on orders.status.update, on the argument that "what is
+  // in production right now" is a floor question rather than a seller's. That
+  // was a product call, never a security one: orderStatusSummary guards on the
+  // same three read grants as the list and applies orderScope(actor) to its
+  // groupBy, so a seller's counts are counts of the seller's own orders and
+  // nothing else. Showing it costs one scoped groupBy and gives the seller the
+  // same click-to-filter the floor already had.
 
   const [{ rows, total }, summary] = await Promise.all([
     listOrders({
@@ -59,15 +64,13 @@ export default async function OrdersPage({
       page: Number(one("page") ?? 1) || 1,
       pageSize: Number(one("size") ?? 25) || 25,
     }),
-    showSummary
-      ? orderStatusSummary({
-          warehouseId: Number(one("customer")) || undefined,
-          // Date-range aware: the cards count the same window the operator
-          // filtered the table to, or everything when they have not.
-          from: one("from") ? new Date(one("from") as string) : undefined,
-          to: one("to") ? new Date(`${one("to")}T23:59:59.999Z`) : undefined,
-        })
-      : [],
+    orderStatusSummary({
+      warehouseId: Number(one("customer")) || undefined,
+      // Date-range aware: the cards count the same window the operator
+      // filtered the table to, or everything when they have not.
+      from: one("from") ? new Date(one("from") as string) : undefined,
+      to: one("to") ? new Date(`${one("to")}T23:59:59.999Z`) : undefined,
+    }),
   ]);
 
   return (
@@ -95,6 +98,14 @@ export default async function OrdersPage({
           productName: o.product?.name ?? null,
           variantName: o.variant?.name ?? null,
           sku: o.productVariant?.sku ?? null,
+          // The row carries two DIFFERENT pictures, and the shapes differ:
+          //   imageUrl        — the DESIGN, a Drive FOLDER (489/489 rows)
+          //   mockup.thumbnail— the MOCKUP, an image endpoint (425/425 rows,
+          //                     drive.google.com/thumbnail?id=…)
+          // Verified against the live database. A folder is not an image, so
+          // only the second of these may ever reach an <img>; the first is a
+          // link. That is the whole reason this column used to render a broken
+          // glyph on every row.
           mockupThumbnail: o.mockup?.thumbnail ?? null,
           imageUrl: o.imageUrl,
           proofImageUrl: o.proofImageUrl,
@@ -110,6 +121,12 @@ export default async function OrdersPage({
             .filter(Boolean)
             .join(", ") || null,
           trackingStatus: o.shipments[0]?.trackingStatus ?? null,
+          carrier: o.shipments[0]?.provider ?? null,
+          service: o.shipments[0]?.method ?? null,
+          labelUrl: o.shipments[0]?.labelUrl ?? null,
+          // Decimal → string at the boundary, same as baseCost: a float would
+          // lose cents on the way to the client.
+          shipCost: o.shipments[0]?.cost?.toFixed(2) ?? null,
           note: o.note,
           internalNote: o.internalNote,
           updatedAt: o.updatedAt.toISOString(),

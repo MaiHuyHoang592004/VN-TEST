@@ -16,9 +16,13 @@ export function PasswordInput(
   return (
     <div className="relative">
       <Input {...props} type={show ? "text" : "password"} className="pr-10" />
+      {/* No tabIndex={-1}. Skipping this in the tab order makes the only way to
+          check a typed password mouse-only, on the three screens where a typo
+          is hardest to recover from — and it is exactly the affordance
+          WCAG 2.2's accessible-authentication criterion expects to be
+          available. */}
       <button
         type="button"
-        tabIndex={-1}
         aria-label={t(show ? "auth.hidePassword" : "auth.showPassword")}
         className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex w-10 items-center justify-center transition-colors"
         onClick={() => setShow((s) => !s)}

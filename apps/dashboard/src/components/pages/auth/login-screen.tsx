@@ -10,7 +10,7 @@ import { GoogleIcon } from "./google-icon";
 import { PasswordInput } from "./password-input";
 import { useTranslation } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
-import { CraftCut, GwpMark } from "@/components/ds";
+import { GwpMark } from "@/components/ds";
 import {
   Card,
   CardContent,
@@ -151,17 +151,17 @@ export function LoginScreen({
   return (
     // min-h fills the viewport below the 60px navbar — footer only appears on scroll
     <main className="relative flex min-h-[calc(100svh-60px)] flex-1 flex-col overflow-hidden px-6 py-16">
-      {/* The app's second brand moment. Sky is the page; ONE Craft Cut sweeps
-          the sky into the shell along the bottom, and the GwpMark sits above
-          the card. That is two marks on the screen, the DS's per-screen
-          maximum, so nothing else here may add a third. */}
-      <CraftCut
-        className="pointer-events-none absolute inset-x-0 bottom-0"
-        from="var(--surface-canvas)"
-        to="var(--surface-shell)"
-        depth={72}
-        sweep="left"
-      />
+      {/* NO Craft Cut here, deliberately. The root layout renders <Footer />
+          directly after this <main> for signed-out visitors, and the footer
+          already opens with its own cut across the sky/cream boundary — the
+          one boundary that actually exists on this page.
+
+          This screen used to draw a second cut on top of that, into
+          --surface-shell (neutral-50), a surface nothing below it is. The
+          result was two curves back to back with a stray neutral band pinched
+          between them, and the footer's cut painting sky over that band. One
+          boundary, one cut: the footer's. The brand moment on this screen is
+          the mark above the card. */}
 
       <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-14 lg:flex-row lg:items-center lg:justify-between lg:gap-20">
         {/* Brand side — the reason to sign in. Sits above the card on small

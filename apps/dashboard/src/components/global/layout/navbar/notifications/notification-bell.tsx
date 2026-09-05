@@ -69,15 +69,24 @@ export function NotificationBell() {
     }
   }, []);
 
-  // The interval and the return-to-tab refresh. `load` is stable, so this
-  // subscribes once and the timer is cleared with the component.
+  // The FIRST load, the interval and the return-to-tab refresh. `load` is
+  // stable, so this subscribes once and both timers are cleared with the
+  // component.
+  //
+  // The first load is what makes the badge honest: `unreadCount` derives from
+  // `items`, which used to be filled only by a first open or by the 60s poll —
+  // so the one number the bell exists to show was blank for up to a minute on
+  // every page load. Scheduled rather than called inline: an effect body is for
+  // subscribing, not for setting state on the render that just ran.
   useEffect(() => {
     const refresh = () => {
       if (document.visibilityState === "visible") void load();
     };
+    const first = setTimeout(refresh, 0);
     const timer = setInterval(refresh, POLL_MS);
     document.addEventListener("visibilitychange", refresh);
     return () => {
+      clearTimeout(first);
       clearInterval(timer);
       document.removeEventListener("visibilitychange", refresh);
     };
@@ -132,11 +141,12 @@ export function NotificationBell() {
       >
         <Bell className="size-4" />
         {unreadCount > 0 && (
-          <span
-            aria-label={`${unreadCount} ${t("notifications.unread")}`}
-            className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-(--radius-pill) bg-(--status-critical-bg) px-1 font-mono text-(length:--fs-micro) font-semibold text-(--status-critical-fg)"
-          >
+          // aria-label on a bare <span> with no role is not reliably exposed;
+          // a visible number plus an sr-only phrase is — the same shape the
+          // unread row indicator below already uses.
+          <span className="absolute -top-1.5 -right-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-(--radius-pill) bg-(--status-critical-bg) px-1 font-mono text-(length:--fs-micro) font-semibold text-(--status-critical-fg)">
             {unreadCount > 9 ? "9+" : unreadCount}
+            <span className="sr-only"> {t("notifications.unread")}</span>
           </span>
         )}
       </PopoverTrigger>
@@ -203,7 +213,11 @@ export function NotificationBell() {
         </div>
         <div className="px-4 pb-2">
           <button
+            type="button"
             onClick={toggleUnreadOnly}
+            // The on-state was colour only. The archive's copy of this same
+            // control already says aria-pressed; the two now match.
+            aria-pressed={unreadOnly}
             className={`rounded-(--radius-pill) border px-2 py-0.5 text-(length:--fs-micro) font-semibold transition-colors duration-(--dur-fast) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none ${
               unreadOnly
                 ? "border-transparent bg-sky-200 text-navy-700"

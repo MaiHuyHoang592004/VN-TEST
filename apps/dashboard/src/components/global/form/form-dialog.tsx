@@ -144,19 +144,36 @@ export function FormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      {/* The popup itself must not scroll: the form below caps its own height
+          and scrolls only its fields, which keeps the footer pinned. If the
+          popup scrolled too, the submit button would sit at the bottom of a
+          scroll nobody knows to make. */}
+      <DialogContent className="overflow-y-hidden sm:max-w-lg">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             onSubmit();
           }}
+          // Same shape as the drawer: header and footer fixed, fields
+          // scrolling between them. Without the cap a tall form (new-order is
+          // ~14 fields) overflows a short viewport from the centred position
+          // and pushes its own submit button clean off the bottom of the
+          // screen — measured at 765px of dialog in a 651px viewport, with the
+          // Save button starting exactly at the fold. It cannot be clicked and
+          // there is nothing to scroll, because the page behind is locked.
+          // 2rem is the popup's own p-4, top plus bottom.
+          className="flex max-h-[calc(85svh-2rem)] flex-col"
         >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
 
-          <div className="flex flex-col gap-4 py-4">{body}</div>
+          {/* -mx-1/px-1 buys the scroll container 4px so it clips focus rings
+              off the edge-most fields instead of shaving them. */}
+          <div className="-mx-1 flex flex-1 flex-col gap-4 overflow-y-auto px-1 py-4">
+            {body}
+          </div>
 
           <DialogFooter className="sm:justify-between">
             <span className="text-muted-foreground self-center text-xs">

@@ -56,7 +56,8 @@
       "attachHint": "PNG, JPG ou WEBP · 10 images maximum · 10 Mo chacune",
       "submit": "Ouvrir le ticket",
       "created": "Ticket ouvert",
-      "orderDropped": "La commande choisie n'appartient pas à votre compte : le ticket a été créé sans elle."
+      "orderDropped": "La commande choisie n'appartient pas à votre compte : le ticket a été créé sans elle.",
+      "removeFile": "Retirer le fichier"
     },
     "edit": {
       "title": "Modifier le ticket",
@@ -67,7 +68,8 @@
       "title": "Supprimer ce ticket ?",
       "body": "Le ticket et tout son fil de discussion sont supprimés. Action irréversible.",
       "submit": "Supprimer le ticket",
-      "deleted": "Ticket supprimé"
+      "deleted": "Ticket supprimé",
+      "failed": "Impossible de supprimer le ticket. Réessayez."
     },
     "detail": {
       "back": "Tous les tickets",

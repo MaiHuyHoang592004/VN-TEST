@@ -81,12 +81,22 @@ export function Surface({
         // The DS makes the hairline mandatory on `sheet`, so it is applied
         // whether or not the caller remembered `outline`.
         (outline || level === "sheet") && "border border-(--border-soft)",
+        // ONE padding on the section, not the DS's header/body split. The DS
+        // model is more correct in the abstract, and it broke eleven callers
+        // that position or pad this panel through `className` — they compose
+        // against a single padded box. p-5 is one --space step under
+        // --pad-surface; closing that gap is a separate, deliberate pass.
         pad && "p-5",
         className
       )}
     >
       {hasHeader && (
-        <header className={cn("flex items-start justify-between gap-4", pad && "mb-4")}>
+        <header
+          className={cn(
+            "flex items-start justify-between gap-4",
+            pad && "mb-4",
+          )}
+        >
           <div className="min-w-0">
             {title && (
               <h2 className="font-display text-(length:--fs-display-sm) leading-(--lh-heading) font-(--fw-display) text-(--text-strong)">

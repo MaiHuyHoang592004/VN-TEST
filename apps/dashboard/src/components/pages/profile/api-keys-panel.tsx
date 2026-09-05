@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { ResponsiveDialog } from "@/components/global/form";
+import { FormDialog, ResponsiveDialog } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   createApiKeyAction,
@@ -27,7 +27,18 @@ export type ApiKeyRow = {
 };
 
 function CopyButton({ value, label }: { value: string; label: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  // The timer outlives the button when a dialog closes mid-tick, so it is
+  // cleared on unmount rather than left to set state on a dead component.
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+
   return (
     <Button
       type="button"
@@ -35,9 +46,18 @@ function CopyButton({ value, label }: { value: string; label: string }) {
       size="sm"
       aria-label={label}
       onClick={async () => {
-        await navigator.clipboard.writeText(value);
+        // navigator.clipboard is undefined outside a secure context and can
+        // reject when permission is denied. Unguarded, both failed silently
+        // while the tick still appeared — the user walked off with nothing.
+        try {
+          await navigator.clipboard.writeText(value);
+        } catch {
+          toast.error(t("profile.api.copyFailed"));
+          return;
+        }
         setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
+        if (timer.current) clearTimeout(timer.current);
+        timer.current = setTimeout(() => setCopied(false), 1500);
       }}
     >
       {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
@@ -56,6 +76,7 @@ export function ApiKeysPanel({
   const [pending, startTransition] = useTransition();
   const [name, setName] = useState("");
   const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState<ApiKeyRow | null>(null);
 
   const create = () =>
     startTransition(async () => {
@@ -70,9 +91,18 @@ export function ApiKeysPanel({
       }
     });
 
+  // Revoking kills a live credential the moment it lands and cannot be undone,
+  // so it is confirmed first — and the dialog NAMES the key, because a list of
+  // "Untitled key" rows is exactly where the wrong one gets clicked.
   const revoke = (id: number) =>
     startTransition(async () => {
-      await revokeApiKeyAction(id);
+      try {
+        await revokeApiKeyAction(id);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : t("profile.api.revokeFailed"));
+        return;
+      }
+      setRevoking(null);
       toast.success(t("profile.api.revoked"));
     });
 
@@ -126,7 +156,7 @@ export function ApiKeysPanel({
                     variant="outline"
                     size="sm"
                     disabled={pending}
-                    onClick={() => revoke(k.id)}
+                    onClick={() => setRevoking(k)}
                   >
                     {t("profile.api.revoke")}
                   </Button>
@@ -184,6 +214,24 @@ export function ApiKeysPanel({
           </Button>
         </div>
       </ResponsiveDialog>
+
+      {revoking && (
+        <FormDialog
+          open
+          onOpenChange={(open) => !open && setRevoking(null)}
+          title={t("profile.api.revokeTitle")}
+          description={`${revoking.name || t("profile.api.unnamed")} · ${revoking.prefix || "—"}…`}
+          submitLabel={t("profile.api.revoke")}
+          destructive
+          pending={pending}
+          onSubmit={() => revoke(revoking.id)}
+        >
+          <p className="text-(length:--fs-body-sm) text-(--text-muted)">
+            {t("profile.api.revokeBody")}
+          </p>
+        </FormDialog>
+      )}
+
       <ApiMigrationMap />
     </SettingsStack>
   );

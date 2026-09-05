@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Paperclip, X } from "lucide-react";
+import { ArrowLeft, Paperclip, Pencil, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Callout, KeyValueRow, StatusBadge, Surface } from "@/components/ds";
@@ -21,6 +21,7 @@ import { usePermissions } from "@/hooks/use-permissions";
 import { replyTicketAction, setTicketStatusAction } from "@/modules/support/tickets/actions";
 import { TICKET_STATUSES } from "@/modules/support/tickets/schema";
 
+import { TicketFormDialog } from "./ticket-form-dialog";
 import { priorityTone } from "./tickets-table";
 
 type Attachment = { url: string; originalFilename: string };
@@ -61,6 +62,24 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
   const { can } = usePermissions();
   const isStaff = can("tickets.manage");
   const closed = ticket.status === "CLOSED";
+  const [editing, setEditing] = useState(false);
+  // The status caption is a <span>, not a <label> — a Select cannot be the
+  // target of htmlFor anyway. aria-labelledby makes the same visible words the
+  // trigger's accessible name, instead of leaving it announced as a bare
+  // combobox reading out its current value.
+  const statusLabelId = useId();
+
+  // Same gate as the list's pencil: reaching this page already required
+  // tickets.read.own or tickets.read.all, and a seller's scope only ever
+  // resolves to their OWN tickets — so no extra permission is asked for here,
+  // or the two surfaces would disagree about who may edit.
+  //
+  // The one thing the detail page knows that a row does not is the live
+  // status, and updateTicket() refuses a non-OPEN ticket to anyone without
+  // tickets.manage. Offering Edit beside "This ticket is closed" would be
+  // offering a button that can only fail, so a seller loses it there and
+  // regains it on reopen; staff, who the server does let through, keep it.
+  const canEdit = isStaff || !closed;
 
   const statuses = isStaff ? TICKET_STATUSES : (["OPEN", "CLOSED"] as const);
 
@@ -135,7 +154,10 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
 
         <Surface className="w-full shrink-0 lg:sticky lg:top-24 lg:w-72" radius="card" shadow="xs">
           <div className="mb-2 flex flex-col gap-1.5">
-            <span className="font-sans text-(length:--fs-meta) font-bold tracking-(--ls-caps) uppercase text-(--text-label)">
+            <span
+              id={statusLabelId}
+              className="font-sans text-(length:--fs-meta) font-bold tracking-(--ls-caps) uppercase text-(--text-label)"
+            >
               {t("support.tickets.detail.status")}
             </span>
             <Select
@@ -143,7 +165,7 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
               onValueChange={(v) => v && v !== ticket.status && submitStatus(v)}
               disabled={statusPending}
             >
-              <SelectTrigger>
+              <SelectTrigger aria-labelledby={statusLabelId}>
                 <SelectValue>{t(`support.tickets.status.${ticket.status}`)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -208,8 +230,38 @@ export function TicketThread({ ticket }: { ticket: TicketView }) {
               value={ticket.replies.length}
             />
           </dl>
+
+          {canEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mt-3 w-full"
+              onClick={() => setEditing(true)}
+            >
+              <Pencil className="size-4" />
+              {t("support.tickets.edit.title")}
+            </Button>
+          )}
         </Surface>
       </div>
+
+      {/* The list's dialog, unforked. `orders` is empty on purpose: edit mode
+          does not render the order field — the link is part of what was
+          filed — so there is nothing for a list to populate. */}
+      {editing && (
+        <TicketFormDialog
+          orders={[]}
+          ticket={{
+            id: ticket.id,
+            title: ticket.title,
+            description: ticket.description,
+            reason: ticket.reason,
+            priority: ticket.priority,
+          }}
+          open
+          onOpenChange={(o) => !o && setEditing(false)}
+        />
+      )}
     </>
   );
 }
@@ -298,8 +350,11 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
 
   return (
     <Surface radius="card" shadow="xs" pad={false} className="flex flex-col gap-2 p-3">
+      {/* The one input on this page, and it had only a placeholder — which
+          disappears the moment you type and is not a label. */}
       <Textarea
         rows={3}
+        aria-label={t("support.tickets.detail.reply")}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder={t("support.tickets.detail.replyPlaceholder")}
@@ -323,7 +378,8 @@ function ReplyBox({ ticketId }: { ticketId: number }) {
               {file.name}
               <button
                 type="button"
-                aria-label={`Remove ${file.name}`}
+                className="-my-1 -mr-1 inline-flex size-6 items-center justify-center rounded-(--radius-pill) hover:text-(--text-body)"
+                aria-label={`${t("support.tickets.form.removeFile")}: ${file.name}`}
                 onClick={() => setFiles((f) => f.filter((_, i) => i !== index))}
               >
                 <X className="size-3" />

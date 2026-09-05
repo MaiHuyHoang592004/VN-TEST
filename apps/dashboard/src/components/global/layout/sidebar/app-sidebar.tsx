@@ -170,7 +170,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={href === activeHref(pathname, MAIN_NAV.map((i) => i.href))}
                     tooltip={t(key)}
-                    render={<Link href={href} />}
+                    render={<Link href={href} onClick={() => setOpenMobile(false)} />}
                     className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                   >
                     <Icon className="size-4" />
@@ -196,7 +196,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         isActive={href === activeHref(pathname, sectionNav("/fulfillment").map((i) => i.href))}
                         tooltip={t(key)}
-                        render={<Link href={href} />}
+                        render={<Link href={href} onClick={() => setOpenMobile(false)} />}
                         className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                       >
                         <Icon className="size-4" />
@@ -222,7 +222,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         isActive={href === activeHref(pathname, sectionNav("/inventory").map((i) => i.href))}
                         tooltip={t(key)}
-                        render={<Link href={href} />}
+                        render={<Link href={href} onClick={() => setOpenMobile(false)} />}
                         className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                       >
                         <Icon className="size-4" />
@@ -248,7 +248,7 @@ export function AppSidebar() {
                       <SidebarMenuButton
                         isActive={href === activeHref(pathname, adminNav.map((i) => i.href))}
                         tooltip={t(key)}
-                        render={<Link href={href} />}
+                        render={<Link href={href} onClick={() => setOpenMobile(false)} />}
                         className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                       >
                         <Icon className="size-4" />
@@ -272,7 +272,7 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     isActive={href === activeHref(pathname, ACCOUNT_NAV.map((i) => i.href))}
                     tooltip={t(key)}
-                    render={<Link href={href} />}
+                    render={<Link href={href} onClick={() => setOpenMobile(false)} />}
                     className="rounded-(--radius-pill) font-sans text-(length:--fs-body) font-semibold text-navy-600 transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-sky-100 hover:text-navy-700 data-active:bg-sky-200 data-active:text-navy-700"
                   >
                     <Icon className="size-4" />

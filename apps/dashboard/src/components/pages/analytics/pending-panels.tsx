@@ -17,6 +17,14 @@ import { useTranslation } from "@/lib/i18n";
  *
  * Each body says exactly which query is missing, so the next person to open
  * this file knows what to build rather than what to delete.
+ *
+ * ChartFrame's `ask` is filled — the question each panel would answer is real
+ * and is the reason the panel is worth building. `fields` is deliberately
+ * LEFT UNSET on all four: ChartFrame.d.ts is DOMAIN-BOUND ("never list a field
+ * to make a chart look better-grounded than it is") and none of these panels
+ * consumes a backend field yet, because none of them has a query. Listing the
+ * fields the aggregate WOULD read would be the exact dishonesty the prop
+ * exists to prevent.
  */
 export function PendingPanels() {
   const { t } = useTranslation();
@@ -39,6 +47,7 @@ export function PendingPanels() {
           <ChartFrame
             key={panel.key}
             title={t(`analytics.pending.${panel.key}.title`)}
+            ask={t(`analytics.pending.${panel.key}.ask`)}
             height={160}
           >
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center">

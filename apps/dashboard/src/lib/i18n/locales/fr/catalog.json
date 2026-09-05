@@ -156,6 +156,7 @@
     "listView": "Vue liste",
     "empty": "Rien n'est encore disponible à la commande.",
     "emptyFiltered": "Aucun produit ne correspond.",
-    "option": "option"
+    "option": "option",
+    "resultCount": "{count} produits"
   }
 }

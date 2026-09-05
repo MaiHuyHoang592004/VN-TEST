@@ -1,0 +1,22 @@
+{
+  "title": "You've been invited",
+  "subtitle": "to join GWPrintz as",
+  "email": "Email",
+  "role": "Role",
+  "expires": "Expires",
+  "accept": "Accept invitation",
+  "accepting": "Accepting…",
+  "welcome": "Welcome aboard",
+  "signInPrompt": "Sign in with this address to accept. No account yet? Create one with that address and you'll come straight back here.",
+  "signIn": "Sign in to accept",
+  "wrongAccount": "This invitation is for {invited}, but you're signed in as {current}.",
+  "wrongAccountHint": "Sign out and sign back in with the invited address to accept it.",
+  "signOut": "Sign out",
+  "unavailable": "Invitation unavailable",
+  "askAgain": "Ask whoever invited you to send a new one.",
+  "goHome": "Go to GWPrintz",
+  "errNotFound": "This invitation link isn't valid.",
+  "errUsed": "This invitation has already been used.",
+  "errExpired": "This invitation has expired.",
+  "errWrongAccount": "You're signed in with a different email."
+}

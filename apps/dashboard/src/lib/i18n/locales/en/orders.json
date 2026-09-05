@@ -24,6 +24,11 @@
   "noCommonMove": "No move applies to all selected",
   "statusMoved": "Moved {count} orders to {status}.",
   "statusPartial": "{failed} of {total} orders couldn't be moved. Refresh and try again.",
+  "statusFailed": "Could not move the orders. Refresh the page to see what changed.",
+  "cancelTitle": "Cancel these orders?",
+  "cancelDesc": "A cancelled order cannot be moved back.",
+  "cancelBody": "{count} orders will be moved to Cancelled.",
+  "cancelSubmit": "Cancel orders",
   "statuses": {
     "PENDING": "Pending",
     "ASSIGNED": "Assigned",
@@ -56,6 +61,9 @@
   "shippingSection": "Shipping",
   "fRecipient": "Recipient",
   "fEmail": "Email",
+  "fPhone": "Phone",
+  "fPhoneHint": "Some carriers require one for delivery.",
+  "fCompany": "Company",
   "fLine1": "Address",
   "fLine2": "Address line 2",
   "fCity": "City",
@@ -80,6 +88,7 @@
   "fWarehouse": "Warehouse",
   "pickWarehouse": "Choose a warehouse",
   "assignCalculating": "Working out what this costs…",
+  "assignPreviewFailed": "Could not work out the charges. Close this and try again.",
   "assignCharges": "Charges",
   "assignNothing": "None of the selected orders can be assigned.",
   "assignSkipped": "{count} selected orders are already assigned and were skipped.",
@@ -109,6 +118,10 @@
   "importFailed": "{count} failed",
   "importLine": "Line {line}:",
   "importNoSku": "No SKU matches that code or product/variant pair.",
+  "importChecking": "Checking SKUs…",
+  "importPreviewMore": "+ {count} more rows",
+  "importUnresolved": "{count} rows have no matching SKU and will be skipped.",
+  "importUnresolvedLines": "Lines {lines}.",
   "qr": {
     "column": "QR",
     "show": "Show QR code",
@@ -121,6 +134,7 @@
     "variant": "Variant",
     "shipTo": "Ship to",
     "copied": "Order id copied.",
+    "copyFailed": "Could not copy the order id.",
     "noTracking": "No tracking yet",
     "note": "Note",
     "format": {
@@ -146,6 +160,7 @@
     "previewTitle": "Buy shipping labels",
     "previewDesc": "Nothing is purchased until you confirm. Orders going to the same address ship as one parcel.",
     "loading": "Working out the parcels…",
+    "previewFailed": "Could not build the label preview. Close this and try again.",
     "tileGroups": "Parcels",
     "tileWillBuy": "Will buy",
     "tileSkipped": "Skipped",
@@ -181,6 +196,7 @@
   "refundSubmit": "Refund and cancel",
   "refundTotal": "Total refund",
   "refundNothing": "None of the selected orders can be refunded.",
+  "refundQuoteFailed": "Could not work out the refund. Close this and try again.",
   "refundDone": "Refunds sent",
   "refundReason": "Reason",
   "refundReasonPlaceholder": "Batch printed on the wrong stock.",
@@ -202,6 +218,9 @@
     "design": "Design",
     "mockup": "Mockup",
     "slotHint": "Paste a URL, or upload an image — the upload wins.",
+    "previewAlt": "Current artwork",
+    "previewNone": "No image yet",
+    "previewBroken": "That image could not be loaded",
     "upload": "Upload image",
     "clearFile": "Clear file",
     "saved": "Artwork updated",
@@ -212,10 +231,21 @@
   "summary": {
     "units": "units",
     "breakdown": "What's inside",
+    "breakdownFor": "Breakdown for {status}",
     "nothing": "Nothing here."
   },
   "dialogNewSubmit": "Create order",
   "timeline": {
-    "toggle": "Show order timeline"
-  }
+    "toggle": "Show order timeline",
+    "failed": "Could not load the timeline.",
+    "retry": "Try again",
+    "empty": "No milestones recorded for this order yet."
+  },
+  "thumb": {
+    "design": "Print design",
+    "mockup": "Customer mockup",
+    "label": "Shipping label",
+    "designFolder": "Open artwork folder"
+  },
+  "colCostShip": "Cost + ship"
 }

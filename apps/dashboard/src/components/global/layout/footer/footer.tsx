@@ -25,20 +25,15 @@ export function Footer() {
         { label: t("nav.analytics"), href: "/analytics" },
       ],
     },
+    // Company keeps only /help. /about and /contact have no page, and the
+    // [...comingSoon] catch-all that would have caught them lives inside
+    // (protected), whose layout bounces a signed-out visitor back to "/" — so
+    // a link in the SIGNED-OUT footer landed them on the login page they just
+    // left. The Legal column is gone entirely for the same reason: both of its
+    // links were dead. They come back with the pages.
     {
       heading: t("footer.company"),
-      links: [
-        { label: t("footer.about"), href: "/about" },
-        { label: t("nav.helpSupport"), href: "/help" },
-        { label: t("footer.contact"), href: "/contact" },
-      ],
-    },
-    {
-      heading: t("footer.legal"),
-      links: [
-        { label: t("footer.privacy"), href: "/privacy" },
-        { label: t("footer.terms"), href: "/terms" },
-      ],
+      links: [{ label: t("nav.helpSupport"), href: "/help" }],
     },
   ];
 

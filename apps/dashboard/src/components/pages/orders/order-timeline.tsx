@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { toneFor } from "@/components/ds";
@@ -24,18 +24,50 @@ type Entry = { status: string; at: string | null; reached: boolean };
 export function OrderTimeline({ orderId }: { orderId: number }) {
   const { t } = useTranslation();
   const [entries, setEntries] = useState<Entry[] | null>(null);
+  /** A fetch that FAILED, as opposed to one still running. Without it the
+   * skeleton simply never went away. */
+  const [failed, setFailed] = useState(false);
+  /** Bumped by Retry to re-run the effect. */
+  const [attempt, setAttempt] = useState(0);
+
+  const retry = useCallback(() => {
+    setFailed(false);
+    setEntries(null);
+    setAttempt((n) => n + 1);
+  }, []);
 
   useEffect(() => {
     let live = true;
-    void orderTimelineAction(orderId).then((rows) => {
-      if (live) setEntries(rows as Entry[]);
-    });
+    orderTimelineAction(orderId)
+      .then((rows) => {
+        if (live) setEntries(rows as Entry[]);
+      })
+      .catch(() => {
+        if (live) setFailed(true);
+      });
     // Cleared on unmount so a slow response cannot set state on a row the
     // reader has already collapsed.
     return () => {
       live = false;
     };
-  }, [orderId]);
+  }, [orderId, attempt]);
+
+  if (failed) {
+    return (
+      <div className="flex items-center gap-3 rounded-(--radius-card) bg-(--surface-data) p-4">
+        <p role="alert" className="font-sans text-(length:--fs-body-sm) text-(--status-critical-fg)">
+          {t("orders.timeline.failed")}
+        </p>
+        <button
+          type="button"
+          onClick={retry}
+          className="rounded-(--radius-xs) font-sans text-(length:--fs-body-sm) font-semibold text-(--action-600) underline underline-offset-2 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
+        >
+          {t("orders.timeline.retry")}
+        </button>
+      </div>
+    );
+  }
 
   if (!entries) {
     return (
@@ -45,7 +77,18 @@ export function OrderTimeline({ orderId }: { orderId: number }) {
     );
   }
 
-  if (entries.length === 0) return null;
+  // A SENTENCE, not null. Returning null left the expander opening onto an
+  // empty padded cell, and a panel that opens empty teaches people to stop
+  // pressing expanders — DataTable's own note on renderExpanded.
+  if (entries.length === 0) {
+    return (
+      <div className="rounded-(--radius-card) bg-(--surface-data) p-4">
+        <p className="font-sans text-(length:--fs-body-sm) text-(--text-muted)">
+          {t("orders.timeline.empty")}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-start gap-0 overflow-x-auto rounded-(--radius-card) bg-(--surface-data) px-5 py-4">

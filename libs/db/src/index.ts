@@ -55,3 +55,14 @@ export {
   type RateLimitResult,
   type RateLimitRule,
 } from "./rate-limit.ts";
+
+// Artwork: the Drive folder link legacy orders carry, resolved to a stored
+// thumbnail exactly once.
+export {
+  MOCKUP_UNRESOLVED,
+  THUMBNAIL_WIDTH,
+  readFolder,
+  resolveFolderMockup,
+  resolveOrderMockup,
+  type ResolvedMockup,
+} from "./drive-mockups.ts";

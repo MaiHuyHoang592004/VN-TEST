@@ -5,6 +5,6 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "test": "node --test src/access/permissions.test.ts"
+    "test": "node --test src/access/permissions.test.ts src/drive/folder.test.ts"
   }
 }

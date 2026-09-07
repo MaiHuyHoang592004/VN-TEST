@@ -17,12 +17,12 @@
  * bundle returns a URL).
  */
 import XLSX from "xlsx-js-style";
-import { prisma, orderScope, can, Prisma, type FulfillmentStatus } from "@gwprint/db";
+import { prisma, can, Prisma, type FulfillmentStatus } from "@gwprint/db";
 
 import { putObject } from "../../../core/storage.ts";
 import { exportQuerySchema, type ExportQuery } from "../schema.ts";
 import { type Actor } from "./shared.ts";
-import { searchClauses } from "./reads.ts";
+import { orderListWhere, parseDateParam } from "./reads.ts";
 
 /**
  * ponytail: 50 000 rows in one function invocation. Ceiling — beyond that the
@@ -80,15 +80,26 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
   const query = exportQuerySchema.parse(raw);
   const withMoney = can(actor.roles, "transactions.read.all");
 
-  const where: Prisma.OrderWhereInput = {
-    ...(await orderScope(actor)),
-    deletedAt: null,
-    ...(query.status?.length ? { status: { in: query.status as FulfillmentStatus[] } } : {}),
-    ...(query.warehouseId ? { warehouseId: query.warehouseId } : {}),
-    ...(query.customerId ? { customerId: query.customerId } : {}),
-    ...(query.ids?.length ? { id: { in: query.ids } } : {}),
-    ...(query.search ? { OR: searchClauses(query.search) } : {}),
-  };
+  // THE SAME BUILDER THE LIST USES, and not a second copy of it. This was a
+  // hand-written clone that spread the caller's `customerId` straight after
+  // `orderScope(actor)` — so an own-scope reader exporting `customerId=<some
+  // other seller>` overwrote the very key that kept the two apart and got a
+  // spreadsheet of somebody else's orders. Rule 2 in this file's header ("the
+  // export is the filter") was already the argument for sharing the builder;
+  // the leak is why it is no longer optional.
+  const where: Prisma.OrderWhereInput = await orderListWhere(actor, {
+    status: query.status as FulfillmentStatus[] | undefined,
+    warehouseId: query.warehouseId,
+    customerId: query.customerId,
+    ids: query.ids,
+    search: query.search,
+    // The window the table is filtered to. Absent before, which meant an
+    // export taken from a date-filtered list quietly covered every order ever
+    // placed — rule 2 of this file ("the export is the filter") failing on the
+    // one axis nobody checked.
+    from: parseDateParam(query.from),
+    to: parseDateParam(query.to),
+  });
 
   const rows = await prisma.order.findMany({
     where,
@@ -136,6 +147,13 @@ export async function exportOrders(actor: Actor, raw: ExportQuery = {}) {
     query.status?.length ? `status: ${query.status.join(", ")}` : null,
     query.warehouseId ? `warehouse: ${query.warehouseId}` : null,
     query.ids?.length ? `selection: ${query.ids.length} order(s)` : null,
+    // The window belongs in the title block for the same reason the rest do:
+    // the person who receives the file has to be able to tell what it is an
+    // export OF, and "why is January missing" is not a question a spreadsheet
+    // should leave open.
+    query.from || query.to
+      ? `placed: ${query.from ?? "…"} – ${(query.to ?? "…").slice(0, 10)}`
+      : null,
   ].filter(Boolean);
 
   // Title block first, exactly as the legacy sheet opened — the person who

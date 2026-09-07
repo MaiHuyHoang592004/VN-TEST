@@ -54,14 +54,47 @@ function subscribeLocale(onChange: () => void) {
   };
 }
 
+/**
+ * The values a translated string interpolates, by placeholder name.
+ *
+ * Numbers are formatted with `toLocaleString()` on the way in, because every
+ * placeholder this app has is a COUNT and a count printed as "5312" in a
+ * sentence that says "5,312" everywhere else is a bug in six locales at once.
+ * Pass a string when the raw form is what you mean.
+ */
+export type TranslationVars = Record<string, string | number>;
+
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   languages: Language[];
-  t: (key: string) => string;
+  t: (key: string, vars?: TranslationVars) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
+
+/**
+ * Substitute EVERY occurrence of every placeholder.
+ *
+ * Call sites used to do this themselves with `.replace("{count}", …)`, and
+ * `String.prototype.replace` given a string pattern replaces the FIRST match
+ * only — so `orders.selectAll.capped`, which names `{count}` twice, rendered a
+ * literal `{count}` in six of the seven locales, inside a permanent warning
+ * toast about the scope of a bulk refund. One helper rather than a rule nobody
+ * can enforce: a translator repeating a token is a normal thing for a
+ * translator to do, and nothing in a JSON file can stop them.
+ *
+ * A split/join rather than a RegExp built from the key: placeholder names are
+ * ours, but building a pattern out of a value is a habit that eventually meets
+ * a value with a `(` in it.
+ */
+function interpolate(text: string, vars: TranslationVars): string {
+  return Object.entries(vars).reduce(
+    (out, [name, value]) =>
+      out.split(`{${name}}`).join(typeof value === "number" ? value.toLocaleString() : value),
+    text,
+  );
+}
 
 function lookup(locale: Locale, key: string): string | undefined {
   let node: unknown = translations[locale];
@@ -125,7 +158,10 @@ export function I18nProvider({
 
   // Fall back to English, then to the key itself (visible = easy to spot).
   const t = useCallback(
-    (key: string) => lookup(locale, key) ?? lookup("en", key) ?? key,
+    (key: string, vars?: TranslationVars) => {
+      const text = lookup(locale, key) ?? lookup("en", key) ?? key;
+      return vars ? interpolate(text, vars) : text;
+    },
     [locale]
   );
 

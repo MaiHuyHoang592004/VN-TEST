@@ -5,6 +5,7 @@ import { CalendarDays } from "lucide-react";
 import { format } from "date-fns";
 
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -34,10 +35,23 @@ export function DateRangeField({
   from,
   to,
   onChange,
-  label = "Date range",
+  label,
   className,
 }: DateRangeFieldProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+
+  /**
+   * The default label, the two buttons and the fallback accessible name were
+   * hardcoded English, which quietly made this component unusable on a
+   * Vietnamese screen — the one language most of the operational users read.
+   *
+   * Resolved here rather than in the parameter default because `t()` is a hook
+   * result and a default value is evaluated before the hook runs. The prop
+   * contract is unchanged: `label` is still an optional ReactNode, and a caller
+   * that passes one still wins.
+   */
+  const resolvedLabel = label ?? t("common.dateRange");
 
   const summary =
     from && to
@@ -55,14 +69,16 @@ export function DateRangeField({
           <Button
             variant="outline"
             shape="rounded"
-            aria-label={typeof label === "string" ? label : "Date range"}
+            aria-label={
+              typeof resolvedLabel === "string" ? resolvedLabel : t("common.dateRange")
+            }
             className={cn("justify-start gap-2 font-normal", className)}
           >
             <CalendarDays className="size-4" />
             {summary ? (
               <span className="font-mono text-(length:--fs-body-sm)">{summary}</span>
             ) : (
-              <span className="text-(--text-muted)">{label}</span>
+              <span className="text-(--text-muted)">{resolvedLabel}</span>
             )}
           </Button>
         }
@@ -83,10 +99,10 @@ export function DateRangeField({
               setOpen(false);
             }}
           >
-            Clear
+            {t("common.clear")}
           </Button>
           <Button variant="default" size="sm" onClick={() => setOpen(false)}>
-            Done
+            {t("common.done")}
           </Button>
         </div>
       </PopoverContent>

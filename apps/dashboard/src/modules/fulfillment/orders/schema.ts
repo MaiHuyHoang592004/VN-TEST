@@ -76,5 +76,11 @@ export const exportQuerySchema = z.object({
   warehouseId: z.number().int().positive().optional(),
   customerId: z.string().trim().optional(),
   ids: z.array(z.number().int().positive()).max(50_000).optional(),
+  /** The placed-at window, as the STRINGS the URL carries rather than Dates.
+   * Same convention as OrderSelectionFilter: the service parses them with
+   * parseDateParam, so a mistyped or stale `?from=` is ignored instead of
+   * arriving as an Invalid Date and 500-ing the export. */
+  from: z.string().trim().optional(),
+  to: z.string().trim().optional(),
 });
 export type ExportQuery = z.infer<typeof exportQuerySchema>;

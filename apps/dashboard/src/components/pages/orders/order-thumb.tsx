@@ -1,61 +1,242 @@
 "use client";
 
-import { useState } from "react";
-import { Package } from "lucide-react";
-import { parseDriveUrl } from "@gwprint/shared";
+import { useState, type ReactNode } from "react";
+import { FolderOpen, Image as ImageIcon, Package } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 
 /**
- * The 32px square at the head of an order row.
+ * The order row's pictures — which one exists, and how each one is drawn.
  *
- * It exists because "the order's image" is three different things wearing one
- * name. `mockup.thumbnail` is a real image url, stored once and rendered
- * straight from the orders query — the fast path, and after the backfill the
- * only path most rows take. `imageUrl` is legacy, and it is NOT an image: it
- * is the Google Drive FOLDER the artwork lives in, which is exactly why every
- * thumbnail in this table used to render broken. Feeding it to an <img> asks
- * Drive for a login page and gets one.
- *
- * So: a stored thumbnail is used directly; an unresolved Drive link goes
- * through /api/orders/<id>/thumb, which resolves the folder once and writes
- * the answer back so the next render takes the fast path; and anything else
- * that already looks like an image is trusted as one.
- *
- * Whatever the source, a load failure lands on the placeholder rather than the
- * browser's broken-image icon. A folder can lose its sharing at any time and
- * that is not this table's problem to display.
+ * "The order's image" is three different things wearing one name, and this
+ * module is where that is decided ONCE for the table, the phone card and the
+ * code panel. The row shape is declared structurally rather than importing
+ * `OrderRow` from orders-table.tsx: that file imports `Thumb` from here at
+ * RUNTIME, and a value cycle between the two is a real one, not a lint opinion.
  */
-export function thumbSrc(order: {
+export type ArtworkRow = {
   id: number;
+  /** The mockup's stored image endpoint, when a mockup row exists at all. */
   mockupThumbnail: string | null;
+  /** The Drive folder the mockup was RESOLVED out of, or null when somebody
+   * attached it by hand through the artwork dialog. */
+  mockupFolderId: string | null;
+  /** "unresolved" once a folder has been tried and found unreadable. */
+  mockupStatus: string | null;
+  /** The design's own folder id, parsed off `imageUrl` on the server. Null
+   * when `imageUrl` is not a Drive link (or is absent). */
+  designFolderId: string | null;
   imageUrl: string | null;
-}): string | null {
-  // Stored: no round-trip, no resolution, just a url from the row.
-  if (order.mockupThumbnail) return order.mockupThumbnail;
-  // Not yet resolved — an order imported since the last backfill.
-  if (parseDriveUrl(order.imageUrl)) return `/api/orders/${order.id}/thumb`;
-  // Anything else is either already an image or nothing we can render.
-  return order.imageUrl ?? null;
+};
+
+/**
+ * What the D slot should draw. Four cases, and they are not interchangeable:
+ *
+ *   merged  The mockup was resolved OUT OF this order's design folder, so the
+ *           design and the mockup are literally the same picture. One
+ *           thumbnail, tagged D, linking to the FOLDER — that is still where a
+ *           human goes to look at all the print files. The M slot is suppressed
+ *           for the row, because two identical 32px squares side by side is
+ *           noise, not information.
+ *   resolve Nothing has resolved this folder yet. /api/orders/<id>/thumb
+ *           resolves it on demand AND writes the answer back, so the next page
+ *           load reads a plain column and never asks the route again.
+ *   folder  A folder we cannot turn into a picture — either already tried and
+ *           remembered as unresolved, or one whose mockup came from somewhere
+ *           else entirely. The folder icon is the honest answer, and the stored
+ *           failure exists precisely to stop us re-fetching.
+ *   image   `imageUrl` is not a Drive link at all — an uploaded image, which
+ *           has always been rendered as itself.
+ *
+ * Running `npm run db:backfill:mockups` from libs/db resolves every folder in
+ * bulk, which turns `resolve` into `merged` for the whole table in one pass.
+ */
+export type DesignSlot =
+  | { kind: "merged"; src: string; href: string }
+  | { kind: "resolve"; src: string; href: string }
+  | { kind: "folder"; href: string }
+  | { kind: "image"; src: string }
+  | null;
+
+export function designSlot(order: ArtworkRow): DesignSlot {
+  // Not a Drive folder: either an ordinary uploaded image, or nothing at all.
+  if (!order.designFolderId || !order.imageUrl) {
+    return order.imageUrl ? { kind: "image", src: order.imageUrl } : null;
+  }
+  const href = order.imageUrl;
+
+  // The mockup came out of THIS folder — same picture, so draw it once.
+  if (order.mockupThumbnail && order.mockupFolderId === order.designFolderId) {
+    return { kind: "merged", src: order.mockupThumbnail, href };
+  }
+
+  // No mockup row of any kind: nobody has looked in this folder yet, so the
+  // lazy route gets to. Anything else (a hand-attached mockup, a remembered
+  // failure, a mockup resolved from a different folder) means the folder still
+  // has no picture we can show, and asking the route again would either 404 or
+  // hand back the hand-attached mockup — which is NOT the design.
+  const untouched =
+    order.mockupThumbnail === null &&
+    order.mockupFolderId === null &&
+    order.mockupStatus === null;
+  return untouched
+    ? { kind: "resolve", src: `/api/orders/${order.id}/thumb`, href }
+    : { kind: "folder", href };
 }
 
+/**
+ * The best single image of the order's artwork, or null.
+ *
+ * Used by the code panel's image tab and the phone card. A stored thumbnail
+ * wins; otherwise only an unresolved folder is worth a round-trip. The earlier
+ * version returned the resolve route for EVERY Drive link, including folders
+ * already recorded as unreadable — one request per row that 404s every time.
+ */
+export function thumbSrc(order: ArtworkRow): string | null {
+  if (order.mockupThumbnail) return order.mockupThumbnail;
+  const slot = designSlot(order);
+  if (slot?.kind === "resolve" || slot?.kind === "image") return slot.src;
+  return null;
+}
+
+/**
+ * The cream well every artwork square sits in.
+ *
+ * Cream, never grey — the DS's rule for anything holding a product image, and
+ * most of what keeps a GWP table from looking like every other admin.
+ *
+ * It answers `data-density` from the DataTable root rather than taking a size
+ * prop: the page owns its own cells, so shrinking the thumbnail when the table
+ * goes compact is the page's job, and the group variant does it with no
+ * prop-drilling and no re-render. A compact row is then genuinely denser rather
+ * than merely shorter.
+ */
+export const WELL =
+  "size-8 shrink-0 rounded-(--radius-xs) bg-(--cream-200) " +
+  "group-data-[density=compact]/data-table:size-6 " +
+  "group-data-[density=full]/data-table:size-10";
+
+/**
+ * The one-letter corner chip. A CHIP, not a colour: four thumbnails told apart
+ * only by hue would be unreadable to anyone who does not see the hues, and
+ * would need a legend nobody reads. The full word is the accessible name on the
+ * image itself.
+ */
+const TAG =
+  "absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center " +
+  "rounded-(--radius-pill) bg-(--navy-700) font-mono text-[0.5625rem] leading-none " +
+  "font-bold text-(--gwp-white)";
+
+/**
+ * Anything that occupies a tagged slot in the strip — an image, or the folder
+ * icon that stands in for a design we cannot draw. Exported so the chip is
+ * defined exactly once: a folder well wearing a hand-rolled copy of the same
+ * absolute-positioned square is how the two drift apart by a pixel.
+ */
+export function TaggedWell({ tag, children }: { tag: string; children: ReactNode }) {
+  return (
+    <span className="relative block shrink-0">
+      {children}
+      <span aria-hidden className={TAG}>
+        {tag}
+      </span>
+    </span>
+  );
+}
+
+/**
+ * One image in the order row's strip, corner-tagged so the four are told apart
+ * at a glance: D design · M mockup · L shipping label · P packing proof.
+ *
+ * A load failure is handled here rather than left to the browser: every source
+ * is third-party (a Drive file whose sharing can change, a carrier's label
+ * host), and a broken-image glyph in a dense table reads as "the app is
+ * broken". The default degrade is an empty well, which reads as "no picture" —
+ * the truth — and keeps its tag so the row still says which slot came up empty.
+ * `fallback` overrides that for the one case with a better answer: a design
+ * whose lazy resolve 404s degrades to the folder icon, never to a blank.
+ *
+ * `loading="lazy"` and `decoding="async"` on every one of them, because up to
+ * four per row across 25 rows was ~100 eager third-party Drive requests fired
+ * on page load.
+ */
+export function Thumb({
+  src,
+  tag,
+  label,
+  ring,
+  fallback,
+}: {
+  src: string;
+  tag: string;
+  label: string;
+  /** Distinguishing ring — the packing proof wears one so it is never mistaken
+   * for the artwork beside it. */
+  ring?: string;
+  /** Drawn instead of the empty well when the source fails to load. */
+  fallback?: ReactNode;
+}) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <TaggedWell tag={tag}>
+      {failed ? (
+        (fallback ?? (
+          <span className={cn(WELL, "flex items-center justify-center")}>
+            <ImageIcon className="size-4 stroke-(--icon-muted)" aria-hidden />
+            <span className="sr-only">{label}</span>
+          </span>
+        ))
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={src}
+          alt={label}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+          className={cn(WELL, "object-cover", ring)}
+        />
+      )}
+    </TaggedWell>
+  );
+}
+
+/**
+ * The artwork square for the phone card — one image, no tag strip.
+ *
+ * Same four cases as the table, minus the links: this renders INSIDE the button
+ * that opens the code panel, and an <a> inside a <button> is invalid markup. So
+ * the folder case draws the folder icon here, and the panel it opens carries
+ * "open the original", which is where the folder link belongs.
+ */
 export function OrderThumb({
   order,
-  className = "size-8",
+  className = "size-10",
 }: {
-  order: { id: number; mockupThumbnail: string | null; imageUrl: string | null };
+  order: ArtworkRow;
   className?: string;
 }) {
   const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
+  const slot = designSlot(order);
   const src = thumbSrc(order);
 
   if (!src || failed) {
+    const isFolder = slot?.kind === "folder" || slot?.kind === "resolve";
     return (
       <span
-        className={`flex ${className} shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--surface-content)`}
+        title={t(isFolder ? "orders.thumb.designFolder" : "orders.thumb.mockup")}
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--surface-content)",
+          className,
+        )}
       >
-        <Package className="size-4 stroke-(--icon-muted)" />
+        {isFolder ? (
+          <FolderOpen className="size-4 stroke-(--icon-default)" aria-hidden />
+        ) : (
+          <Package className="size-4 stroke-(--icon-muted)" aria-hidden />
+        )}
       </span>
     );
   }
@@ -65,9 +246,14 @@ export function OrderThumb({
     <img
       src={src}
       alt=""
-      title={t("orders.thumb.mockup")}
+      title={t(slot?.kind === "merged" ? "orders.thumb.designInFolder" : "orders.thumb.mockup")}
+      loading="lazy"
+      decoding="async"
       onError={() => setFailed(true)}
-      className={`${className} shrink-0 rounded-(--radius-xs) bg-(--surface-content) object-cover`}
+      className={cn(
+        "shrink-0 rounded-(--radius-xs) bg-(--surface-content) object-cover",
+        className,
+      )}
     />
   );
 }

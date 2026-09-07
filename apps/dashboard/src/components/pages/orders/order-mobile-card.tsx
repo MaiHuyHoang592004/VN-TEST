@@ -21,7 +21,9 @@ import { usePermissions } from "@/hooks/use-permissions";
 
 import { OrderQr, orderQrProps } from "./order-qr";
 import { OrderProofAction } from "./order-proof-action";
-import { OrderThumb } from "./order-thumb";
+import { OrderDeadline } from "./order-deadline";
+import { OrderTrackingCell } from "./order-tracking";
+import { OrderThumb, Thumb, designSlot } from "./order-thumb";
 import type { OrderRow } from "./orders-table";
 
 /**
@@ -59,6 +61,14 @@ export function OrderMobileCard({
   const [open, setOpen] = useState(false);
   const onFloor = can("orders.status.update");
   const complete = order.filled >= order.quantity;
+  // The same four cases the desktop strip draws — the card is the row on a
+  // smaller screen, so "is there a picture of this design" has to answer the
+  // same way in both. OrderThumb resolves an unresolved Drive folder through
+  // /api/orders/<id>/thumb and falls back to the folder icon, exactly as the
+  // table does; what it cannot do is carry the folder LINK, because it renders
+  // inside the button that opens the code panel and an <a> in a <button> is
+  // invalid markup. The panel's image view carries "open the original" instead.
+  const artwork = designSlot(order);
 
   return (
     <div className="flex flex-col gap-2">
@@ -67,7 +77,7 @@ export function OrderMobileCard({
             its image view — a thumb has even less chance of judging a design
             at 40px than a mouse does at 32. Outside the onFloor gate below,
             because looking at your own order's design is not floor work. */}
-        {order.mockupThumbnail || order.imageUrl ? (
+        {artwork || order.mockupThumbnail ? (
           <OrderQr
             {...orderQrProps(order)}
             initialFormat="image"
@@ -110,14 +120,28 @@ export function OrderMobileCard({
             {t("fulfillment.card.filled")}
           </StatusBadge>
         )}
+        {/* The deadline rides beside the status here for the same reason it
+            sits beside it in the table: on a fulfillment floor those two are
+            one question. Only ever a pill when the clock is running out — see
+            order-deadline.tsx — so it costs this row nothing on the orders
+            that are fine.
+
+            Rendered only when there IS one, unlike the table: a column has to
+            hold its shape down the page and so prints an em-dash, but a badge
+            strip has no column to keep, and a dash floating between two pills
+            reads as a value that failed to load. */}
+        {order.deadline && <OrderDeadline deadline={order.deadline} status={order.status} />}
         {order.tracking && (
           <span className="text-muted-foreground inline-flex min-w-0 items-center gap-1 text-xs">
             <Truck className="size-3 shrink-0" />
             <span className="truncate font-mono">{order.tracking.slice(-8)}</span>
           </span>
         )}
+        {/* UTC, like the table column and the date filter — see the Placed
+            column in orders-table.tsx. A local rendering puts seven hours of
+            every day on the wrong date for an operator at UTC+7. */}
         <span className="text-muted-foreground ml-auto shrink-0 text-xs">
-          {new Date(order.placedAt).toLocaleDateString()}
+          {new Date(order.placedAt).toLocaleDateString(undefined, { timeZone: "UTC" })}
         </span>
       </div>
 
@@ -149,10 +173,21 @@ export function OrderMobileCard({
                   </span>
                 </p>
               )}
-              {order.trackingStatus && (
-                <p className="text-muted-foreground">
-                  {t("orders.colTracking")}: {order.trackingStatus}
-                </p>
+              {/* The WHOLE tracking number, with its copy control and its
+                  carrier link. The chip above is a glance; this is where an
+                  operator checks a parcel against it, and the eight characters
+                  up there cannot be copied or compared. */}
+              {order.tracking && (
+                <OrderTrackingCell
+                  tracking={order.tracking}
+                  carrier={order.carrier}
+                  service={order.service}
+                  trackingStatus={order.trackingStatus}
+                  // This branch only renders below 768px, which is exactly the
+                  // range A11Y.md's 44px touch floor governs — and the cell's
+                  // 32px copy button and 28px carrier link sit 2px apart.
+                  size="touch"
+                />
               )}
               {order.note && <p className="text-muted-foreground">{order.note}</p>}
 
@@ -229,12 +264,15 @@ export function OrderMobileCard({
                   </Can>
                 )}
 
+                {/* Through Thumb like every sibling thumbnail: rendered raw, a
+                    dead proof link drew exactly the broken-image glyph Thumb
+                    exists to prevent, and lazily like all the rest. */}
                 {order.proofImageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Thumb
                     src={order.proofImageUrl}
-                    alt={t("orders.proof.thumb")}
-                    className="size-8 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
+                    tag="P"
+                    label={t("orders.proof.thumb")}
+                    ring="ring-2 ring-(--status-success-dot)"
                   />
                 )}
                 <span className="text-muted-foreground ml-auto">{order.warehouseCode ?? "—"}</span>

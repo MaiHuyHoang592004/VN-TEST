@@ -118,6 +118,40 @@ export async function orderTimelineAction(id: number) {
   return orders.orderTimeline(actor, id);
 }
 
+/**
+ * Every order id matching the filter on screen — "select all 46", not "select
+ * the 25 you can see".
+ *
+ * A checkbox in a header row can only ever tick the page it renders, so a
+ * bulk action over a 400-row filter meant paging through and ticking sixteen
+ * times. The ids come from the server because only the server knows the whole
+ * match, and the SAME where builder the list uses produces them: an id can
+ * only come back if this actor would have reached that row by paging to it.
+ *
+ * The three read grants, like the list — this returns nothing the table was
+ * not already showing, just more of it. What may be DONE with the ids is a
+ * separate question, answered by the guard on whichever bulk action the user
+ * then fires.
+ *
+ * Dates arrive as the strings the URL holds and are parsed here: an unparseable
+ * `?from=` becomes "no date filter", never a 500.
+ */
+export async function selectAllOrderIdsAction(filter: orders.OrderSelectionFilter = {}) {
+  const actor = await requireAnyPermission(
+    "orders.read.own",
+    "orders.read.customer",
+    "orders.read.all",
+  );
+  return orders.listOrderIds(actor, {
+    search: filter.search || undefined,
+    status: filter.status?.length ? filter.status : undefined,
+    warehouseId: filter.warehouseId || undefined,
+    customerId: filter.customerId || undefined,
+    from: orders.parseDateParam(filter.from),
+    to: orders.parseDateParam(filter.to),
+  });
+}
+
 /** What these orders are worth back. Gated on orders.refund rather than a read
  * grant: the quote exposes what a seller paid, and only the person who could
  * act on it needs to see it. */

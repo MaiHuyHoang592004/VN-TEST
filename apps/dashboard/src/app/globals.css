@@ -275,6 +275,25 @@
   h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
   }
+  /* FOCUS MUST NOT LAND UNDER THE THINGS THAT ARE PINNED TO THE VIEWPORT.
+     Sequential focus navigation scrolls the focused control into view with a
+     `nearest` alignment, i.e. flush against whichever edge it came from — and
+     this app pins two of those edges: the top nav (`sticky top-0`, 64px) plus,
+     on /orders, DataTable's sticky header under it, and the orders table's own
+     `sticky right-0` action rail, which holds the right edge once the sticky
+     header moves the horizontal scroll to the document. Tabbing to a cell's
+     copy or filter button parked it behind one of them, focus ring and all —
+     A11Y.md's "every interactive element shows a focus ring" and WCAG 2.2 SC
+     2.4.11.
+
+     Scroll padding on the scrollport is the fix, and the document IS the
+     scrollport in both axes here. The inline value is the widest that rail
+     gets: six 32px icon buttons, their gaps and the cell's padding. It costs
+     nothing on a page that does not scroll sideways, which is every other one. */
+  html {
+    scroll-padding-block-start: calc(var(--nav-height) + 3rem);
+    scroll-padding-inline-end: 15rem;
+  }
 }
 
 /* ============================================================

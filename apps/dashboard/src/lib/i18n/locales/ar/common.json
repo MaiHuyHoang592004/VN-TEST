@@ -5,6 +5,9 @@
   "error": "حدث خطأ ما. حدّث الصفحة وحاول مجددًا.",
   "close": "إغلاق",
   "cancel": "إلغاء",
+  "clear": "مسح",
+  "done": "تم",
+  "dateRange": "الفترة الزمنية",
   "pagination": {
     "selected": "تم تحديد {count}",
     "empty": "لا توجد نتائج",
@@ -18,6 +21,16 @@
     "selectAll": "تحديد كل الصفوف في هذه الصفحة",
     "toggleDetails": "عرض التفاصيل",
     "search": "بحث…",
-    "clear": "مسح"
+    "clear": "مسح",
+    "selectedCount": "تم تحديد {count}",
+    "pageSelected": "تم تحديد كل الصفوف الـ {count} في هذه الصفحة.",
+    "selectAllMatching": "تحديد كل الصفوف المطابقة ({count})",
+    "allMatchingSelected": "تم تحديد كل الصفوف المطابقة ({count}).",
+    "allMatchingSelectedCapped": "تم تحديد {count} من أصل {total} صف مطابق — وهو الحد الأقصى الذي يمكن تحديده دفعة واحدة. أي إجراء تالٍ سيُطبَّق على هذه الصفوف الـ {count} فقط.",
+    "clearSelection": "مسح التحديد",
+    "density": "كثافة الصفوف",
+    "densityCompact": "مضغوط",
+    "densityCozy": "مريح",
+    "densityFull": "كامل"
   }
 }

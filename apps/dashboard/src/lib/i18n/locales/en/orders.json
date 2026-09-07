@@ -17,6 +17,7 @@
   "colWarehouse": "Site",
   "colCost": "Cost",
   "colPlaced": "Placed",
+  "colActions": "Actions",
   "noMarketplace": "No marketplace",
   "empty": "No orders yet.",
   "emptyFiltered": "No orders match those filters.",
@@ -243,9 +244,58 @@
   },
   "thumb": {
     "design": "Print design",
+    "designInFolder": "Print design, from the artwork folder",
     "mockup": "Customer mockup",
     "label": "Shipping label",
-    "designFolder": "Open artwork folder"
+    "designFolder": "Open artwork folder",
+    "more": "More images",
+    "moreLabel": "Show {count} more images"
   },
-  "colCostShip": "Cost + ship"
+  "deadline": {
+    "column": "Deadline",
+    "none": "No deadline set",
+    "due": "Due {date}",
+    "dueToday": "Due today",
+    "dueTomorrow": "Due tomorrow",
+    "dueInDays": "In {count} days",
+    "overdueOne": "1 day late",
+    "overdue": "{count} days late"
+  },
+  "tracking": {
+    "copy": "Copy tracking number",
+    "copied": "Tracking number copied.",
+    "copyFailed": "Could not copy the tracking number.",
+    "track": "Track on the carrier's site"
+  },
+  "colCostShip": "Cost + ship",
+  "more": "More actions",
+  "destructive": "Careful",
+  "placedBetween": "Placed between",
+  "filterBySeller": "Show only this seller's orders",
+  "filterClearSeller": "Stop filtering by seller",
+  "filterBySite": "Show only this site's orders",
+  "filterClearSite": "Stop filtering by site",
+  "selectAll": {
+    "pending": "Finding every matching order…",
+    "done": "{count} orders selected.",
+    "capped": "Selected the first {count} of {total} matching orders. Anything you do next applies to those {count} only — narrow the filter to reach the rest.",
+    "failed": "Could not select every matching order. Try again."
+  },
+  "views": {
+    "action": "Views",
+    "presets": "Presets",
+    "preset": {
+      "overdue": "Overdue first",
+      "attention": "Needs attention",
+      "readyToShip": "Ready to ship",
+      "awaitingArtwork": "Awaiting artwork"
+    },
+    "saved": "Saved views",
+    "none": "No saved views yet. Filter the list, name it below, and it will be here on this browser.",
+    "name": "View name",
+    "namePlaceholder": "Name this view",
+    "save": "Save",
+    "remove": "Delete the view “{name}”",
+    "storageFailed": "This browser would not store the view — private windows and blocked site data both refuse."
+  }
 }

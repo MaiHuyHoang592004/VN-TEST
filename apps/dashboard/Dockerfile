@@ -34,6 +34,21 @@ COPY . .
 # secret. They live in the builder stage and never reach the runtime image.
 ENV DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder
 ENV AUTH_SECRET=build-only
+# THIS IMAGE BUILDS WITH sh, and says so rather than hoping.
+#
+# The repo root carries an .npmrc pinning `script-shell=bash`, which exists only
+# to stop npm on Windows handing scripts to cmd.exe. These stages are
+# node:24-alpine: /bin/sh is busybox ash — already POSIX, which is all these
+# scripts need — and there is no bash on PATH at all. When that file reached the
+# builder, every npm script died with `spawn bash ENOENT` and the build failed
+# at db:generate (deploy 9023b082).
+#
+# .dockerignore also excludes .npmrc, and that is the tidier of the two fixes.
+# This line stays anyway because it is the one that cannot be undone by editing
+# a different file: an .npmrc arriving by any route — a new COPY, a relaxed
+# ignore rule, a base image change — is overridden here, next to the build steps
+# it protects, where someone changing them will see it.
+ENV npm_config_script_shell=/bin/sh
 # Prisma client is generated into libs/db/src/generated and must exist before
 # the Next build type-checks against it.
 RUN npm run db:generate -w @gwprint/db

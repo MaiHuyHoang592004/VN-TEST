@@ -20,3 +20,18 @@ libs/db/src/generated
 .env
 .env.*
 !.env.example
+
+# The root .npmrc pins `script-shell=bash`, which exists ONLY so npm scripts
+# survive Windows — npm there defaults to cmd.exe, which cannot parse `lsof`,
+# `${VAR:-default}` or an inline `FOO=bar` prefix. These images are
+# node:24-alpine, whose /bin/sh is busybox ash: already a POSIX shell, and with
+# no bash on PATH at all. Copying the file in therefore breaks every npm script
+# in the build with `spawn bash ENOENT` — which is exactly how the 8cccd77
+# build failed at `npm run db:generate`.
+#
+# Excluded rather than answered with `apk add bash`: the container never had the
+# cmd.exe problem this file solves, so carrying a shell in the image to satisfy
+# a Windows workaround is fixing it in the wrong place. If a real build-time npm
+# config is ever needed (a private registry token, say), add that file under a
+# different name rather than un-ignoring this one.
+.npmrc

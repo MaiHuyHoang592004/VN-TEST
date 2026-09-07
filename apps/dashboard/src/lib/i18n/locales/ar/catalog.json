@@ -157,6 +157,7 @@
     "empty": "لا يوجد شيء متاح للطلب بعد.",
     "emptyFiltered": "لا توجد منتجات تطابق البحث.",
     "option": "خيار",
-    "resultCount": "{count} منتج"
+    "resultCount": "{count} منتج",
+    "copySku": "نسخ رمز SKU {sku}"
   }
 }

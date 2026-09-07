@@ -4,7 +4,7 @@ import { useState } from "react";
 import { LayoutGrid, List, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ProductCell, SearchField, Surface } from "@/components/ds";
+import { CopyButton, ProductCell, SearchField, Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 import { money } from "@/lib/money";
 
@@ -39,7 +39,11 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
         (p) =>
           p.name.toLowerCase().includes(needle) ||
           p.key.toLowerCase().includes(needle) ||
-          p.skus.some((s) => s.variantName.toLowerCase().includes(needle)),
+          p.skus.some(
+            (s) =>
+              s.variantName.toLowerCase().includes(needle) ||
+              (s.sku ?? "").toLowerCase().includes(needle),
+          ),
       )
     : products;
 
@@ -186,9 +190,26 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
                       key={s.id}
                       className="flex items-center justify-between gap-2 text-(length:--fs-meta)"
                     >
-                      <span className="truncate text-(--text-body)">{s.variantName}</span>
-                      <span className="font-mono tracking-(--ls-mono) tabular-nums">
-                        {money(s.price)}
+                      <span className="flex min-w-0 flex-col">
+                        <span className="truncate text-(--text-body)">{s.variantName}</span>
+                        {s.sku && (
+                          <span className="truncate font-mono text-(length:--fs-micro) tracking-(--ls-mono) text-(--text-muted)">
+                            {s.sku}
+                          </span>
+                        )}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-1.5">
+                        <span className="font-mono tracking-(--ls-mono) tabular-nums">
+                          {money(s.price)}
+                        </span>
+                        {s.sku && (
+                          <CopyButton
+                            value={s.sku}
+                            label={t("catalog.browse.copySku", { sku: s.sku })}
+                            variant="ghost"
+                            size="icon-sm"
+                          />
+                        )}
                       </span>
                     </div>
                   ))}
@@ -221,10 +242,15 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
                   {p.skus.map((s) => (
                     <span
                       key={s.id}
-                      className="inline-flex items-center rounded-(--radius-pill) bg-(--surface-inset) px-2.5 py-1 text-(length:--fs-meta) text-(--text-body)"
+                      className="inline-flex items-center gap-1.5 rounded-(--radius-pill) bg-(--surface-inset) px-2.5 py-1 text-(length:--fs-meta) text-(--text-body)"
                     >
-                      {s.variantName}
-                      <span className="ml-1.5 font-mono tracking-(--ls-mono) tabular-nums">
+                      <span>{s.variantName}</span>
+                      {s.sku && (
+                        <span className="font-mono text-(length:--fs-micro) tracking-(--ls-mono) text-(--text-muted)">
+                          {s.sku}
+                        </span>
+                      )}
+                      <span className="font-mono tracking-(--ls-mono) tabular-nums">
                         {money(s.price)}
                       </span>
                     </span>

@@ -157,6 +157,7 @@
     "empty": "Nothing is available to order yet.",
     "emptyFiltered": "No products match that search.",
     "option": "option",
-    "resultCount": "{count} products"
+    "resultCount": "{count} products",
+    "copySku": "Copy SKU {sku}"
   }
 }

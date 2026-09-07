@@ -157,6 +157,7 @@
     "empty": "暂无可订购的产品。",
     "emptyFiltered": "没有匹配的产品。",
     "option": "个选项",
-    "resultCount": "{count} 个产品"
+    "resultCount": "{count} 个产品",
+    "copySku": "复制 SKU {sku}"
   }
 }

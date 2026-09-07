@@ -157,6 +157,7 @@
     "empty": "注文できる商品はまだありません。",
     "emptyFiltered": "該当する商品がありません。",
     "option": "種類",
-    "resultCount": "{count} 件の製品"
+    "resultCount": "{count} 件の製品",
+    "copySku": "SKU {sku} をコピー"
   }
 }

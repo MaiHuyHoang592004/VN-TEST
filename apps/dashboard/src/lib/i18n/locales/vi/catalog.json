@@ -157,6 +157,7 @@
     "empty": "Chưa có sản phẩm nào để đặt.",
     "emptyFiltered": "Không có sản phẩm nào khớp.",
     "option": "tùy chọn",
-    "resultCount": "{count} sản phẩm"
+    "resultCount": "{count} sản phẩm",
+    "copySku": "Chép mã SKU {sku}"
   }
 }

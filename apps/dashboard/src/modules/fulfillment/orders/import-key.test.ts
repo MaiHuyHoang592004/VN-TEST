@@ -1,17 +1,21 @@
 /**
- * Khoá chống trùng của importer.
+ * Thứ tự dòng theo nội dung — phần THUẦN của khoá chống trùng, dùng được ở cả
+ * client và server.
  *
- * Khoá cũ nhúng VỊ TRÍ của dòng trong payload đã gửi — mà payload đã bị lọc bỏ
- * dòng không tra được SKU và bị cắt theo lô 50. Nên sửa một dòng rồi upload lại
- * làm xê dịch khoá của mọi dòng sau nó, và tạo đơn trùng được báo là thành công.
+ * Khoá cũ (writes.ts trước khi sửa) nhúng VỊ TRÍ của dòng trong payload đã gửi
+ * — mà payload đã bị lọc bỏ dòng không tra được SKU và bị cắt theo lô 50. Nên
+ * sửa một dòng rồi upload lại làm xê dịch khoá của mọi dòng sau nó, và tạo đơn
+ * trùng được báo là thành công.
  *
- * Khoá mới dùng nội dung + thứ tự xuất hiện của chính nội dung đó TRONG FILE, nên
- * không dòng nào phụ thuộc vào dòng khác.
+ * Khoá mới dùng nội dung + thứ tự xuất hiện của chính nội dung đó TRONG FILE —
+ * hai hàm ở đây tính đúng thứ tự đó. Phần ghép thứ tự này với sha256 thành khoá
+ * thật (importIdempotencyKey) nằm ở service/import-idempotency-key.test.ts,
+ * vì nó cần node:crypto và chỉ chạy được ở server.
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { canonicalRow, contentOrdinals, importIdempotencyKey } from "./import-key.ts";
+import { canonicalRow, contentOrdinals } from "./import-key.ts";
 
 test("canonicalRow bỏ qua thứ tự khoá", () => {
   // Thứ tự khoá đến từ thứ tự CỘT trong file seller. Đảo cột không được đổi khoá.
@@ -38,36 +42,4 @@ test("contentOrdinals đánh số các dòng giống hệt nhau theo thứ tự"
 
 test("contentOrdinals xen kẽ vẫn đúng", () => {
   assert.deepEqual(contentOrdinals([{ a: 1 }, { a: 2 }, { a: 1 }]), [1, 1, 2]);
-});
-
-test("khoá của một dòng KHÔNG đổi khi dòng khác bị xoá", () => {
-  // Đây là hồi quy chính: seller xoá dòng lỗi rồi upload lại.
-  const rows = [{ a: 1 }, { a: 2 }, { a: 3 }];
-  const before = contentOrdinals(rows);
-  const keyOfThird = importIdempotencyKey("u1", rows[2], before[2]);
-
-  const afterDelete = [{ a: 1 }, { a: 3 }];
-  const ords = contentOrdinals(afterDelete);
-  assert.equal(importIdempotencyKey("u1", afterDelete[1], ords[1]), keyOfThird);
-});
-
-test("khoá của một dòng KHÔNG đổi khi dòng khác được sửa", () => {
-  const rows = [{ a: 1 }, { a: 2 }];
-  const keyOfSecond = importIdempotencyKey("u1", rows[1], contentOrdinals(rows)[1]);
-
-  const fixed = [{ a: 99 }, { a: 2 }];
-  const ords = contentOrdinals(fixed);
-  assert.equal(importIdempotencyKey("u1", fixed[1], ords[1]), keyOfSecond);
-});
-
-test("owner khác thì khoá khác", () => {
-  assert.notEqual(
-    importIdempotencyKey("u1", { a: 1 }, 1),
-    importIdempotencyKey("u2", { a: 1 }, 1),
-  );
-});
-
-test("khoá mang tiền tố import: và độ dài ổn định", () => {
-  const key = importIdempotencyKey("u1", { a: 1 }, 1);
-  assert.match(key, /^import:u1:[0-9a-f]{32}:1$/);
 });

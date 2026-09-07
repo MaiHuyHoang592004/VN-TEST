@@ -1,4 +1,10 @@
-import { createHash } from "node:crypto";
+/**
+ * Thuần, không phụ thuộc runtime — an toàn để import từ CẢ client lẫn server.
+ * import-dialog.tsx ("use client") import contentOrdinals thẳng từ đây để tính
+ * thứ tự trước khi gửi lên server; phần cần node:crypto (importIdempotencyKey)
+ * cố ý nằm ở file riêng, service/import-idempotency-key.ts, để file này không
+ * bao giờ kéo một Node builtin vào bundle trình duyệt.
+ */
 
 /**
  * Một dòng import, ở dạng ổn định để băm.
@@ -40,19 +46,4 @@ export function contentOrdinals(rows: readonly unknown[]): number[] {
     seen.set(key, n);
     return n;
   });
-}
-
-/**
- * Khoá chống trùng cho một dòng import.
- *
- * Giữ nguyên tính chất mà createOrders vẫn bảo vệ: hai dòng THẬT SỰ giống hệt
- * nhau (đơn tách nhiều món) vẫn tạo hai đơn — chúng nhận ordinal 1 và 2.
- *
- * `ordinal` do client cấp, đúng mẫu assignSchema đã dùng cho idempotencyKey.
- * An toàn vì client vốn đã kiểm soát toàn bộ nội dung dòng, nên việc này không
- * mở thêm bề mặt nào.
- */
-export function importIdempotencyKey(owner: string, raw: unknown, ordinal: number): string {
-  const hash = createHash("sha256").update(canonicalRow(raw)).digest("hex").slice(0, 32);
-  return `import:${owner}:${hash}:${ordinal}`;
 }

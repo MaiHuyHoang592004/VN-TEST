@@ -20,7 +20,7 @@ import { can } from "@gwprint/shared";
 
 import { isDuplicateKey } from "../../../core/ledger.ts";
 import { notify, dispatchWebhook } from "../../../platform/index.ts";
-import { importIdempotencyKey } from "../import-key.ts";
+import { importIdempotencyKey } from "./import-idempotency-key.ts";
 import { orderSchema, type OrderInput } from "../schema.ts";
 import { editableAt } from "../status.ts";
 import { blankToNull, resumeTargetOf, type Actor } from "./shared.ts";

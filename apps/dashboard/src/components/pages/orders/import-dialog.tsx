@@ -11,10 +11,11 @@ import { FormDialog } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { resolveSkusAction } from "@/modules/catalog/product-variants/actions";
 import { createOrdersAction } from "@/modules/fulfillment/orders/actions";
+import { contentOrdinals } from "@/modules/fulfillment/orders/import-key";
 
 import { COLUMN_ALIASES, PREVIEW_COLUMNS, TEMPLATE_HEADERS, parseCsv } from "./import-columns";
 
-type RowResult = { column: number; ok: boolean; error?: string };
+type RowResult = { column: number; ok: boolean; deduped?: boolean; error?: string };
 
 /** Rows per request. Keeps a big paste off one long-running action without
  * making the whole file one transaction — each column commits independently. */
@@ -112,11 +113,27 @@ export function ImportDialog({
     // preview marked up, so what was flagged is exactly what is skipped.
     const ids = skuIds;
 
+    // Dựng dòng ứng viên cho MỌI dòng đã parse — kể cả dòng sẽ không được gửi —
+    // rồi đếm thứ tự trên toàn bộ file. Ordinal phải phản ánh vị trí trong FILE
+    // của seller, không phải trong payload đã lọc và đã cắt lô, nếu không nó
+    // chính là cái vị-trí-trong-payload mà thay đổi này sinh ra để loại bỏ.
+    //
+    // Dòng không tra được SKU không bao giờ dùng ordinal của nó và không thể
+    // chiếm chỗ của dòng được gửi: nội dung giống hệt nhau thì tra SKU cũng ra
+    // kết quả giống nhau.
+    const candidates = rows.map((r, i) => ({
+      ...r,
+      quantity: Number(r.quantity),
+      productVariantId: ids[i],
+    }));
+    const ordinals = contentOrdinals(candidates);
+
     const all: RowResult[] = [];
     for (let start = 0; start < rows.length; start += BATCH) {
       const slice = rows.slice(start, start + BATCH);
       const payload: Record<string, unknown>[] = [];
       const rowIndex: number[] = [];
+      const batchOrdinals: number[] = [];
 
       slice.forEach((r, i) => {
         const abs = start + i;
@@ -129,14 +146,25 @@ export function ImportDialog({
         // Send exactly what the cell held. `|| 1` used to turn 0/blank/garbage
         // into a silent 1 — the server's real validation, and the per-row
         // error this dialog already renders, could never see the real value.
-        payload.push({ ...r, quantity: Number(r.quantity), productVariantId: ids[abs] });
+        payload.push(candidates[abs]);
         rowIndex.push(abs);
+        batchOrdinals.push(ordinals[abs]);
       });
 
       if (payload.length) {
-        const res = await createOrdersAction(payload);
+        const res = await createOrdersAction(payload, undefined, batchOrdinals);
+        if (!res.ok) {
+          // orderBatchSchema chỉ chặn số lượng (client đã cắt lô 50, dưới trần
+          // 500 — nhánh này không xảy ra qua đường dùng bình thường, nhưng
+          // union type buộc phải xử lý, và một caller khác trong tương lai có
+          // thể chạm tới nó thật).
+          rowIndex.forEach((abs) =>
+            all.push({ column: abs, ok: false, error: t("orders.errBatchTooLarge") }),
+          );
+          continue;
+        }
         res.results.forEach((r, i) =>
-          all.push({ column: rowIndex[i], ok: r.ok, error: r.error }),
+          all.push({ column: rowIndex[i], ok: r.ok, deduped: r.deduped, error: r.error }),
         );
       }
     }
@@ -147,7 +175,10 @@ export function ImportDialog({
   };
 
   const failed = results?.filter((r) => !r.ok) ?? [];
-  const created = results?.filter((r) => r.ok).length ?? 0;
+  const deduped = results?.filter((r) => r.ok && r.deduped).length ?? 0;
+  // `created` phải KHÔNG gộp dòng dedupe — nếu không, upload lại một file báo
+  // "137 đơn mới" khi không tạo gì cả.
+  const created = (results?.filter((r) => r.ok).length ?? 0) - deduped;
   /** Row indexes whose SKU reference resolved to nothing. */
   const unresolved = rows
     .map((_, i) => i)
@@ -297,6 +328,9 @@ export function ImportDialog({
         <div className="flex flex-col gap-3">
           <div className="flex gap-2">
             <Badge>{t("orders.importCreated").replace("{count}", String(created))}</Badge>
+            {deduped > 0 && (
+              <Badge variant="secondary">{t("orders.importDeduped", { count: deduped })}</Badge>
+            )}
             {failed.length > 0 && (
               <Badge variant="destructive">
                 {t("orders.importFailed").replace("{count}", String(failed.length))}

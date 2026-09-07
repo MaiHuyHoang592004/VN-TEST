@@ -22,6 +22,11 @@ export { Page, PageHeader, PageSection, PageToolbar } from "./page";
 export { PageTabs } from "./page-tabs";
 export { SearchField, type SearchFieldProps } from "./search-field";
 export { SectionHeading, type SectionHeadingProps } from "./section-heading";
+export {
+  SegmentedControl,
+  type SegmentedControlOption,
+  type SegmentedControlProps,
+} from "./segmented-control";
 export { StatusBadge, type StatusBadgeProps } from "./status-badge";
 export { STATUS_TONES, toneFor, type StatusTone } from "./status-tones";
 export { Surface, type SurfaceProps } from "./surface";

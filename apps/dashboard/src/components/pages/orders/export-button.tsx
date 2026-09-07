@@ -10,10 +10,21 @@ import { Spinner } from "@/components/ui/spinner";
 import { useTranslation } from "@/lib/i18n";
 import { exportOrdersAction } from "@/modules/fulfillment/orders/actions";
 
+import { readOrderFilter } from "./order-filters";
+
 /**
  * Export what is on screen: the current filter, or the selection when there is
  * one. The result is a LINK the browser fetches, not a streamed action
  * response — a 50k-column workbook is megabytes (same reason as the label bundle).
+ *
+ * THE FILTER IS READ FROM ONE PLACE. This button used to build its own query
+ * out of `?q` and `?status` and nothing else, so it never saw the tab chips,
+ * the site or seller filters, or the date window: an operator standing on
+ * "Needs attention" who pressed Export got a spreadsheet of every order in
+ * every status, with no indication that the filter on screen had been ignored.
+ * That is the same divergence `readOrderFilter` was written to close for
+ * select-all, and rule 2 of the export service ("the export is the filter")
+ * only holds while both sides read the one filter.
  */
 export function ExportButton({ orderIds }: { orderIds: number[] }) {
   const params = useSearchParams();
@@ -22,11 +33,12 @@ export function ExportButton({ orderIds }: { orderIds: number[] }) {
 
   const run = async () => {
     setPending(true);
-    const status = params.get("status");
+    // An explicit selection NARROWS the export; the filter still travels with
+    // it, so the two intersect rather than the ids widening it back out to
+    // rows the operator had filtered away.
     const result = await exportOrdersAction({
+      ...readOrderFilter((key) => params.get(key)),
       ...(orderIds.length ? { ids: orderIds } : {}),
-      ...(params.get("q") ? { search: params.get("q") } : {}),
-      ...(status ? { status: [status] } : {}),
     });
     setPending(false);
 

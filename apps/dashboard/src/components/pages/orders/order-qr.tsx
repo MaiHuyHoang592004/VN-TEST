@@ -336,7 +336,12 @@ function OrderCodePanel({
                 label={t("orders.colPlaced")}
                 value={[
                   order.marketplace,
-                  order.placedAt ? new Date(order.placedAt).toLocaleDateString() : null,
+                  // UTC, like the Placed column this mirrors — see orders-table.tsx.
+                  order.placedAt
+                    ? new Date(order.placedAt).toLocaleDateString(undefined, {
+                        timeZone: "UTC",
+                      })
+                    : null,
                 ]
                   .filter(Boolean)
                   .join(" · ")}

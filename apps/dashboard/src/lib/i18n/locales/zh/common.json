@@ -5,6 +5,9 @@
   "error": "出错了，请刷新后重试。",
   "close": "关闭",
   "cancel": "取消",
+  "clear": "清除",
+  "done": "完成",
+  "dateRange": "日期范围",
   "pagination": {
     "selected": "已选 {count} 项",
     "empty": "无结果",
@@ -18,6 +21,16 @@
     "selectAll": "选择本页所有行",
     "toggleDetails": "查看详情",
     "search": "搜索…",
-    "clear": "清除"
+    "clear": "清除",
+    "selectedCount": "已选 {count} 项",
+    "pageSelected": "本页 {count} 项已全选。",
+    "selectAllMatching": "选择匹配的全部 {count} 项",
+    "allMatchingSelected": "已选中全部 {count} 行匹配结果。",
+    "allMatchingSelectedCapped": "已选中 {total} 行匹配结果中的 {count} 行 —— 这是一次可选的上限。接下来的操作仅作用于这 {count} 行。",
+    "clearSelection": "取消选择",
+    "density": "行高",
+    "densityCompact": "紧凑",
+    "densityCozy": "适中",
+    "densityFull": "宽松"
   }
 }

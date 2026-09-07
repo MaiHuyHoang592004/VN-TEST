@@ -5,6 +5,9 @@
   "error": "Une erreur est survenue. Actualisez et réessayez.",
   "close": "Fermer",
   "cancel": "Annuler",
+  "clear": "Effacer",
+  "done": "Terminé",
+  "dateRange": "Période",
   "pagination": {
     "selected": "{count} sélectionné(s)",
     "empty": "Aucun résultat",
@@ -18,6 +21,16 @@
     "selectAll": "Sélectionner toutes les lignes de cette page",
     "toggleDetails": "Afficher les détails",
     "search": "Rechercher…",
-    "clear": "Effacer"
+    "clear": "Effacer",
+    "selectedCount": "{count} sélectionné(s)",
+    "pageSelected": "Les {count} lignes de cette page sont sélectionnées.",
+    "selectAllMatching": "Sélectionner les {count} correspondantes",
+    "allMatchingSelected": "Les {count} lignes correspondantes sont sélectionnées.",
+    "allMatchingSelectedCapped": "{count} des {total} lignes correspondantes sont sélectionnées — le maximum pouvant être sélectionné en une fois. Les actions suivantes ne s’appliqueront qu’à ces {count} lignes.",
+    "clearSelection": "Effacer la sélection",
+    "density": "Densité des lignes",
+    "densityCompact": "Compacte",
+    "densityCozy": "Normale",
+    "densityFull": "Large"
   }
 }

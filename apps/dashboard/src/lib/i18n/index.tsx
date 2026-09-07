@@ -54,6 +54,16 @@ function subscribeLocale(onChange: () => void) {
   };
 }
 
+/**
+ * The values a translated string interpolates, by placeholder name.
+ *
+ * Numbers are formatted with `toLocaleString()` on the way in, because every
+ * placeholder this app has is a COUNT and a count printed as "5312" in a
+ * sentence that says "5,312" everywhere else is a bug in six locales at once.
+ * Pass a string when the raw form is what you mean.
+ */
+export type TranslationVars = Record<string, string | number>;
+
 interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
@@ -63,26 +73,26 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-/** Values substituted into a string's `{placeholders}`. */
-export type TranslationVars = Record<string, string | number>;
-
 /**
- * Fills `{name}` placeholders.
+ * Substitute EVERY occurrence of every placeholder.
  *
- * Needed because a rule sentence carries a number ("Tối đa 64 ký tự") and the
- * number does NOT sit in the same place in every language — Japanese puts it
- * first, Arabic reads right to left. Concatenating in JS would hard-code
- * English word order into all seven locales; only the translator can decide
- * where the placeholder goes.
+ * Call sites used to do this themselves with `.replace("{count}", …)`, and
+ * `String.prototype.replace` given a string pattern replaces the FIRST match
+ * only — so `orders.selectAll.capped`, which names `{count}` twice, rendered a
+ * literal `{count}` in six of the seven locales, inside a permanent warning
+ * toast about the scope of a bulk refund. One helper rather than a rule nobody
+ * can enforce: a translator repeating a token is a normal thing for a
+ * translator to do, and nothing in a JSON file can stop them.
  *
- * An unmatched placeholder is left verbatim rather than blanked, so a missing
- * variable shows up as `{max}` on screen instead of a sentence that silently
- * lost its number.
+ * A split/join rather than a RegExp built from the key: placeholder names are
+ * ours, but building a pattern out of a value is a habit that eventually meets
+ * a value with a `(` in it.
  */
-function interpolate(text: string, vars?: TranslationVars): string {
-  if (!vars) return text;
-  return text.replace(/\{(\w+)\}/g, (whole, name: string) =>
-    name in vars ? String(vars[name]) : whole,
+function interpolate(text: string, vars: TranslationVars): string {
+  return Object.entries(vars).reduce(
+    (out, [name, value]) =>
+      out.split(`{${name}}`).join(typeof value === "number" ? value.toLocaleString() : value),
+    text,
   );
 }
 
@@ -148,8 +158,10 @@ export function I18nProvider({
 
   // Fall back to English, then to the key itself (visible = easy to spot).
   const t = useCallback(
-    (key: string, vars?: TranslationVars) =>
-      interpolate(lookup(locale, key) ?? lookup("en", key) ?? key, vars),
+    (key: string, vars?: TranslationVars) => {
+      const text = lookup(locale, key) ?? lookup("en", key) ?? key;
+      return vars ? interpolate(text, vars) : text;
+    },
     [locale]
   );
 

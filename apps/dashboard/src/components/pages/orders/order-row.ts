@@ -1,15 +1,32 @@
 import "server-only";
 
+import { parseDriveUrl } from "@gwprint/shared";
+
 import type { OrderRow } from "@/components/pages/orders/orders-table";
+
+/**
+ * The Drive FOLDER an order's design lives in, or null.
+ *
+ * Deliberately narrower than `parseDriveUrl`, which also recognises a Drive
+ * FILE link: a file is already something an <img> can render, and calling it a
+ * folder would send the row down the resolve path for a picture it already has.
+ */
+const driveFolderId = (url: string | null): string | null => {
+  const ref = parseDriveUrl(url);
+  return ref?.kind === "folder" ? ref.id : null;
+};
 
 /**
  * One Prisma order → the row shape the table and the detail page both render.
  *
- * Extracted from the list page the day /orders/[id] needed the same shape.
- * Forty-five field mappings copied into a second file is the kind of
- * duplication that does not announce itself when it drifts — the copy simply
- * stops carrying a field, and one screen quietly shows a blank where the other
- * shows a phone number.
+ * Lifted out of the list page the day /orders/[id] needed the same shape.
+ * Fifty field mappings copied into a second file is the kind of duplication
+ * that does not announce itself when it drifts — the copy simply stops
+ * carrying a field, and one screen quietly shows a blank where the other shows
+ * a phone number. The artwork fields especially: `mockupFolderId`,
+ * `mockupStatus` and `designFolderId` are three halves of one decision
+ * (designSlot in order-thumb.tsx), and a screen holding two of them draws the
+ * wrong thumbnail rather than none.
  *
  * Two conversions are the whole reason this is not a spread:
  *   Decimal → string, because a float loses cents on the way to the client;
@@ -31,7 +48,13 @@ baseCost: o.baseCost?.toFixed(2) ?? null,
 placedAt: o.placedAt.toISOString(),
 deadline: o.deadline?.toISOString() ?? null,
 customerName: o.customer?.name ?? o.customer?.email ?? null,
+// The IDs behind the two names, so the Seller and Site cells can
+// filter to them. Both were already in ORDER_LIST_SELECT — the row
+// simply never carried them, and a display name is not something a
+// query can be narrowed by.
+customerId: o.customer?.id ?? null,
 warehouseCode: o.warehouse?.code ?? null,
+warehouseId: o.warehouse?.id ?? null,
 productName: o.product?.name ?? null,
 variantName: o.variant?.name ?? null,
 sku: o.productVariant?.sku ?? null,
@@ -43,7 +66,25 @@ sku: o.productVariant?.sku ?? null,
 // only the second of these may ever reach an <img>; the first is a
 // link. That is the whole reason this column used to render a broken
 // glyph on every row.
+//
+// The three fields under them are what let the row stop drawing a
+// folder icon for EVERY design. `folderId` says which folder the
+// mockup was resolved out of, `status` remembers a folder already
+// tried and found unreadable, and `designFolderId` is the design's
+// own folder id — equal to the first means the design and the mockup
+// are literally the same picture and the row draws it once.
+//
+// Parsed HERE and not in the browser so the client never re-derives
+// it per render; parseDriveUrl is pure, so it costs a regex per row.
+// Running `npm run db:backfill:mockups` from libs/db resolves every
+// folder in bulk and turns the whole table into the merged case.
 mockupThumbnail: o.mockup?.thumbnail ?? null,
+mockupFolderId: o.mockup?.folderId ?? null,
+mockupStatus: o.mockup?.status ?? null,
+// FOLDER only. parseDriveUrl also recognises a Drive FILE link, and
+// one of those is already something an <img> can be pointed at — it
+// must not be mistaken for a container to resolve.
+designFolderId: driveFolderId(o.imageUrl),
 imageUrl: o.imageUrl,
 proofImageUrl: o.proofImageUrl,
 shipmentId: o.shipments[0]?.id ?? null,

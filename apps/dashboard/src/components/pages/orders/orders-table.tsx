@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Image as ImageIcon, Package, Pencil, RefreshCw, Ban, StickyNote, FolderOpen } from "lucide-react";
 
-import { ProductCell, StatusBadge } from "@/components/ds";
+import { DateRangeField, ProductCell, SegmentedControl, StatusBadge } from "@/components/ds";
 import {
   Select,
   SelectContent,
@@ -14,32 +14,56 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   DataTable,
   DataTablePagination,
   DataTableToolbar,
   useTableParams,
   type Column,
+  type TableDensity,
 } from "@/components/global/data-table";
 import { Button } from "@/components/ui/button";
 import { Can } from "@/components/global/permission-gate";
 import { usePermissions } from "@/hooks/use-permissions";
 import { useTranslation } from "@/lib/i18n";
-import { recalcOrdersAction } from "@/modules/fulfillment/orders/actions";
+import { cn } from "@/lib/utils";
+import {
+  recalcOrdersAction,
+  selectAllOrderIdsAction,
+} from "@/modules/fulfillment/orders/actions";
 
 import { OrderStatusActions } from "./order-status-actions";
 import { OrderQr, orderQrProps } from "./order-qr";
 import { OrderMobileCard } from "./order-mobile-card";
 import { OrderProofAction } from "./order-proof-action";
+import { OrderDeadline } from "./order-deadline";
+import { OrderTrackingCell } from "./order-tracking";
+import {
+  Thumb,
+  TaggedWell,
+  WELL,
+  designSlot,
+  orderShots,
+  shotIndex,
+} from "./order-thumb";
+import { ArtworkLightbox } from "./artwork-lightbox";
 import { RefundDialog } from "./refund-dialog";
 import { ArtworkDialog } from "./artwork-dialog";
-import { ArtworkLightbox } from "./artwork-lightbox";
-import { driveFolder, orderShots, shotIndex } from "./artwork-shots";
-import { ExportButton } from "./export-button";
 import { StatusSummary, type StatusSummaryRow } from "./status-summary";
 import { OrderTimeline } from "./order-timeline";
 import { BuyLabelsButton } from "./buy-labels-button";
-import { DownloadLabelsButton } from "./download-labels-button";
+import { OrderMoreActions } from "./order-more-actions";
+import { SavedViews } from "./saved-views";
+import {
+  ORDER_FILTER_KEYS,
+  SELLER_PARAM,
+  WAREHOUSE_PARAM,
+  formatDayParam,
+  hasOrderFilters,
+  parseDayParam,
+  readOrderFilter,
+} from "./order-filters";
 import { OrderDialog } from "./order-dialog";
 import { VoidLabelDialog } from "./void-label-dialog";
 import { AssignDialog } from "./assign-dialog";
@@ -59,13 +83,30 @@ export type OrderRow = {
   placedAt: string;
   deadline: string | null;
   customerName: string | null;
+  /** The seller's `User.id` (a cuid), carried so the Seller cell can filter to
+   * it. The NAME cannot: two accounts may share a display name, and the query
+   * takes an id. Already in ORDER_LIST_SELECT — the row simply never asked. */
+  customerId: string | null;
   warehouseCode: string | null;
+  /** The site's numeric id, for the same reason as `customerId`: the Site cell
+   * filters by `?site=<id>` and the code is only what the cell prints. */
+  warehouseId: number | null;
   productName: string | null;
   variantName: string | null;
   sku: string | null;
-  /** The MOCKUP, already an image endpoint — the row's one renderable
-   *  picture. The design is `imageUrl`, and that one is a folder. */
+  /** The MOCKUP's stored image endpoint — already a `drive.google.com/
+   *  thumbnail?id=` url, so it needs no resolving. */
   mockupThumbnail: string | null;
+  /** The Drive folder that mockup was RESOLVED out of, or null when it was
+   *  attached by hand. Equal to `designFolderId` means the design and the
+   *  mockup are the same picture — see designSlot() in order-thumb.tsx. */
+  mockupFolderId: string | null;
+  /** "unresolved" once a folder has been tried and found unreadable; the
+   *  stored memo that stops us asking Drive again on every render. */
+  mockupStatus: string | null;
+  /** `imageUrl`'s Drive folder id, parsed on the server. Null when the design
+   *  is an ordinary uploaded image (or absent). */
+  designFolderId: string | null;
   imageUrl: string | null;
   proofImageUrl: string | null;
   shipmentId: number | null;
@@ -96,59 +137,121 @@ export type OrderRow = {
   country: string | null;
 };
 
-
 /**
- * One 32px image in the order row's strip, corner-tagged so the three are
- * telling apart at a glance: D design · M mockup · L shipping label.
+ * How many wells the strip draws before it collapses the rest behind "+N".
  *
- * The tag is a one-letter chip, not a colour: three thumbnails distinguished
- * only by hue would be unreadable to anyone who does not see the hues, and
- * would need a legend nobody reads. The full word is the accessible name.
+ * A row can hold four pictures — design, mockup, label, packing proof — and
+ * four of them plus their gaps is 140px of a column that also has to carry the
+ * order id and up to three lines of text. Unbounded, the strip took the width
+ * and the browser gave the primary key whatever was left, which is how the id
+ * rendered as "416…" on row after row in production.
  *
- * Cream well, never grey — the DS's rule for anything holding a product image.
- *
- * A load failure is handled here rather than left to the browser: every source
- * is third-party (a Drive file whose sharing can change, a carrier's label
- * host), and a broken-image glyph in a dense table reads as "the app is
- * broken". An empty well reads as "no picture", which is the truth, and keeps
- * its tag so the row still says which slot came up empty.
+ * Three SLOTS, not three pictures: at four, two are drawn and the last two go
+ * behind one chip, so the strip is exactly the same width whether the row has
+ * three pictures or four. Most rows now need at most three anyway — the design
+ * and the mockup merge into one well whenever the mockup was resolved out of
+ * the design's own folder.
  */
-function Thumb({ src, tag, label }: { src: string; tag: string; label: string }) {
-  const [failed, setFailed] = useState(false);
-  return (
-    <span className="relative block shrink-0">
-      {failed ? (
-        <span className="flex size-8 items-center justify-center rounded-(--radius-xs) bg-(--cream-200)">
-          <ImageIcon className="size-4 stroke-(--icon-muted)" aria-hidden />
-          <span className="sr-only">{label}</span>
-        </span>
-      ) : (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt={label}
-          onError={() => setFailed(true)}
-          className="size-8 rounded-(--radius-xs) bg-(--cream-200) object-cover"
-        />
-      )}
-      <span
-        aria-hidden
-        className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-(--radius-pill) bg-(--navy-700) font-mono text-[0.5625rem] leading-none font-bold text-(--gwp-white)"
-      >
-        {tag}
-      </span>
-    </span>
-  );
-}
+const MAX_WELLS = 3;
 
 /**
- * The wrapper that turns a well into the panel's trigger.
+ * The pinned row-action rail.
  *
- * `stopPropagation` is not optional here: the well sits inside a row that has
- * its own click, and without it opening the artwork would also fire whatever
- * the row does. DataTable's interactive-target guard would catch a <button>
- * anyway — this states it at the source rather than relying on a selector list
- * in another file.
+ * The actions used to sit between the warehouse code and the placed date, and
+ * at ~1150px of viewport both they and the date were off-screen to the right:
+ * the six things an operator does to an order were unreachable without
+ * horizontal scrolling. They now sit LAST and stay put while the rest of the
+ * table scrolls under them.
+ *
+ * A sticky cell rather than an overflow menu: a frozen last column is exactly
+ * what `position: sticky` is for, and it costs no extra click on the actions
+ * people take most.
+ *
+ * WHICH SCROLLPORT IT PINS AGAINST MOVED, and the classes did not have to.
+ * This was written when the card and ui/table's container were both
+ * `overflow-x-auto` and the rail froze against the card. The table now passes
+ * `stickyHeader`, which switches both of those wrappers to `overflow: visible`
+ * so the pinned header is not captured by a box that never scrolls vertically —
+ * and the horizontal scroll therefore moves to the PAGE. `right-0` is resolved
+ * against whatever the nearest scrollport is, so the rail now holds against the
+ * viewport's right edge instead of the card's. Same rule, same CSS, same
+ * outcome for the reader: the six things an operator does to an order are never
+ * scrolled out of reach.
+ *
+ * `z-10` DELIBERATELY RANKS BELOW THE STICKY HEADER, which is `z-20`. It used
+ * to be the same rank, on the reasoning that the two only ever meet in the
+ * actions HEADER cell — which reasons about the columns and misses the axis
+ * pinning the header adds: every row's rail passes THROUGH the header band on
+ * the way up the page, and two positioned boxes of equal rank are painted in
+ * tree order, so `<tbody>` won. The result was an opaque rail with six live
+ * buttons sitting on top of the column names, belonging to a row whose other
+ * cells had correctly slid underneath. One rank apart and the rail goes under
+ * the header like every other cell, while still holding the right edge against
+ * the page.
+ *
+ * The three variants are not decoration. The row paints hover / open / selected
+ * on the <tr>, and a pinned cell carrying its own opaque fill would sit there
+ * stubbornly white while the rest of the row changed colour. There is no group
+ * on the row to hook, so the cell restates the same three rules ui/table.tsx
+ * applies — same tokens, scoped to `tbody` so hovering the header does not
+ * paint the pinned header cell sky.
+ */
+/**
+ * "This cell may wrap."
+ *
+ * Every <td> is whitespace-nowrap by default (components/ui/table.tsx), which
+ * is right for a badge or a figure and wrong for "Custom Shape 2-Layer Wooden
+ * And White Acrylic Sign": on one unbroken line that is 380px of a 1440px
+ * screen, and a dozen such columns pushed the table past any laptop. Sticky
+ * actions keep the buttons reachable; they do not stop somebody dragging
+ * sideways to read a status.
+ *
+ * Letting the prose columns wrap hands the browser's auto layout enough slack
+ * to fit the table to its container again. The rows get taller, which is the
+ * cheap direction and the one the density switch already trades in.
+ *
+ * cn() runs tailwind-merge, so this beats the primitive's nowrap without
+ * touching the seven other tables built on it.
+ */
+const WRAP = "whitespace-normal";
+
+const ACTIONS_CELL =
+  "sticky right-0 z-10 bg-(--surface-data) " +
+  "[tbody_tr:hover_&]:bg-sky-50 " +
+  "[tbody_tr:has([aria-expanded=true])_&]:bg-sky-50 " +
+  "[tbody_tr[data-state=selected]_&]:bg-sky-100";
+
+/**
+ * The order's pictures, corner-tagged: D design · M mockup · L label ·
+ * P packing proof.
+ *
+ * D IS A PICTURE AGAIN. It used to be a folder icon on every single row,
+ * because `imageUrl` is a Google Drive FOLDER (489/489 rows) and a folder url
+ * in an <img> asks Drive for a login page and gets one. That was the right
+ * answer while nothing could turn a folder into an image; the resolver chain
+ * now exists end to end (libs/shared's parseDriveUrl/pickArtworkFile, libs/db's
+ * resolveOrderMockup, and GET /api/orders/<id>/thumb as the lazy net), so the
+ * row knows which of four cases it is in and draws accordingly. designSlot()
+ * in order-thumb.tsx is where that decision lives, with the cases written out.
+ *
+ * In the merged case the tag still says D and the link still goes to the
+ * FOLDER: the picture is the design, resolved out of its folder, and the folder
+ * is still where a human goes to see all the print files at full size. The M
+ * slot is suppressed for that row rather than drawing the identical square
+ * twice.
+ *
+ * Each slot is drawn only when its image exists. A row with no artwork at all
+ * keeps ONE empty cream well as the column's anchor, so the text beside it
+ * starts at the same x on every row.
+ */
+/**
+ * The wrapper that turns a well into the artwork panel's trigger.
+ *
+ * `stopPropagation` is not optional: the well sits inside a row with its own
+ * click, and without it opening the artwork would fire whatever the row does.
+ * DataTable's interactive-target guard would catch a <button> anyway — this
+ * states it at the source rather than relying on a selector list in another
+ * file.
  */
 function ThumbButton({
   onClick,
@@ -168,36 +271,257 @@ function ThumbButton({
       }}
       title={label}
       aria-label={label}
-      className="shrink-0 rounded-(--radius-xs) transition-opacity duration-(--dur-fast) hover:opacity-75 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
+      className="block shrink-0 rounded-(--radius-xs) transition-opacity duration-(--dur-fast) ease-(--ease-out) hover:opacity-75 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
     >
       {children}
     </button>
   );
 }
 
-/** The design slot when the design is a folder: what it is, drawn as what it
- *  is. Same 32px footprint as a picture so the strip stays on one grid. */
-function FolderWell() {
-  return (
-    <span className="relative flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200) transition-colors duration-(--dur-fast) hover:bg-(--cream-300) motion-reduce:transition-none">
+function ArtworkStrip({
+  order,
+  onOpen,
+}: {
+  order: OrderRow;
+  /** Open the row's artwork panel on the picture that was pressed. */
+  onOpen: (index: number) => void;
+}) {
+  const { t } = useTranslation();
+  const slot = designSlot(order);
+  const shots = orderShots(order);
+  const at = (kind: Parameters<typeof shotIndex>[1]) => shotIndex(shots, kind);
+
+  const linkClass =
+    "block rounded-(--radius-xs) transition-opacity duration-(--dur-fast) ease-(--ease-out) hover:opacity-75 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none";
+
+  // The honest answer for a folder we cannot draw — and the degrade target for
+  // a lazy resolve that 404s, so a private folder never shows a broken glyph.
+  const folderWell = (
+    <span className={cn(WELL, "flex items-center justify-center")}>
       <FolderOpen className="size-4 stroke-(--icon-default)" aria-hidden />
-      <span
-        aria-hidden
-        className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-(--radius-pill) bg-(--navy-700) font-mono text-[0.5625rem] leading-none font-bold text-(--gwp-white)"
-      >
-        D
-      </span>
+      <span className="sr-only">{t("orders.thumb.designFolder")}</span>
     </span>
+  );
+
+  const wells: { key: string; label: string; node: ReactNode }[] = [];
+
+  if (slot?.kind === "merged" || slot?.kind === "resolve") {
+    const label = t(
+      slot.kind === "merged" ? "orders.thumb.designInFolder" : "orders.thumb.design",
+    );
+    wells.push({
+      key: "design",
+      label,
+      node: (
+        <ThumbButton onClick={() => onOpen(at("design"))} label={label}>
+          <Thumb src={slot.src} tag="D" label={label} fallback={folderWell} />
+        </ThumbButton>
+      ),
+    });
+  } else if (slot?.kind === "folder") {
+    wells.push({
+      key: "design",
+      label: t("orders.thumb.designFolder"),
+      node: (
+        <a
+          href={slot.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          title={t("orders.thumb.designFolder")}
+          aria-label={t("orders.thumb.designFolder")}
+          className={linkClass}
+        >
+          <TaggedWell tag="D">{folderWell}</TaggedWell>
+        </a>
+      ),
+    });
+  } else if (slot?.kind === "image") {
+    // An uploaded image, rendered as itself — and clicking it opens the code
+    // panel on its image view, as it always has.
+    wells.push({
+      key: "design",
+      label: t("orders.thumb.design"),
+      node: (
+        <ThumbButton onClick={() => onOpen(at("design"))} label={t("orders.thumb.design")}>
+          <Thumb src={slot.src} tag="D" label={t("orders.thumb.design")} />
+        </ThumbButton>
+      ),
+    });
+  }
+
+  // M — the customer-facing mockup. Suppressed when D already IS it.
+  if (order.mockupThumbnail && slot?.kind !== "merged") {
+    wells.push({
+      key: "mockup",
+      label: t("orders.thumb.mockup"),
+      node: (
+        <ThumbButton onClick={() => onOpen(at("mockup"))} label={t("orders.thumb.mockup")}>
+          <Thumb src={order.mockupThumbnail} tag="M" label={t("orders.thumb.mockup")} />
+        </ThumbButton>
+      ),
+    });
+  }
+
+  if (order.labelUrl) {
+    wells.push({
+      key: "label",
+      label: t("orders.thumb.label"),
+      node: (
+        <ThumbButton onClick={() => onOpen(at("label"))} label={t("orders.thumb.label")}>
+          <Thumb src={order.labelUrl} tag="L" label={t("orders.thumb.label")} />
+        </ThumbButton>
+      ),
+    });
+  }
+
+  // The packed-parcel photo. Beside the others rather than instead of them: a
+  // packer comparing design to parcel is why both exist. It goes through Thumb
+  // like every sibling now — rendered raw, a dead link drew exactly the
+  // broken-image glyph Thumb was written to prevent. Its green ring is not the
+  // only signal; the tag and the alt text say what it is.
+  if (order.proofImageUrl) {
+    wells.push({
+      key: "proof",
+      label: t("orders.proof.thumb"),
+      node: (
+        <ThumbButton onClick={() => onOpen(at("proof"))} label={t("orders.proof.thumb")}>
+          <Thumb
+            src={order.proofImageUrl}
+            tag="P"
+            label={t("orders.proof.thumb")}
+            ring="ring-2 ring-(--status-success-dot)"
+          />
+        </ThumbButton>
+      ),
+    });
+  }
+
+  if (wells.length === 0) {
+    return (
+      <div className="flex shrink-0 items-center gap-1">
+        <span className={cn(WELL, "flex items-center justify-center")}>
+          <Package className="size-4 stroke-(--icon-muted)" aria-hidden />
+        </span>
+      </div>
+    );
+  }
+
+  const capped = wells.length > MAX_WELLS;
+  const visible = capped ? wells.slice(0, MAX_WELLS - 1) : wells;
+  const hidden = capped ? wells.slice(MAX_WELLS - 1) : [];
+
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      {visible.map((w) => (
+        <span key={w.key}>{w.node}</span>
+      ))}
+      {hidden.length > 0 && (
+        <Popover>
+          <PopoverTrigger
+            render={
+              <button
+                type="button"
+                onClick={(e) => e.stopPropagation()}
+                aria-label={t("orders.thumb.moreLabel").replace(
+                  "{count}",
+                  String(hidden.length),
+                )}
+                title={t("orders.thumb.more")}
+                className={cn(
+                  WELL,
+                  "flex items-center justify-center font-mono text-(length:--fs-micro) font-bold text-(--text-body) transition-colors duration-(--dur-fast) ease-(--ease-out) hover:bg-(--cream-300) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none",
+                )}
+              />
+            }
+          >
+            +{hidden.length}
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-auto">
+            <p className="text-(length:--fs-meta) font-semibold text-(--text-body)">
+              {t("orders.thumb.more")}
+            </p>
+            <div className="flex items-center gap-3">
+              {hidden.map((w) => (
+                <span key={w.key} className="flex flex-col items-center gap-1">
+                  {w.node}
+                  <span className="text-(length:--fs-micro) text-(--text-muted)">{w.label}</span>
+                </span>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      )}
+    </div>
   );
 }
 
 /**
- * "This cell may wrap." Named because it is used five times and each use is the
- * same decision, not five coincidences: the primitive's default is nowrap, and
- * the prose columns are the ones that must give it up for the table to fit a
- * screen.
+ * A cell whose VALUE is a filter — the Seller and Site columns.
+ *
+ * Both columns had the same problem: on any screen wider than one seller's own
+ * orders they print the same handful of names over and over, and the query
+ * behind them (`customerId`, `warehouseId`) has accepted a filter since it was
+ * written with nothing in the UI to set it. So the text becomes the control.
+ *
+ * A TOGGLE, not a one-way trip. Pressing the active value clears it, so the
+ * cell is its own way back out and does not depend on the reader spotting the
+ * Clear button — and it carries `aria-pressed`, because that is what it is: a
+ * filter that is on or off, exactly like the header's FilterChip.
+ *
+ * `e.stopPropagation()` because the row is itself clickable (the expander), and
+ * this is the same guard every other operable thing in a row uses.
+ *
+ * A null value renders the em-dash as plain text, never as a dead button: there
+ * is nothing to filter to, and a control that does nothing is worse than none.
  */
-const WRAP = "whitespace-normal";
+function FilterCell({
+  value,
+  active,
+  label,
+  title,
+  clearTitle,
+  onToggle,
+  className,
+}: {
+  value: string | null;
+  /** The value currently in the URL, so the cell can tell "this one" from
+   * "some other one". */
+  active: string;
+  label: string | null;
+  title: string;
+  clearTitle: string;
+  onToggle: (next: string) => void;
+  className?: string;
+}) {
+  if (!value || !label) {
+    return <span className={cn("text-(--text-muted)", className)}>—</span>;
+  }
+
+  const isActive = active === value;
+  return (
+    <button
+      type="button"
+      aria-pressed={isActive}
+      title={isActive ? clearTitle : title}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle(isActive ? "" : value);
+      }}
+      className={cn(
+        "-mx-1 max-w-full truncate rounded-(--radius-xs) px-1 text-left",
+        "transition-colors duration-(--dur-fast) ease-(--ease-out) motion-reduce:transition-none",
+        "focus-visible:shadow-(--shadow-focus) focus-visible:outline-none",
+        isActive
+          ? "bg-sky-100 font-semibold text-(--text-body)"
+          : "text-(--text-muted) hover:bg-sky-50 hover:text-(--text-body)",
+        className,
+      )}
+    >
+      {label}
+    </button>
+  );
+}
 
 const STATUSES = [
   "PENDING",
@@ -229,11 +553,16 @@ export function OrdersTable({
   const { can } = usePermissions();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const router = useRouter();
+  // Read directly, and only for the date range: it is the one control here that
+  // has to write TWO params in a single navigation — see setDateRange.
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [dateRangePending, startDateRange] = useTransition();
   const [refunding, setRefunding] = useState(false);
   const [artworkFor, setArtworkFor] = useState<OrderRow | null>(null);
-  // The artwork panel, and WHICH of the row's pictures it opened on. Held as
-  // one object so the two can never disagree — an index from a row that is no
-  // longer the open one is how a gallery shows the wrong picture.
+  // The artwork panel, and WHICH of the row's pictures opened it. One object so
+  // the two can never disagree — an index left over from another row is how a
+  // gallery shows the wrong picture.
   const [lightbox, setLightbox] = useState<{ order: OrderRow; index: number } | null>(null);
   const [recalcPending, setRecalcPending] = useState(false);
 
@@ -272,177 +601,220 @@ export function OrdersTable({
    * dialogs was open fired the preview action again.
    */
   const selectedIds = useMemo(() => [...selected].map(Number), [selected]);
-  const clearSelection = () => setSelected(new Set());
+  /** Drops the wider claim as well as the ids: leaving `allMatching` set after
+   * an empty selection would keep DataTable's strip announcing "all N matching
+   * rows are selected" over nothing at all. */
+  const clearSelection = () => {
+    setSelected(new Set());
+    setAllMatching(false);
+    setSelectionCapped(false);
+  };
 
   // Who may see money on this table. `canCharge` is the platform side; the
   // second is the seller side, recognised by SCOPE rather than by role name —
   // a viewer who can read only their own orders can only ever be looking at
   // their own money.
   const canCharge = can("orders.assign");
+  /**
+   * Whether this reader has ANY bulk action at all — the three gates the
+   * `bulkActions` slot contains, ORed.
+   *
+   * It decides whether the slot is passed, not just what is inside it, and
+   * that distinction matters: DataTableToolbar REPLACES the filters with
+   * bulkActions whenever a selection exists and the prop is present. Passing a
+   * fragment whose every child is gated away would leave a read-only viewer who
+   * ticked a row looking at "3 selected" and nothing else, with the status
+   * filter and the date range gone from under them. Undefined instead, so that
+   * reader gets exactly the toolbar they had before.
+   */
+  const canBulk =
+    can("orders.status.update") || can("orders.labels.manage") || can("orders.assign");
   const ownScopeOnly =
     can("orders.read.own") && !can("orders.read.customer") && !can("orders.read.all");
 
   const status = params.get("status");
-  const hasFilters = Boolean(params.get("q") || status);
 
+  /**
+   * ONE LIST, TWO USES — and that is the whole fix.
+   *
+   * `hasFilters` used to be `Boolean(params.get("q") || status)` and the clear
+   * call `clearFilters(["q", "status"])`, so `tab`, the site, the seller and the
+   * date window neither lit the Clear button up nor were removed by it: the
+   * operator pressed Clear, the list stayed filtered, and nothing said why.
+   * Both expressions now read ORDER_FILTER_KEYS (order-filters.ts), so the next
+   * filter added cannot fall out of step with either — it has to be added to
+   * the array to work at all.
+   */
+  const hasFilters = hasOrderFilters((key) => params.get(key));
+  const clearAllFilters = () => params.clearFilters([...ORDER_FILTER_KEYS]);
+
+  /** The placedAt window, `?from=`/`?to=` as YYYY-MM-DD. Parsed into LOCAL
+   * dates for the picker — see parseDayParam for why `new Date(str)` is wrong
+   * here. */
+  const from = parseDayParam(params.get("from"));
+  const to = parseDayParam(params.get("to"));
+
+  /**
+   * BOTH ENDS IN ONE NAVIGATION, and this is not a style preference.
+   *
+   * `params.setFilter` rebuilds the query string from the `useSearchParams`
+   * snapshot it closed over, so two calls in the same handler both start from
+   * the URL as it was BEFORE either of them — the second push overwrites the
+   * first and only `to` survives. The picker hands back the whole range at
+   * once, so it is written at once. The transition is local for the same reason
+   * useTableParams runs its own: the rows already on screen stay there and dim
+   * rather than being replaced by a skeleton.
+   */
+  const setDateRange = (range: { from?: Date; to?: Date }) => {
+    const next = new URLSearchParams(searchParams.toString());
+    for (const [key, value] of [
+      ["from", formatDayParam(range.from)],
+      ["to", formatDayParam(range.to)],
+    ] as const) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    // A new window makes the old page number meaningless — the same rule every
+    // setter in useTableParams follows.
+    next.delete("page");
+    startDateRange(() => router.push(`${pathname}?${next.toString()}`, { scroll: false }));
+  };
+
+  const siteFilter = params.get(WAREHOUSE_PARAM);
+  const sellerFilter = params.get(SELLER_PARAM);
+
+  /**
+   * "Every order matching this filter", not "every order on this page".
+   *
+   * `selectingAll` is the pending flag while the server enumerates the ids, and
+   * `allMatching` is what flips DataTable's strip to its "N are selected ·
+   * Clear" state afterwards.
+   */
+  const [selectingAll, setSelectingAll] = useState(false);
+  const [allMatching, setAllMatching] = useState(false);
+  /**
+   * Whether the wider selection the strip is announcing is only the FIRST
+   * MAX_SELECTION_IDS of the match.
+   *
+   * Kept as state rather than left to the toast, because the toast is a
+   * transient surface and the strip is the one still on screen when Refund or
+   * Delete is pressed. It said "All 5,312 matching rows are selected" over two
+   * thousand ids — the exact silence `listOrderIds` returns `capped` to
+   * prevent.
+   */
+  const [selectionCapped, setSelectionCapped] = useState(false);
+
+  /**
+   * A claim about "all 5,312 matching" is only true of the filter it was made
+   * under, so changing the filter has to retract it.
+   *
+   * Adjusted DURING render rather than in an effect — React's documented
+   * pattern for state derived from props, and the same one DataTableToolbar
+   * uses to re-sync its search draft. An effect would paint one frame of a
+   * banner claiming a total that belongs to the previous query. Only the
+   * wider claim is dropped; a hand-ticked selection surviving a filter change
+   * is existing behaviour and not this task's to change.
+   */
+  // JSON rather than a joined string: a search phrase containing the separator
+  // would otherwise make two different filters compare equal.
+  const filterKey = JSON.stringify(ORDER_FILTER_KEYS.map((key) => params.get(key)));
+  const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+  if (filterKey !== lastFilterKey) {
+    setLastFilterKey(filterKey);
+    if (allMatching) {
+      setAllMatching(false);
+      setSelectionCapped(false);
+      setSelected(new Set());
+    }
+  }
+
+  /**
+   * Ask the server for every id the current filter matches.
+   *
+   * THE FILTER IS READ BY readOrderFilter, not rebuilt here, and that is the
+   * fix for a whole family of bugs rather than a tidy-up. This call used to
+   * name the params by hand — q, status, site, seller, from, to — and the page
+   * that produced `total` named a different set: it also resolved `?tab=` to a
+   * status list, also accepted the legacy `?customer=` spelling of the site,
+   * and bounded `?to=` at the last instant of the day rather than its first.
+   * So on `/orders?tab=attention` the strip offered "Select all 30 matching"
+   * and the action came back with two thousand ids in every status, which then
+   * fed Delete, Refund and Assign. One reader, one answer.
+   *
+   * The DATES GO AS STRINGS, deliberately: `OrderSelectionFilter` takes them
+   * and parses them server-side with the same parseDateParam the page uses, so
+   * an unparseable value is ignored instead of crossing the boundary as an
+   * Invalid Date and 500-ing the action.
+   */
+  const selectAllMatching = async () => {
+    setSelectingAll(true);
+    const toastId = toast.loading(t("orders.selectAll.pending"));
+    try {
+      const result = await selectAllOrderIdsAction(readOrderFilter((key) => params.get(key)));
+      setSelected(new Set(result.ids.map(String)));
+      setAllMatching(true);
+      setSelectionCapped(result.capped);
+      // CAPPED IS SAID OUT LOUD. A refund or a delete on "all of them" that
+      // quietly meant "the first 2000 of them" is the kind of silence that
+      // costs money, so the toast names both figures and stays until dismissed
+      // — and `selectionCapped` says the same thing in the strip, which is the
+      // surface still on screen when the destructive button is pressed.
+      if (result.capped) {
+        toast.warning(
+          t("orders.selectAll.capped", { count: result.ids.length, total: result.total }),
+          { id: toastId, duration: Infinity },
+        );
+      } else {
+        toast.success(t("orders.selectAll.done", { count: result.ids.length }), {
+          id: toastId,
+        });
+      }
+    } catch {
+      toast.error(t("orders.selectAll.failed"), { id: toastId });
+    } finally {
+      setSelectingAll(false);
+    }
+  };
+
+  /**
+   * SORTABLE COLUMNS ARE THE BACKEND'S WHITELIST, AND THE ID IS THE KEY.
+   *
+   * `Column.id` is what DataTable posts as `?sort=`, and service/reads.ts
+   * checks it against ORDER_SORT_KEYS — so a column id is an API parameter,
+   * not a React key. Two of them used to be each other's: the column rendering
+   * `customerName` was `id: "warehouse"` and the one rendering `warehouseCode`
+   * was `id: "customer"`. Harmless while nothing read them; the moment sorting
+   * landed, clicking "Seller" would have asked the server to sort by warehouse.
+   * They are now named after what they render, and every `sortable: true`
+   * column below spells a key the whitelist actually contains.
+   */
   const columns: Column<OrderRow>[] = [
     {
       id: "order",
       header: t("orders.colOrder"),
-      // WRAP, don't widen. Every <td> is whitespace-nowrap by default
-      // (components/ui/table.tsx), which is right for a badge or a figure and
-      // wrong for a product name: eleven no-wrap columns pushed this table
-      // past any laptop screen, so reading a status meant dragging sideways
-      // past the columns you were already looking at. Letting the prose
-      // columns wrap lets the browser's auto layout fit the table to the
-      // container again — the rows get taller, which is the cheap direction.
-      // cn() runs tailwind-merge, so `whitespace-normal` here beats the
-      // primitive's `whitespace-nowrap` without touching the seven other
-      // tables built on it.
-      className: WRAP,
+      // A WIDTH FLOOR, because this column carries the table's primary key and
+      // was losing. With up to four thumbnails and four lines of text and no
+      // minimum, the browser handed the order id whatever was left over and it
+      // rendered as "416…" in production. 18rem is the strip (three slots) plus
+      // room for a full external id.
+      className: "min-w-72",
       cell: (o) => (
         <div className="flex min-w-0 items-start gap-3">
-          {/* THREE thumbnails, corner-tagged D · M · L — design, mockup and
-              the purchased shipping label. 32px answers "is there artwork",
-              never "is it the RIGHT artwork", so D and M open the panel on its
-              image view and L opens the label itself.
+          <ArtworkStrip order={o} onOpen={(index) => setLightbox({ order: o, index })} />
 
-              Each slot is drawn only when its image exists. A row with no
-              artwork keeps ONE empty cream well as the column's anchor, so the
-              text beside it starts at the same x on every row; a row missing
-              only its label simply has two. Nothing renders a grey box
-              standing in for a picture that was never taken. */}
-          <div className="flex shrink-0 items-center gap-1">
-            {/* EVERY well opens the same panel, in place. These are 32px: they
-                answer "is there artwork" and never "is it the RIGHT artwork",
-                and the second question used to cost a trip to Drive or to the
-                carrier's host in a new tab — losing the table, the scroll
-                position and the selection. Now the picture opens over the row
-                and the "open the original" link lives inside the panel. */}
-            {(() => {
-              const shots = orderShots(o);
-              const designAt = shotIndex(shots, "design");
-              const mockupAt = shotIndex(shots, "mockup");
-              const labelAt = shotIndex(shots, "label");
-              const proofAt = shotIndex(shots, "proof");
-              const folder = driveFolder(o.imageUrl);
-              const open = (index: number) => setLightbox({ order: o, index });
-
-              return (
-                <>
-                  {/* D — the DESIGN. In this database it is a Google Drive
-                      FOLDER on every legacy row, and a folder is not a picture:
-                      putting one in an <img> asks Drive for a login page and
-                      gets one, which is what used to draw a broken glyph on
-                      every row. So a folder is drawn as what it is, and the
-                      artwork inside it is shown in M. Clicking the folder still
-                      opens the panel — where the Drive button is — as long as
-                      there is something to show; with nothing resolved it stays
-                      a plain link out, because a panel with no picture in it is
-                      not worth trapping someone in. */}
-                  {designAt >= 0 ? (
-                    <ThumbButton
-                      onClick={() => open(designAt)}
-                      label={t("orders.thumb.design")}
-                    >
-                      <Thumb
-                        src={shots[designAt]!.src}
-                        tag="D"
-                        label={t("orders.thumb.design")}
-                      />
-                    </ThumbButton>
-                  ) : folder && mockupAt >= 0 ? (
-                    <ThumbButton
-                      onClick={() => open(mockupAt)}
-                      label={t("orders.thumb.designFolder")}
-                    >
-                      <FolderWell />
-                    </ThumbButton>
-                  ) : folder ? (
-                    <a
-                      href={o.imageUrl!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      title={t("orders.thumb.designFolder")}
-                      aria-label={t("orders.thumb.designFolder")}
-                      className="rounded-(--radius-xs) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
-                    >
-                      <FolderWell />
-                    </a>
-                  ) : null}
-
-                  {/* M — the customer-facing mockup, and the row's one real
-                      picture. Present whenever there is a folder to resolve it
-                      out of, not only when the backfill has already run. */}
-                  {mockupAt >= 0 ? (
-                    <ThumbButton
-                      onClick={() => open(mockupAt)}
-                      label={t("orders.thumb.mockup")}
-                    >
-                      <Thumb
-                        src={shots[mockupAt]!.src}
-                        tag="M"
-                        label={t("orders.thumb.mockup")}
-                      />
-                    </ThumbButton>
-                  ) : shots.length === 0 && !folder ? (
-                    // The column's anchor: a row with nothing at all keeps ONE
-                    // empty well so the text beside it starts at the same x as
-                    // every other row.
-                    <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200)">
-                      <Package className="size-4 stroke-(--icon-muted)" aria-hidden />
-                    </span>
-                  ) : null}
-
-                  {labelAt >= 0 && (
-                    <ThumbButton
-                      onClick={() => open(labelAt)}
-                      label={t("orders.thumb.label")}
-                    >
-                      <Thumb
-                        src={shots[labelAt]!.src}
-                        tag="L"
-                        label={t("orders.thumb.label")}
-                      />
-                    </ThumbButton>
-                  )}
-
-                  {/* The packed-parcel photo. Beside the others rather than
-                      instead of them: a packer comparing design to parcel is
-                      why both exist. Its green ring is not the only signal —
-                      the alt text says what it is. */}
-                  {proofAt >= 0 && (
-                    <ThumbButton
-                      onClick={() => open(proofAt)}
-                      label={t("orders.proof.thumb")}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={shots[proofAt]!.src}
-                        alt={t("orders.proof.thumb")}
-                        className="size-8 shrink-0 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
-                      />
-                    </ThumbButton>
-                  )}
-                </>
-              );
-            })()}
-          </div>
-
-          <div className="min-w-0 max-w-[15rem]">
-            {/* The id stays on ONE line whatever else wraps: an order number
-                broken across two lines is a number nobody can read back over
-                the phone.
+          <div className="min-w-0">
+            {/* NOT truncated, and nowrap: this is a mono identifier, and half
+                of one identifies nothing. It is the column's width floor above
+                that buys the room for it.
 
                 It is also the way in to the order's own page. A link rather
-                than a row click: the row already holds four thumbnails and six
-                buttons, and a click target that covers all of them is one that
-                fires when somebody meant to press one of them. */}
+                than a row click: the row already carries up to four thumbnails
+                and a strip of buttons, and a target covering all of them is one
+                that fires when somebody meant to press one of them. */}
             <Link
               href={`/orders/${o.id}`}
               onClick={(e) => e.stopPropagation()}
-              className="block truncate rounded-(--radius-xs) font-mono text-(length:--fs-meta) font-medium tracking-(--ls-mono) whitespace-nowrap text-(--text-body) underline-offset-2 hover:underline focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
+              className="inline-block rounded-(--radius-xs) font-mono text-(length:--fs-meta) font-medium whitespace-nowrap tracking-(--ls-mono) text-(--text-body) underline-offset-2 hover:underline focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
             >
               {o.externalId ?? `#${o.id}`}
             </Link>
@@ -453,26 +825,28 @@ export function OrdersTable({
                 meta; the INTERNAL note is orange and ops-only, because the
                 schema says in as many words that it is never shown to the
                 customer. title= carries the full text for a note longer than
-                the column. */}
+                the column.
+
+                Both drop out at `compact`. A dense row that is merely a
+                shorter version of the same four lines is not denser — the
+                point of the setting is more orders on screen, and the notes
+                are the two lines a scanning operator is not reading. */}
             {o.note && (
               <p
                 title={o.note}
-                className="flex items-start gap-1 text-(length:--fs-meta) text-(--text-muted)"
+                className="flex items-center gap-1 truncate text-(length:--fs-meta) text-(--text-muted) group-data-[density=compact]/data-table:hidden"
               >
-                <StickyNote className="mt-0.5 size-3 shrink-0 stroke-(--icon-muted)" aria-hidden />
-                {/* Two lines, then ellipsis. A note is the one thing in this
-                    row somebody actually needs to READ, and one truncated line
-                    of it says nothing; title= still carries the whole text. */}
-                <span className="line-clamp-2">{o.note}</span>
+                <StickyNote className="size-3 shrink-0 stroke-(--icon-muted)" aria-hidden />
+                <span className="truncate">{o.note}</span>
               </p>
             )}
             {o.internalNote && can("orders.status.update") && (
               <p
                 title={o.internalNote}
-                className="flex items-start gap-1 text-(length:--fs-meta) text-(--status-attention-fg)"
+                className="flex items-center gap-1 truncate text-(length:--fs-meta) text-(--status-attention-fg) group-data-[density=compact]/data-table:hidden"
               >
-                <StickyNote className="mt-0.5 size-3 shrink-0 stroke-(--status-attention-dot)" aria-hidden />
-                <span className="line-clamp-2">{o.internalNote}</span>
+                <StickyNote className="size-3 shrink-0 stroke-(--status-attention-dot)" aria-hidden />
+                <span className="truncate">{o.internalNote}</span>
               </p>
             )}
           </div>
@@ -482,11 +856,10 @@ export function OrdersTable({
     {
       id: "variant",
       header: t("orders.colProduct"),
-      // The widest column in the table, and the one that pushed it off screen:
-      // "Custom Shape 2-Layer Wooden And White Acrylic Sign" on one no-wrap
-      // line is 380px of a 1440px screen. ProductCell truncates its own three
-      // lines, so the wrap has to be handed down to them — the alternative was
-      // a `wrap` prop on a component ported verbatim from the design system.
+      // The widest column in the table, and the one that pushed it off screen.
+      // ProductCell truncates its own three lines, so the wrap has to be handed
+      // down to them — the alternative was a `wrap` prop on a component ported
+      // verbatim from the design system.
       className: `${WRAP} [&_[data-slot=product-cell]_p]:whitespace-normal`,
       // The DS's product cell: name, SKU in mono, variant on the meta line.
       // No image — the artwork thumbnail is the ORDER column's, where it is a
@@ -502,21 +875,34 @@ export function OrdersTable({
       ),
     },
     {
-      id: "warehouse",
+      id: "customerName",
       header: t("orders.colCustomer"),
+      sortable: true,
       hideOnMobile: true,
       className: `${WRAP} max-w-[9rem]`,
       // Only meaningful to someone who can see across accounts; a seller's own
-      // orders are all theirs.
+      // orders are all theirs — which is exactly why the cell is a FILTER now.
+      // `listOrders` has always accepted `customerId` and nothing exposed it,
+      // so on an admin's screen this column repeated the same twenty names down
+      // the page and there was no way to say "just this one". Clicking it
+      // writes `?seller=<id>`; the Clear button (which now covers every filter)
+      // is the way back out.
       cell: (o) => (
-        <span className="text-(length:--fs-body-sm) text-(--text-muted)">
-          {o.customerName ?? "—"}
-        </span>
+        <FilterCell
+          value={o.customerId}
+          active={sellerFilter}
+          label={o.customerName}
+          title={t("orders.filterBySeller")}
+          clearTitle={t("orders.filterClearSeller")}
+          onToggle={(next) => params.setFilter(SELLER_PARAM, next)}
+          className="text-(length:--fs-body-sm)"
+        />
       ),
     },
     {
-      id: "qty",
+      id: "quantity",
       header: t("orders.colQty"),
+      sortable: true,
       className: "text-right tabular-nums",
       cell: (o) => (
         <span className="font-mono text-(length:--fs-body-sm) tracking-(--ls-mono)">
@@ -527,6 +913,7 @@ export function OrdersTable({
     {
       id: "status",
       header: t("orders.colStatus"),
+      sortable: true,
       // The colour comes from STATUS_TONES via the raw status, so this badge
       // and the summary strip above can never disagree about a status. The
       // label stays the translated string.
@@ -535,43 +922,50 @@ export function OrdersTable({
       ),
     },
     {
+      // Next to the status, because the two are read as one question: where is
+      // this order, and how much time has it got. Everything about the phrasing
+      // and the severity rule lives in order-deadline.tsx.
+      id: "deadline",
+      header: t("orders.deadline.column"),
+      sortable: true,
+      hideOnMobile: true,
+      cell: (o) => <OrderDeadline deadline={o.deadline} status={o.status} />,
+    },
+    {
       id: "tracking",
       header: t("orders.colTracking"),
       hideOnMobile: true,
-      // Carrier and service wrap; the tracking NUMBER does not (see below).
+      // Carrier and service wrap; OrderTrackingCell keeps the NUMBER itself on
+      // one line, for the same reason the order id does.
       className: `${WRAP} max-w-[11rem]`,
-      cell: (o) =>
-        o.tracking ? (
-          <div className="min-w-0">
-            <p className="truncate font-mono text-(length:--fs-meta) tracking-(--ls-mono) whitespace-nowrap text-(--text-body)">
-              {o.tracking}
-            </p>
-            {/* Who is carrying it, and on what service. Rendered only when the
-                shipment actually has them — an order with no label bought yet
-                leaves this blank rather than guessing a carrier. */}
-            {(o.carrier || o.service) && (
-              <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
-                {[o.carrier, o.service].filter(Boolean).join(" · ")}
-              </p>
-            )}
-            {o.trackingStatus && (
-              <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
-                {o.trackingStatus}
-              </p>
-            )}
-          </div>
-        ) : (
-          <span className="text-(length:--fs-body-sm) text-(--text-muted)">—</span>
-        ),
+      cell: (o) => (
+        <OrderTrackingCell
+          tracking={o.tracking}
+          carrier={o.carrier}
+          service={o.service}
+          trackingStatus={o.trackingStatus}
+        />
+      ),
     },
     {
-      id: "customer",
+      id: "warehouseCode",
       header: t("orders.colWarehouse"),
+      sortable: true,
       hideOnMobile: true,
+      className: `${WRAP} max-w-[9rem]`,
+      // Same story as Seller: `warehouseId` was already a query parameter with
+      // no control behind it. `?site=` and not `?customer=` — see order-
+      // filters.ts for why that param was renamed rather than left alone.
       cell: (o) => (
-        <span className="font-mono text-(length:--fs-meta) tracking-(--ls-mono) text-(--text-muted)">
-          {o.warehouseCode ?? "—"}
-        </span>
+        <FilterCell
+          value={o.warehouseId === null ? null : String(o.warehouseId)}
+          active={siteFilter}
+          label={o.warehouseCode}
+          title={t("orders.filterBySite")}
+          clearTitle={t("orders.filterClearSite")}
+          onToggle={(next) => params.setFilter(WAREHOUSE_PARAM, next)}
+          className="font-mono text-(length:--fs-meta) tracking-(--ls-mono)"
+        />
       ),
     },
     // MONEY IS GATED, and the gate has two doors rather than one.
@@ -594,8 +988,13 @@ export function OrdersTable({
             // Header follows what is actually in the column: a seller sees one
             // figure, so promising "+ ship" would be a header describing a line
             // that never renders for them.
-            id: "cost",
+            //
+            // `baseCost` and not "cost": the id is the sort key, and baseCost is
+            // the column the server can actually order by. Shipping is a
+            // different table's number and is not sortable here.
+            id: "baseCost",
             header: canCharge ? t("orders.colCostShip") : t("orders.colCost"),
+            sortable: true,
             className: "text-right tabular-nums",
             hideOnMobile: true,
             cell: (o: OrderRow) => (
@@ -620,20 +1019,36 @@ export function OrdersTable({
           } satisfies Column<OrderRow>,
         ]
       : []),
-    // The floor's row. Only for people who actually work orders — a seller
-    // has no scanner and no printer in this loop, so the row would be a
-    // decoration that costs them horizontal space.
+    {
+      id: "placedAt",
+      header: t("orders.colPlaced"),
+      sortable: true,
+      hideOnMobile: true,
+      // IN UTC, like the filter above it. `?from=`/`?to=` are bounded as UTC
+      // days (page.tsx), and a bare toLocaleDateString() renders in the
+      // VIEWER's zone — so at UTC+7, the app's primary operator locale, seven
+      // hours of every day printed the wrong date and the operator saw rows
+      // dated 8 Sep inside a 7 Sep–7 Sep filter while rows dated 7 Sep were
+      // missing. This is the same UTC-both-sides convention order-deadline.tsx
+      // already uses, and it removes an SSR/client hydration mismatch on the
+      // same cell for free.
+      cell: (o) => (
+        <span className="text-(length:--fs-body-sm) text-(--text-muted)">
+          {new Date(o.placedAt).toLocaleDateString(undefined, { timeZone: "UTC" })}
+        </span>
+      ),
+    },
+    // The floor's row actions, LAST and PINNED — see ACTIONS_CELL for why.
+    // Only for people who actually work orders: a seller has no scanner and no
+    // printer in this loop, so the rail would be a decoration that costs them
+    // horizontal space it now permanently occupies.
     ...(can("orders.status.update")
       ? [
           {
-            id: "qr",
-            header: t("orders.qr.column"),
+            id: "actions",
+            header: t("orders.colActions"),
             hideOnMobile: true,
-            // w-px + nowrap is the table idiom for "as narrow as the content":
-            // auto layout cannot go below min-content, so the cell ends up
-            // exactly as wide as its row of buttons and gives every pixel it
-            // is not using back to the prose columns.
-            className: "w-px whitespace-nowrap",
+            className: ACTIONS_CELL,
             cell: (o: OrderRow) => (
               <div className="flex items-center gap-1">
                 <OrderQr {...orderQrProps(o)} />
@@ -711,16 +1126,6 @@ export function OrdersTable({
           } satisfies Column<OrderRow>,
         ]
       : []),
-    {
-      id: "placedAt",
-      header: t("orders.colPlaced"),
-      hideOnMobile: true,
-      cell: (o) => (
-        <span className="text-(length:--fs-body-sm) text-(--text-muted)">
-          {new Date(o.placedAt).toLocaleDateString()}
-        </span>
-      ),
-    },
   ];
 
   return (
@@ -733,10 +1138,15 @@ export function OrdersTable({
           `loading` threw them away and flashed a skeleton on every search
           keystroke, status change and page turn. aria-busy tells AT the same
           thing without removing the content it is reading. */}
+      {/* `selectingAll` joins `params.pending` here rather than getting a
+          spinner of its own: DataTable's select-all strip has no pending slot,
+          and enumerating a few thousand ids is exactly the same kind of wait as
+          a page turn — the table dims, aria-busy says so, and the sonner toast
+          the action raised names what is happening. */}
       <div
-        aria-busy={params.pending || undefined}
+        aria-busy={params.pending || selectingAll || dateRangePending || undefined}
         className={
-          params.pending
+          params.pending || selectingAll || dateRangePending
             ? "opacity-60 transition-opacity duration-(--dur-fast) motion-reduce:transition-none"
             : "transition-opacity duration-(--dur-fast) motion-reduce:transition-none"
         }
@@ -746,6 +1156,64 @@ export function OrdersTable({
           columns={columns}
           rowId={(o) => String(o.id)}
           rowLabel={(o) => o.externalId ?? `#${o.id}`}
+          // Server-driven, like every other bit of this table's state: the id
+          // of a sortable column IS the `?sort=` the page hands listOrders.
+          sort={params.sort}
+          onSortChange={params.setSort}
+          // The cells read this back off the root as `data-density`, which is
+          // how the artwork wells shrink and the note lines drop without any
+          // prop reaching them.
+          density={params.density}
+          /*
+           * PINNED AT THE NAV, not at 0. `--nav-height` (64px, gwp.theme.css)
+           * is the real height of the app bar, which is itself `sticky top-0`
+           * — so `top: 0` would slide the column names underneath it and the
+           * header would be pinned out of sight. The DS names this screen
+           * specifically: readme.md's AdminOrders entry is "a frameless
+           * DataTable (surface="field", sticky white header pinned at
+           * --nav-height)". Passed as `var(--nav-height)` rather than 64px so
+           * a change to the bar's height moves this with it.
+           *
+           * THE COST, stated because it is real and because the previous pass
+           * on this file deliberately left the prop off over it: DataTable
+           * cannot pin a header inside a horizontally-scrolling box (a sticky
+           * position resolves against the nearest scrollport, and both the card
+           * and ui/table's container are `overflow-x-auto`), so turning this on
+           * switches both to `overflow: visible` and a too-wide table scrolls
+           * at PAGE level instead of inside the card.
+           *
+           * The pinned actions rail survives that: `position: sticky` on the
+           * last cell now resolves against the page rather than the card, so
+           * `right-0` holds it against the viewport's right edge instead of the
+           * card's — the rail still never scrolls away, which is the whole
+           * point of it. Both stick states also land on the actions HEADER
+           * cell, which takes `col.className` too, so that one cell is pinned
+           * in both axes and stays in the corner where its column is.
+           *
+           * Two consequences of the move that had to be paid for rather than
+           * argued away, both in DataTable: the card is sized to its CONTENT
+           * (`w-max min-w-full`) so the white ground still reaches under the
+           * rows now that <Page>'s 1120px band no longer clips them, and the
+           * header outranks the rail (`z-20` against `z-10`) so a row's pinned
+           * cell passes UNDER the column names on its way up rather than over
+           * them. globals.css carries the matching scroll padding, so tabbing
+           * to a cell control does not park it behind either pinned edge.
+           */
+          stickyHeader="var(--nav-height)"
+          /*
+           * SELECT-ALL-MATCHING, the four props behind DataTable's strip.
+           * `total` is the server's count for this exact filter, which is what
+           * makes "select all 5,312 matching" a promise the page can keep: the
+           * action re-runs the SAME where builder the list used, so an id can
+           * only come back if paging to it would have found the same row.
+           */
+          matchCount={total}
+          allMatchingSelected={allMatching}
+          // The cap is the strip's business as much as the toast's — see
+          // `selectionCapped` above.
+          selectionCapped={selectionCapped}
+          onSelectAllMatching={() => void selectAllMatching()}
+          onClearSelection={clearSelection}
           mobileCard={(o) => (
             <OrderMobileCard
               order={o}
@@ -765,7 +1233,14 @@ export function OrdersTable({
           renderExpanded={(o) => <OrderTimeline orderId={o.id} />}
           expandLabel={t("orders.timeline.toggle")}
           selected={selected}
-          onSelectedChange={setSelected}
+          // Any hand-made change to the selection retracts the "all matching"
+          // claim: unticking one row out of 5,312 leaves a selection that is
+          // emphatically not all of them, and the strip must stop saying it is.
+          onSelectedChange={(next) => {
+            setSelected(next);
+            setAllMatching(false);
+            setSelectionCapped(false);
+          }}
           empty={hasFilters ? t("orders.emptyFiltered") : t("orders.empty")}
           toolbar={
             <DataTableToolbar
@@ -773,90 +1248,166 @@ export function OrdersTable({
               onSearchChange={(v) => params.setFilter("q", v)}
               searchPlaceholder={t("orders.search")}
               hasFilters={hasFilters}
-              onClearFilters={() => params.clearFilters(["q", "status"])}
+              onClearFilters={clearAllFilters}
               selectedCount={selected.size}
+              /* THE FILTER TIER. Replaced by `bulkActions` while rows are
+                 ticked — DataTableToolbar swaps the two — which is the right
+                 way round: nobody narrows a list and acts on a selection in
+                 the same breath. */
               filters={
-                <Select
-                  value={status || "all"}
-                  onValueChange={(v) => params.setFilter("status", v === "all" ? "" : String(v))}
-                >
-                  <SelectTrigger className="w-44" aria-label={t("orders.colStatus")}>
-                    <SelectValue>
-                      {status ? t(`orders.statuses.${status}`) : t("orders.allStatuses")}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("orders.allStatuses")}</SelectItem>
-                    {STATUSES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {t(`orders.statuses.${s}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              }
-              actions={
-                <div className="flex flex-wrap gap-2">
-                  <OrderStatusActions
-                    selected={selectedIds}
-                    rows={rows}
-                    onDone={clearSelection}
+                <>
+                  <Select
+                    value={status || "all"}
+                    onValueChange={(v) => params.setFilter("status", v === "all" ? "" : String(v))}
+                  >
+                    <SelectTrigger className="w-44" aria-label={t("orders.colStatus")}>
+                      <SelectValue>
+                        {status ? t(`orders.statuses.${status}`) : t("orders.allStatuses")}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t("orders.allStatuses")}</SelectItem>
+                      {STATUSES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {t(`orders.statuses.${s}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {/* THE DATE WINDOW. The page has read `?from=`/`?to=` for the
+                      summary cards since they were written, `listOrders` now
+                      honours the same two, and this control has existed in
+                      components/ds unused the whole time — so this is wiring,
+                      not new machinery.
+
+                      `YYYY-MM-DD` in both directions, and the two helpers are
+                      the reason it round-trips: the picker works in local time
+                      and `new Date("2026-09-07")` is UTC midnight, so parsing
+                      the param with the plain constructor would show the 6th to
+                      anyone west of Greenwich and walk the range one day back
+                      on every open. The page bounds `to` at 23:59:59.999Z, so
+                      the end of the range is INCLUSIVE — picking the same day
+                      twice means that day, not an empty list. */}
+                  <DateRangeField
+                    from={from}
+                    to={to}
+                    label={t("orders.placedBetween")}
+                    onChange={setDateRange}
                   />
-                  {selectedIds.length > 0 && (
-                    <>
-                      <Can permission="orders.status.update">
-                        {/* A real route, opened in a new tab: the sheet prints
-                            itself, and the operator keeps their place in the
-                            table behind it. */}
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            window.open(`/orders/print?ids=${selectedIds.join(",")}`, "_blank", "noopener")
-                          }
-                        >
-                          {t("orders.qr.print")} ({selectedIds.length})
-                        </Button>
-                      </Can>
-                      <Can permission="orders.labels.manage">
-                        <BuyLabelsButton orderIds={selectedIds} onDone={clearSelection} />
-                      </Can>
-                      <Can permission="orders.assign">
-                        <Button variant="outline" onClick={() => setAssigning(true)}>
-                          {t("orders.assign")} ({selectedIds.length})
-                        </Button>
-                      </Can>
-                      <Can permission="orders.update">
-                        <Button
-                          variant="outline"
-                          disabled={recalcPending}
-                          onClick={() => void recalc(selectedIds)}
-                        >
-                          {t("orders.recalc.action")}
-                        </Button>
-                      </Can>
-                      <Can permission="orders.refund">
-                        <Button variant="outline" onClick={() => setRefunding(true)}>
-                          {t("orders.refund")}
-                        </Button>
-                      </Can>
-                      <Can permission="orders.delete">
-                        <Button variant="outline" onClick={() => setDeleting(true)}>
-                          {t("orders.delete")}
-                        </Button>
-                      </Can>
-                    </>
-                  )}
-                  <Can permission="orders.labels.manage">
-                    <DownloadLabelsButton orderIds={selectedIds} />
-                  </Can>
-                  <ExportButton orderIds={selectedIds} />
+                </>
+              }
+              /* THE SELECTION TIER — the three or four things an operator
+                 actually does to a batch, led by DataTableToolbar's own
+                 "N selected" so every button in it has a stated subject.
+                 Everything rarer went to the overflow menu in `actions`. */
+              bulkActions={
+                canBulk ? (
+                  <>
+                    <OrderStatusActions
+                      selected={selectedIds}
+                      rows={rows}
+                      onDone={clearSelection}
+                    />
+                    <Can permission="orders.status.update">
+                      {/* A real route, opened in a new tab: the sheet prints
+                          itself, and the operator keeps their place in the
+                          table behind it. */}
+                      <Button
+                        variant="outline"
+                        onClick={() =>
+                          window.open(
+                            `/orders/print?ids=${selectedIds.join(",")}`,
+                            "_blank",
+                            "noopener",
+                          )
+                        }
+                      >
+                        {t("orders.qr.print")} ({selectedIds.length})
+                      </Button>
+                    </Can>
+                    <Can permission="orders.labels.manage">
+                      <BuyLabelsButton orderIds={selectedIds} onDone={clearSelection} />
+                    </Can>
+                    <Can permission="orders.assign">
+                      <Button variant="outline" onClick={() => setAssigning(true)}>
+                        {t("orders.assign")} ({selectedIds.length})
+                      </Button>
+                    </Can>
+                  </>
+                ) : undefined
+              }
+              /* HOW THE LIST IS DRAWN, not what is in it — which is the whole
+                 reason DataTableToolbar has a third slot. Both controls stay
+                 visible while rows are selected, because bulk mode changes what
+                 the buttons act on and not how the rows are read. */
+              trailing={
+                <>
+                  <SavedViews />
+                  {/*
+                   * DENSITY. `params.density` already rides in the URL and the
+                   * cells already answer `data-density`; this is the control
+                   * that was missing.
+                   *
+                   * API_CLIENT.md §2 says "Full-density tables cap at 12
+                   * rows/page regardless of the selection (both Orders
+                   * screens)", and this deliberately does NOT nudge the page
+                   * size to honour it. Three reasons, in order of weight:
+                   * DataTablePagination offers [10, 25, 50, 100], so writing
+                   * `?size=12` would put its Select into a state with no
+                   * matching option; useTableParams goes out of its way NOT to
+                   * reset `?page` on a density change precisely so the reader
+                   * keeps their place, and silently re-paginating under them
+                   * would throw away the row they were looking at; and that
+                   * cap was written against a client whose own per-screen
+                   * options are [25,50,100,200,500], none of which this app
+                   * offers either. Row HEIGHT is what full density is for and
+                   * that is honoured exactly; the row COUNT stays the reader's
+                   * choice.
+                   */}
+                  <SegmentedControl
+                    size="sm"
+                    aria-label={t("common.table.density")}
+                    value={params.density}
+                    onChange={(v) => params.setDensity(v as TableDensity)}
+                    options={[
+                      { value: "compact", label: t("common.table.densityCompact") },
+                      { value: "cozy", label: t("common.table.densityCozy") },
+                      { value: "full", label: t("common.table.densityFull") },
+                    ]}
+                  />
+                </>
+              }
+              /* THE PAGE TIER. These act on the PAGE, not on the selection, so
+                 they belong here and stay put while rows are ticked — and there
+                 are now three of them rather than the eleven that used to wrap
+                 onto three lines and push the table below the fold.
+
+                 The DS is explicit that PageHeader owns no CTA ("Operational
+                 actions belong in TopNav.cta, SearchShell.action or
+                 TabBar.right… a hero with a primary button in the corner is the
+                 generic-SaaS page-header pattern, and this component
+                 deliberately makes it unavailable"), and PageToolbar's own doc
+                 says a page whose list renders DataTableToolbar does not need
+                 one because "that toolbar is the same surface and the same
+                 slot". So this IS the page's action slot; New order is its one
+                 Action Blue button. */
+              actions={
+                <>
+                  <OrderMoreActions
+                    selectedIds={selectedIds}
+                    onRecalc={() => void recalc(selectedIds)}
+                    recalcPending={recalcPending}
+                    onRefund={() => setRefunding(true)}
+                    onDelete={() => setDeleting(true)}
+                  />
                   <Can permission="orders.create">
                     <Button variant="outline" onClick={() => setImporting(true)}>
                       {t("orders.import")}
                     </Button>
                     <Button onClick={() => setCreating(true)}>{t("orders.new")}</Button>
                   </Can>
-                </div>
+                </>
               }
             />
           }

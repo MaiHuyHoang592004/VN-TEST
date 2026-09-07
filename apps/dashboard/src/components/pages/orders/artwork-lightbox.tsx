@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ResponsiveDialog } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 
-import { SHOT_CAPTION, type ArtworkShot } from "./artwork-shots";
+import { SHOT_CAPTION, type ArtworkShot } from "./order-thumb";
 
 /**
  * The order's artwork, full size, without leaving the table.

@@ -13,7 +13,7 @@ import { money } from "@/lib/money";
 import { updateOrderAction } from "@/modules/fulfillment/orders/actions";
 
 import { ArtworkLightbox } from "./artwork-lightbox";
-import { SHOT_CAPTION, type ArtworkShot } from "./artwork-shots";
+import { SHOT_CAPTION, type ArtworkShot } from "./order-thumb";
 import { OrderFormFields, isSubmittable, valuesFromOrder } from "./order-form-fields";
 import { OrderTimeline } from "./order-timeline";
 import type { OrderRow } from "./orders-table";

@@ -5,6 +5,9 @@
   "error": "Đã xảy ra lỗi. Hãy tải lại trang và thử lại.",
   "close": "Đóng",
   "cancel": "Huỷ",
+  "clear": "Xoá",
+  "done": "Xong",
+  "dateRange": "Khoảng ngày",
   "pagination": {
     "selected": "Đã chọn {count}",
     "empty": "Không có kết quả",
@@ -18,6 +21,16 @@
     "selectAll": "Chọn tất cả dòng trên trang này",
     "toggleDetails": "Xem chi tiết",
     "search": "Tìm kiếm…",
-    "clear": "Xoá bộ lọc"
+    "clear": "Xoá bộ lọc",
+    "selectedCount": "Đã chọn {count}",
+    "pageSelected": "Đã chọn cả {count} dòng trên trang này.",
+    "selectAllMatching": "Chọn tất cả {count} dòng khớp",
+    "allMatchingSelected": "Đã chọn toàn bộ {count} dòng khớp bộ lọc.",
+    "allMatchingSelectedCapped": "Đã chọn {count} trong {total} dòng khớp bộ lọc — mức tối đa có thể chọn một lần. Mọi thao tác tiếp theo chỉ áp dụng cho {count} dòng này.",
+    "clearSelection": "Bỏ chọn",
+    "density": "Mật độ dòng",
+    "densityCompact": "Gọn",
+    "densityCozy": "Vừa",
+    "densityFull": "Rộng"
   }
 }

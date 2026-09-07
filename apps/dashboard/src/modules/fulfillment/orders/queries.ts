@@ -74,10 +74,13 @@ export async function orderArtwork(id: number) {
 /**
  * The status card strip above the table. Same guard as the list — the cards
  * ARE the list, counted.
+ *
+ * It takes the same `search` and date window the list takes, and the service
+ * builds both clauses with one function. Pass the page's filter WHOLE: giving
+ * the cards a narrower filter than the table beneath them is what made them
+ * disagree, and nothing here can detect that you did.
  */
-export async function orderStatusSummary(
-  query: { warehouseId?: number; from?: Date; to?: Date } = {},
-) {
+export async function orderStatusSummary(query: orders.OrderSummaryQuery = {}) {
   const actor = await requireAnyPermission(
     "orders.read.own",
     "orders.read.customer",
@@ -85,6 +88,15 @@ export async function orderStatusSummary(
   );
   return orders.orderStatusSummary(actor, query);
 }
+
+/**
+ * A `?from=` / `?to=` out of the URL, as a Date the queries above can take.
+ *
+ * Re-exported here so a page parses its search params with the same function
+ * the service trusts, and one import serves both. It is pure and unguarded on
+ * purpose — parsing a string is not a read.
+ */
+export { parseDateParam } from "./service.ts";
 
 /**
  * The five milestones behind one order's expanded row.

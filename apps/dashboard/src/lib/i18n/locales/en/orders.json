@@ -17,6 +17,7 @@
   "colWarehouse": "Site",
   "colCost": "Cost",
   "colPlaced": "Placed",
+  "colActions": "Actions",
   "noMarketplace": "No marketplace",
   "empty": "No orders yet.",
   "emptyFiltered": "No orders match those filters.",
@@ -79,7 +80,6 @@
   "errNotYours": "You can only create orders for your own account.",
   "errQuantityLocked": "Quantity can only change while the order is still Pending.",
   "errNotEditable": "This order is cancelled — only note, deadline and shipping details can still change.",
-  "errTooLate": "That order has gone too far to be changed.",
   "errConflict": "This order was changed by someone else — refresh and try again.",
   "fQuantityLockedHint": "Locked — this order has already been assigned.",
   "assignTitle": "Assign to a warehouse",
@@ -244,10 +244,61 @@
   },
   "thumb": {
     "design": "Print design",
+    "designInFolder": "Print design, from the artwork folder",
     "mockup": "Customer mockup",
     "label": "Shipping label",
-    "designFolder": "Open artwork folder"
+    "designFolder": "Open artwork folder",
+    "more": "More images",
+    "moreLabel": "Show {count} more images"
   },
+  "deadline": {
+    "column": "Deadline",
+    "none": "No deadline set",
+    "due": "Due {date}",
+    "dueToday": "Due today",
+    "dueTomorrow": "Due tomorrow",
+    "dueInDays": "In {count} days",
+    "overdueOne": "1 day late",
+    "overdue": "{count} days late"
+  },
+  "tracking": {
+    "copy": "Copy tracking number",
+    "copied": "Tracking number copied.",
+    "copyFailed": "Could not copy the tracking number.",
+    "track": "Track on the carrier's site"
+  },
+  "colCostShip": "Cost + ship",
+  "more": "More actions",
+  "destructive": "Careful",
+  "placedBetween": "Placed between",
+  "filterBySeller": "Show only this seller's orders",
+  "filterClearSeller": "Stop filtering by seller",
+  "filterBySite": "Show only this site's orders",
+  "filterClearSite": "Stop filtering by site",
+  "selectAll": {
+    "pending": "Finding every matching order…",
+    "done": "{count} orders selected.",
+    "capped": "Selected the first {count} of {total} matching orders. Anything you do next applies to those {count} only — narrow the filter to reach the rest.",
+    "failed": "Could not select every matching order. Try again."
+  },
+  "views": {
+    "action": "Views",
+    "presets": "Presets",
+    "preset": {
+      "overdue": "Overdue first",
+      "attention": "Needs attention",
+      "readyToShip": "Ready to ship",
+      "awaitingArtwork": "Awaiting artwork"
+    },
+    "saved": "Saved views",
+    "none": "No saved views yet. Filter the list, name it below, and it will be here on this browser.",
+    "name": "View name",
+    "namePlaceholder": "Name this view",
+    "save": "Save",
+    "remove": "Delete the view “{name}”",
+    "storageFailed": "This browser would not store the view — private windows and blocked site data both refuse."
+  },
+  "errTooLate": "That order has gone too far to be changed.",
   "lightbox": {
     "counter": "{index} of {count}",
     "failed": "This image could not be loaded.",
@@ -258,7 +309,6 @@
     "zoomIn": "Zoom in",
     "zoomOut": "Fit to frame"
   },
-  "colCostShip": "Cost + ship",
   "fExternalIdHint": "The marketplace’s own order number — this is what support searches by",
   "fRecipientHint": "Full name exactly as it should print on the shipping label",
   "detail": {

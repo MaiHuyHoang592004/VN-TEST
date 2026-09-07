@@ -3,7 +3,16 @@
 import { useCallback, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-import type { SortState } from "./data-table.tsx";
+import type { SortState, TableDensity } from "./data-table.tsx";
+
+/** The three the DS defines. Used to validate `?density=` — a hand-edited or
+ * stale URL must not be able to put the table into a density that has no
+ * padding rule behind it. */
+const DENSITIES: readonly TableDensity[] = ["compact", "cozy", "full"];
+
+function isDensity(value: string | null): value is TableDensity {
+  return value !== null && (DENSITIES as readonly string[]).includes(value);
+}
 
 /**
  * Table state (page, size, sort, filters) kept in the URL rather than React
@@ -17,7 +26,9 @@ import type { SortState } from "./data-table.tsx";
  * Navigation runs in a transition so the current rows stay on screen (and
  * `pending` can dim them) instead of flashing a skeleton on every keystroke.
  */
-export function useTableParams(defaults: { pageSize?: number } = {}) {
+export function useTableParams(
+  defaults: { pageSize?: number; density?: TableDensity } = {},
+) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -29,6 +40,13 @@ export function useTableParams(defaults: { pageSize?: number } = {}) {
   const sort: SortState = sortId
     ? { id: sortId, desc: params.get("dir") === "desc" }
     : null;
+  // Density rides in the URL alongside page/size/sort because the DS calls it
+  // deep-linkable: "here is the order I mean, at the density I was reading it
+  // at" is a link a warehouse lead should be able to paste into chat.
+  const densityParam = params.get("density");
+  const density: TableDensity = isDensity(densityParam)
+    ? densityParam
+    : (defaults.density ?? "cozy");
 
   const push = useCallback(
     (mutate: (next: URLSearchParams) => void) => {
@@ -45,6 +63,7 @@ export function useTableParams(defaults: { pageSize?: number } = {}) {
     page,
     pageSize,
     sort,
+    density,
     pending,
     /** Read an arbitrary filter value. */
     get: (key: string) => params.get(key) ?? "",
@@ -56,6 +75,18 @@ export function useTableParams(defaults: { pageSize?: number } = {}) {
         n.set("size", String(s));
         n.delete("page"); // a bigger page makes the old page number meaningless
       }),
+
+    /**
+     * Unlike every other setter here, this one does NOT reset to page 1: a
+     * density switch shows the same rows in the same order, only tighter, so
+     * throwing the reader back to page 1 would be a punishment for adjusting
+     * the view.
+     *
+     * Always written, never omitted when it equals the default — a URL that
+     * states its density can be pasted somewhere whose default differs and
+     * still show what the sender was looking at.
+     */
+    setDensity: (d: TableDensity) => push((n) => n.set("density", d)),
 
     setSort: (s: SortState) =>
       push((n) => {

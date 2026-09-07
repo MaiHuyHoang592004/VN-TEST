@@ -5,6 +5,9 @@
   "error": "Something went wrong. Refresh and try again.",
   "close": "Close",
   "cancel": "Cancel",
+  "clear": "Clear",
+  "done": "Done",
+  "dateRange": "Date range",
   "pagination": {
     "selected": "{count} selected",
     "empty": "No results",
@@ -18,6 +21,16 @@
     "selectAll": "Select all rows on this page",
     "toggleDetails": "Show details",
     "search": "Search…",
-    "clear": "Clear"
+    "clear": "Clear",
+    "selectedCount": "{count} selected",
+    "pageSelected": "All {count} on this page are selected.",
+    "selectAllMatching": "Select all {count} matching",
+    "allMatchingSelected": "All {count} matching rows are selected.",
+    "allMatchingSelectedCapped": "{count} of {total} matching rows are selected — the most that can be selected at once. Anything you do next applies to those {count}.",
+    "clearSelection": "Clear selection",
+    "density": "Row density",
+    "densityCompact": "Compact",
+    "densityCozy": "Cozy",
+    "densityFull": "Full"
   }
 }

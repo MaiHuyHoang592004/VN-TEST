@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { getOrderDetail } from "@/modules/fulfillment/orders/queries";
 import { OrderDetail } from "@/components/pages/orders/order-detail";
-import { orderShots } from "@/components/pages/orders/artwork-shots";
+import { orderShots } from "@/components/pages/orders/order-thumb";
 import { toOrderRow } from "@/components/pages/orders/order-row";
 import { Page } from "@/components/ds";
 

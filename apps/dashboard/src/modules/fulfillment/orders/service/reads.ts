@@ -17,7 +17,77 @@ import {
 import { can } from "@gwprint/shared";
 
 import { editableAt } from "../status.ts";
-import { resumeTargetOf, type Actor } from "./shared.ts";
+import {
+  ORDER_SORT_KEYS,
+  resumeTargetOf,
+  type Actor,
+  type OrderSortKey,
+} from "./shared.ts";
+
+/**
+ * The sort whitelist is re-exported from here because this is where the
+ * server-side callers of it already are. The list itself lives in shared.ts —
+ * see the comment there for why the one module a client component can import
+ * owns it, and this one only maps it.
+ *
+ * A WHITELIST, never the key the URL happens to carry: `?sort=` is caller
+ * input, and an orderBy built by interpolating caller input is the same class
+ * of mistake as a WHERE built by string concatenation. It would let a stranger
+ * name columns and relations this query never offered, and turn a typo into a
+ * 500 that reads the schema back to them.
+ */
+export { ORDER_SORT_KEYS, type OrderSortKey };
+
+/**
+ * Each key as the orderBy Prisma wants.
+ *
+ * Two of them are RELATION walks: the table shows a customer NAME and a
+ * warehouse CODE, and neither is a column on Order. That is the other half of
+ * why this is a table rather than a key passed straight through — the shape
+ * differs per column, so only a map can express it.
+ */
+const SORT_COLUMNS: Record<
+  OrderSortKey,
+  (dir: Prisma.SortOrder) => Prisma.OrderOrderByWithRelationInput
+> = {
+  placedAt: (dir) => ({ placedAt: dir }),
+  // `deadline` is null on an order nobody promised a date for, and Postgres
+  // sorts nulls FIRST on DESC — so "latest deadline first" would open with
+  // every order that has no deadline at all, the exact opposite of what the
+  // operator clicked the column to see. Nulls go last in BOTH directions: the
+  // rows carrying a date are the ones being asked about.
+  deadline: (dir) => ({ deadline: { sort: dir, nulls: "last" } }),
+  updatedAt: (dir) => ({ updatedAt: dir }),
+  quantity: (dir) => ({ quantity: dir }),
+  baseCost: (dir) => ({ baseCost: dir }),
+  status: (dir) => ({ status: dir }),
+  customerName: (dir) => ({ customer: { name: dir } }),
+  warehouseCode: (dir) => ({ warehouse: { code: dir } }),
+};
+
+/**
+ * The orderBy for the sort a URL asked for, ALWAYS ending in `id desc`.
+ *
+ * The tiebreaker is not decoration. Offset paging asks Postgres for rows
+ * 26–50 of an ordering, and an ordering with ties has no defined order inside
+ * a tie: two orders sharing a `placedAt` can come back one way while page 1 is
+ * built and the other way while page 2 is, so one row is served twice and its
+ * neighbour is never seen at all. Appending a unique column makes the sort
+ * total and the paging deterministic — the same reasoning listOrdersCursor
+ * uses when it keys off the last id read.
+ *
+ * An unknown or absent key falls back to the default rather than throwing:
+ * `?sort=` comes from a URL somebody may have bookmarked before a column was
+ * renamed, and a stale bookmark should render the default sort, not a 500.
+ */
+export function orderListOrderBy(
+  sort?: string,
+  dir?: "asc" | "desc",
+): Prisma.OrderOrderByWithRelationInput[] {
+  const direction: Prisma.SortOrder = dir === "asc" ? "asc" : "desc";
+  const key = ORDER_SORT_KEYS.find((k) => k === sort) ?? "placedAt";
+  return [SORT_COLUMNS[key](direction), { id: "desc" }];
+}
 
 export type OrderListQuery = {
   search?: string;
@@ -28,9 +98,98 @@ export type OrderListQuery = {
    * It NARROWS the scope, never widens it: ids the actor may not see simply
    * do not come back, which is why those callers can take ids from a URL. */
   ids?: number[];
+  /** The window the table is filtered to, on `placedAt`. Each side is
+   * optional, so "everything since March" needs no end date invented for it. */
+  from?: Date;
+  to?: Date;
+  /** One of ORDER_SORT_KEYS; anything else falls back to placedAt desc. */
+  sort?: string;
+  dir?: "asc" | "desc";
   page?: number;
   pageSize?: number;
 };
+
+/**
+ * The FILTER half of a list query: everything deciding WHICH rows, and
+ * nothing deciding their order or how many. What the card strip, the
+ * select-all action and the list itself all take, so the three cannot drift.
+ */
+export type OrderFilter = Omit<OrderListQuery, "page" | "pageSize" | "sort" | "dir">;
+
+/**
+ * THE where clause for orders — every filtered read of this table builds it
+ * here.
+ *
+ * One builder rather than a copy per caller, because the first line of it is
+ * the scope. A second copy of "which rows may this actor see" is exactly how
+ * a data leak gets written: someone adds a filter to the list, another caller
+ * keeps its own clause, and six months later a third is written from the copy
+ * that forgot `orderScope`. It is the argument access/scopes.ts makes for
+ * keeping orderScope and orderScopeSql in one file, one level up.
+ *
+ * THE CALLER'S FILTERS GO UNDER `AND`, AND THAT IS THE WHOLE POINT OF THE
+ * SHAPE. They used to be spread beside the scope, and a later spread of the
+ * same top-level key REPLACES the earlier one — so `{...orderScope(actor),
+ * customerId: query.customerId}` deleted the one clause keeping a seller out
+ * of another seller's orders, and `?seller=<someone else>` on /orders returned
+ * their rows, their addresses and their costs. It type-checked and it reviewed
+ * clean, which is exactly what productScope's own comment in
+ * access/scopes.ts says about a bare clause being "silently overwritten by the
+ * very key it was protecting". Under AND both survive: Prisma intersects the
+ * top-level keys, so a filter NARROWS within the scope and can never widen it.
+ * The same rule saves `warehouseId` from customer scope and `ids` from
+ * MATCH_NONE, both of which were reachable the same way.
+ *
+ * `AND` is omitted entirely when there is nothing to put in it, for the same
+ * reason the date window is: an empty clause is something Postgres is handed
+ * for nothing, and it makes two otherwise identical where-clauses compare
+ * unequal.
+ */
+export async function orderListWhere(
+  actor: Actor,
+  query: OrderFilter = {},
+): Promise<Prisma.OrderWhereInput> {
+  const filters: Prisma.OrderWhereInput[] = [
+    ...(query.status?.length ? [{ status: { in: query.status } }] : []),
+    ...(query.warehouseId ? [{ warehouseId: query.warehouseId }] : []),
+    ...(query.customerId ? [{ customerId: query.customerId }] : []),
+    ...(query.ids?.length ? [{ id: { in: query.ids } }] : []),
+    ...(query.search ? [{ OR: searchClauses(query.search) }] : []),
+    // Absent entirely when neither side is given: an empty `{ placedAt: {} }`
+    // is a clause Postgres has to be handed for nothing, and it would make two
+    // otherwise identical where-clauses differ by an empty object.
+    ...(query.from || query.to
+      ? [
+          {
+            placedAt: {
+              ...(query.from ? { gte: query.from } : {}),
+              ...(query.to ? { lte: query.to } : {}),
+            },
+          },
+        ]
+      : []),
+  ];
+
+  return {
+    ...(await orderScope(actor)),
+    deletedAt: null,
+    ...(filters.length ? { AND: filters } : {}),
+  };
+}
+
+/**
+ * A date out of a URL, or undefined.
+ *
+ * `new Date("last tuesday")` is an Invalid Date, and handing one of those to
+ * Prisma is a 500 — so a mistyped or stale `?from=` would take the whole page
+ * down instead of rendering it unfiltered. Same rule as the sort whitelist:
+ * input that does not parse is input that was not given.
+ */
+export function parseDateParam(value?: string | null): Date | undefined {
+  if (!value) return undefined;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
 
 /**
  * The orders `actor` may see. The scope is spread FIRST — a seller sees their
@@ -40,26 +199,75 @@ export type OrderListQuery = {
 export async function listOrders(actor: Actor, query: OrderListQuery = {}) {
   const page = Math.max(1, query.page ?? 1);
   const pageSize = Math.min(200, Math.max(1, query.pageSize ?? 25));
-  const where: Prisma.OrderWhereInput = {
-    ...(await orderScope(actor)),
-    deletedAt: null,
-    ...(query.status?.length ? { status: { in: query.status } } : {}),
-    ...(query.warehouseId ? { warehouseId: query.warehouseId } : {}),
-    ...(query.customerId ? { customerId: query.customerId } : {}),
-    ...(query.ids?.length ? { id: { in: query.ids } } : {}),
-    ...(query.search ? { OR: searchClauses(query.search) } : {}),
-  };
+  const where = await orderListWhere(actor, query);
   const [rows, total] = await Promise.all([
     prisma.order.findMany({
       where,
       select: ORDER_LIST_SELECT,
-      orderBy: { placedAt: "desc" },
+      orderBy: orderListOrderBy(query.sort, query.dir),
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
     prisma.order.count({ where }),
   ]);
   return { rows, total, page, pageSize };
+}
+
+/**
+ * The ceiling on "select all matching". Two thousand ids is ~20 KB on the
+ * wire and a bulk action a warehouse can still reason about; past that the
+ * honest answer is a narrower filter, not a longer array.
+ */
+export const MAX_SELECTION_IDS = 2000;
+
+/**
+ * The filter as the URL carries it — dates still strings.
+ *
+ * The table's filters live in the query string, so this is the shape the
+ * client already has in its hand. It hands them over as-is and the action
+ * parses them with parseDateParam, rather than the client building a Date that
+ * may be Invalid and crossing the boundary with it.
+ */
+export type OrderSelectionFilter = {
+  search?: string;
+  status?: FulfillmentStatus[];
+  warehouseId?: number;
+  customerId?: string;
+  from?: string;
+  to?: string;
+};
+
+/**
+ * Every order id matching a filter — the "select all 46 matching" a header
+ * checkbox cannot do, because the page it lives on only knows its own 25 rows.
+ *
+ * The SAME where builder the list uses, so the selection is the filter: an id
+ * can only come back here if the same actor would have reached that row by
+ * paging to it.
+ *
+ * `capped` rather than a silent truncation. When the filter matches more than
+ * the ceiling the caller gets the first MAX_SELECTION_IDS and `total` says how
+ * many there really were — enough to tell the operator "2000 of 5312 selected"
+ * instead of quietly acting on a subset they believe is everything.
+ */
+export async function listOrderIds(
+  actor: Actor,
+  query: OrderFilter = {},
+): Promise<{ ids: number[]; capped: boolean; total: number }> {
+  const where = await orderListWhere(actor, query);
+  const [rows, total] = await Promise.all([
+    prisma.order.findMany({
+      where,
+      select: { id: true },
+      // Deliberately NOT the table's sort: this is a set, the cheapest total
+      // order over it is the primary key, and the only thing that matters is
+      // that the cap takes a stable slice rather than an arbitrary one.
+      orderBy: { id: "desc" },
+      take: MAX_SELECTION_IDS,
+    }),
+    prisma.order.count({ where }),
+  ]);
+  return { ids: rows.map((r) => r.id), capped: total > rows.length, total };
 }
 
 /** Order ID, tracking number, recipient name, or SKU — one search box, four
@@ -110,7 +318,25 @@ const ORDER_LIST_SELECT = {
   productVariant: { select: { id: true, sku: true } },
   // `url` alongside the thumbnail: the thumbnail is a rendered preview, and
   // "open the artwork" has to go to the file itself, not to a 400px png.
-  mockup: { select: { id: true, name: true, thumbnail: true, url: true } },
+  //
+  // `folderId` and `status` are what let the row stop drawing a folder icon
+  // for every design, by telling three cases apart:
+  //   a) folderId === parseDriveUrl(order.imageUrl)?.id — this mockup WAS
+  //      resolved out of the design folder, so the design and the mockup are
+  //      the same picture and the row draws ONE thumbnail rather than two
+  //      copies of it;
+  //   b) folderId === null — a mockup attached by hand through
+  //      setOrderArtwork, genuinely a different image from the design folder
+  //      and worth its own cell;
+  //   c) status === MOCKUP_UNRESOLVED with a null thumbnail — a folder we
+  //      cannot read (private, or holding nothing renderable). A folder icon
+  //      is the honest answer there, and the stored row is the memo that stops
+  //      us asking Drive again on every render.
+  // Resolution stays lazy (/api/orders/<id>/thumb) or bulk (the backfill
+  // script). Nothing in this query touches the network.
+  mockup: {
+    select: { id: true, name: true, thumbnail: true, url: true, folderId: true, status: true },
+  },
   shipments: {
     select: {
       id: true, trackingNumber: true, trackingStatus: true, provider: true,
@@ -188,6 +414,20 @@ export async function getOrder(actor: Actor, id: number) {
   });
 }
 
+/** What the card strip counts over: the list's filter minus `status` — see
+ * orderStatusSummary for why that one is deliberately missing.
+ *
+ * `customerId` is here because the Seller column is a filter now: without the
+ * field, clicking a name narrowed the table to one seller and left the cards
+ * (and the header chips they feed) counting the whole platform. */
+export type OrderSummaryQuery = {
+  warehouseId?: number;
+  customerId?: string;
+  from?: Date;
+  to?: Date;
+  search?: string;
+};
+
 /**
  * What the detail page may OFFER — the same question updateOrder will answer
  * when the save arrives.
@@ -227,24 +467,30 @@ export function orderEditPolicy(
  * and the table it sits above can never disagree. Legacy computed this in the
  * browser from the page it had rendered, which meant the counts changed as you
  * paged.
+ *
+ * That claim used to be only half true. The cards took `from`/`to` and the
+ * list did not, and the list took a search the cards did not, each side
+ * building its own clause — so a searched or date-filtered table sat under
+ * cards counting a different set of orders, which is worse than no cards.
+ * Both now call orderListWhere, and the only difference left is the one that
+ * has to be there: NO status filter, because these cards ARE the per-status
+ * breakdown and narrowing to one status would leave a single card counting
+ * itself.
+ *
+ * The SELLER was the last one to be added, and it was added for the same
+ * reason: `?seller=` became a real filter on the table (the Seller cell writes
+ * it) at the same moment these rows started feeding the header chips' counts,
+ * so an admin clicking a name saw twelve rows under chips still reading five
+ * thousand. reads.test.ts asserts the two clauses stay identical.
  */
-export async function orderStatusSummary(
-  actor: Actor,
-  query: { warehouseId?: number; from?: Date; to?: Date } = {},
-) {
-  const where: Prisma.OrderWhereInput = {
-    ...(await orderScope(actor)),
-    deletedAt: null,
-    ...(query.warehouseId ? { warehouseId: query.warehouseId } : {}),
-    ...(query.from || query.to
-      ? {
-          placedAt: {
-            ...(query.from ? { gte: query.from } : {}),
-            ...(query.to ? { lte: query.to } : {}),
-          },
-        }
-      : {}),
-  };
+export async function orderStatusSummary(actor: Actor, query: OrderSummaryQuery = {}) {
+  const where = await orderListWhere(actor, {
+    warehouseId: query.warehouseId,
+    customerId: query.customerId,
+    from: query.from,
+    to: query.to,
+    search: query.search,
+  });
 
   const [byStatus, byProduct] = await Promise.all([
     prisma.order.groupBy({

@@ -94,9 +94,9 @@ truyền `vars` thì không đụng gì, nên các chỗ đang tự `.replace()`
 | ✅ `form.json` × 7 locale | 16 key, đã đăng ký trong `translations.ts` |
 | ✅ `field-rules.ts` + 17 test | `node --test` — 17/17 xanh |
 | ✅ `FormField` + legend `FormDialog` | |
-| ✅ **68 ô trên 18 dialog** | 21 ô có câu luật, 47 ô chỉ kiểm khi rời ô |
-| ✅ 32 câu viết tay | 29 có sẵn + 3 mới (mã đơn, người nhận, số tiền) × 7 locale |
-| ⬜ 47 ô im lặng | cần chữ viết tay — máy không có gì để nói về chúng |
+| ✅ **72 ô trên 19 dialog** | 21 ô có câu luật, 51 ô chỉ kiểm khi rời ô |
+| ✅ 34 câu viết tay | 29 có sẵn + 5 mới (mã đơn, người nhận, số tiền chi, số tiền nạp) × 7 locale |
+| ⬜ 51 ô im lặng | cần chữ viết tay — máy không có gì để nói về chúng |
 | ⬜ 7 ô auth | chưa dùng `FormField` |
 
 **Đã bỏ khỏi kế hoạch** (over-engineering): cache `WeakMap`, cửa thoát
@@ -119,6 +119,7 @@ lỗi zod thành mã lỗi.
   Schema. Cụ thể: `moneyAmountSchema` bắt số phải lớn hơn 0, nên `0.00` vẫn lọt
   qua client và chỉ bị server chặn. Đây là lý do client chỉ là lớp báo sớm, còn
   server vẫn là nơi phán quyết.
+- **`profile.billing.fAmountHint` chỉ đúng cho hoàn tiền** ("để trống để lấy toàn bộ") — ô nạp tiền là bắt buộc nên dùng chung sẽ sai; nó có key `fTopUpAmountHint` riêng.
 - **`priceSchema` (bulk-prices-dialog)** là schema mảng, không phải object, nên
   `fieldRules` không nhận. Ô giá theo bậc chưa nối.
 - **`PhoneInput`** khai báo kiểu prop đóng (chỉ `id`, `aria-describedby`,

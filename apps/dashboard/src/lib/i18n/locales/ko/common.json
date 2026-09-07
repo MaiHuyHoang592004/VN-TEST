@@ -5,6 +5,9 @@
   "error": "오류가 발생했습니다. 새로고침 후 다시 시도하세요.",
   "close": "닫기",
   "cancel": "취소",
+  "clear": "초기화",
+  "done": "완료",
+  "dateRange": "기간",
   "pagination": {
     "selected": "{count}개 선택됨",
     "empty": "결과 없음",
@@ -18,6 +21,16 @@
     "selectAll": "이 페이지의 모든 행 선택",
     "toggleDetails": "세부 정보 보기",
     "search": "검색…",
-    "clear": "초기화"
+    "clear": "초기화",
+    "selectedCount": "{count}개 선택됨",
+    "pageSelected": "이 페이지의 {count}개를 모두 선택했습니다.",
+    "selectAllMatching": "일치하는 {count}개 모두 선택",
+    "allMatchingSelected": "일치하는 {count}개 행을 모두 선택했습니다.",
+    "allMatchingSelectedCapped": "일치하는 {total}개 행 중 {count}개를 선택했습니다 — 한 번에 선택할 수 있는 최대치입니다. 이후 작업은 이 {count}개에만 적용됩니다.",
+    "clearSelection": "선택 해제",
+    "density": "행 간격",
+    "densityCompact": "좁게",
+    "densityCozy": "보통",
+    "densityFull": "넓게"
   }
 }

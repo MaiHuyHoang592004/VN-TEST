@@ -111,8 +111,7 @@
     },
     "revokeTitle": "Thu hồi khóa này?",
     "revokeBody": "Mọi hệ thống đang dùng khóa này sẽ ngừng hoạt động ngay lập tức. Không thể hoàn tác.",
-    "revokeFailed": "Không thể thu hồi khóa. Vui lòng thử lại.",
-    "copyFailed": "Không thể sao chép. Hãy chọn văn bản và sao chép thủ công."
+    "revokeFailed": "Không thể thu hồi khóa. Vui lòng thử lại."
   },
   "webhooks": {
     "title": "Webhook",

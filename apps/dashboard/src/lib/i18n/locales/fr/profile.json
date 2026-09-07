@@ -111,8 +111,7 @@
     },
     "revokeTitle": "Révoquer cette clé ?",
     "revokeBody": "Tout ce qui utilise cette clé cesse de fonctionner immédiatement. Action irréversible.",
-    "revokeFailed": "Impossible de révoquer la clé. Réessayez.",
-    "copyFailed": "Copie impossible. Sélectionnez le texte et copiez-le manuellement."
+    "revokeFailed": "Impossible de révoquer la clé. Réessayez."
   },
   "webhooks": {
     "title": "Webhooks",

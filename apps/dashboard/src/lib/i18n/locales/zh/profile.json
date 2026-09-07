@@ -111,8 +111,7 @@
     },
     "revokeTitle": "撤销此密钥？",
     "revokeBody": "使用此密钥的所有集成会立即失效。此操作无法撤销。",
-    "revokeFailed": "无法撤销密钥，请重试。",
-    "copyFailed": "无法复制。请手动选中文本复制。"
+    "revokeFailed": "无法撤销密钥，请重试。"
   },
   "webhooks": {
     "title": "Webhook",

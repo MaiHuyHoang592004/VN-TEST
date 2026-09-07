@@ -2,6 +2,7 @@
   "save": "Lưu thay đổi",
   "saving": "Đang lưu…",
   "copy": "Sao chép",
+  "copyFailed": "Không thể sao chép. Hãy chọn văn bản và sao chép thủ công.",
   "error": "Đã xảy ra lỗi. Hãy tải lại trang và thử lại.",
   "close": "Đóng",
   "cancel": "Huỷ",

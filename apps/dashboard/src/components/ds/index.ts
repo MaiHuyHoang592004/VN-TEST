@@ -10,6 +10,7 @@
  */
 export { Callout, type CalloutProps } from "./callout";
 export { ChartFrame, type ChartFrameProps } from "./chart-frame";
+export { CopyButton } from "./copy-button";
 export { CraftCut, type CraftCutProps } from "./craft-cut";
 export { DateRangeField, type DateRangeFieldProps } from "./date-range-field";
 export { FilterChip, type FilterChipProps } from "./filter-chip";

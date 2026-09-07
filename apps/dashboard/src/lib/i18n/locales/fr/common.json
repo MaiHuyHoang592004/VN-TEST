@@ -2,6 +2,7 @@
   "save": "Enregistrer les modifications",
   "saving": "Enregistrement…",
   "copy": "Copier",
+  "copyFailed": "Copie impossible. Sélectionnez le texte et copiez-le manuellement.",
   "error": "Une erreur est survenue. Actualisez et réessayez.",
   "close": "Fermer",
   "cancel": "Annuler",

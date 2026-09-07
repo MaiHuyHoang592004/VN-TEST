@@ -111,8 +111,7 @@
     },
     "revokeTitle": "Revoke this key?",
     "revokeBody": "Anything using this key stops working immediately. This cannot be undone.",
-    "revokeFailed": "Could not revoke the key. Try again.",
-    "copyFailed": "Could not copy. Select the text and copy it manually."
+    "revokeFailed": "Could not revoke the key. Try again."
   },
   "webhooks": {
     "title": "Webhooks",

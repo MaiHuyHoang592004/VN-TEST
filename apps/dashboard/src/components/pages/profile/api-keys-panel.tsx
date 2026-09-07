@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
-import { Copy, Check } from "lucide-react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { CopyButton } from "@/components/ds";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,45 +25,6 @@ export type ApiKeyRow = {
   revokedAt: string | null;
   createdAt: string;
 };
-
-function CopyButton({ value, label }: { value: string; label: string }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  // The timer outlives the button when a dialog closes mid-tick, so it is
-  // cleared on unmount rather than left to set state on a dead component.
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(
-    () => () => {
-      if (timer.current) clearTimeout(timer.current);
-    },
-    [],
-  );
-
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      aria-label={label}
-      onClick={async () => {
-        // navigator.clipboard is undefined outside a secure context and can
-        // reject when permission is denied. Unguarded, both failed silently
-        // while the tick still appeared — the user walked off with nothing.
-        try {
-          await navigator.clipboard.writeText(value);
-        } catch {
-          toast.error(t("profile.api.copyFailed"));
-          return;
-        }
-        setCopied(true);
-        if (timer.current) clearTimeout(timer.current);
-        timer.current = setTimeout(() => setCopied(false), 1500);
-      }}
-    >
-      {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-    </Button>
-  );
-}
 
 export function ApiKeysPanel({
   keys,

@@ -14,12 +14,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   createMaterialAction,
   updateMaterialAction,
 } from "@/modules/inventory/materials/actions";
+import { materialSchema } from "@/modules/inventory/materials/schema.ts";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(materialSchema);
+
 
 export const MATERIAL_TYPES = [
   "RAW_MATERIAL",
@@ -108,7 +114,7 @@ export function MaterialDialog({
       onSubmit={() => submit(values)}
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t("inventory.materials.field.sku")} required error={fieldErrors.sku}>
+        <FormField label={t("inventory.materials.field.sku")} required rules={RULES.sku} error={fieldErrors.sku}>
           {(props) => (
             <Input
               {...props}
@@ -120,7 +126,7 @@ export function MaterialDialog({
           )}
         </FormField>
 
-        <FormField label={t("inventory.materials.field.name")} required error={fieldErrors.name}>
+        <FormField label={t("inventory.materials.field.name")} required rules={RULES.name} error={fieldErrors.name}>
           {(props) => (
             <Input {...props} value={values.name} onChange={(e) => set("name", e.target.value)} />
           )}
@@ -146,7 +152,7 @@ export function MaterialDialog({
         <FormField
           label={t("inventory.materials.field.uom")}
           hint={t("inventory.materials.field.uomHint")}
-          error={fieldErrors.uom}
+          rules={RULES.uom} error={fieldErrors.uom}
         >
           {(props) => (
             <Input {...props} value={values.uom} onChange={(e) => set("uom", e.target.value)} />
@@ -156,7 +162,7 @@ export function MaterialDialog({
 
       <FormField
         label={t("inventory.materials.field.description")}
-        error={fieldErrors.description}
+        rules={RULES.description} error={fieldErrors.description}
       >
         {(props) => (
           <Textarea

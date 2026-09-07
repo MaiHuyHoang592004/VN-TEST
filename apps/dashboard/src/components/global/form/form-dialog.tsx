@@ -69,6 +69,17 @@ export function FormDialog({
 
   const body = (
     <>
+      {/* Explains the asterisk once instead of every optional field wearing an
+          "Optional" line — on the new-order form that was eight identical grey
+          lines. Shown only when a required field is actually present, decided
+          by :has() against FormField's data-required marker, so no dialog has
+          to remember to pass a flag and none can get it wrong. */}
+      <p className="hidden text-xs text-(--text-muted) group-has-[[data-required]]:block">
+        <span className="text-destructive" aria-hidden>
+          *
+        </span>{" "}
+        {t("form.legend.required")}
+      </p>
       {children}
       {formError && (
         <p
@@ -124,7 +135,7 @@ export function FormDialog({
               {description && <DrawerDescription>{description}</DrawerDescription>}
             </DrawerHeader>
 
-            <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-2">
+            <div className="group flex flex-1 flex-col gap-4 overflow-y-auto px-4 pb-2">
               {body}
             </div>
 
@@ -171,7 +182,7 @@ export function FormDialog({
 
           {/* -mx-1/px-1 buys the scroll container 4px so it clips focus rings
               off the edge-most fields instead of shaving them. */}
-          <div className="-mx-1 flex flex-1 flex-col gap-4 overflow-y-auto px-1 py-4">
+          <div className="group -mx-1 flex flex-1 flex-col gap-4 overflow-y-auto px-1 py-4">
             {body}
           </div>
 

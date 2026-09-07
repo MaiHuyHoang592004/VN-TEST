@@ -11,12 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   createProductAction,
   updateProductAction,
 } from "@/modules/catalog/products/actions";
+import { productSchema } from "@/modules/catalog/products/schema.ts";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(productSchema);
+
 
 export type ProductRow = {
   id: number;
@@ -90,7 +96,7 @@ export function ProductDialog({
       formError={formError}
       onSubmit={() => submit(values)}
     >
-      <FormField label={t("catalog.products.fName")} required error={fieldErrors.name}>
+      <FormField label={t("catalog.products.fName")} required rules={RULES.name} error={fieldErrors.name}>
         {(props) => (
           <Input
             {...props}
@@ -112,7 +118,7 @@ export function ProductDialog({
         label={t("catalog.products.fKey")}
         required
         hint={t(product ? "catalog.products.fKeyHintLocked" : "catalog.products.fKeyHint")}
-        error={fieldErrors.key}
+        rules={RULES.key} error={fieldErrors.key}
       >
         {(props) => (
           <Input
@@ -132,7 +138,7 @@ export function ProductDialog({
         <FormField
           label={t("catalog.products.fThumbnail")}
           hint={t("catalog.products.fThumbnailHint")}
-          error={fieldErrors.thumbnail}
+          rules={RULES.thumbnail} error={fieldErrors.thumbnail}
         >
           {(props) => (
             <Input

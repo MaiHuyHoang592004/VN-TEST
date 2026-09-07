@@ -1,0 +1,25 @@
+{
+  "rule": {
+    "email": "Ví dụ: ten@congty.com",
+    "url": "Dán link đầy đủ, bắt đầu bằng https://",
+    "range": "Từ {min} đến {max}",
+    "min": "Ít nhất {min}",
+    "max": "Nhiều nhất {max}",
+    "maxChars": "Tối đa {max} ký tự"
+  },
+  "err": {
+    "required": "Vui lòng điền ô này",
+    "tooLong": "Tối đa {max} ký tự — hiện {count}",
+    "tooShort": "Cần ít nhất {min} ký tự",
+    "email": "Email chưa đúng — kiểm tra dấu @ và tên miền",
+    "url": "Link chưa hợp lệ. Cần bắt đầu bằng https://",
+    "number": "Chỉ nhập số",
+    "integer": "Chỉ nhập số nguyên",
+    "min": "Không được nhỏ hơn {min}",
+    "max": "Không được lớn hơn {max}",
+    "pattern": "Định dạng chưa đúng — làm theo ví dụ bên dưới"
+  },
+  "legend": {
+    "required": "Ô bắt buộc"
+  }
+}

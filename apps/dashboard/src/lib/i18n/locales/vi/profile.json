@@ -189,6 +189,7 @@
       "too-many-files": "Tối đa 10 ảnh mỗi lần.",
       "storage-not-configured": "Hiện chưa thể tải tệp lên."
     },
-    "removeFile": "Xóa tệp"
+    "removeFile": "Xóa tệp",
+    "fTopUpAmountHint": "Số tiền dạng 12.50 — chỉ chữ số, tối đa hai chữ số thập phân"
   }
 }

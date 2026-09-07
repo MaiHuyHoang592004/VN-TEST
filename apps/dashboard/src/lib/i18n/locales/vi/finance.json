@@ -150,6 +150,7 @@
       "categories": "Danh mục",
       "incomeCategories": "Thu",
       "expenseCategories": "Chi"
-    }
+    },
+    "fAmountHint": "Số tiền dạng 12.50 — chỉ chữ số, tối đa hai chữ số thập phân"
   }
 }

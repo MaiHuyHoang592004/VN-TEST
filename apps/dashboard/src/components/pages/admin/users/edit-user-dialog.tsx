@@ -14,13 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { updateUserAction } from "@/modules/identity/users/actions";
+import { adminUserUpdateSchema } from "@/modules/identity/users/schema.ts";
 import { usePermissions } from "@/hooks/use-permissions";
 import { USER_ROLES } from "@gwprint/shared";
 import { useTranslation } from "@/lib/i18n";
 
 import type { UserRow } from "./users-table";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(adminUserUpdateSchema);
+
 
 export function EditUserDialog({
   user,
@@ -81,7 +87,7 @@ export function EditUserDialog({
         })
       }
     >
-      <FormField label={t("admin.users.editName")} error={fieldErrors.name}>
+      <FormField label={t("admin.users.editName")} rules={RULES.name} error={fieldErrors.name}>
         {(props) => (
           <Input {...props} value={name} onChange={(e) => setName(e.target.value)} />
         )}
@@ -133,7 +139,7 @@ export function EditUserDialog({
           )}
         </FormField>
 
-        <FormField label={t("admin.users.inviteTier")} error={fieldErrors.tier}>
+        <FormField label={t("admin.users.inviteTier")} rules={RULES.tier} error={fieldErrors.tier}>
           {(props) => (
             <Input
               {...props}

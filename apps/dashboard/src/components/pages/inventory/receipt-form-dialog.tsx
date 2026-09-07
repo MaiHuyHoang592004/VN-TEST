@@ -14,12 +14,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, fieldRules, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   createReceiptAction,
   updateReceiptAction,
 } from "@/modules/inventory/receipts/actions";
+import {
+  createReceiptSchema,
+  receiptLineSchema,
+  receiptShipmentSchema,
+} from "@/modules/inventory/receipts/schema.ts";
 
 import type { MaterialOption, SiteOption } from "./receipts-table";
 
@@ -31,6 +36,14 @@ type DraftShipment = {
   expectedArrivalAt: string;
   lines: DraftLine[];
 };
+
+/** Three schemas because a receipt form nests three shapes: the receipt, each
+ * shipment inside it, and each line inside a shipment. Read once from the
+ * schemas the server validates with, so these hints cannot drift from the
+ * rules that actually reject a value. */
+const RECEIPT = fieldRules(createReceiptSchema);
+const SHIPMENT = fieldRules(receiptShipmentSchema);
+const LINE = fieldRules(receiptLineSchema);
 
 const emptyLine = (): DraftLine => ({ materialId: "", requestedQuantity: "", unitPrice: "", note: "" });
 const emptyShipment = (): DraftShipment => ({
@@ -152,14 +165,14 @@ export function ReceiptFormDialog({
           )}
         </FormField>
 
-        <FormField label={t("inventory.receipts.form.provider")}>
+        <FormField label={t("inventory.receipts.form.provider")} rules={RECEIPT.provider}>
           {(props) => (
             <Input {...props} value={provider} onChange={(e) => setProvider(e.target.value)} />
           )}
         </FormField>
       </div>
 
-      <FormField label={t("inventory.receipts.form.note")}>
+      <FormField label={t("inventory.receipts.form.note")} rules={RECEIPT.note}>
         {(props) => (
           <Textarea {...props} rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
         )}
@@ -183,7 +196,10 @@ export function ReceiptFormDialog({
           </div>
 
           <div className="grid gap-3 sm:grid-cols-3">
-            <FormField label={t("inventory.receipts.detail.tracking")}>
+            <FormField
+              label={t("inventory.receipts.detail.tracking")}
+              rules={SHIPMENT.trackingNumber}
+            >
               {(props) => (
                 <Input
                   {...props}
@@ -192,7 +208,7 @@ export function ReceiptFormDialog({
                 />
               )}
             </FormField>
-            <FormField label={t("inventory.receipts.detail.carrier")}>
+            <FormField label={t("inventory.receipts.detail.carrier")} rules={SHIPMENT.carrier}>
               {(props) => (
                 <Input
                   {...props}
@@ -237,7 +253,11 @@ export function ReceiptFormDialog({
                 )}
               </FormField>
 
-              <FormField label={t("inventory.receipts.form.quantity")} required>
+              <FormField
+                label={t("inventory.receipts.form.quantity")}
+                required
+                rules={LINE.requestedQuantity}
+              >
                 {(props) => (
                   <Input
                     {...props}
@@ -250,7 +270,10 @@ export function ReceiptFormDialog({
                 )}
               </FormField>
 
-              <FormField label={t("inventory.receipts.detail.unitPrice")}>
+              <FormField
+                  label={t("inventory.receipts.detail.unitPrice")}
+                  rules={LINE.unitPrice}
+                >
                 {(props) => (
                   <Input
                     {...props}

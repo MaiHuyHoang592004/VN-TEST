@@ -79,6 +79,7 @@
   "errNotYours": "You can only create orders for your own account.",
   "errQuantityLocked": "La quantité ne peut changer que tant que la commande est en attente.",
   "errNotEditable": "Cette commande est annulée — seuls la note, l'échéance et l'adresse de livraison peuvent encore changer.",
+  "errTooLate": "Cette commande est trop avancée pour être modifiée.",
   "errConflict": "Cette commande a été modifiée par quelqu'un d'autre — actualisez et réessayez.",
   "fQuantityLockedHint": "Verrouillé — cette commande a déjà été affectée.",
   "assignTitle": "Assign to a warehouse",
@@ -247,5 +248,30 @@
     "label": "Étiquette d'expédition",
     "designFolder": "Ouvrir le dossier des fichiers"
   },
-  "colCostShip": "Coût + livraison"
+  "lightbox": {
+    "counter": "{index} sur {count}",
+    "failed": "Impossible de charger cette image.",
+    "next": "Image suivante",
+    "openFolder": "Ouvrir le dossier Drive",
+    "openOriginal": "Ouvrir l’original",
+    "prev": "Image précédente",
+    "zoomIn": "Agrandir",
+    "zoomOut": "Ajuster au cadre"
+  },
+  "colCostShip": "Coût + livraison",
+  "fExternalIdHint": "Le numéro de commande de la marketplace — c’est par là que le support recherche",
+  "fRecipientHint": "Nom complet, tel qu’il doit être imprimé sur l’étiquette d’expédition",
+  "detail": {
+    "artwork": "Visuel",
+    "back": "Toutes les commandes",
+    "carrier": "Transporteur",
+    "lockedProduction": "Cette commande est déjà en production et ne peut plus être modifiée. Mettez-la en attente s’il faut la corriger.",
+    "lockedRole": "Vous pouvez consulter cette commande mais pas la modifier.",
+    "lockedSeller": "Cette commande est partie en atelier ; vous ne pouvez plus la modifier vous-même. Contactez le support si une correction est nécessaire.",
+    "noArtwork": "Aucun visuel sur cette commande.",
+    "product": "Produit",
+    "reset": "Annuler les modifications",
+    "save": "Enregistrer",
+    "trackingStatus": "Statut du transporteur"
+  }
 }

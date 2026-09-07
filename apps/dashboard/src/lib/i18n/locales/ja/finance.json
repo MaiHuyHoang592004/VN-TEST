@@ -150,6 +150,7 @@
       "categories": "カテゴリ",
       "incomeCategories": "収入",
       "expenseCategories": "支出"
-    }
+    },
+    "fAmountHint": "12.50 のような金額 — 数字のみ、小数点以下は 2 桁まで"
   }
 }

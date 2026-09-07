@@ -12,11 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { adjustStockAction } from "@/modules/inventory/stock/actions";
+import { adjustStockSchema } from "@/modules/inventory/stock/schema.ts";
 
 import type { StockRowView, SiteOption } from "./stock-table";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(adjustStockSchema);
+
 
 /**
  * Correct one count at one site.
@@ -113,7 +119,7 @@ export function AdjustStockDialog({
         label={t("inventory.adjust.delta")}
         hint={t("inventory.adjust.deltaHint")}
         required
-        error={fieldErrors.quantityDelta}
+        rules={RULES.quantityDelta} error={fieldErrors.quantityDelta}
       >
         {(props) => (
           <Input
@@ -127,7 +133,7 @@ export function AdjustStockDialog({
         )}
       </FormField>
 
-      <FormField label={t("inventory.adjust.reason")} required error={fieldErrors.reason}>
+      <FormField label={t("inventory.adjust.reason")} required rules={RULES.reason} error={fieldErrors.reason}>
         {(props) => (
           <Input
             {...props}
@@ -138,7 +144,7 @@ export function AdjustStockDialog({
         )}
       </FormField>
 
-      <FormField label={t("inventory.adjust.note")} error={fieldErrors.note}>
+      <FormField label={t("inventory.adjust.note")} rules={RULES.note} error={fieldErrors.note}>
         {(props) => (
           <Textarea {...props} rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
         )}

@@ -12,12 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   createWarehouseAction,
   updateWarehouseAction,
 } from "@/modules/inventory/warehouses/actions";
+import { warehouseSchema } from "@/modules/inventory/warehouses/schema.ts";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(warehouseSchema);
+
 
 export type WarehouseRow = {
   id: number;
@@ -127,7 +133,7 @@ export function WarehouseDialog({
           label={t("admin.warehouses.fCode")}
           required
           hint={t("admin.warehouses.fCodeHint")}
-          error={fieldErrors.code}
+          rules={RULES.code} error={fieldErrors.code}
         >
           {(props) => (
             <Input
@@ -141,7 +147,7 @@ export function WarehouseDialog({
           )}
         </FormField>
 
-        <FormField label={t("admin.warehouses.fName")} required error={fieldErrors.name}>
+        <FormField label={t("admin.warehouses.fName")} required rules={RULES.name} error={fieldErrors.name}>
           {(props) => (
             <Input
               {...props}
@@ -153,7 +159,7 @@ export function WarehouseDialog({
         </FormField>
       </div>
 
-      <FormField label={t("admin.warehouses.fDescription")} error={fieldErrors.description}>
+      <FormField label={t("admin.warehouses.fDescription")} rules={RULES.description} error={fieldErrors.description}>
         {(props) => (
           <Textarea
             {...props}
@@ -231,7 +237,7 @@ export function WarehouseDialog({
             />
           )}
         </FormField>
-        <FormField label={t("admin.warehouses.fContactEmail")} error={fieldErrors.contactEmail}>
+        <FormField label={t("admin.warehouses.fContactEmail")} rules={RULES.contactEmail} error={fieldErrors.contactEmail}>
           {(props) => (
             <Input
               {...props}

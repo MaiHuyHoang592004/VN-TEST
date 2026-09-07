@@ -38,6 +38,7 @@ import enAnalytics from "./locales/en/analytics.json";
 import enSettings from "./locales/en/settings.json";
 import enHelp from "./locales/en/help.json";
 import enInvite from "./locales/en/invite.json";
+import enForm from "./locales/en/form.json";
 
 import zhCommon from "./locales/zh/common.json";
 import zhProfile from "./locales/zh/profile.json";
@@ -61,6 +62,7 @@ import zhAnalytics from "./locales/zh/analytics.json";
 import zhSettings from "./locales/zh/settings.json";
 import zhHelp from "./locales/zh/help.json";
 import zhInvite from "./locales/zh/invite.json";
+import zhForm from "./locales/zh/form.json";
 
 import frCommon from "./locales/fr/common.json";
 import frProfile from "./locales/fr/profile.json";
@@ -84,6 +86,7 @@ import frAnalytics from "./locales/fr/analytics.json";
 import frSettings from "./locales/fr/settings.json";
 import frHelp from "./locales/fr/help.json";
 import frInvite from "./locales/fr/invite.json";
+import frForm from "./locales/fr/form.json";
 
 import viCommon from "./locales/vi/common.json";
 import viProfile from "./locales/vi/profile.json";
@@ -107,6 +110,7 @@ import viAnalytics from "./locales/vi/analytics.json";
 import viSettings from "./locales/vi/settings.json";
 import viHelp from "./locales/vi/help.json";
 import viInvite from "./locales/vi/invite.json";
+import viForm from "./locales/vi/form.json";
 
 import jaCommon from "./locales/ja/common.json";
 import jaProfile from "./locales/ja/profile.json";
@@ -130,6 +134,7 @@ import jaAnalytics from "./locales/ja/analytics.json";
 import jaSettings from "./locales/ja/settings.json";
 import jaHelp from "./locales/ja/help.json";
 import jaInvite from "./locales/ja/invite.json";
+import jaForm from "./locales/ja/form.json";
 
 import koCommon from "./locales/ko/common.json";
 import koProfile from "./locales/ko/profile.json";
@@ -153,6 +158,7 @@ import koAnalytics from "./locales/ko/analytics.json";
 import koSettings from "./locales/ko/settings.json";
 import koHelp from "./locales/ko/help.json";
 import koInvite from "./locales/ko/invite.json";
+import koForm from "./locales/ko/form.json";
 
 import arCommon from "./locales/ar/common.json";
 import arProfile from "./locales/ar/profile.json";
@@ -176,6 +182,7 @@ import arAnalytics from "./locales/ar/analytics.json";
 import arSettings from "./locales/ar/settings.json";
 import arHelp from "./locales/ar/help.json";
 import arInvite from "./locales/ar/invite.json";
+import arForm from "./locales/ar/form.json";
 
 export const translations = {
   en: {
@@ -201,6 +208,7 @@ export const translations = {
     settings: enSettings,
     help: enHelp,
     invite: enInvite,
+    form: enForm,
   },
   zh: {
     common: zhCommon,
@@ -225,6 +233,7 @@ export const translations = {
     settings: zhSettings,
     help: zhHelp,
     invite: zhInvite,
+    form: zhForm,
   },
   fr: {
     common: frCommon,
@@ -249,6 +258,7 @@ export const translations = {
     settings: frSettings,
     help: frHelp,
     invite: frInvite,
+    form: frForm,
   },
   vi: {
     common: viCommon,
@@ -273,6 +283,7 @@ export const translations = {
     settings: viSettings,
     help: viHelp,
     invite: viInvite,
+    form: viForm,
   },
   ja: {
     common: jaCommon,
@@ -297,6 +308,7 @@ export const translations = {
     settings: jaSettings,
     help: jaHelp,
     invite: jaInvite,
+    form: jaForm,
   },
   ko: {
     common: koCommon,
@@ -321,6 +333,7 @@ export const translations = {
     settings: koSettings,
     help: koHelp,
     invite: koInvite,
+    form: koForm,
   },
   ar: {
     common: arCommon,
@@ -345,5 +358,6 @@ export const translations = {
     settings: arSettings,
     help: arHelp,
     invite: arInvite,
+    form: arForm,
   },
 };

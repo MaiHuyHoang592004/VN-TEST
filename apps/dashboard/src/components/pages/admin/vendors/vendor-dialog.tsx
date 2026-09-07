@@ -12,11 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { createVendorAction, updateVendorAction } from "@/modules/finance/vendors/actions";
+import { vendorSchema } from "@/modules/finance/vendors/schema.ts";
 
 import type { VendorRow } from "./vendors-table";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(vendorSchema);
+
 
 /**
  * Create or edit a supplier. The CODE may be left blank on create — the
@@ -74,7 +80,7 @@ export function VendorDialog({
         <FormField
           label={t("finance.vendors.fCode")}
           hint={vendor ? undefined : t("finance.vendors.fCodeHint")}
-          error={fieldErrors.code}
+          rules={RULES.code} error={fieldErrors.code}
         >
           {(props) => (
             <Input
@@ -101,14 +107,14 @@ export function VendorDialog({
         </FormField>
       </div>
 
-      <FormField label={t("finance.vendors.fName")} required error={fieldErrors.name}>
+      <FormField label={t("finance.vendors.fName")} required rules={RULES.name} error={fieldErrors.name}>
         {(props) => (
           <Input {...props} value={form.name} onChange={(e) => set({ name: e.target.value })} />
         )}
       </FormField>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t("finance.vendors.fContact")} error={fieldErrors.contactName}>
+        <FormField label={t("finance.vendors.fContact")} rules={RULES.contactName} error={fieldErrors.contactName}>
           {(props) => (
             <Input
               {...props}
@@ -118,13 +124,13 @@ export function VendorDialog({
           )}
         </FormField>
 
-        <FormField label={t("finance.vendors.fPhone")} error={fieldErrors.phone}>
+        <FormField label={t("finance.vendors.fPhone")} rules={RULES.phone} error={fieldErrors.phone}>
           {(props) => (
             <Input {...props} value={form.phone} onChange={(e) => set({ phone: e.target.value })} />
           )}
         </FormField>
 
-        <FormField label={t("finance.vendors.fEmail")} error={fieldErrors.email}>
+        <FormField label={t("finance.vendors.fEmail")} rules={RULES.email} error={fieldErrors.email}>
           {(props) => (
             <Input
               {...props}
@@ -135,7 +141,7 @@ export function VendorDialog({
           )}
         </FormField>
 
-        <FormField label={t("finance.vendors.fTaxCode")} error={fieldErrors.taxCode}>
+        <FormField label={t("finance.vendors.fTaxCode")} rules={RULES.taxCode} error={fieldErrors.taxCode}>
           {(props) => (
             <Input
               {...props}
@@ -146,7 +152,7 @@ export function VendorDialog({
         </FormField>
       </div>
 
-      <FormField label={t("finance.vendors.fAddress")} error={fieldErrors.address}>
+      <FormField label={t("finance.vendors.fAddress")} rules={RULES.address} error={fieldErrors.address}>
         {(props) => (
           <Input
             {...props}
@@ -156,7 +162,7 @@ export function VendorDialog({
         )}
       </FormField>
 
-      <FormField label={t("finance.vendors.fNote")} error={fieldErrors.note}>
+      <FormField label={t("finance.vendors.fNote")} rules={RULES.note} error={fieldErrors.note}>
         {(props) => (
           <Textarea
             {...props}

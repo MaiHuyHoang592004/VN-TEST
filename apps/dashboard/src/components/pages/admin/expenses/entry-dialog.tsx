@@ -12,11 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { createEntryAction, updateEntryAction } from "@/modules/finance/expenses/actions";
+import { entrySchema } from "@/modules/finance/expenses/schema.ts";
 
 import type { CategoryRow, EntryRow, VendorOption } from "./expenses-panel";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(entrySchema);
+
 
 const NO_VENDOR = "NONE";
 /** YYYY-MM-DD, which is what <input type="date"> speaks. */
@@ -135,7 +141,13 @@ export function EntryDialog({
           )}
         </FormField>
 
-        <FormField label={t("finance.expenses.fAmount")} required error={fieldErrors.amount}>
+        <FormField
+          label={t("finance.expenses.fAmount")}
+          required
+          hint={t("finance.expenses.fAmountHint")}
+          rules={RULES.amount}
+          error={fieldErrors.amount}
+        >
           {(props) => (
             <Input
               {...props}
@@ -147,7 +159,7 @@ export function EntryDialog({
           )}
         </FormField>
 
-        <FormField label={t("finance.expenses.fDate")} required error={fieldErrors.occurredAt}>
+        <FormField label={t("finance.expenses.fDate")} required rules={RULES.occurredAt} error={fieldErrors.occurredAt}>
           {(props) => (
             <Input
               {...props}
@@ -179,7 +191,7 @@ export function EntryDialog({
           )}
         </FormField>
 
-        <FormField label={t("finance.expenses.fPayment")} error={fieldErrors.paymentMethod}>
+        <FormField label={t("finance.expenses.fPayment")} rules={RULES.paymentMethod} error={fieldErrors.paymentMethod}>
           {(props) => (
             <Input
               {...props}
@@ -190,7 +202,7 @@ export function EntryDialog({
         </FormField>
       </div>
 
-      <FormField label={t("finance.expenses.fDescription")} error={fieldErrors.description}>
+      <FormField label={t("finance.expenses.fDescription")} rules={RULES.description} error={fieldErrors.description}>
         {(props) => (
           <Textarea
             {...props}

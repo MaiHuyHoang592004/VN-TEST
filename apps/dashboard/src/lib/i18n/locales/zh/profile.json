@@ -189,6 +189,7 @@
       "too-many-files": "一次最多上传 10 张图片。",
       "storage-not-configured": "当前无法上传文件。"
     },
-    "removeFile": "移除文件"
+    "removeFile": "移除文件",
+    "fTopUpAmountHint": "金额格式如 12.50 — 仅数字，最多两位小数"
   }
 }

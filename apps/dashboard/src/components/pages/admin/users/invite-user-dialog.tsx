@@ -6,10 +6,16 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { inviteUserAction } from "@/modules/identity/users/actions";
+import { inviteSchema } from "@/modules/identity/users/schema.ts";
 import { USER_ROLES } from "@gwprint/shared";
 import { useTranslation } from "@/lib/i18n";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(inviteSchema);
+
 
 /**
  * Invite by email. Deliberately has NO password field: with Google sign-in the
@@ -70,7 +76,7 @@ export function InviteUserDialog({
         })
       }
     >
-      <FormField label={t("admin.users.inviteEmail")} required error={fieldErrors.email}>
+      <FormField label={t("admin.users.inviteEmail")} required rules={RULES.email} error={fieldErrors.email}>
         {(props) => (
           <Input
             {...props}
@@ -108,7 +114,7 @@ export function InviteUserDialog({
       <FormField
         label={t("admin.users.inviteTier")}
         hint={t("admin.users.inviteTierHint")}
-        error={fieldErrors.tier}
+        rules={RULES.tier} error={fieldErrors.tier}
       >
         {(props) => (
           <Input

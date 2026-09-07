@@ -58,10 +58,33 @@ interface I18nContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   languages: Language[];
-  t: (key: string) => string;
+  t: (key: string, vars?: TranslationVars) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
+
+/** Values substituted into a string's `{placeholders}`. */
+export type TranslationVars = Record<string, string | number>;
+
+/**
+ * Fills `{name}` placeholders.
+ *
+ * Needed because a rule sentence carries a number ("Tối đa 64 ký tự") and the
+ * number does NOT sit in the same place in every language — Japanese puts it
+ * first, Arabic reads right to left. Concatenating in JS would hard-code
+ * English word order into all seven locales; only the translator can decide
+ * where the placeholder goes.
+ *
+ * An unmatched placeholder is left verbatim rather than blanked, so a missing
+ * variable shows up as `{max}` on screen instead of a sentence that silently
+ * lost its number.
+ */
+function interpolate(text: string, vars?: TranslationVars): string {
+  if (!vars) return text;
+  return text.replace(/\{(\w+)\}/g, (whole, name: string) =>
+    name in vars ? String(vars[name]) : whole,
+  );
+}
 
 function lookup(locale: Locale, key: string): string | undefined {
   let node: unknown = translations[locale];
@@ -125,7 +148,8 @@ export function I18nProvider({
 
   // Fall back to English, then to the key itself (visible = easy to spot).
   const t = useCallback(
-    (key: string) => lookup(locale, key) ?? lookup("en", key) ?? key,
+    (key: string, vars?: TranslationVars) =>
+      interpolate(lookup(locale, key) ?? lookup("en", key) ?? key, vars),
     [locale]
   );
 

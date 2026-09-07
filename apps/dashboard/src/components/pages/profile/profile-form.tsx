@@ -18,9 +18,14 @@ import {
   updateProfileAction,
   updatePreferencesAction,
 } from "@/modules/identity/profile/actions";
-import { FormField, useFormAction } from "@/components/global/form";
+import { profileUpdateSchema } from "@/modules/identity/profile/schema.ts";
+import { FormField, fieldRules, useFormAction } from "@/components/global/form";
 import { SettingsCard, SettingsStack } from "./settings-card";
 import { PhoneInput } from "./phone-input";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(profileUpdateSchema);
 
 export type ProfileFormValues = {
   name: string;
@@ -185,7 +190,12 @@ export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <FormField label={t("profile.form.name")} error={details.fieldErrors.name} required>
+              <FormField
+                label={t("profile.form.name")}
+                rules={RULES.name}
+                error={details.fieldErrors.name}
+                required
+              >
                 {(props) => (
                   <Input
                     {...props}

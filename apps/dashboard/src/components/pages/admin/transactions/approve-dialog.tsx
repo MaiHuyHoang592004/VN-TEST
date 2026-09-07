@@ -4,15 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Textarea } from "@/components/ui/textarea";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   approveTransactionAction,
   rejectTransactionAction,
 } from "@/modules/finance/transactions/actions";
+import { rejectTransactionSchema } from "@/modules/finance/transactions/schema.ts";
 
 import type { TransactionRow } from "./transactions-table";
 import { money } from "@/lib/money";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(rejectTransactionSchema);
+
 
 /**
  * Approve or reject one pending column.
@@ -83,7 +89,7 @@ export function ApproveDialog({
           label={t("finance.fReason")}
           required
           hint={t("finance.fReasonHint")}
-          error={fieldErrors.reason}
+          rules={RULES.reason} error={fieldErrors.reason}
         >
           {(props) => (
             <Textarea

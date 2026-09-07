@@ -150,6 +150,7 @@
       "categories": "Categories",
       "incomeCategories": "Income",
       "expenseCategories": "Expense"
-    }
+    },
+    "fAmountHint": "An amount like 12.50 — digits and at most two decimals"
   }
 }

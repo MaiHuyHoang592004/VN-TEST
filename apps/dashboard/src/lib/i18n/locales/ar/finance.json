@@ -150,6 +150,7 @@
       "categories": "الفئات",
       "incomeCategories": "إيرادات",
       "expenseCategories": "مصروفات"
-    }
+    },
+    "fAmountHint": "مبلغ مثل 12.50 — أرقام فقط، وبحد أقصى منزلتان عشريتان"
   }
 }

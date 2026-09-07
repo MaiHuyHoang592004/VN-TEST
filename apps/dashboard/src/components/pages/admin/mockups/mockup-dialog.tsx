@@ -11,12 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   createMockupAction,
   updateMockupAction,
 } from "@/modules/catalog/mockups/actions";
+import { mockupSchema } from "@/modules/catalog/mockups/schema.ts";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(mockupSchema);
+
 
 export type MockupRow = {
   id: number;
@@ -82,7 +88,7 @@ export function MockupDialog({
       formError={formError}
       onSubmit={() => submit(values)}
     >
-      <FormField label={t("catalog.mockups.fName")} required error={fieldErrors.name}>
+      <FormField label={t("catalog.mockups.fName")} required rules={RULES.name} error={fieldErrors.name}>
         {(props) => (
           <Input
             {...props}
@@ -97,7 +103,7 @@ export function MockupDialog({
         label={t("catalog.mockups.fUrl")}
         required
         hint={t("catalog.mockups.fUrlHint")}
-        error={fieldErrors.url}
+        rules={RULES.url} error={fieldErrors.url}
       >
         {(props) => (
           <Input
@@ -113,7 +119,7 @@ export function MockupDialog({
       <FormField
         label={t("catalog.mockups.fThumbnail")}
         hint={t("catalog.mockups.fThumbnailHint")}
-        error={fieldErrors.thumbnail}
+        rules={RULES.thumbnail} error={fieldErrors.thumbnail}
       >
         {(props) => (
           <Input
@@ -130,7 +136,7 @@ export function MockupDialog({
         <FormField
           label={t("catalog.mockups.fFolderId")}
           hint={t("catalog.mockups.fFolderIdHint")}
-          error={fieldErrors.folderId}
+          rules={RULES.folderId} error={fieldErrors.folderId}
         >
           {(props) => (
             <Input

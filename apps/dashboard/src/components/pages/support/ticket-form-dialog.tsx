@@ -15,15 +15,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { createTicketAction, updateTicketAction } from "@/modules/support/tickets/actions";
 import {
   REASON_PRIORITY,
   TICKET_PRIORITIES,
   TICKET_REASONS,
+  createTicketSchema,
   type TicketReason,
 } from "@/modules/support/tickets/schema";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(createTicketSchema);
 
 export type OrderOption = { id: number; label: string };
 
@@ -128,7 +133,7 @@ export function TicketFormDialog({
       formError={formError}
       onSubmit={onSubmit}
     >
-      <FormField label={t("support.tickets.form.title")} required error={fieldErrors.title}>
+      <FormField label={t("support.tickets.form.title")} required rules={RULES.title} error={fieldErrors.title}>
         {(props) => (
           <Input
             {...props}
@@ -209,7 +214,7 @@ export function TicketFormDialog({
       </FormField>
       )}
 
-      <FormField label={t("support.tickets.form.body")} error={fieldErrors.description}>
+      <FormField label={t("support.tickets.form.body")} rules={RULES.description} error={fieldErrors.description}>
         {(props) => (
           <Textarea
             {...props}

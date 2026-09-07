@@ -150,6 +150,7 @@
       "categories": "分类",
       "incomeCategories": "收入类",
       "expenseCategories": "支出类"
-    }
+    },
+    "fAmountHint": "金额格式如 12.50 — 仅数字，最多两位小数"
   }
 }

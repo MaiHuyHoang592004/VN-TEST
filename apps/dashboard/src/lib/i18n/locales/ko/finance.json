@@ -150,6 +150,7 @@
       "categories": "분류",
       "incomeCategories": "수입",
       "expenseCategories": "지출"
-    }
+    },
+    "fAmountHint": "12.50 형식의 금액 — 숫자만, 소수점 이하 두 자리까지"
   }
 }

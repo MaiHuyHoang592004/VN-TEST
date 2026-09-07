@@ -12,12 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { searchMaterialsAction } from "@/modules/inventory/materials/actions";
 import { quickImportAction } from "@/modules/inventory/stock/actions";
+import { quickImportSchema } from "@/modules/inventory/stock/schema.ts";
 
 import type { SiteOption } from "./stock-table";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(quickImportSchema);
+
 
 type Option = { id: number; sku: string; name: string };
 
@@ -164,7 +170,7 @@ export function ImportStockDialog({
       </FormField>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t("inventory.import.quantity")} required error={fieldErrors.quantity}>
+        <FormField label={t("inventory.import.quantity")} required rules={RULES.quantity} error={fieldErrors.quantity}>
           {(props) => (
             <Input
               {...props}
@@ -178,14 +184,14 @@ export function ImportStockDialog({
           )}
         </FormField>
 
-        <FormField label={t("inventory.import.provider")} error={fieldErrors.provider}>
+        <FormField label={t("inventory.import.provider")} rules={RULES.provider} error={fieldErrors.provider}>
           {(props) => (
             <Input {...props} value={provider} onChange={(e) => setProvider(e.target.value)} />
           )}
         </FormField>
       </div>
 
-      <FormField label={t("inventory.import.note")} required error={fieldErrors.note}>
+      <FormField label={t("inventory.import.note")} required rules={RULES.note} error={fieldErrors.note}>
         {(props) => (
           <Textarea {...props} rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
         )}

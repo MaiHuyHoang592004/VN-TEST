@@ -189,6 +189,7 @@
       "too-many-files": "Attach 10 images at most.",
       "storage-not-configured": "Uploads are not available right now."
     },
-    "removeFile": "Remove file"
+    "removeFile": "Remove file",
+    "fTopUpAmountHint": "An amount like 12.50 — digits and at most two decimals"
   }
 }

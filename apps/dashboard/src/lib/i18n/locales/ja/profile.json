@@ -189,6 +189,7 @@
       "too-many-files": "一度に添付できる画像は 10 枚までです。",
       "storage-not-configured": "現在アップロードを利用できません。"
     },
-    "removeFile": "ファイルを削除"
+    "removeFile": "ファイルを削除",
+    "fTopUpAmountHint": "12.50 のような金額 — 数字のみ、小数点以下は 2 桁まで"
   }
 }

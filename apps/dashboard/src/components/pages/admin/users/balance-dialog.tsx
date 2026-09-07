@@ -12,16 +12,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, fieldRules, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   topUpBalanceAction,
   refundBalanceAction,
   adjustBalanceAction,
 } from "@/modules/identity/users/actions";
+import { balanceMoveSchema } from "@/modules/identity/users/schema.ts";
 
 import type { UserRow } from "./users-table";
 import { money } from "@/lib/money";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(balanceMoveSchema);
 
 export type BalanceMode = "TOPUP" | "REFUND" | "ADJUST";
 
@@ -122,7 +127,12 @@ export function BalanceDialog({
         </FormField>
       )}
 
-      <FormField label={t("admin.users.balAmount")} required hint={t("admin.users.balAmountHint")}>
+      <FormField
+        label={t("admin.users.balAmount")}
+        required
+        hint={t("admin.users.balAmountHint")}
+        rules={RULES.amount}
+      >
         {(props) => (
           <Input
             {...props}
@@ -156,6 +166,7 @@ export function BalanceDialog({
         label={t("admin.users.balReason")}
         required
         hint={t("admin.users.balReasonHint")}
+        rules={RULES.reason}
       >
         {(props) => (
           <Textarea

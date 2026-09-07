@@ -150,6 +150,7 @@
       "categories": "Catégories",
       "incomeCategories": "Recettes",
       "expenseCategories": "Dépenses"
-    }
+    },
+    "fAmountHint": "Un montant comme 12.50 — chiffres, deux décimales au maximum"
   }
 }

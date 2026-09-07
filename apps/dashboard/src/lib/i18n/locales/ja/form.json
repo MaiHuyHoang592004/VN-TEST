@@ -1,0 +1,25 @@
+{
+  "rule": {
+    "email": "例：name@company.com",
+    "url": "https:// で始まる完全なリンクを貼り付けてください",
+    "range": "{min}〜{max}",
+    "min": "{min} 以上",
+    "max": "{max} 以下",
+    "maxChars": "{max} 文字まで"
+  },
+  "err": {
+    "required": "この項目を入力してください",
+    "tooLong": "{max} 文字までです（現在 {count} 文字）",
+    "tooShort": "{min} 文字以上入力してください",
+    "email": "メールアドレスが不完全です。@ とドメインをご確認ください",
+    "url": "リンクが正しくありません。https:// で始まる必要があります",
+    "number": "数字のみ入力できます",
+    "integer": "整数のみ入力できます",
+    "min": "{min} 未満にはできません",
+    "max": "{max} を超えることはできません",
+    "pattern": "形式が正しくありません — 下の例に従ってください"
+  },
+  "legend": {
+    "required": "必須項目"
+  }
+}

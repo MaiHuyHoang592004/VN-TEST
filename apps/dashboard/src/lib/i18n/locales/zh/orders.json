@@ -79,6 +79,7 @@
   "errNotYours": "You can only create orders for your own account.",
   "errQuantityLocked": "订单仍处于待处理状态时才能修改数量。",
   "errNotEditable": "该订单已取消——仅备注、截止日期和收货地址仍可修改。",
+  "errTooLate": "该订单已推进到无法修改的阶段。",
   "errConflict": "该订单已被他人修改——请刷新后重试。",
   "fQuantityLockedHint": "已锁定——该订单已分配。",
   "assignTitle": "Assign to a warehouse",
@@ -247,5 +248,30 @@
     "label": "运输标签",
     "designFolder": "打开设计文件夹"
   },
-  "colCostShip": "成本 + 运费"
+  "lightbox": {
+    "counter": "第 {index} 张，共 {count} 张",
+    "failed": "无法加载此图片。",
+    "next": "下一张",
+    "openFolder": "打开 Drive 文件夹",
+    "openOriginal": "打开原图",
+    "prev": "上一张",
+    "zoomIn": "放大",
+    "zoomOut": "适应窗口"
+  },
+  "colCostShip": "成本 + 运费",
+  "fExternalIdHint": "平台自身的订单号 — 客服按此查询",
+  "fRecipientHint": "收件人全名，需与运单上打印的一致",
+  "detail": {
+    "artwork": "图稿",
+    "back": "全部订单",
+    "carrier": "承运商",
+    "lockedProduction": "该订单已进入生产，无法再修改。如需更正，请先将订单置为暂停。",
+    "lockedRole": "您可以查看此订单，但无权修改。",
+    "lockedSeller": "该订单已下达车间，您无法再自行修改。如需更正，请联系客服。",
+    "noArtwork": "此订单尚无图稿。",
+    "product": "产品",
+    "reset": "放弃更改",
+    "save": "保存更改",
+    "trackingStatus": "物流状态"
+  }
 }

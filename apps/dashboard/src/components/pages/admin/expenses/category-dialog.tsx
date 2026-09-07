@@ -12,11 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import { createCategoryAction, updateCategoryAction } from "@/modules/finance/expenses/actions";
+import { categorySchema } from "@/modules/finance/expenses/schema.ts";
 
 import type { CategoryRow } from "./expenses-panel";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(categorySchema);
+
 
 /** A bucket for the books. Its type is what a new entry defaults to — nothing
  * more, which is why an entry may still disagree with it. */
@@ -64,7 +70,7 @@ export function CategoryDialog({
       formError={formError}
       onSubmit={() => submit(form)}
     >
-      <FormField label={t("finance.expenses.fName")} required error={fieldErrors.name}>
+      <FormField label={t("finance.expenses.fName")} required rules={RULES.name} error={fieldErrors.name}>
         {(props) => (
           <Input {...props} value={form.name} onChange={(e) => set({ name: e.target.value })} />
         )}
@@ -84,7 +90,7 @@ export function CategoryDialog({
         )}
       </FormField>
 
-      <FormField label={t("finance.expenses.fNote")} error={fieldErrors.note}>
+      <FormField label={t("finance.expenses.fNote")} rules={RULES.note} error={fieldErrors.note}>
         {(props) => (
           <Textarea
             {...props}

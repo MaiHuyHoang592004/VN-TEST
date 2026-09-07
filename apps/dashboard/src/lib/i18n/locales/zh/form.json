@@ -1,0 +1,25 @@
+{
+  "rule": {
+    "email": "例如：name@company.com",
+    "url": "请粘贴完整链接，以 https:// 开头",
+    "range": "{min} 至 {max}",
+    "min": "至少 {min}",
+    "max": "最多 {max}",
+    "maxChars": "最多 {max} 个字符"
+  },
+  "err": {
+    "required": "请填写此项",
+    "tooLong": "最多 {max} 个字符，当前 {count} 个",
+    "tooShort": "至少需要 {min} 个字符",
+    "email": "邮箱格式不完整，请检查 @ 和域名",
+    "url": "链接无效，需以 https:// 开头",
+    "number": "只能填写数字",
+    "integer": "只能填写整数",
+    "min": "不能小于 {min}",
+    "max": "不能大于 {max}",
+    "pattern": "格式不正确 — 请参照下方示例"
+  },
+  "legend": {
+    "required": "必填项"
+  }
+}

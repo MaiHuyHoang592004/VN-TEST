@@ -189,6 +189,7 @@
       "too-many-files": "أرفق 10 صور كحد أقصى.",
       "storage-not-configured": "الرفع غير متاح حاليًا."
     },
-    "removeFile": "إزالة الملف"
+    "removeFile": "إزالة الملف",
+    "fTopUpAmountHint": "مبلغ مثل 12.50 — أرقام فقط، وبحد أقصى منزلتان عشريتان"
   }
 }

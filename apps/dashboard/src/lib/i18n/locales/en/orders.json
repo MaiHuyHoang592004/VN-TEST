@@ -79,6 +79,7 @@
   "errNotYours": "You can only create orders for your own account.",
   "errQuantityLocked": "Quantity can only change while the order is still Pending.",
   "errNotEditable": "This order is cancelled — only note, deadline and shipping details can still change.",
+  "errTooLate": "That order has gone too far to be changed.",
   "errConflict": "This order was changed by someone else — refresh and try again.",
   "fQuantityLockedHint": "Locked — this order has already been assigned.",
   "assignTitle": "Assign to a warehouse",
@@ -247,5 +248,30 @@
     "label": "Shipping label",
     "designFolder": "Open artwork folder"
   },
-  "colCostShip": "Cost + ship"
+  "lightbox": {
+    "counter": "{index} of {count}",
+    "failed": "This image could not be loaded.",
+    "next": "Next image",
+    "openFolder": "Open Drive folder",
+    "openOriginal": "Open original",
+    "prev": "Previous image",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Fit to frame"
+  },
+  "colCostShip": "Cost + ship",
+  "fExternalIdHint": "The marketplace’s own order number — this is what support searches by",
+  "fRecipientHint": "Full name exactly as it should print on the shipping label",
+  "detail": {
+    "artwork": "Artwork",
+    "back": "All orders",
+    "carrier": "Carrier",
+    "lockedProduction": "This order is already in production, so its details can no longer be changed. Put it on hold first if something has to be corrected.",
+    "lockedRole": "You can view this order but not change it.",
+    "lockedSeller": "This order has been sent to the workshop, so you can no longer change it yourself. Contact support if something needs correcting.",
+    "noArtwork": "No artwork on this order yet.",
+    "product": "Product",
+    "reset": "Discard changes",
+    "save": "Save changes",
+    "trackingStatus": "Carrier status"
+  }
 }

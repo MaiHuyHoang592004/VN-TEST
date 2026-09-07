@@ -79,6 +79,7 @@
   "errNotYours": "You can only create orders for your own account.",
   "errQuantityLocked": "数量は注文が保留中の間のみ変更できます。",
   "errNotEditable": "この注文はキャンセル済みです — メモ・締切・配送先のみ変更できます。",
+  "errTooLate": "この注文は変更できる段階を過ぎています。",
   "errConflict": "この注文は他の人によって変更されました — 更新してもう一度お試しください。",
   "fQuantityLockedHint": "ロック中 — この注文はすでに割り当て済みです。",
   "assignTitle": "Assign to a warehouse",
@@ -247,5 +248,30 @@
     "label": "配送ラベル",
     "designFolder": "アートワークのフォルダを開く"
   },
-  "colCostShip": "原価 + 送料"
+  "lightbox": {
+    "counter": "{count} 件中 {index} 件目",
+    "failed": "この画像を読み込めませんでした。",
+    "next": "次の画像",
+    "openFolder": "Drive フォルダを開く",
+    "openOriginal": "元の画像を開く",
+    "prev": "前の画像",
+    "zoomIn": "拡大",
+    "zoomOut": "画面に合わせる"
+  },
+  "colCostShip": "原価 + 送料",
+  "fExternalIdHint": "マーケットプレイス側の注文番号 — サポートはこれで検索します",
+  "fRecipientHint": "配送ラベルに印字される氏名をそのまま入力してください",
+  "detail": {
+    "artwork": "デザイン",
+    "back": "すべての注文",
+    "carrier": "配送業者",
+    "lockedProduction": "この注文はすでに生産に入っているため変更できません。修正が必要な場合は先に保留にしてください。",
+    "lockedRole": "この注文は閲覧のみで、変更はできません。",
+    "lockedSeller": "この注文は工房に回っているため、ご自身では変更できません。修正が必要な場合はサポートにご連絡ください。",
+    "noArtwork": "この注文にはまだデザインがありません。",
+    "product": "商品",
+    "reset": "変更を破棄",
+    "save": "変更を保存",
+    "trackingStatus": "配送状況"
+  }
 }

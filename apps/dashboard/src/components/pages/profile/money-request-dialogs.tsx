@@ -15,13 +15,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, fieldRules, useFormAction } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   requestRefundAction,
   requestTopUpAction,
 } from "@/modules/finance/requests/actions";
-import { PAYMENT_METHODS } from "@/modules/finance/requests/schema";
+import {
+  PAYMENT_METHODS,
+  refundRequestSchema,
+  topUpRequestSchema,
+} from "@/modules/finance/requests/schema";
+
+/** Two dialogs, two schemas — read once from what the server validates with,
+ * so these hints cannot drift from the rules that reject a value. */
+const TOPUP = fieldRules(topUpRequestSchema);
+const REFUND = fieldRules(refundRequestSchema);
 import { money } from "@/lib/money";
 
 export type RefundableOrder = { id: number; label: string; total: string };
@@ -151,7 +160,13 @@ export function TopUpRequestDialog({
         submit(formData);
       }}
     >
-      <FormField label={t("profile.billing.fAmount")} required error={fieldErrors.amount}>
+      <FormField
+        label={t("profile.billing.fAmount")}
+        required
+        hint={t("profile.billing.fTopUpAmountHint")}
+        rules={TOPUP.amount}
+        error={fieldErrors.amount}
+      >
         {(props) => (
           <Input
             {...props}
@@ -180,7 +195,7 @@ export function TopUpRequestDialog({
         )}
       </FormField>
 
-      <FormField label={t("profile.billing.fNote")} error={fieldErrors.note}>
+      <FormField label={t("profile.billing.fNote")} rules={TOPUP.note} error={fieldErrors.note}>
         {(props) => (
           <Textarea
             {...props}
@@ -315,7 +330,12 @@ export function RefundRequestDialog({
         }
       </FormField>
 
-      <FormField label={t("profile.billing.fReason")} required error={fieldErrors.reason}>
+      <FormField
+        label={t("profile.billing.fReason")}
+        required
+        rules={REFUND.reason}
+        error={fieldErrors.reason}
+      >
         {(props) => (
           <Textarea
             {...props}
@@ -330,6 +350,7 @@ export function RefundRequestDialog({
       <FormField
         label={t("profile.billing.fAmount")}
         hint={t("profile.billing.fAmountHint")}
+        rules={REFUND.amount}
         error={fieldErrors.amount}
       >
         {(props) => (

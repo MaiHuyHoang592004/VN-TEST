@@ -11,12 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { FormDialog, FormField, useFormAction } from "@/components/global/form";
+import { FormDialog, FormField, useFormAction, fieldRules } from "@/components/global/form";
 import { useTranslation } from "@/lib/i18n";
 import {
   createVariantAction,
   updateVariantAction,
 } from "@/modules/catalog/variants/actions";
+import { variantSchema } from "@/modules/catalog/variants/schema.ts";
+
+/** Read once from the schema the server validates with, so these hints
+ * cannot drift from the rules that actually reject a value. */
+const RULES = fieldRules(variantSchema);
+
 
 export type VariantRow = {
   id: number;
@@ -77,7 +83,7 @@ export function VariantDialog({
       formError={formError}
       onSubmit={() => submit(values)}
     >
-      <FormField label={t("catalog.variants.fName")} required error={fieldErrors.name}>
+      <FormField label={t("catalog.variants.fName")} required rules={RULES.name} error={fieldErrors.name}>
         {(props) => (
           <Input
             {...props}
@@ -95,7 +101,7 @@ export function VariantDialog({
         label={t("catalog.variants.fKey")}
         required
         hint={t(variant ? "catalog.variants.fKeyHintLocked" : "catalog.variants.fKeyHint")}
-        error={fieldErrors.key}
+        rules={RULES.key} error={fieldErrors.key}
       >
         {(props) => (
           <Input

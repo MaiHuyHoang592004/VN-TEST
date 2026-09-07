@@ -189,6 +189,7 @@
       "too-many-files": "Joignez 10 images au maximum.",
       "storage-not-configured": "Les envois de fichiers sont indisponibles pour le moment."
     },
-    "removeFile": "Retirer le fichier"
+    "removeFile": "Retirer le fichier",
+    "fTopUpAmountHint": "Un montant comme 12.50 — chiffres, deux décimales au maximum"
   }
 }

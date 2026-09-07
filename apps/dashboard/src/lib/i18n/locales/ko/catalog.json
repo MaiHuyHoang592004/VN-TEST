@@ -159,6 +159,7 @@
     "option": "개 옵션",
     "resultCount": "제품 {count}개",
     "copySku": "SKU {sku} 복사",
-    "downloadSkus": "SKU 목록 다운로드"
+    "downloadSkus": "SKU 목록 다운로드",
+    "truncated": "처음 100개 제품만 표시됩니다. 전체 카탈로그가 필요하면 지원팀에 문의하세요."
   }
 }

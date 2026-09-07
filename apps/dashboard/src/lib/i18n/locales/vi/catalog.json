@@ -159,6 +159,7 @@
     "option": "tùy chọn",
     "resultCount": "{count} sản phẩm",
     "copySku": "Chép mã SKU {sku}",
-    "downloadSkus": "Tải danh sách SKU"
+    "downloadSkus": "Tải danh sách SKU",
+    "truncated": "Chỉ hiện 100 sản phẩm đầu. Liên hệ hỗ trợ nếu bạn cần toàn bộ danh mục."
   }
 }

@@ -16,7 +16,7 @@ import { Page } from "@/components/ds";
  * Read-only by design: sellers order through /orders, not from here.
  */
 export default async function CatalogPage() {
-  const { rows } = await listProducts({ status: "ACTIVE", pageSize: 100 });
+  const { rows, total } = await listProducts({ status: "ACTIVE", pageSize: 100 });
 
   // One query per variant. Fine at catalogue scale (tens of products) and it
   // keeps the scope check on each; batch it if the catalogue ever grows to
@@ -44,7 +44,13 @@ export default async function CatalogPage() {
   return (
     <Page>
       <CatalogHeader />
-      <CatalogBrowser products={products.filter((p) => p.skus.length > 0)} />
+      <CatalogBrowser
+        products={products.filter((p) => p.skus.length > 0)}
+        // listProducts kẹp pageSize ở 100 (products/service.ts) — trần đó
+        // được thiết kế để bảo vệ CHÍNH TRANG này, chứ không phải bug ở đây.
+        // Chỉ làm cho việc cắt cụt NHÌN THẤY ĐƯỢC thay vì im lặng.
+        truncated={total > rows.length}
+      />
     </Page>
   );
 }

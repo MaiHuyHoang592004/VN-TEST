@@ -159,6 +159,7 @@
     "option": "خيار",
     "resultCount": "{count} منتج",
     "copySku": "نسخ رمز SKU {sku}",
-    "downloadSkus": "تنزيل قائمة SKU"
+    "downloadSkus": "تنزيل قائمة SKU",
+    "truncated": "يتم عرض أول 100 منتج فقط. تواصل مع الدعم إذا كنت بحاجة إلى الكتالوج الكامل."
   }
 }

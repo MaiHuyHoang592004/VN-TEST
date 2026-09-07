@@ -159,6 +159,7 @@
     "option": "个选项",
     "resultCount": "{count} 个产品",
     "copySku": "复制 SKU {sku}",
-    "downloadSkus": "下载 SKU 列表"
+    "downloadSkus": "下载 SKU 列表",
+    "truncated": "仅显示前 100 个产品。如需完整目录，请联系支持团队。"
   }
 }

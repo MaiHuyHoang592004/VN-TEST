@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Download, LayoutGrid, List, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { CopyButton, ProductCell, SearchField, Surface } from "@/components/ds";
+import { Callout, CopyButton, ProductCell, SearchField, Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 import { money } from "@/lib/money";
 
@@ -29,7 +29,15 @@ export type CatalogProduct = {
  * Prices arrive as strings already resolved to the viewer's tier — this
  * component never does arithmetic on money.
  */
-export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
+export function CatalogBrowser({
+  products,
+  truncated = false,
+}: {
+  products: CatalogProduct[];
+  /** listProducts kẹp pageSize ở 100 — bật cờ này khi catalog thật có nhiều
+   * hơn thế, để việc cắt cụt hiện ra thay vì âm thầm biến mất khỏi trang. */
+  truncated?: boolean;
+}) {
   const { t } = useTranslation();
   const [q, setQ] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -132,6 +140,8 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
       <p aria-live="polite" className="sr-only">
         {t("catalog.browse.resultCount").replace("{count}", String(filtered.length))}
       </p>
+
+      {truncated && <Callout tone="attention">{t("catalog.browse.truncated")}</Callout>}
 
       {filtered.length === 0 ? (
         <p className="py-16 text-center text-(length:--fs-body-sm) text-(--text-muted)">

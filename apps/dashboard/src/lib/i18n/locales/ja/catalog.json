@@ -159,6 +159,7 @@
     "option": "種類",
     "resultCount": "{count} 件の製品",
     "copySku": "SKU {sku} をコピー",
-    "downloadSkus": "SKU 一覧をダウンロード"
+    "downloadSkus": "SKU 一覧をダウンロード",
+    "truncated": "最初の100件の商品のみ表示しています。全カタログが必要な場合はサポートにご連絡ください。"
   }
 }

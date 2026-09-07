@@ -33,6 +33,32 @@ export async function getOrder(id: number) {
 }
 
 /**
+ * One order plus what this viewer may do to it — for /orders/[id].
+ *
+ * Both answers from ONE read and ONE guard. Asking for the order and then
+ * asking again "may I edit it" would re-run the scoped query, and worse, would
+ * let the two answers be computed from two different snapshots of the row: the
+ * form could be enabled against a status the order no longer has.
+ */
+export async function getOrderDetail(id: number) {
+  const actor = await requireAnyPermission(
+    "orders.read.own",
+    "orders.read.customer",
+    "orders.read.all",
+  );
+  // The GUARD runs outside the catch on purpose. requireAnyPermission refuses
+  // by THROWING Next's forbidden() signal, and a try/catch wide enough to
+  // include it would swallow the refusal and turn a 403 into a 404 — or worse,
+  // into a rendered page. Only the query is allowed to fail quietly here, and
+  // its only expected failure is findFirstOrThrow finding nothing: either no
+  // such order, or one this actor's scope does not reach. Both are "no", and
+  // the caller must not be able to tell which.
+  const order = await orders.getOrder(actor, id).catch(() => null);
+  if (!order) return null;
+  return { order, policy: orders.orderEditPolicy(actor, order) };
+}
+
+/**
  * The artwork thumbnail behind /api/orders/<id>/thumb. Same three read grants
  * as the list: if you may see the order, you may see its design.
  */

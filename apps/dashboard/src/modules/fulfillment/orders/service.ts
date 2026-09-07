@@ -25,6 +25,7 @@ export {
   listOrders,
   listOrdersCursor,
   getOrder,
+  orderEditPolicy,
   orderArtwork,
   orderStatusSummary,
   type OrderListQuery,

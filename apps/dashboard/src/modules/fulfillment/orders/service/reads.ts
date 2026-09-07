@@ -14,7 +14,10 @@ import {
   type FulfillmentStatus,
 } from "@gwprint/db";
 
-import { type Actor } from "./shared.ts";
+import { can } from "@gwprint/shared";
+
+import { editableAt } from "../status.ts";
+import { resumeTargetOf, type Actor } from "./shared.ts";
 
 export type OrderListQuery = {
   search?: string;
@@ -183,6 +186,37 @@ export async function getOrder(actor: Actor, id: number) {
     where: { ...(await orderScope(actor)), id, deletedAt: null },
     select: { ...ORDER_LIST_SELECT, internalNote: true, configs: true },
   });
+}
+
+/**
+ * What the detail page may OFFER — the same question updateOrder will answer
+ * when the save arrives.
+ *
+ * Computed from the order the page already read rather than re-queried, and
+ * derived from the same `editableAt` table the service and the public API use.
+ * A page that decided this on its own would eventually offer a form whose save
+ * is refused, which is the worst of both: the work is typed and then thrown
+ * away.
+ *
+ * `reason` distinguishes the two refusals a person needs told apart. `role`
+ * means their grants never allowed it — a warehouse packer, say, who can
+ * advance an order but not rewrite one. `too-late` means they would have been
+ * allowed and the order has moved on. Only the second is worth explaining in
+ * terms of the order.
+ *
+ * NOT SECURITY. updateOrder re-decides on every save; this only keeps the UI
+ * from lying about what a press will do.
+ */
+export function orderEditPolicy(
+  actor: Actor,
+  order: { status: FulfillmentStatus; configs: Prisma.JsonValue | null },
+): { editable: boolean; wide: boolean; reason: null | "role" | "too-late" } {
+  const wide = can(actor.roles, "orders.update");
+  if (!wide && !can(actor.roles, "orders.update.own")) {
+    return { editable: false, wide: false, reason: "role" };
+  }
+  const inWindow = editableAt(order.status, wide, resumeTargetOf(order.configs));
+  return { editable: inWindow, wide, reason: inWindow ? null : "too-late" };
 }
 
 /**

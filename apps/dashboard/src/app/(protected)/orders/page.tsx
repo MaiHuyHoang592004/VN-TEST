@@ -7,6 +7,7 @@ import { listOrders, orderStatusSummary } from "@/modules/fulfillment/orders/que
 import { listWarehouses } from "@/modules/inventory/warehouses/queries";
 import { PROCESSING } from "@/modules/fulfillment/orders/status";
 import { OrdersTable } from "@/components/pages/orders/orders-table";
+import { toOrderRow } from "@/components/pages/orders/order-row";
 import { OrdersHeader } from "@/components/pages/orders/orders-header";
 import { Page } from "@/components/ds";
 
@@ -80,68 +81,7 @@ export default async function OrdersPage({
         total={total}
         summary={summary}
         warehouses={warehouses.map((w) => ({ id: w.id, code: w.code, name: w.name }))}
-        rows={rows.map((o) => ({
-          id: o.id,
-          externalId: o.externalId,
-          marketplace: o.marketplace,
-          status: o.status,
-          quantity: o.quantity,
-          filled: o.filled,
-          paid: o.paid,
-          // Money as a string: Decimal doesn't cross the boundary and a float
-          // would lose cents.
-          baseCost: o.baseCost?.toFixed(2) ?? null,
-          placedAt: o.placedAt.toISOString(),
-          deadline: o.deadline?.toISOString() ?? null,
-          customerName: o.customer?.name ?? o.customer?.email ?? null,
-          warehouseCode: o.warehouse?.code ?? null,
-          productName: o.product?.name ?? null,
-          variantName: o.variant?.name ?? null,
-          sku: o.productVariant?.sku ?? null,
-          // The row carries two DIFFERENT pictures, and the shapes differ:
-          //   imageUrl        — the DESIGN, a Drive FOLDER (489/489 rows)
-          //   mockup.thumbnail— the MOCKUP, an image endpoint (425/425 rows,
-          //                     drive.google.com/thumbnail?id=…)
-          // Verified against the live database. A folder is not an image, so
-          // only the second of these may ever reach an <img>; the first is a
-          // link. That is the whole reason this column used to render a broken
-          // glyph on every row.
-          mockupThumbnail: o.mockup?.thumbnail ?? null,
-          imageUrl: o.imageUrl,
-          proofImageUrl: o.proofImageUrl,
-          shipmentId: o.shipments[0]?.id ?? null,
-          labelVoided: Boolean(o.shipments[0]?.voidedAt),
-          tracking: o.shipments[0]?.trackingNumber ?? null,
-          shipTo: [
-            o.shippingAddress?.city,
-            o.shippingAddress?.state,
-            o.shippingAddress?.zip,
-            o.shippingAddress?.country,
-          ]
-            .filter(Boolean)
-            .join(", ") || null,
-          trackingStatus: o.shipments[0]?.trackingStatus ?? null,
-          carrier: o.shipments[0]?.provider ?? null,
-          service: o.shipments[0]?.method ?? null,
-          labelUrl: o.shipments[0]?.labelUrl ?? null,
-          // Decimal → string at the boundary, same as baseCost: a float would
-          // lose cents on the way to the client.
-          shipCost: o.shipments[0]?.cost?.toFixed(2) ?? null,
-          note: o.note,
-          internalNote: o.internalNote,
-          updatedAt: o.updatedAt.toISOString(),
-          productVariantId: o.productVariant?.id ?? null,
-          shippingName: o.shippingAddress?.name ?? null,
-          shippingCompany: o.shippingAddress?.company ?? null,
-          shippingEmail: o.shippingAddress?.email ?? null,
-          shippingPhone: o.shippingAddress?.phone ?? null,
-          line1: o.shippingAddress?.line1 ?? null,
-          line2: o.shippingAddress?.line2 ?? null,
-          city: o.shippingAddress?.city ?? null,
-          state: o.shippingAddress?.state ?? null,
-          zip: o.shippingAddress?.zip ?? null,
-          country: o.shippingAddress?.country ?? null,
-        }))}
+        rows={rows.map(toOrderRow)}
       />
     </Page>
   );

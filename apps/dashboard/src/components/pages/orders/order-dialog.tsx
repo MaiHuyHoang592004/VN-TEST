@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -18,30 +16,22 @@ import { listProductOptionsAction } from "@/modules/catalog/products/actions";
 import { listSkuOptionsAction } from "@/modules/catalog/product-variants/actions";
 import { createOrderAction, updateOrderAction } from "@/modules/fulfillment/orders/actions";
 
+import {
+  EMPTY,
+  OrderFormFields,
+  isSubmittable,
+  valuesFromOrder,
+} from "./order-form-fields";
 import type { OrderRow } from "./orders-table";
 
 type Option = { id: number; name: string; key?: string; sku?: string | null };
 
-const EMPTY = {
-  externalId: "",
-  marketplace: "",
-  quantity: "1",
-  shippingName: "",
-  shippingCompany: "",
-  shippingEmail: "",
-  shippingPhone: "",
-  line1: "",
-  line2: "",
-  city: "",
-  state: "",
-  zip: "",
-  country: "",
-  note: "",
-  internalNote: "",
-};
-
 /**
- * Add or edit an order.
+ * Add or edit an order, in a dialog over whatever list you were reading.
+ *
+ * The FIELDS live in order-form-fields.tsx, shared with /orders/[id]: this
+ * component owns the state, the action and the two things only a dialog does —
+ * the SKU cascade (create-only) and the idempotency key.
  *
  * The SKU picker CASCADES: pick a variant, then one of its SKUs. Only the SKU
  * id is submitted — the server reads variant and product off it, so a forged
@@ -60,28 +50,7 @@ export function OrderDialog({
 }) {
   const router = useRouter();
   const { t } = useTranslation();
-  const [values, setValues] = useState({
-    ...EMPTY,
-    ...(order
-      ? {
-          externalId: order.externalId ?? "",
-          marketplace: order.marketplace ?? "",
-          quantity: String(order.quantity),
-          shippingName: order.shippingName ?? "",
-          shippingCompany: order.shippingCompany ?? "",
-          shippingEmail: order.shippingEmail ?? "",
-          shippingPhone: order.shippingPhone ?? "",
-          line1: order.line1 ?? "",
-          line2: order.line2 ?? "",
-          city: order.city ?? "",
-          state: order.state ?? "",
-          zip: order.zip ?? "",
-          country: order.country ?? "",
-          note: order.note ?? "",
-          internalNote: order.internalNote ?? "",
-        }
-      : {}),
-  });
+  const [values, setValues] = useState(order ? valuesFromOrder(order) : EMPTY);
   const [products, setProducts] = useState<Option[]>([]);
   const [productId, setProductId] = useState<number | null>(null);
   /**
@@ -132,6 +101,7 @@ export function OrderDialog({
       "cannot-create-for-others": t("orders.errNotYours"),
       "quantity-locked": t("orders.errQuantityLocked"),
       "not-editable": t("orders.errNotEditable"),
+      "too-late": t("orders.errTooLate"),
       conflict: t("orders.errConflict"),
     },
     onSuccess: () => {
@@ -150,7 +120,7 @@ export function OrderDialog({
       submitLabel={order ? undefined : t("orders.dialogNewSubmit")}
       description={t("orders.dialogDesc")}
       pending={pending}
-      submitDisabled={!values.externalId.trim() || !values.shippingName.trim() || !values.zip.trim() || (!order && skuId === null)}
+      submitDisabled={!isSubmittable(values) || (!order && skuId === null)}
       formError={formError}
       onSubmit={() =>
         submit({
@@ -164,238 +134,105 @@ export function OrderDialog({
         })
       }
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t("orders.fExternalId")} required error={fieldErrors.externalId}>
-          {(props) => (
-            <Input
-              {...props}
-              value={values.externalId}
-              onChange={(e) => set("externalId", e.target.value)}
-              placeholder="ETSY-1001"
-              className="font-mono"
-            />
-          )}
-        </FormField>
-        <FormField label={t("orders.fMarketplace")} error={fieldErrors.marketplace}>
-          {(props) => (
-            <Input
-              {...props}
-              value={values.marketplace}
-              onChange={(e) => set("marketplace", e.target.value)}
-              placeholder="Etsy"
-            />
-          )}
-        </FormField>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        {!order && (
-          <>
-            <FormField label={t("orders.fProduct")} required className="sm:col-span-1">
-              {(props) => (
-                <Select
-                  value={productId === null ? "" : String(productId)}
-                  onValueChange={(v) => {
-                    setProductId(Number(v));
-                    // Clear the SKU here: keeping one from the previous variant
-                    // is how a mismatched pair would reach the server.
-                    setSkuId(null);
-                  }}
-                >
-                  <SelectTrigger {...props}>
-                    <SelectValue>
-                      {products.find((p) => p.id === productId)?.name ?? t("orders.pickProduct")}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {products.map((p) => (
-                      <SelectItem key={p.id} value={String(p.id)}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </FormField>
-
-            <FormField
-              label={t("orders.fSku")}
-              required
-              hint={productId !== null && skus.length === 0 ? t("orders.noPricedSkus") : undefined}
-              error={fieldErrors.productVariantId}
-            >
-              {(props) => (
-                <Select
-                  value={skuId === null ? "" : String(skuId)}
-                  onValueChange={(v) => setSkuId(Number(v))}
-                  disabled={productId === null || skus.length === 0}
-                >
-                  <SelectTrigger {...props}>
-                    <SelectValue>
-                      {skus.find((s) => s.id === skuId)?.name ?? t("orders.pickSku")}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {skus.map((s) => (
-                      <SelectItem key={s.id} value={String(s.id)}>
-                        {s.name}
-                        {s.sku ? ` · ${s.sku}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </FormField>
-          </>
-        )}
-
-        {/* Quantity is priced and reserved at assign-time — the server
-            refuses this once the order has left PENDING (quantity-locked),
-            so the field is disabled here rather than letting someone fill it
-            in and only find out on submit. */}
-        <FormField
-          label={t("orders.fQuantity")}
-          required
-          hint={order && order.status !== "PENDING" ? t("orders.fQuantityLockedHint") : undefined}
-          error={fieldErrors.quantity}
-          className={order ? "sm:col-span-1" : undefined}
-        >
-          {(props) => (
-            <Input
-              {...props}
-              value={values.quantity}
-              onChange={(e) => set("quantity", e.target.value)}
-              inputMode="numeric"
-              className="text-right tabular-nums"
-              disabled={Boolean(order) && order?.status !== "PENDING"}
-            />
-          )}
-        </FormField>
-      </div>
-
-      <div className="border-border mt-2 border-t pt-4">
-        <p className="mb-3 text-sm font-medium">{t("orders.shippingSection")}</p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label={t("orders.fRecipient")} required error={fieldErrors.shippingName}>
-            {(props) => (
-              <Input
-                {...props}
-                value={values.shippingName}
-                onChange={(e) => set("shippingName", e.target.value)}
-              />
-            )}
-          </FormField>
-          <FormField label={t("orders.fEmail")} error={fieldErrors.shippingEmail}>
-            {(props) => (
-              <Input
-                {...props}
-                value={values.shippingEmail}
-                onChange={(e) => set("shippingEmail", e.target.value)}
-                inputMode="email"
-              />
-            )}
-          </FormField>
-        </div>
-        {/* Phone and company were in this form's state and in its submit long
-            before they had anywhere to be typed: orderSchema accepts both, and
-            the spreadsheet importer maps a "Phone" column onto shippingPhone —
-            so an imported order could hold a phone number that nobody could
-            read or correct here. The fields are the fix, not deleting the
-            state. */}
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <FormField
-            label={t("orders.fPhone")}
-            hint={t("orders.fPhoneHint")}
-            error={fieldErrors.shippingPhone}
-          >
-            {(props) => (
-              <Input
-                {...props}
-                value={values.shippingPhone}
-                onChange={(e) => set("shippingPhone", e.target.value)}
-                inputMode="tel"
-              />
-            )}
-          </FormField>
-          <FormField label={t("orders.fCompany")} error={fieldErrors.shippingCompany}>
-            {(props) => (
-              <Input
-                {...props}
-                value={values.shippingCompany}
-                onChange={(e) => set("shippingCompany", e.target.value)}
-              />
-            )}
-          </FormField>
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <FormField label={t("orders.fLine1")} error={fieldErrors.line1}>
-            {(props) => (
-              <Input {...props} value={values.line1} onChange={(e) => set("line1", e.target.value)} />
-            )}
-          </FormField>
-          <FormField label={t("orders.fLine2")} error={fieldErrors.line2}>
-            {(props) => (
-              <Input {...props} value={values.line2} onChange={(e) => set("line2", e.target.value)} />
-            )}
-          </FormField>
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-4">
-          <FormField label={t("orders.fCity")} error={fieldErrors.city}>
-            {(props) => (
-              <Input {...props} value={values.city} onChange={(e) => set("city", e.target.value)} />
-            )}
-          </FormField>
-          <FormField label={t("orders.fState")} error={fieldErrors.state}>
-            {(props) => (
-              <Input {...props} value={values.state} onChange={(e) => set("state", e.target.value)} />
-            )}
-          </FormField>
-          <FormField label={t("orders.fZip")} required error={fieldErrors.zip}>
-            {(props) => (
-              <Input {...props} value={values.zip} onChange={(e) => set("zip", e.target.value)} />
-            )}
-          </FormField>
-          <FormField label={t("orders.fCountry")} error={fieldErrors.country}>
-            {(props) => (
-              <Input
-                {...props}
-                value={values.country}
-                onChange={(e) => set("country", e.target.value)}
-              />
-            )}
-          </FormField>
-        </div>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField label={t("orders.fNote")} hint={t("orders.fNoteHint")} error={fieldErrors.note}>
-          {(props) => (
-            <Textarea
-              {...props}
-              rows={2}
-              value={values.note}
-              onChange={(e) => set("note", e.target.value)}
-            />
-          )}
-        </FormField>
-        {/* Internal note is customer-to-customer and never shown to the
-            warehouse, which is why it is a separate field rather than a
-            convention inside `note`. */}
-        <FormField
-          label={t("orders.fInternalNote")}
-          hint={t("orders.fInternalNoteHint")}
-          error={fieldErrors.internalNote}
-        >
-          {(props) => (
-            <Textarea
-              {...props}
-              rows={2}
-              value={values.internalNote}
-              onChange={(e) => set("internalNote", e.target.value)}
-            />
-          )}
-        </FormField>
-      </div>
+      <OrderFormFields
+        values={values}
+        set={set}
+        fieldErrors={fieldErrors}
+        quantityLocked={Boolean(order) && order?.status !== "PENDING"}
+        skuPicker={!order ? <SkuPicker
+          products={products}
+          productId={productId}
+          onProductChange={(id) => {
+            setProductId(id);
+            // Clear the SKU here: keeping one from the previous variant is how
+            // a mismatched pair would reach the server.
+            setSkuId(null);
+          }}
+          skus={skus}
+          skuId={skuId}
+          onSkuChange={setSkuId}
+          error={fieldErrors.productVariantId}
+        /> : undefined}
+      />
     </FormDialog>
+  );
+}
+
+/**
+ * Product, then that product's priced SKUs. Create-only, because an order's
+ * variant is fixed the moment it is priced — changing it later would be a
+ * different order at a different price wearing the same id.
+ */
+function SkuPicker({
+  products,
+  productId,
+  onProductChange,
+  skus,
+  skuId,
+  onSkuChange,
+  error,
+}: {
+  products: Option[];
+  productId: number | null;
+  onProductChange: (id: number) => void;
+  skus: Option[];
+  skuId: number | null;
+  onSkuChange: (id: number) => void;
+  error?: string;
+}) {
+  const { t } = useTranslation();
+  return (
+    <>
+      <FormField label={t("orders.fProduct")} required className="sm:col-span-1">
+        {(props) => (
+          <Select
+            value={productId === null ? "" : String(productId)}
+            onValueChange={(v) => onProductChange(Number(v))}
+          >
+            <SelectTrigger {...props}>
+              <SelectValue>
+                {products.find((p) => p.id === productId)?.name ?? t("orders.pickProduct")}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {products.map((p) => (
+                <SelectItem key={p.id} value={String(p.id)}>
+                  {p.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </FormField>
+
+      <FormField
+        label={t("orders.fSku")}
+        required
+        hint={productId !== null && skus.length === 0 ? t("orders.noPricedSkus") : undefined}
+        error={error}
+      >
+        {(props) => (
+          <Select
+            value={skuId === null ? "" : String(skuId)}
+            onValueChange={(v) => onSkuChange(Number(v))}
+            disabled={productId === null || skus.length === 0}
+          >
+            <SelectTrigger {...props}>
+              <SelectValue>
+                {skus.find((s) => s.id === skuId)?.name ?? t("orders.pickSku")}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {skus.map((s) => (
+                <SelectItem key={s.id} value={String(s.id)}>
+                  {s.name}
+                  {s.sku ? ` · ${s.sku}` : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+      </FormField>
+    </>
   );
 }

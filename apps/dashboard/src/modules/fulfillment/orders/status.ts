@@ -92,3 +92,43 @@ export const PROCESSING: readonly FulfillmentStatus[] = [
   "ASSIGNED",
   "IN_PRODUCTION",
 ];
+
+/**
+ * Statuses at which nobody has started MAKING the order yet.
+ *
+ * The edit window is a property of the lifecycle, so it lives here beside
+ * PROCESSING rather than as an `if` inside whichever service happens to ask.
+ * Two surfaces ask — the dashboard's updateOrder and the public API's
+ * patchOrder — and the point of a table is that they cannot answer differently.
+ *
+ * IN_PRODUCTION is the line: past it a person has cut, printed or engraved
+ * something against what the order said, and editing the order afterwards
+ * describes a piece that does not exist.
+ */
+export const BEFORE_PRODUCTION: readonly FulfillmentStatus[] = ["PENDING", "ASSIGNED"];
+
+/**
+ * May this order still be edited, by an actor with this reach?
+ *
+ * `wide` is orders.update (staff): the whole pre-production window. Without it
+ * the actor holds orders.update.own, and a seller's window closes one step
+ * earlier — at ASSIGNED the wallet has already been debited and the job is in
+ * a queue somebody is working from, so the seller's own copy stops being the
+ * document of record.
+ *
+ * ON_HOLD is asked about its ORIGIN rather than lumped in either way. A hold
+ * placed on a PENDING order is still a pending order that is waiting for an
+ * answer — usually the artwork — and refusing edits to it would refuse exactly
+ * the edit that releases it. A hold placed on an IN_PRODUCTION order is not.
+ * `resumeTo` is what applyStatusChange stored on the way in; PENDING is the
+ * floor it falls back to, matching resumeTargetOf's own default.
+ */
+export function editableAt(
+  status: FulfillmentStatus,
+  wide: boolean,
+  resumeTo?: FulfillmentStatus | null,
+): boolean {
+  const window: readonly FulfillmentStatus[] = wide ? BEFORE_PRODUCTION : ["PENDING"];
+  if (status === "ON_HOLD") return window.includes(resumeTo ?? "PENDING");
+  return window.includes(status);
+}

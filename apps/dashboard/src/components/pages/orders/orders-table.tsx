@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Image as ImageIcon, Package, Pencil, RefreshCw, Ban, StickyNote, FolderOpen } from "lucide-react";
@@ -32,22 +33,14 @@ import { OrderMobileCard } from "./order-mobile-card";
 import { OrderProofAction } from "./order-proof-action";
 import { RefundDialog } from "./refund-dialog";
 import { ArtworkDialog } from "./artwork-dialog";
+import { ArtworkLightbox } from "./artwork-lightbox";
+import { driveFolder, orderShots, shotIndex } from "./artwork-shots";
 import { ExportButton } from "./export-button";
 import { StatusSummary, type StatusSummaryRow } from "./status-summary";
 import { OrderTimeline } from "./order-timeline";
 import { BuyLabelsButton } from "./buy-labels-button";
 import { DownloadLabelsButton } from "./download-labels-button";
 import { OrderDialog } from "./order-dialog";
-/**
- * True when the url is a Drive FOLDER — a container, never an image.
- *
- * Deliberately a local one-liner rather than the richer `parseDriveUrl` in
- * @gwprint/shared: all this column needs to know is "can this go in an <img>",
- * and answering it here keeps the orders table independent of the Drive
- * resolver work landing separately. Swap to parseDriveUrl once that ships.
- */
-const driveFolder = (url: string | null) =>
-  Boolean(url && url.includes("/drive/folders/"));
 import { VoidLabelDialog } from "./void-label-dialog";
 import { AssignDialog } from "./assign-dialog";
 import { ImportDialog } from "./import-dialog";
@@ -148,6 +141,64 @@ function Thumb({ src, tag, label }: { src: string; tag: string; label: string })
   );
 }
 
+/**
+ * The wrapper that turns a well into the panel's trigger.
+ *
+ * `stopPropagation` is not optional here: the well sits inside a row that has
+ * its own click, and without it opening the artwork would also fire whatever
+ * the row does. DataTable's interactive-target guard would catch a <button>
+ * anyway — this states it at the source rather than relying on a selector list
+ * in another file.
+ */
+function ThumbButton({
+  onClick,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      title={label}
+      aria-label={label}
+      className="shrink-0 rounded-(--radius-xs) transition-opacity duration-(--dur-fast) hover:opacity-75 focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
+    >
+      {children}
+    </button>
+  );
+}
+
+/** The design slot when the design is a folder: what it is, drawn as what it
+ *  is. Same 32px footprint as a picture so the strip stays on one grid. */
+function FolderWell() {
+  return (
+    <span className="relative flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200) transition-colors duration-(--dur-fast) hover:bg-(--cream-300) motion-reduce:transition-none">
+      <FolderOpen className="size-4 stroke-(--icon-default)" aria-hidden />
+      <span
+        aria-hidden
+        className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-(--radius-pill) bg-(--navy-700) font-mono text-[0.5625rem] leading-none font-bold text-(--gwp-white)"
+      >
+        D
+      </span>
+    </span>
+  );
+}
+
+/**
+ * "This cell may wrap." Named because it is used five times and each use is the
+ * same decision, not five coincidences: the primitive's default is nowrap, and
+ * the prose columns are the ones that must give it up for the table to fit a
+ * screen.
+ */
+const WRAP = "whitespace-normal";
+
 const STATUSES = [
   "PENDING",
   "ASSIGNED",
@@ -180,6 +231,10 @@ export function OrdersTable({
   const router = useRouter();
   const [refunding, setRefunding] = useState(false);
   const [artworkFor, setArtworkFor] = useState<OrderRow | null>(null);
+  // The artwork panel, and WHICH of the row's pictures it opened on. Held as
+  // one object so the two can never disagree — an index from a row that is no
+  // longer the open one is how a gallery shows the wrong picture.
+  const [lightbox, setLightbox] = useState<{ order: OrderRow; index: number } | null>(null);
   const [recalcPending, setRecalcPending] = useState(false);
 
   /** Shared by the column button and the bulk one — the difference is only which
@@ -234,6 +289,17 @@ export function OrdersTable({
     {
       id: "order",
       header: t("orders.colOrder"),
+      // WRAP, don't widen. Every <td> is whitespace-nowrap by default
+      // (components/ui/table.tsx), which is right for a badge or a figure and
+      // wrong for a product name: eleven no-wrap columns pushed this table
+      // past any laptop screen, so reading a status meant dragging sideways
+      // past the columns you were already looking at. Letting the prose
+      // columns wrap lets the browser's auto layout fit the table to the
+      // container again — the rows get taller, which is the cheap direction.
+      // cn() runs tailwind-merge, so `whitespace-normal` here beats the
+      // primitive's `whitespace-nowrap` without touching the seven other
+      // tables built on it.
+      className: WRAP,
       cell: (o) => (
         <div className="flex min-w-0 items-start gap-3">
           {/* THREE thumbnails, corner-tagged D · M · L — design, mockup and
@@ -247,86 +313,139 @@ export function OrdersTable({
               only its label simply has two. Nothing renders a grey box
               standing in for a picture that was never taken. */}
           <div className="flex shrink-0 items-center gap-1">
-            {/* D is the DESIGN, and in this database the design is a Google
-                Drive FOLDER, not a picture — 489 of 489 rows. A folder url in
-                an <img> asks Drive for a login page and gets one, which is
-                what used to draw a broken glyph on every row.
+            {/* EVERY well opens the same panel, in place. These are 32px: they
+                answer "is there artwork" and never "is it the RIGHT artwork",
+                and the second question used to cost a trip to Drive or to the
+                carrier's host in a new tab — losing the table, the scroll
+                position and the selection. Now the picture opens over the row
+                and the "open the original" link lives inside the panel. */}
+            {(() => {
+              const shots = orderShots(o);
+              const designAt = shotIndex(shots, "design");
+              const mockupAt = shotIndex(shots, "mockup");
+              const labelAt = shotIndex(shots, "label");
+              const proofAt = shotIndex(shots, "proof");
+              const folder = driveFolder(o.imageUrl);
+              const open = (index: number) => setLightbox({ order: o, index });
 
-                So D is drawn as what it is: a folder you can open. The picture
-                lives in M. Two wells, two different things, neither of them a
-                guess. If imageUrl ever holds a real image it is rendered as
-                one — the branch below stays for that day. */}
-            {driveFolder(o.imageUrl) ? (
-              <a
-                href={o.imageUrl!}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                title={t("orders.thumb.designFolder")}
-                aria-label={t("orders.thumb.designFolder")}
-                className="relative flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200) transition-colors duration-(--dur-fast) hover:bg-(--cream-300) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none motion-reduce:transition-none"
-              >
-                <FolderOpen className="size-4 stroke-(--icon-default)" aria-hidden />
-                <span
-                  aria-hidden
-                  className="absolute -right-0.5 -bottom-0.5 flex size-3.5 items-center justify-center rounded-(--radius-pill) bg-(--navy-700) font-mono text-[0.5625rem] leading-none font-bold text-(--gwp-white)"
-                >
-                  D
-                </span>
-              </a>
-            ) : o.imageUrl ? (
-              <OrderQr
-                {...orderQrProps(o)}
-                initialFormat="image"
-                trigger={<Thumb src={o.imageUrl} tag="D" label={t("orders.thumb.design")} />}
-              />
-            ) : null}
+              return (
+                <>
+                  {/* D — the DESIGN. In this database it is a Google Drive
+                      FOLDER on every legacy row, and a folder is not a picture:
+                      putting one in an <img> asks Drive for a login page and
+                      gets one, which is what used to draw a broken glyph on
+                      every row. So a folder is drawn as what it is, and the
+                      artwork inside it is shown in M. Clicking the folder still
+                      opens the panel — where the Drive button is — as long as
+                      there is something to show; with nothing resolved it stays
+                      a plain link out, because a panel with no picture in it is
+                      not worth trapping someone in. */}
+                  {designAt >= 0 ? (
+                    <ThumbButton
+                      onClick={() => open(designAt)}
+                      label={t("orders.thumb.design")}
+                    >
+                      <Thumb
+                        src={shots[designAt]!.src}
+                        tag="D"
+                        label={t("orders.thumb.design")}
+                      />
+                    </ThumbButton>
+                  ) : folder && mockupAt >= 0 ? (
+                    <ThumbButton
+                      onClick={() => open(mockupAt)}
+                      label={t("orders.thumb.designFolder")}
+                    >
+                      <FolderWell />
+                    </ThumbButton>
+                  ) : folder ? (
+                    <a
+                      href={o.imageUrl!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      title={t("orders.thumb.designFolder")}
+                      aria-label={t("orders.thumb.designFolder")}
+                      className="rounded-(--radius-xs) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
+                    >
+                      <FolderWell />
+                    </a>
+                  ) : null}
 
-            {/* M — the customer-facing mockup, and the row's one real picture.
-                mockups.thumbnail is already a drive.google.com/thumbnail?id=
-                url, i.e. an image endpoint, so it needs no resolving. */}
-            {o.mockupThumbnail ? (
-              <OrderQr
-                {...orderQrProps(o)}
-                initialFormat="image"
-                trigger={<Thumb src={o.mockupThumbnail} tag="M" label={t("orders.thumb.mockup")} />}
-              />
-            ) : !o.imageUrl ? (
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200)">
-                <Package className="size-4 stroke-(--icon-muted)" aria-hidden />
-              </span>
-            ) : null}
+                  {/* M — the customer-facing mockup, and the row's one real
+                      picture. Present whenever there is a folder to resolve it
+                      out of, not only when the backfill has already run. */}
+                  {mockupAt >= 0 ? (
+                    <ThumbButton
+                      onClick={() => open(mockupAt)}
+                      label={t("orders.thumb.mockup")}
+                    >
+                      <Thumb
+                        src={shots[mockupAt]!.src}
+                        tag="M"
+                        label={t("orders.thumb.mockup")}
+                      />
+                    </ThumbButton>
+                  ) : shots.length === 0 && !folder ? (
+                    // The column's anchor: a row with nothing at all keeps ONE
+                    // empty well so the text beside it starts at the same x as
+                    // every other row.
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-(--radius-xs) bg-(--cream-200)">
+                      <Package className="size-4 stroke-(--icon-muted)" aria-hidden />
+                    </span>
+                  ) : null}
 
-            {o.labelUrl && (
-              <a
-                href={o.labelUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                className="rounded-(--radius-xs) focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
-              >
-                <Thumb src={o.labelUrl} tag="L" label={t("orders.thumb.label")} />
-              </a>
-            )}
+                  {labelAt >= 0 && (
+                    <ThumbButton
+                      onClick={() => open(labelAt)}
+                      label={t("orders.thumb.label")}
+                    >
+                      <Thumb
+                        src={shots[labelAt]!.src}
+                        tag="L"
+                        label={t("orders.thumb.label")}
+                      />
+                    </ThumbButton>
+                  )}
 
-            {/* The packed-parcel photo. Beside the others rather than instead
-                of them: a packer comparing design to parcel is why both exist.
-                Its green ring is not the only signal — the alt text says what
-                it is. */}
-            {o.proofImageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={o.proofImageUrl}
-                alt={t("orders.proof.thumb")}
-                className="size-8 shrink-0 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
-              />
-            )}
+                  {/* The packed-parcel photo. Beside the others rather than
+                      instead of them: a packer comparing design to parcel is
+                      why both exist. Its green ring is not the only signal —
+                      the alt text says what it is. */}
+                  {proofAt >= 0 && (
+                    <ThumbButton
+                      onClick={() => open(proofAt)}
+                      label={t("orders.proof.thumb")}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={shots[proofAt]!.src}
+                        alt={t("orders.proof.thumb")}
+                        className="size-8 shrink-0 rounded-(--radius-xs) object-cover ring-2 ring-(--status-success-dot)"
+                      />
+                    </ThumbButton>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
-          <div className="min-w-0">
-            <p className="truncate font-mono text-(length:--fs-meta) font-medium tracking-(--ls-mono) text-(--text-body)">
+          <div className="min-w-0 max-w-[15rem]">
+            {/* The id stays on ONE line whatever else wraps: an order number
+                broken across two lines is a number nobody can read back over
+                the phone.
+
+                It is also the way in to the order's own page. A link rather
+                than a row click: the row already holds four thumbnails and six
+                buttons, and a click target that covers all of them is one that
+                fires when somebody meant to press one of them. */}
+            <Link
+              href={`/orders/${o.id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="block truncate rounded-(--radius-xs) font-mono text-(length:--fs-meta) font-medium tracking-(--ls-mono) whitespace-nowrap text-(--text-body) underline-offset-2 hover:underline focus-visible:shadow-(--shadow-focus) focus-visible:outline-none"
+            >
               {o.externalId ?? `#${o.id}`}
-            </p>
+            </Link>
             <p className="truncate text-(length:--fs-meta) text-(--text-muted)">
               {o.marketplace ?? t("orders.noMarketplace")}
             </p>
@@ -338,19 +457,22 @@ export function OrdersTable({
             {o.note && (
               <p
                 title={o.note}
-                className="flex items-center gap-1 truncate text-(length:--fs-meta) text-(--text-muted)"
+                className="flex items-start gap-1 text-(length:--fs-meta) text-(--text-muted)"
               >
-                <StickyNote className="size-3 shrink-0 stroke-(--icon-muted)" aria-hidden />
-                <span className="truncate">{o.note}</span>
+                <StickyNote className="mt-0.5 size-3 shrink-0 stroke-(--icon-muted)" aria-hidden />
+                {/* Two lines, then ellipsis. A note is the one thing in this
+                    row somebody actually needs to READ, and one truncated line
+                    of it says nothing; title= still carries the whole text. */}
+                <span className="line-clamp-2">{o.note}</span>
               </p>
             )}
             {o.internalNote && can("orders.status.update") && (
               <p
                 title={o.internalNote}
-                className="flex items-center gap-1 truncate text-(length:--fs-meta) text-(--status-attention-fg)"
+                className="flex items-start gap-1 text-(length:--fs-meta) text-(--status-attention-fg)"
               >
-                <StickyNote className="size-3 shrink-0 stroke-(--status-attention-dot)" aria-hidden />
-                <span className="truncate">{o.internalNote}</span>
+                <StickyNote className="mt-0.5 size-3 shrink-0 stroke-(--status-attention-dot)" aria-hidden />
+                <span className="line-clamp-2">{o.internalNote}</span>
               </p>
             )}
           </div>
@@ -360,12 +482,19 @@ export function OrdersTable({
     {
       id: "variant",
       header: t("orders.colProduct"),
+      // The widest column in the table, and the one that pushed it off screen:
+      // "Custom Shape 2-Layer Wooden And White Acrylic Sign" on one no-wrap
+      // line is 380px of a 1440px screen. ProductCell truncates its own three
+      // lines, so the wrap has to be handed down to them — the alternative was
+      // a `wrap` prop on a component ported verbatim from the design system.
+      className: `${WRAP} [&_[data-slot=product-cell]_p]:whitespace-normal`,
       // The DS's product cell: name, SKU in mono, variant on the meta line.
       // No image — the artwork thumbnail is the ORDER column's, where it is a
       // trigger, and one product per cell means one thumbnail per row.
       cell: (o) => (
         <ProductCell
           size="sm"
+          className="max-w-[16rem]"
           name={o.productName ?? "—"}
           code={o.sku}
           meta={o.variantName}
@@ -376,6 +505,7 @@ export function OrdersTable({
       id: "warehouse",
       header: t("orders.colCustomer"),
       hideOnMobile: true,
+      className: `${WRAP} max-w-[9rem]`,
       // Only meaningful to someone who can see across accounts; a seller's own
       // orders are all theirs.
       cell: (o) => (
@@ -408,10 +538,12 @@ export function OrdersTable({
       id: "tracking",
       header: t("orders.colTracking"),
       hideOnMobile: true,
+      // Carrier and service wrap; the tracking NUMBER does not (see below).
+      className: `${WRAP} max-w-[11rem]`,
       cell: (o) =>
         o.tracking ? (
           <div className="min-w-0">
-            <p className="truncate font-mono text-(length:--fs-meta) tracking-(--ls-mono) text-(--text-body)">
+            <p className="truncate font-mono text-(length:--fs-meta) tracking-(--ls-mono) whitespace-nowrap text-(--text-body)">
               {o.tracking}
             </p>
             {/* Who is carrying it, and on what service. Rendered only when the
@@ -497,6 +629,11 @@ export function OrdersTable({
             id: "qr",
             header: t("orders.qr.column"),
             hideOnMobile: true,
+            // w-px + nowrap is the table idiom for "as narrow as the content":
+            // auto layout cannot go below min-content, so the cell ends up
+            // exactly as wide as its row of buttons and gives every pixel it
+            // is not using back to the prose columns.
+            className: "w-px whitespace-nowrap",
             cell: (o: OrderRow) => (
               <div className="flex items-center gap-1">
                 <OrderQr {...orderQrProps(o)} />
@@ -735,6 +872,17 @@ export function OrdersTable({
           }
         />
       </div>
+
+      {lightbox && (
+        <ArtworkLightbox
+          shots={orderShots(lightbox.order)}
+          index={lightbox.index}
+          onIndexChange={(index) => setLightbox((l) => (l ? { ...l, index } : l))}
+          label={lightbox.order.externalId ?? `#${lightbox.order.id}`}
+          open
+          onOpenChange={(o) => !o && setLightbox(null)}
+        />
+      )}
 
       {creating && <OrderDialog open onOpenChange={(o) => !o && setCreating(false)} />}
       {editing && (

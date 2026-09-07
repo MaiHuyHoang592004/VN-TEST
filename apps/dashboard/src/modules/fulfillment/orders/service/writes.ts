@@ -23,7 +23,8 @@ import { can } from "@gwprint/shared";
 import { isDuplicateKey } from "../../../core/ledger.ts";
 import { notify, dispatchWebhook } from "../../../platform/index.ts";
 import { orderSchema, type OrderInput } from "../schema.ts";
-import { blankToNull, type Actor } from "./shared.ts";
+import { editableAt } from "../status.ts";
+import { blankToNull, resumeTargetOf, type Actor } from "./shared.ts";
 
 /** A stale write must lose the race, not silently win it. Thrown when a
  * caller supplied the `updatedAt` it read and the row has since moved. */
@@ -47,7 +48,13 @@ export class OrderConflictError extends Error {
  * is a PARAMETER rather than an inlined `actor.id` because the importers
  * coming in doc 05 (TikTok, and any marketplace connector) genuinely need to
  * file an order against the seller who owns the shop, and naming someone else
- * costs orders.update.
+ * costs orders.create.any.
+ *
+ * That check USED to read orders.update, which was safe only for as long as
+ * ADMIN was the only role holding it. Once support and sellers gained an edit
+ * right, "may correct an order" and "may bill another seller's wallet" would
+ * have become the same grant, and every seller could have filed orders against
+ * every other seller. The two acts now have two names.
  */
 export async function createOrder(
   actor: Actor,
@@ -62,7 +69,7 @@ export async function createOrder(
   notifyWebhook = true,
 ) {
   const input = orderSchema.parse(raw);
-  if (owner !== actor.id && !can(actor.roles, "orders.update")) {
+  if (owner !== actor.id && !can(actor.roles, "orders.create.any")) {
     return { ok: false as const, error: "cannot-create-for-others" as const };
   }
 
@@ -244,6 +251,21 @@ export async function createOrders(
   };
 }
 
+/**
+ * Edit an order's fields.
+ *
+ * TWO gates, and they answer different questions. This one asks WHEN: an order
+ * may be edited only while nobody has started making it, and a seller's window
+ * closes a step earlier than staff's (editableAt, orders/status.ts). The
+ * per-field locks below ask WHAT: quantity is money that has already moved, so
+ * it stops being editable the moment the order leaves PENDING even for an
+ * admin who may still edit everything else.
+ *
+ * The caller has already proved it holds one of the two edit permissions; this
+ * function decides which window that buys. `orders.update` is staff reach,
+ * `orders.update.own` is the seller's — and "own" itself is enforced by
+ * orderScope on the read below, not by trusting the caller.
+ */
 export async function updateOrder(
   actor: Actor,
   id: number,
@@ -260,9 +282,23 @@ export async function updateOrder(
     select: {
       externalId: true, marketplace: true, quantity: true, deadline: true,
       note: true, internalNote: true, imageUrl: true, shippingAddressId: true,
-      status: true,
+      status: true, configs: true,
     },
   });
+
+  // The window. A refusal here is about the ORDER's progress, not about the
+  // actor's rights — they held a write permission or they would not have got
+  // this far — so it is a distinct code from the field locks below and the UI
+  // says "too late", not "not allowed".
+  if (
+    !editableAt(
+      before.status,
+      can(actor.roles, "orders.update"),
+      resumeTargetOf(before.configs),
+    )
+  ) {
+    return { ok: false as const, error: "too-late" as const };
+  }
 
   // Quantity is the one field that changes what somebody has to MAKE — once
   // the order has left PENDING it has already been priced and charged (see

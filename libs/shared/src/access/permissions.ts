@@ -76,8 +76,21 @@ export const PERMISSIONS = [
   "orders.read.customer",
   "orders.read.all",
   "orders.create",
-  // Full field edit, and the only way to create an order for SOMEONE ELSE.
+  // File an order against SOMEONE ELSE's account. Split out of orders.update,
+  // which used to carry it by implication — a state that was safe only while
+  // ADMIN was the sole holder of orders.update. The moment support and sellers
+  // gained an edit right, "may edit an order" and "may bill another seller"
+  // had to stop being the same sentence.
+  "orders.create.any",
+  // Full field edit, on any order the actor can read, while the order has not
+  // yet reached the floor (BEFORE_PRODUCTION in orders/status.ts). Staff-grade:
+  // a seller gets the narrower grant below.
   "orders.update",
+  // Edit your OWN order, and only while it is still PENDING — before anyone
+  // has been asked to make it and before assign debits the wallet. The read
+  // scope already restricts a seller to their own rows; this is the write half
+  // of the same idea, deliberately narrower in TIME as well as in reach.
+  "orders.update.own",
   // Move an order along the fulfillment map. Separate from orders.update so
   // the floor can advance work without being able to rewrite its money.
   "orders.status.update",
@@ -180,6 +193,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   SUPPORT: [
     "users.read",
     "orders.read.all",
+    // Fix the address a customer got wrong, before the piece is on a machine.
+    // NOT orders.create.any: support answers for orders that exist, and
+    // creating one bills a seller's wallet the moment it is assigned.
+    "orders.update",
     "transactions.read.all",
     "products.read",
     // Answering "where is my order?" needs the stock picture, read-only.
@@ -197,6 +214,9 @@ export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   SELLER: [
     "orders.read.own",
     "orders.create",
+    // Their own order, while it is still PENDING. Paired with orders.read.own
+    // by scopes.ts, so "own" is enforced by the query, not by trust.
+    "orders.update.own",
     "transactions.read.own",
     "tickets.read.own",
     "products.read",

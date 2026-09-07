@@ -44,7 +44,15 @@ export async function createOrdersAction(rows: unknown[], owner?: string) {
  * pass it to catch a save that landed after someone else's, instead of
  * silently overwriting it. Omit to skip the check. */
 export async function updateOrderAction(id: number, input: unknown, expectedUpdatedAt?: string) {
-  const actor = await requirePermission("orders.update");
+  // EITHER edit grant gets through this door; the service decides what each
+  // one buys. Staff (orders.update) may edit until the order reaches the
+  // floor, a seller (orders.update.own) only while it is still PENDING — and
+  // "own" is enforced by orderScope on the service's read, not here.
+  //
+  // The sibling actions below deliberately keep requirePermission("orders.update"):
+  // re-pricing and attaching artwork are not a seller's to do, and widening
+  // this one must not widen those by proximity.
+  const actor = await requireAnyPermission("orders.update", "orders.update.own");
   return withValidation(async () => {
     const result = await orders.updateOrder(
       actor,

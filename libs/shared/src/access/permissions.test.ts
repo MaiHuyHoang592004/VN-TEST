@@ -96,19 +96,29 @@ test("mockups.manage is separate from products.manage (whole role matrix)", () =
 test("order write permissions: who may create, edit, advance and delete", () => {
   // The split that matters: the customer floor advances work along the
   // fulfillment map but must never be able to rewrite an order's money or
-  // create one, and a seller creates only for itself (the service forces the
-  // owner — orders.update is what buys the right to name someone else).
-  const expected: Record<string, Array<"create" | "update" | "status" | "delete">> = {
-    ADMIN: ["create", "update", "status", "delete"],
+  // create one, and a seller creates only for itself (createOrder forces the
+  // owner unless the actor holds orders.create.any).
+  //
+  // SUPPORT edits but does not create: correcting an address on an order that
+  // exists is their job, and filing a new one bills a seller's wallet the
+  // moment it is assigned. SELLER holds the narrower orders.update.own, which
+  // buys a PENDING-only window on its own rows (see the window test below).
+  const expected: Record<
+    string,
+    Array<"create" | "createAny" | "update" | "updateOwn" | "status" | "delete">
+  > = {
+    ADMIN: ["create", "createAny", "update", "updateOwn", "status", "delete"],
     WAREHOUSE_ADMIN: ["status"],
     WAREHOUSE: ["status"],
-    SELLER: ["create"],
-    SUPPORT: [],
+    SELLER: ["create", "updateOwn"],
+    SUPPORT: ["update"],
     DESIGNER: [],
   };
   const perm = {
     create: "orders.create",
+    createAny: "orders.create.any",
     update: "orders.update",
+    updateOwn: "orders.update.own",
     status: "orders.status.update",
     delete: "orders.delete",
   } as const;
@@ -122,6 +132,21 @@ test("order write permissions: who may create, edit, advance and delete", () => 
       );
     }
   }
+});
+
+test("editing an order does not buy the right to bill someone else", () => {
+  // THE REGRESSION THIS FILE EXISTS FOR. createOrder used to gate
+  // "file this against another seller" on orders.update, which was harmless
+  // only while ADMIN was that permission's only holder. Support and sellers
+  // now hold an edit right; if the two acts ever share a permission again,
+  // every seller can put orders on every other seller's account.
+  assert.equal(can(["SELLER"], "orders.create.any"), false, "a seller bills only itself");
+  assert.equal(can(["SUPPORT"], "orders.create.any"), false, "support answers, it does not order");
+  assert.equal(can(["ADMIN"], "orders.create.any"), true);
+
+  // And the narrow grant stays narrow: orders.update.own must never imply the
+  // staff-grade edit, which carries the wider pre-production window.
+  assert.equal(can(["SELLER"], "orders.update"), false, "a seller's edit is the narrow one");
 });
 
 test("assigning orders — the money path — is not granted by reading them", () => {

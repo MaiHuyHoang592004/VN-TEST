@@ -20,9 +20,11 @@ import {
   orderScope,
   type AuditContext,
 } from '@gwprint/db';
+import { can } from '@gwprint/shared';
 import { z } from 'zod';
 
 import { applyStatusChange, dispatchStatusWebhooks, type StatusChange } from './status-change.ts';
+import { editableAt } from '../status.ts';
 import { resumeTargetOf, type Actor } from './shared.ts';
 
 export type PatchErrorCode =
@@ -33,7 +35,12 @@ export type PatchErrorCode =
   | 'nothing-to-patch'
   /** expected_updated_at was sent and no longer matches — someone else's
    * write landed first. */
-  | 'conflict';
+  | 'conflict'
+  /** The order has gone past the point where it may be edited at all. Distinct
+   * from not-editable, which is about WHICH field: this one says the whole
+   * order is closed to edits now, so a client knows retrying with fewer fields
+   * will not help. */
+  | 'too-late';
 
 export class PatchError extends Error {
   readonly code: PatchErrorCode;
@@ -136,6 +143,28 @@ export async function patchOrder(
     throw new PatchError(
       'conflict',
       'This order was changed since it was last read.',
+    );
+  }
+
+  // The SAME window the dashboard's updateOrder applies, read from the same
+  // table in orders/status.ts. Two doors into one order must not answer
+  // differently about whether it may be changed, or the narrower door is
+  // decoration — a seller refused in the UI would simply send the PATCH.
+  //
+  // ONE carve-out, and it is this endpoint's whole reason to exist: supplying
+  // the missing design to a HELD order releases it (≙ legacy resolve-design,
+  // see below). Refusing that would refuse precisely the message the hold was
+  // placed to wait for. Everything else about a held order still obeys the
+  // window.
+  const resolvesDesign =
+    order.status === 'ON_HOLD' && keys.length === 1 && keys[0] === 'image_url';
+  if (
+    !resolvesDesign &&
+    !editableAt(order.status, can(actor.roles, 'orders.update'), resumeTargetOf(order.configs))
+  ) {
+    throw new PatchError(
+      'too-late',
+      'That order has already gone into production.',
     );
   }
 

@@ -15,13 +15,12 @@
  * is how the legacy API ended up able to create orders the UI would have
  * rejected.
  */
-import { createHash } from "node:crypto";
-
 import { prisma, writeAudit, orderScope, type AuditContext } from "@gwprint/db";
 import { can } from "@gwprint/shared";
 
 import { isDuplicateKey } from "../../../core/ledger.ts";
 import { notify, dispatchWebhook } from "../../../platform/index.ts";
+import { importIdempotencyKey } from "../import-key.ts";
 import { orderSchema, type OrderInput } from "../schema.ts";
 import { editableAt } from "../status.ts";
 import { blankToNull, resumeTargetOf, type Actor } from "./shared.ts";
@@ -200,19 +199,28 @@ export async function createOrders(
   rows: unknown[],
   ctx: AuditContext,
   owner: string = actor.id,
+  /**
+   * Với mỗi dòng, lần xuất hiện thứ mấy của nội dung đó TRONG FILE của seller.
+   * Client tính trên toàn bộ file đã parse (xem contentOrdinals) và gửi kèm, vì
+   * server chỉ thấy một lô 50 dòng và không tự đếm được.
+   *
+   * Thiếu thì lùi về `i + 1` — /api/v1 gửi một mảng độc lập, ở đó vị trí trong
+   * mảng CHÍNH LÀ vị trí trong file.
+   */
+  ordinals?: number[],
 ) {
   const results: Array<{ column: number; ok: boolean; id?: number; deduped?: boolean; error?: string }> = [];
   for (const [i, raw] of rows.entries()) {
     try {
-      // A retried import — the SAME file re-submitted after a timeout, or the
-      // Import button hit twice — must not create every column a second time.
-      // The key is derived from the column's own content plus its position, not
-      // random: replaying the identical file reproduces the identical key and
-      // dedupes through the same UNIQUE(idempotencyKey) path a single
-      // create/API POST already relies on. Position is part of it so two
-      // genuinely-identical sibling rows (a real duplicate line) still both
-      // get created.
-      const idempotencyKey = `import:${owner}:${i}:${createHash("sha256").update(JSON.stringify(raw)).digest("hex").slice(0, 32)}`;
+      // Khoá dẫn từ NỘI DUNG dòng cộng thứ tự xuất hiện của nội dung đó trong
+      // file — không phải vị trí trong payload. Vị trí đổi bất cứ khi nào tập
+      // dòng bị bỏ qua thay đổi (dòng không tra được SKU bị lọc ở client, rồi
+      // cắt lô 50), nên sửa một dòng rồi upload lại từng làm xê dịch khoá của
+      // mọi dòng sau nó và tạo đơn trùng ĐƯỢC BÁO LÀ THÀNH CÔNG.
+      //
+      // Hai dòng thật sự giống hệt nhau (đơn tách món) vẫn tạo hai đơn: chúng
+      // nhận ordinal 1 và 2.
+      const idempotencyKey = importIdempotencyKey(owner, raw, ordinals?.[i] ?? i + 1);
       const r = await createOrder(actor, raw, ctx, owner, idempotencyKey, false);
       results.push(
         r.ok
@@ -246,6 +254,10 @@ export async function createOrders(
   return {
     ok: true as const,
     created: results.filter((r) => r.ok).length,
+    /** Trong số `created`, bao nhiêu dòng chỉ khớp lại đơn đã có. UI phải phân
+     * biệt được, nếu không một lần upload lại sẽ báo "137 đơn mới" khi không tạo
+     * gì cả. */
+    deduped: results.filter((r) => r.ok && r.deduped).length,
     failed: results.filter((r) => !r.ok).length,
     results,
   };

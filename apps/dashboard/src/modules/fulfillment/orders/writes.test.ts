@@ -201,3 +201,52 @@ test("updateOrder: a stale expectedUpdatedAt loses the race", async () => {
   );
   assert.equal(fresh.ok, true);
 });
+
+test("createOrders: sửa một dòng rồi gửi lại — chỉ dòng đó là mới", async () => {
+  const rows = [row(), row(), row()];
+  const ordinals = [1, 1, 1];
+
+  const first = await createOrders(admin(), rows, ctx(), sellerId, ordinals);
+  assert.equal(first.created, 3);
+  first.results.forEach((r) => r.id && orderIds.push(r.id));
+
+  // Seller sửa dòng giữa rồi gửi lại cả file — đúng luồng sửa-inline.
+  const fixed = [rows[0], { ...(rows[1] as object), quantity: 7 }, rows[2]];
+  const retry = await createOrders(admin(), fixed, ctx(), sellerId, [1, 1, 1]);
+  retry.results.forEach((r) => r.id && orderIds.push(r.id));
+
+  assert.equal(retry.deduped, 2, "hai dòng không đổi phải dedupe");
+  assert.equal(
+    retry.results.filter((r) => r.ok && !r.deduped).length,
+    1,
+    "đúng một đơn mới — dòng đã sửa",
+  );
+});
+
+test("createOrders: xoá một dòng rồi gửi lại — không tạo đơn nào mới", async () => {
+  const rows = [row(), row(), row()];
+  const first = await createOrders(admin(), rows, ctx(), sellerId, [1, 1, 1]);
+  assert.equal(first.created, 3);
+  first.results.forEach((r) => r.id && orderIds.push(r.id));
+
+  // Seller xoá dòng đầu trong Excel rồi upload lại. Với khoá cũ, cả hai dòng còn
+  // lại đổi chỉ số và import lần nữa.
+  const afterDelete = [rows[1], rows[2]];
+  const retry = await createOrders(admin(), afterDelete, ctx(), sellerId, [1, 1]);
+  retry.results.forEach((r) => r.id && orderIds.push(r.id));
+
+  assert.equal(retry.deduped, 2, "cả hai dòng còn lại phải dedupe, không tạo mới");
+});
+
+test("createOrders: hai dòng giống hệt nhau vẫn tạo hai đơn", async () => {
+  // Đơn tách nhiều món. Tính chất này phải sống sót qua thay đổi khoá.
+  const one = row();
+  const twins = [one, { ...one }];
+
+  const res = await createOrders(admin(), twins, ctx(), sellerId, [1, 2]);
+  res.results.forEach((r) => r.id && orderIds.push(r.id));
+
+  assert.equal(res.created, 2);
+  assert.equal(res.deduped, 0);
+  assert.notEqual(res.results[0].id, res.results[1].id, "hai đơn riêng biệt");
+});

@@ -158,6 +158,7 @@
     "emptyFiltered": "No products match that search.",
     "option": "option",
     "resultCount": "{count} products",
-    "copySku": "Copy SKU {sku}"
+    "copySku": "Copy SKU {sku}",
+    "downloadSkus": "Download SKU list"
   }
 }

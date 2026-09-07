@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { LayoutGrid, List, Package } from "lucide-react";
+import { Download, LayoutGrid, List, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CopyButton, ProductCell, SearchField, Surface } from "@/components/ds";
 import { useTranslation } from "@/lib/i18n";
 import { money } from "@/lib/money";
+
+import { skuListCsv } from "./sku-list-csv";
 
 export type CatalogProduct = {
   id: number;
@@ -81,6 +83,28 @@ export function CatalogBrowser({ products }: { products: CatalogProduct[] }) {
           className="w-full sm:w-72"
         />
         <div className="flex shrink-0 gap-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const url = URL.createObjectURL(
+                new Blob([skuListCsv(products)], { type: "text/csv" }),
+              );
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "gwp-sku-list.csv";
+              a.click();
+              // Thu hồi ở tick SAU, không đồng bộ: Firefox và Safari chưa chắc
+              // đã bắt đầu đọc blob khi click() trả về, và phá object URL dưới
+              // chân chúng sẽ huỷ luôn lượt tải. Cùng lý do với downloadTemplate
+              // trong import-dialog.
+              setTimeout(() => URL.revokeObjectURL(url), 0);
+            }}
+          >
+            <Download className="mr-1.5 size-4" />
+            {t("catalog.browse.downloadSkus")}
+          </Button>
           <Button
             variant={view === "grid" ? "secondary" : "ghost"}
             size="icon-sm"

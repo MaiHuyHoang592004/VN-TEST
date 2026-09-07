@@ -158,6 +158,7 @@
     "emptyFiltered": "Aucun produit ne correspond.",
     "option": "option",
     "resultCount": "{count} produits",
-    "copySku": "Copier le SKU {sku}"
+    "copySku": "Copier le SKU {sku}",
+    "downloadSkus": "Télécharger la liste des SKU"
   }
 }

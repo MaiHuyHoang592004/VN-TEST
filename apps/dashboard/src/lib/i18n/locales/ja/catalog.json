@@ -158,6 +158,7 @@
     "emptyFiltered": "該当する商品がありません。",
     "option": "種類",
     "resultCount": "{count} 件の製品",
-    "copySku": "SKU {sku} をコピー"
+    "copySku": "SKU {sku} をコピー",
+    "downloadSkus": "SKU 一覧をダウンロード"
   }
 }

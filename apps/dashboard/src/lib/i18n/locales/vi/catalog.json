@@ -158,6 +158,7 @@
     "emptyFiltered": "Không có sản phẩm nào khớp.",
     "option": "tùy chọn",
     "resultCount": "{count} sản phẩm",
-    "copySku": "Chép mã SKU {sku}"
+    "copySku": "Chép mã SKU {sku}",
+    "downloadSkus": "Tải danh sách SKU"
   }
 }

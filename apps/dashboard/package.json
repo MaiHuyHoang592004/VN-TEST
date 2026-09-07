@@ -9,7 +9,7 @@
     "prestart": "lsof -ti:3000 | xargs kill -9 2>/dev/null; true",
     "start": "next start -p 3000",
     "lint": "eslint",
-    "test:unit": "node --test src/modules/fulfillment/orders/status.test.ts src/components/ds/status-tones.test.ts src/components/pages/orders/import-columns.test.ts src/modules/fulfillment/orders/import-key.test.ts src/modules/fulfillment/orders/service/import-idempotency-key.test.ts",
+    "test:unit": "node --test src/modules/fulfillment/orders/status.test.ts src/components/ds/status-tones.test.ts src/components/pages/orders/import-columns.test.ts src/modules/fulfillment/orders/import-key.test.ts src/modules/fulfillment/orders/service/import-idempotency-key.test.ts src/components/pages/catalog/sku-list-csv.test.ts",
     "test:money": "./scripts/run-money-test.sh"
   },
   "dependencies": {

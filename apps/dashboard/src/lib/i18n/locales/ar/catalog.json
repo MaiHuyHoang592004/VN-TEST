@@ -158,6 +158,7 @@
     "emptyFiltered": "لا توجد منتجات تطابق البحث.",
     "option": "خيار",
     "resultCount": "{count} منتج",
-    "copySku": "نسخ رمز SKU {sku}"
+    "copySku": "نسخ رمز SKU {sku}",
+    "downloadSkus": "تنزيل قائمة SKU"
   }
 }

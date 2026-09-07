@@ -6,6 +6,7 @@ import { requireAnyPermission, requirePermission } from "../../core/guard.ts";
 import { StorageError } from "../../core/storage.ts";
 import { auditContext } from "../../core/context.ts";
 import { withValidation } from "../../core/action-result.ts";
+import { orderBatchSchema } from "./schema.ts";
 import * as orders from "./service.ts";
 import { InvalidTransitionError } from "./status.ts";
 import type { FulfillmentStatus } from "@gwprint/db";
@@ -33,9 +34,24 @@ export async function createOrderAction(input: unknown, owner?: string, idempote
 /** The spreadsheet importer's endpoint. Rows are validated one at a time by
  * the SAME schema the form uses, so "column 4 is invalid" means exactly what the
  * form would have said. */
-export async function createOrdersAction(rows: unknown[], owner?: string) {
+export async function createOrdersAction(rows: unknown[], owner?: string, ordinals?: number[]) {
   const actor = await requirePermission("orders.create");
-  const result = await orders.createOrders(actor, rows, await auditContext(actor), owner ?? actor.id);
+  // orderBatchSchema existed since before this call but was never invoked, so
+  // the 500-row cap its comment promises was never real: the client batches at
+  // 50, but nothing stopped a caller posting an array of any length — a
+  // failure that would have surfaced as an opaque timeout, not a validation
+  // message. Enforced here as a plain length gate — see the schema's own
+  // comment for why it is NOT a full per-row parse.
+  const parsed = orderBatchSchema.safeParse(rows);
+  if (!parsed.success) return { ok: false as const, error: "batch-too-large" as const };
+
+  const result = await orders.createOrders(
+    actor,
+    rows,
+    await auditContext(actor),
+    owner ?? actor.id,
+    ordinals,
+  );
   revalidatePath("/orders");
   return result;
 }

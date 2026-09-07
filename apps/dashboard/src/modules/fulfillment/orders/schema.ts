@@ -51,9 +51,18 @@ export const orderSchema = z.object({
 
 export type OrderInput = z.infer<typeof orderSchema>;
 
-/** A batch from the spreadsheet importer. Capped so one paste cannot hold a
- * transaction open across tens of thousands of rows. */
-export const orderBatchSchema = z.array(orderSchema).min(1).max(500);
+/**
+ * A batch from the spreadsheet importer. Capped so one paste cannot hold a
+ * transaction open across tens of thousands of rows.
+ *
+ * Length only, deliberately NOT `z.array(orderSchema)`: createOrders already
+ * validates each row against orderSchema individually, inside a try/catch that
+ * reports a per-row failure without touching its siblings — that partial-import
+ * behaviour is the whole point of the spreadsheet importer. Gating on the full
+ * element schema here would reject the ENTIRE batch the moment any single row
+ * is invalid, which is a regression, not a cap.
+ */
+export const orderBatchSchema = z.array(z.unknown()).min(1).max(500);
 
 export const assignSchema = z.object({
   orderIds: z.array(z.number().int().positive()).min(1, "Select at least one order"),

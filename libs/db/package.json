@@ -1,5 +1,5 @@
 {
-  "name": "@gwprint/db",
+  "name": "@fulfillflow/db",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -21,7 +21,7 @@
     "catalog:import": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types prisma/scripts/import-price-list.ts"
   },
   "dependencies": {
-    "@gwprint/shared": "*",
+    "@fulfillflow/shared": "*",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0"
   },

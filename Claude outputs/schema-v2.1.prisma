@@ -1,0 +1,1023 @@
+// ============================================================
+// FULFILLFLOW V2.1 — canonical schema (single-file form for validation).
+// In the repo this is split one-model-per-file under libs/db/prisma/schema/
+// (main.prisma = generator + datasource, enums/enums.prisma, models/*.prisma).
+// Decisions: v2-schema-review.md + specs/2026-09-11-shopify-connect-design.md
+// ============================================================
+
+generator client {
+  provider        = "prisma-client"
+  output          = "../../src/generated/prisma"
+  previewFeatures = ["partialIndexes"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------- ENUMS ----------------
+
+enum PlatformRole {
+  ADMIN
+  SUPPORT
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  OPERATIONS
+  VIEWER
+}
+
+enum StoreProvider {
+  SHOPIFY
+  MANUAL
+}
+
+enum StoreStatus {
+  ACTIVE
+  DISCONNECTED
+  ERROR
+}
+
+enum CatalogStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum InventoryItemKind {
+  FINISHED_GOOD
+  RAW_MATERIAL
+  PACKAGING
+  CONSUMABLE
+  SEMI_FINISHED
+}
+
+enum SupplyMode {
+  MADE_TO_ORDER
+  FROM_STOCK
+}
+
+enum BomStatus {
+  DRAFT
+  ACTIVE
+  RETIRED
+}
+
+enum FacilityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum FacilityRole {
+  MANAGER
+  OPERATOR
+}
+
+enum FacilityLocationType {
+  STORAGE
+  STAGING
+}
+
+enum OrderStatus {
+  OPEN
+  CANCELLED
+  CLOSED
+}
+
+enum AddressValidationStatus {
+  UNVERIFIED
+  VALID
+  INVALID
+}
+
+enum IngestionSource {
+  SHOPIFY_WEBHOOK
+  API
+  CSV
+}
+
+enum IngestionRecordStatus {
+  PENDING
+  HELD
+  ACCEPTED
+  DUPLICATE
+  EXCEPTION
+}
+
+enum FulfillmentKind {
+  ORIGINAL
+  REPLACEMENT
+}
+
+enum FulfillmentStatus {
+  QUEUED
+  IN_PRODUCTION
+  READY_TO_SHIP
+  PARTIALLY_SHIPPED
+  SHIPPED
+  BLOCKED
+  CANCELLED
+}
+
+enum RoutingDecisionStatus {
+  SELECTED
+  NO_ROUTE
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CONSUMED
+  RELEASED
+}
+
+enum InventoryMovementReason {
+  RECEIPT
+  ADJUSTMENT
+  RESERVE
+  RELEASE
+  CONSUME
+  RETURN
+  DAMAGE
+}
+
+enum ShipmentStatus {
+  PENDING
+  LABEL_PURCHASED
+  IN_TRANSIT
+  DELIVERED
+  EXCEPTION
+  VOIDED
+}
+
+enum ExceptionStatus {
+  OPEN
+  RESOLVED
+  IGNORED
+}
+
+enum ExceptionVisibility {
+  MERCHANT
+  INTERNAL
+}
+
+enum ExceptionCode {
+  SKU_NOT_MAPPED
+  INVALID_ADDRESS
+  ADDRESS_CHANGED_AFTER_SHIP
+  CANCELLATION_CONFLICT
+  PRICE_NOT_FOUND
+  POLICY_HOLD
+  NO_ELIGIBLE_FACILITY
+  INSUFFICIENT_STOCK
+  PRODUCTION_BLOCKED
+  SHIPPING_FAILED
+  CHANNEL_SYNC_FAILED
+  LEDGER_DRIFT
+  UNKNOWN
+}
+
+enum ResolutionAction {
+  RETRY
+  IGNORE
+  MANUAL
+}
+
+enum OutboxStatus {
+  PENDING
+  SENT
+  DEAD_LETTER
+}
+
+enum DeliveryStatus {
+  DELIVERED
+  FAILED
+}
+
+// ---------------- IDENTITY / TENANCY ----------------
+
+model User {
+  id           String        @id @default(uuid(7))
+  email        String        @unique
+  name         String?
+  active       Boolean       @default(true)
+  platformRole PlatformRole?
+
+  // Shopify staff identity (ID token `sub`), set when the user first opens the embedded app.
+  shopifyUserId String? @unique
+
+  organizationMemberships OrganizationMembership[]
+  facilityMemberships     FacilityMembership[]
+  assignedFulfillments    Fulfillment[]       @relation("FulfillmentAssignee")
+  assignedExceptions      ExceptionCase[]     @relation("ExceptionAssignee")
+  resolvedExceptions      ExceptionCase[]     @relation("ExceptionResolver")
+  inventoryMovements      InventoryMovement[] @relation("MovementActor")
+  auditLogs               AuditLog[]          @relation("AuditActor")
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model Organization {
+  id     String             @id @default(uuid(7))
+  name   String
+  slug   String             @unique
+  status OrganizationStatus @default(ACTIVE)
+
+  priceListId String?
+  priceList   PriceList? @relation(fields: [priceListId], references: [id])
+
+  settings Json?
+
+  memberships      OrganizationMembership[]
+  stores           Store[]
+  orders           Order[]
+  ingestionBatches IngestionBatch[]
+  ingestionRecords IngestionRecord[]
+  exceptions       ExceptionCase[]
+  outboxEvents     OutboxEvent[]
+  auditLogs        AuditLog[]
+  apiIdempotency   ApiIdempotencyKey[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model OrganizationMembership {
+  organizationId String
+  userId         String
+  role           OrganizationRole
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@id([organizationId, userId])
+  @@index([userId])
+}
+
+// ---------------- SALES CHANNEL ----------------
+
+model Store {
+  id             String        @id @default(uuid(7))
+  organizationId String
+  provider       StoreProvider
+  name           String
+  // Shopify shop domain (x.myshopify.com) or "manual:<orgSlug>".
+  externalStoreId String
+  status          StoreStatus @default(ACTIVE)
+
+  // Expiring offline token (public apps created after 2026-04-01). AES-256-GCM, IV prefixed.
+  accessTokenEnc       Bytes?
+  refreshTokenEnc      Bytes?
+  accessTokenExpiresAt DateTime? @db.Timestamptz(3)
+  tokenVersion         Int       @default(0)
+  grantedScopes        String?
+  installedAt          DateTime? @db.Timestamptz(3)
+  uninstalledAt        DateTime? @db.Timestamptz(3)
+
+  settings Json?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  skuMappings      StoreSkuMapping[]
+  orders           Order[]
+  ingestionBatches IngestionBatch[]
+  ingestionRecords IngestionRecord[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([provider, externalStoreId])
+  @@index([organizationId])
+}
+
+model StoreSkuMapping {
+  id      String @id @default(uuid(7))
+  storeId String
+  skuId   String
+
+  externalProductId String?
+  externalVariantId String
+  externalSku       String?
+
+  // POD reality: artwork usually belongs to the seller's product, not the order line.
+  defaultArtworkUrl    String?
+  defaultCustomization Json?
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  sku   Sku   @relation(fields: [skuId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([storeId, externalVariantId])
+  @@index([storeId, externalSku])
+  @@index([skuId])
+}
+
+// ---------------- CATALOG / PRICING ----------------
+
+model Product {
+  id          String        @id @default(uuid(7))
+  name        String
+  handle      String        @unique
+  status      CatalogStatus @default(DRAFT)
+  description String?
+  imageUrl    String?
+
+  skus Sku[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model InventoryItem {
+  id     String            @id @default(uuid(7))
+  code   String            @unique
+  name   String
+  kind   InventoryItemKind
+  uom    String            @default("pcs")
+  active Boolean           @default(true)
+
+  sku           Sku?
+  bomComponents BomComponent[]
+  balances      InventoryBalance[]
+  reservations  InventoryReservation[]
+  movements     InventoryMovement[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model Sku {
+  // Shared primary key with InventoryItem: skuId == inventoryItemId, code lives on InventoryItem.
+  id            String        @id
+  inventoryItem InventoryItem @relation(fields: [id], references: [id])
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  attributes Json?
+  status     CatalogStatus @default(ACTIVE)
+  supplyMode SupplyMode    @default(MADE_TO_ORDER)
+
+  unitWeightGrams Decimal? @db.Decimal(12, 3)
+
+  priceRules           PriceListItem[]
+  storeMappings        StoreSkuMapping[]
+  bomRevisions         BomRevision[]
+  facilityCapabilities FacilitySkuCapability[]
+  orderItems           OrderItem[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([productId])
+}
+
+model PriceList {
+  id       String        @id @default(uuid(7))
+  name     String
+  currency String        @db.VarChar(3)
+  status   CatalogStatus @default(ACTIVE)
+
+  organizations Organization[]
+  items         PriceListItem[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model PriceListItem {
+  id          String  @id @default(uuid(7))
+  priceListId String
+  skuId       String
+  minQuantity Int     @default(1)
+  unitPrice   Decimal @db.Decimal(14, 4)
+
+  priceList PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  sku       Sku       @relation(fields: [skuId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([priceListId, skuId, minQuantity])
+  @@index([skuId])
+}
+
+// ---------------- BOM ----------------
+
+model BomRevision {
+  id      String    @id @default(uuid(7))
+  skuId   String
+  version Int
+  status  BomStatus @default(DRAFT)
+  note    String?
+
+  activatedAt DateTime? @db.Timestamptz(3)
+  retiredAt   DateTime? @db.Timestamptz(3)
+
+  sku        Sku            @relation(fields: [skuId], references: [id])
+  components BomComponent[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([skuId, version])
+  @@unique([skuId], where: { status: "ACTIVE" }, map: "one_active_bom_per_sku")
+  @@index([skuId, status])
+}
+
+model BomComponent {
+  id              String  @id @default(uuid(7))
+  bomRevisionId   String
+  inventoryItemId String
+  quantityPerUnit Decimal @db.Decimal(18, 6)
+  wastageRate     Decimal @default(0) @db.Decimal(8, 6)
+
+  bomRevision   BomRevision   @relation(fields: [bomRevisionId], references: [id], onDelete: Cascade)
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  reservations InventoryReservation[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([bomRevisionId, inventoryItemId])
+  @@index([inventoryItemId])
+}
+
+// ---------------- FACILITY ----------------
+
+model Facility {
+  id          String         @id @default(uuid(7))
+  code        String         @unique
+  name        String
+  status      FacilityStatus @default(ACTIVE)
+  countryCode String         @db.VarChar(2)
+  timezone    String         @default("UTC")
+
+  capabilities      FacilitySkuCapability[]
+  memberships       FacilityMembership[]
+  locations         FacilityLocation[]
+  balances          InventoryBalance[]
+  fulfillments      Fulfillment[]
+  reservations      InventoryReservation[]
+  movements         InventoryMovement[]
+  routingSelections RoutingDecision[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model FacilityMembership {
+  facilityId String
+  userId     String
+  role       FacilityRole
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([facilityId, userId])
+}
+
+model FacilitySkuCapability {
+  facilityId    String
+  skuId         String
+  enabled       Boolean @default(true)
+  dailyCapacity Int?
+  leadTimeHours Int?
+  priority      Int     @default(0)
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  sku      Sku      @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@id([facilityId, skuId])
+}
+
+model FacilityLocation {
+  id         String               @id @default(uuid(7))
+  facilityId String
+  code       String
+  type       FacilityLocationType
+  active     Boolean              @default(true)
+
+  facility     Facility      @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  fulfillments Fulfillment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([facilityId, code])
+}
+
+// ---------------- INVENTORY ----------------
+
+model InventoryBalance {
+  id              String  @id @default(uuid(7))
+  facilityId      String
+  inventoryItemId String
+  onHand          Decimal @default(0) @db.Decimal(18, 6)
+  reserved        Decimal @default(0) @db.Decimal(18, 6)
+
+  facility      Facility      @relation(fields: [facilityId], references: [id])
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([facilityId, inventoryItemId])
+  @@index([inventoryItemId])
+}
+
+model InventoryReservation {
+  id                String            @id @default(uuid(7))
+  fulfillmentItemId String
+  facilityId        String
+  inventoryItemId   String
+  bomComponentId    String?
+  quantity          Decimal           @db.Decimal(18, 6)
+  consumedQuantity  Decimal           @default(0) @db.Decimal(18, 6)
+  status            ReservationStatus @default(ACTIVE)
+
+  fulfillmentItem FulfillmentItem @relation(fields: [fulfillmentItemId], references: [id])
+  facility        Facility        @relation(fields: [facilityId], references: [id])
+  inventoryItem   InventoryItem   @relation(fields: [inventoryItemId], references: [id])
+  bomComponent    BomComponent?   @relation(fields: [bomComponentId], references: [id])
+
+  movements InventoryMovement[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([fulfillmentItemId, inventoryItemId], where: { status: "ACTIVE" }, map: "one_active_reservation_per_item")
+  @@index([facilityId, inventoryItemId, status])
+}
+
+model InventoryMovement {
+  id              String                  @id @default(uuid(7))
+  facilityId      String
+  inventoryItemId String
+  reason          InventoryMovementReason
+  onHandDelta     Decimal                 @default(0) @db.Decimal(18, 6)
+  reservedDelta   Decimal                 @default(0) @db.Decimal(18, 6)
+
+  // e.g. reserve:<reservationId>, consume:<reservationId>, receipt:<receiptRef>
+  idempotencyKey String? @unique
+
+  reservationId String?
+  fulfillmentId String?
+  actorId       String?
+  note          String?
+
+  facility      Facility              @relation(fields: [facilityId], references: [id])
+  inventoryItem InventoryItem         @relation(fields: [inventoryItemId], references: [id])
+  reservation   InventoryReservation? @relation(fields: [reservationId], references: [id])
+  fulfillment   Fulfillment?          @relation(fields: [fulfillmentId], references: [id])
+  actor         User?                 @relation("MovementActor", fields: [actorId], references: [id])
+
+  // Append-only: no updatedAt.
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([facilityId, inventoryItemId, createdAt])
+  @@index([reservationId])
+  @@index([fulfillmentId])
+}
+
+// ---------------- INGESTION ----------------
+
+model IngestionBatch {
+  id                String          @id @default(uuid(7))
+  organizationId    String
+  storeId           String
+  source            IngestionSource
+  externalReference String?
+
+  organization Organization      @relation(fields: [organizationId], references: [id])
+  store        Store             @relation(fields: [storeId], references: [id])
+  records      IngestionRecord[]
+
+  startedAt   DateTime? @db.Timestamptz(3)
+  completedAt DateTime? @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([organizationId, createdAt])
+}
+
+model IngestionRecord {
+  id             String          @id @default(uuid(7))
+  organizationId String
+  storeId        String
+  batchId        String?
+  position       Int?
+  source         IngestionSource
+  // Shopify topic (orders/create) or csv/api kind.
+  topic          String
+
+  // Delivery-level idempotency: X-Shopify-Webhook-Id, csv content hash + ordinal, API Idempotency-Key.
+  dedupeKey String @unique
+
+  status        IngestionRecordStatus @default(PENDING)
+  attempts      Int                   @default(0)
+  nextAttemptAt DateTime              @default(now()) @db.Timestamptz(3)
+  lockedUntil   DateTime?             @db.Timestamptz(3)
+
+  rawPayload        Json?
+  normalizedPayload Json?
+  purgedAt          DateTime? @db.Timestamptz(3)
+
+  resultOrderId String?
+  errorCode     String?
+  errorMessage  String?
+
+  organization Organization    @relation(fields: [organizationId], references: [id])
+  store        Store           @relation(fields: [storeId], references: [id])
+  batch        IngestionBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  exceptions   ExceptionCase[]
+
+  processedAt DateTime? @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@unique([batchId, position])
+  @@index([nextAttemptAt], where: { status: "PENDING" }, map: "ingestion_pending_queue")
+  @@index([storeId, status])
+}
+
+// ---------------- ORDER ----------------
+
+model Order {
+  id             String @id @default(uuid(7))
+  organizationId String
+  storeId        String
+
+  externalId    String
+  displayNumber String?
+  // shopify:{storeId}:{externalId} | csv:{storeId}:{businessKey}
+  sourceKey     String
+
+  status OrderStatus @default(OPEN)
+
+  currency            String  @db.VarChar(3)
+  fulfillmentCurrency String? @db.VarChar(3)
+
+  channelFinancialStatus String?
+  channelUpdatedAt       DateTime? @db.Timestamptz(3)
+
+  customerName  String?
+  customerEmail String?
+
+  placedAt    DateTime  @db.Timestamptz(3)
+  cancelledAt DateTime? @db.Timestamptz(3)
+  closedAt    DateTime? @db.Timestamptz(3)
+
+  correlationId String?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  store        Store        @relation(fields: [storeId], references: [id])
+
+  shippingAddress  OrderAddress?
+  items            OrderItem[]
+  fulfillments     Fulfillment[]
+  routingDecisions RoutingDecision[]
+  exceptions       ExceptionCase[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([organizationId, sourceKey])
+  @@unique([storeId, externalId])
+  @@index([organizationId, status, placedAt])
+}
+
+model OrderAddress {
+  id      String @id @default(uuid(7))
+  orderId String @unique
+
+  name        String
+  company     String?
+  email       String?
+  phone       String?
+  line1       String
+  line2       String?
+  city        String
+  province    String?
+  postalCode  String
+  countryCode String @db.VarChar(2)
+
+  validationStatus AddressValidationStatus @default(UNVERIFIED)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+model OrderItem {
+  id      String @id @default(uuid(7))
+  orderId String
+  skuId   String
+
+  externalLineId String?
+  externalSku    String?
+  title          String
+  quantity       Int
+
+  fulfillmentUnitPrice Decimal? @db.Decimal(14, 4)
+
+  artworkUrl    String?
+  customization Json?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sku   Sku   @relation(fields: [skuId], references: [id])
+
+  fulfillmentItems         FulfillmentItem[]
+  shopifyFulfillmentOrders ShopifyFulfillmentOrderLine[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([id, orderId])
+  @@unique([orderId, externalLineId])
+  @@index([skuId])
+}
+
+// ---------------- ROUTING / FULFILLMENT ----------------
+
+model RoutingDecision {
+  id                 String                @id @default(uuid(7))
+  orderId            String
+  status             RoutingDecisionStatus
+  selectedFacilityId String?
+  strategyVersion    String
+  // Per candidate: { facilityId, score, reasons: [] }
+  candidates         Json
+
+  order            Order     @relation(fields: [orderId], references: [id])
+  selectedFacility Facility? @relation(fields: [selectedFacilityId], references: [id])
+
+  fulfillments Fulfillment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([orderId, createdAt])
+}
+
+model Fulfillment {
+  id                String            @id @default(uuid(7))
+  orderId           String
+  facilityId        String
+  routingDecisionId String?
+  kind              FulfillmentKind   @default(ORIGINAL)
+  status            FulfillmentStatus @default(QUEUED)
+
+  replacesFulfillmentId String?
+  replaces              Fulfillment?  @relation("Replacement", fields: [replacesFulfillmentId], references: [id])
+  replacements          Fulfillment[] @relation("Replacement")
+
+  assignedToId      String?
+  stagingLocationId String?
+
+  dueAt                 DateTime? @db.Timestamptz(3)
+  productionStartedAt   DateTime? @db.Timestamptz(3)
+  productionCompletedAt DateTime? @db.Timestamptz(3)
+  shippedAt             DateTime? @db.Timestamptz(3)
+
+  correlationId String?
+
+  order           Order             @relation(fields: [orderId], references: [id])
+  facility        Facility          @relation(fields: [facilityId], references: [id])
+  routingDecision RoutingDecision?  @relation(fields: [routingDecisionId], references: [id])
+  assignedTo      User?             @relation("FulfillmentAssignee", fields: [assignedToId], references: [id])
+  stagingLocation FacilityLocation? @relation(fields: [stagingLocationId], references: [id])
+
+  items      FulfillmentItem[]
+  shipments  Shipment[]
+  exceptions ExceptionCase[]
+  movements  InventoryMovement[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([id, orderId])
+  @@index([facilityId, status])
+  @@index([status, dueAt], where: raw("status IN ('QUEUED','IN_PRODUCTION','READY_TO_SHIP','BLOCKED')"), map: "fulfillment_active_queue")
+}
+
+model FulfillmentItem {
+  id               String @id @default(uuid(7))
+  fulfillmentId    String
+  orderId          String // denormalized, pinned by the two composite FKs below
+  orderItemId      String
+  quantity         Int
+  producedQuantity Int    @default(0)
+
+  fulfillment Fulfillment @relation(fields: [fulfillmentId, orderId], references: [id, orderId], onDelete: Cascade)
+  orderItem   OrderItem   @relation(fields: [orderItemId, orderId], references: [id, orderId])
+
+  reservations  InventoryReservation[]
+  shipmentItems ShipmentItem[]
+
+  @@unique([fulfillmentId, orderItemId])
+  @@unique([id, fulfillmentId])
+  @@index([orderItemId])
+}
+
+// ---------------- SHIPPING ----------------
+
+model Shipment {
+  id            String         @id @default(uuid(7))
+  fulfillmentId String
+  status        ShipmentStatus @default(PENDING)
+
+  provider String
+  service  String?
+
+  trackingNumber String?
+  trackingUrl    String?
+  labelUrl       String?
+  externalLabelId String?
+
+  // Shopify Fulfillment gid after sync-back.
+  externalFulfillmentId String?
+
+  cost     Decimal? @db.Decimal(14, 4)
+  currency String?  @db.VarChar(3)
+
+  // Address at label purchase time.
+  addressSnapshot Json?
+  providerPayload Json?
+
+  shippedAt   DateTime? @db.Timestamptz(3)
+  deliveredAt DateTime? @db.Timestamptz(3)
+  voidedAt    DateTime? @db.Timestamptz(3)
+
+  fulfillment Fulfillment    @relation(fields: [fulfillmentId], references: [id])
+  items       ShipmentItem[]
+  exceptions  ExceptionCase[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([id, fulfillmentId])
+  @@unique([provider, trackingNumber], where: { trackingNumber: { not: null } }, map: "shipment_tracking_unique")
+  @@index([fulfillmentId])
+}
+
+model ShipmentItem {
+  shipmentId        String
+  fulfillmentId     String // denormalized, pinned by both composite FKs
+  fulfillmentItemId String
+  quantity          Int
+
+  shipment        Shipment        @relation(fields: [shipmentId, fulfillmentId], references: [id, fulfillmentId], onDelete: Cascade)
+  fulfillmentItem FulfillmentItem @relation(fields: [fulfillmentItemId, fulfillmentId], references: [id, fulfillmentId])
+
+  @@id([shipmentId, fulfillmentItemId])
+}
+
+// Shopify creates FulfillmentOrders asynchronously after order routing; resolved lazily, cached here.
+model ShopifyFulfillmentOrderLine {
+  id                         String   @id @default(uuid(7))
+  orderItemId                String
+  fulfillmentOrderId         String
+  fulfillmentOrderLineItemId String   @unique
+  remainingQuantity          Int
+  resolvedAt                 DateTime @db.Timestamptz(3)
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderItemId])
+}
+
+// ---------------- EXCEPTIONS ----------------
+
+model ExceptionCase {
+  id             String              @id @default(uuid(7))
+  organizationId String
+  code           ExceptionCode
+  visibility     ExceptionVisibility @default(INTERNAL)
+  status         ExceptionStatus     @default(OPEN)
+
+  // "ingestion:<id>" | "order:<id>" | "fulfillment:<id>" | "shipment:<id>" | "store:<id>"
+  subjectKey String
+
+  ingestionRecordId String?
+  orderId           String?
+  fulfillmentId     String?
+  shipmentId        String?
+
+  message String
+  details Json?
+
+  assignedToId     String?
+  resolvedById     String?
+  resolutionAction ResolutionAction?
+  resolvedAt       DateTime?         @db.Timestamptz(3)
+
+  correlationId String?
+
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  ingestionRecord IngestionRecord? @relation(fields: [ingestionRecordId], references: [id])
+  order           Order?           @relation(fields: [orderId], references: [id])
+  fulfillment     Fulfillment?     @relation(fields: [fulfillmentId], references: [id])
+  shipment        Shipment?        @relation(fields: [shipmentId], references: [id])
+  assignedTo      User?            @relation("ExceptionAssignee", fields: [assignedToId], references: [id])
+  resolvedBy      User?            @relation("ExceptionResolver", fields: [resolvedById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([subjectKey, code], where: { status: "OPEN" }, map: "one_open_exception_per_subject_code")
+  @@index([organizationId, visibility, status, createdAt])
+  @@index([assignedToId, status])
+}
+
+// ---------------- RELIABLE SIDE EFFECTS ----------------
+
+model OutboxEvent {
+  id             String  @id @default(uuid(7))
+  organizationId String?
+
+  // One row = one side effect. e.g. "shipment.synced:{shipmentId}:shopify"
+  eventKey String @unique
+
+  aggregateType String
+  aggregateId   String
+  // "shopify.fulfillment.create" | "merchant.webhook" | "shopify.token.refresh"
+  handler       String
+  payload       Json
+
+  status   OutboxStatus @default(PENDING)
+  attempts Int          @default(0)
+  // Lease: claimed rows get availableAt pushed into the future; crash → row returns automatically.
+  availableAt DateTime  @default(now()) @db.Timestamptz(3)
+  processedAt DateTime? @db.Timestamptz(3)
+  lastError   String?
+
+  correlationId String?
+
+  organization Organization?     @relation(fields: [organizationId], references: [id])
+  deliveries   DeliveryAttempt[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([availableAt], where: { status: "PENDING" }, map: "outbox_pending_queue")
+  @@index([aggregateType, aggregateId])
+}
+
+model DeliveryAttempt {
+  id              String         @id @default(uuid(7))
+  outboxEventId   String
+  attempt         Int
+  status          DeliveryStatus
+  httpStatus      Int?
+  responseExcerpt String?
+  error           String?
+
+  outboxEvent OutboxEvent @relation(fields: [outboxEventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([outboxEventId, attempt])
+}
+
+model ApiIdempotencyKey {
+  organizationId String
+  key            String
+  requestHash    String
+  responseStatus Int
+  responseBody   Json
+  expiresAt      DateTime @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@id([organizationId, key])
+  @@index([expiresAt])
+}
+
+// ---------------- AUDIT ----------------
+
+model AuditLog {
+  id             String  @id @default(uuid(7))
+  organizationId String?
+  actorId        String?
+  // String on purpose: new audit actions must not require an enum migration.
+  action         String
+  entityType     String
+  entityId       String
+  before         Json?
+  after          Json?
+  correlationId  String?
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  actor        User?         @relation("AuditActor", fields: [actorId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+}

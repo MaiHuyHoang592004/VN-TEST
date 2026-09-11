@@ -1,18 +1,19 @@
 {
-  "name": "gwprint",
-  "version": "0.0.0",
+  "name": "fulfillflow",
+  "version": "0.1.0",
   "private": true,
   "license": "MIT",
   "packageManager": "npm@11.12.1",
-  "workspaces": [
-    "apps/*",
-    "libs/*"
-  ],
+  "engines": { "node": ">=22.12" },
+  "workspaces": ["apps/*", "libs/*"],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "test": "turbo run test",
     "lint": "turbo run lint",
-    "start": "turbo run start"
+    "db:validate": "npm run db:validate -w @fulfillflow/db",
+    "db:migrate": "npm run db:migrate -w @fulfillflow/db",
+    "db:seed": "npm run db:seed -w @fulfillflow/db"
   },
   "devDependencies": {
     "prettier": "^3.8.1",

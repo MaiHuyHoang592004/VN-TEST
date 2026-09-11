@@ -4,27 +4,16 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "AUTH_*",
-        "RESEND_*",
-        "DATABASE_URL*",
-        "POSTGRES_*",
-        "PG*",
-        "NEON_*",
-        "VITE_*"
-      ]
+      "outputs": ["dist/**"],
+      "env": ["DATABASE_URL", "NODE_ENV"]
     },
-    "dev": {
+    "test": {
+      "dependsOn": ["build"],
       "cache": false,
-      "persistent": true
+      "env": ["DATABASE_URL", "NODE_ENV"]
     },
-    "start": {
-      "cache": false,
-      "persistent": true
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    }
+    "dev": { "cache": false, "persistent": true },
+    "start": { "cache": false, "persistent": true },
+    "lint": { "dependsOn": ["^lint"] }
   }
 }

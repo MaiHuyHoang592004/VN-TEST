@@ -1,0 +1,18 @@
+model RoutingDecision {
+  id                 String                @id @default(uuid(7))
+  orderId            String
+  status             RoutingDecisionStatus
+  selectedFacilityId String?
+  strategyVersion    String
+  // Per candidate: { facilityId, score, reasons: [] }
+  candidates         Json
+
+  order            Order     @relation(fields: [orderId], references: [id])
+  selectedFacility Facility? @relation(fields: [selectedFacilityId], references: [id])
+
+  fulfillments Fulfillment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([orderId, createdAt])
+}

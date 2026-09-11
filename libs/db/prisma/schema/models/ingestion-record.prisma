@@ -1,0 +1,38 @@
+model IngestionRecord {
+  id             String          @id @default(uuid(7))
+  organizationId String
+  storeId        String
+  batchId        String?
+  position       Int?
+  source         IngestionSource
+  // Shopify topic (orders/create) or csv/api kind.
+  topic          String
+
+  // Delivery-level idempotency: X-Shopify-Webhook-Id, csv content hash + ordinal, API Idempotency-Key.
+  dedupeKey String @unique
+
+  status        IngestionRecordStatus @default(PENDING)
+  attempts      Int                   @default(0)
+  nextAttemptAt DateTime              @default(now()) @db.Timestamptz(3)
+  lockedUntil   DateTime?             @db.Timestamptz(3)
+
+  rawPayload        Json?
+  normalizedPayload Json?
+  purgedAt          DateTime? @db.Timestamptz(3)
+
+  resultOrderId String?
+  errorCode     String?
+  errorMessage  String?
+
+  organization Organization    @relation(fields: [organizationId], references: [id])
+  store        Store           @relation(fields: [storeId], references: [id])
+  batch        IngestionBatch? @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  exceptions   ExceptionCase[]
+
+  processedAt DateTime? @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@unique([batchId, position])
+  @@index([nextAttemptAt], where: { status: "PENDING" }, map: "ingestion_pending_queue")
+  @@index([storeId, status])
+}

@@ -1,144 +1,50 @@
-# CI — lint, build, migration integrity, and the portability guarantee.
-#
-# The Docker job is the point of this file. "We can move off Vercel later" is
-# only true if something keeps proving it; an untested Dockerfile rots within a
-# month and you find out on the day you actually need it.
-name: CI
-
+name: ci
 on:
-  push:
-    branches: [main]
+  push: { branches: [main] }
   pull_request:
-
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npm run db:generate -w @gwprint/db
-      # The authorization gate — pure, no DB. Must pass before anything ships.
-      - run: node --test libs/shared/src/access/permissions.test.ts
-      - run: node --test apps/dashboard/src/components/ds/status-tones.test.ts
-      - run: bash apps/dashboard/scripts/check-ds-adherence.sh
-      - run: npx turbo run lint --filter=@gwprint/dashboard
-      - run: npx turbo run build --filter=@gwprint/dashboard
-        env:
-          # Build-time only: `prisma generate` never connects, and no page is
-          # statically rendered against real data.
-          DATABASE_URL: postgresql://placeholder@localhost:5432/placeholder
-          AUTH_SECRET: ci-build-only
-
-  migrations:
+  test:
     runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:17
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: gwprint_ci
-        options: >-
-          --health-cmd pg_isready --health-interval 10s
-          --health-timeout 5s --health-retries 5
+        env: { POSTGRES_USER: ff, POSTGRES_PASSWORD: ff, POSTGRES_DB: ff }
         ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ff" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/gwprint_ci?schema=public
+      DATABASE_URL: postgresql://ff:ff@localhost:5432/ff
+      SHADOW_DATABASE_URL: postgresql://ff:ff@localhost:5432/ff_shadow
+      NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
+        with: { node-version: 22, cache: npm }
       - run: npm ci
-
-      # Migrations must apply cleanly from scratch, and the result must match
-      # the schema exactly. Catches a hand-written migration drifting from the
-      # models it is supposed to produce.
-      - name: Apply migrations from scratch
-        run: npx prisma migrate deploy --config prisma/config/prisma.config.ts
-        working-directory: libs/db
-
-      - name: Fail on schema drift
+      - name: create shadow db
+        run: psql "$DATABASE_URL" -c 'CREATE DATABASE ff_shadow;'
+      - run: npm run db:validate
+      - run: npm run db:migrate:deploy -w @fulfillflow/db
+      - name: migration drift check
+        # exit 2 is real drift; ADR-07 documents one known false-positive (the
+        # fulfillment_active_queue partial index) from a Prisma diff bug. Fail
+        # on anything else, but don't let that specific known non-issue redden
+        # every run.
         working-directory: libs/db
         run: |
-          DIFF=$(npx prisma migrate diff --config prisma/config/prisma.config.ts \
-                   --from-config-datasource --to-schema prisma/schema --script \
-                 | grep -v "Loaded Prisma config" | grep -v "^$")
-          echo "$DIFF"
-          if [ "$DIFF" != "-- This is an empty migration." ]; then
-            echo "::error::Schema and migrations disagree — regenerate the migration."
-            exit 1
+          set +e
+          out="$(npx prisma migrate diff --config prisma/config/prisma.config.ts --from-migrations prisma/migrations --to-schema prisma/schema --exit-code 2>&1)"
+          code=$?
+          echo "$out"
+          if [ "$code" -eq 0 ]; then exit 0; fi
+          remainder="$(echo "$out" | grep -vE '^\s*$|^Loaded Prisma config|Changed the `Fulfillment` table|Removed index on columns \(status, dueAt\)|Added index on columns \(status, dueAt\)')"
+          if [ "$code" -eq 2 ] && [ -z "$remainder" ]; then
+            echo "::warning::db:diff reported only the known fulfillment_active_queue partial-index false-positive (ADR-07) — treating as pass"
+            exit 0
           fi
-
-      # The legacy cutover is one irreversible shot at real money and
-      # permissions. Rehearse it on every PR that touches it.
-      - name: Rehearse the legacy cutover
-        working-directory: libs/db
-        run: ./prisma/scripts/test/run-cutover-test.sh
-        env:
-          CUTOVER_TEST_DB: gwprint_cutover_ci
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-
-      # Money invariants (atomic ledger, idempotency, cross-seller isolation)
-      # against the real service and a real database.
-      - name: Money invariants
-        working-directory: apps/dashboard
-        run: ./scripts/run-money-test.sh
-        env:
-          MONEY_TEST_DB: gwprint_money_ci
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-
-      # Rate limiting: the guarantee is that CONCURRENT attempts can't exceed
-      # the limit, which only a real database can demonstrate.
-      - name: Rate-limit invariants
-        working-directory: libs/db
-        run: ./prisma/scripts/test/run-rate-limit-test.sh
-        env:
-          RATELIMIT_TEST_DB: gwprint_ratelimit_ci
-          PGHOST: localhost
-          PGUSER: postgres
-          PGPASSWORD: postgres
-
-  docker:
-    name: Portability (builds and boots outside Vercel)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - name: Build image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/dashboard/Dockerfile
-          push: false
-          load: true
-          tags: gwprint-dashboard:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      # Building is not proof. Boot it and require a real response, so a
-      # missing static-asset copy or a localhost bind is caught here.
-      - name: Boot the container and probe it
+          exit "$code"
+      - run: npm run build
+      - run: npm test
+      - name: legacy name guard
         run: |
-          docker run -d --name dash -p 3000:3000 \
-            -e DATABASE_URL=postgresql://placeholder@localhost:5432/placeholder \
-            -e AUTH_SECRET=ci-smoke-test \
-            -e AUTH_TRUST_HOST=1 \
-            gwprint-dashboard:ci
-          for i in $(seq 1 30); do
-            if curl -fsS http://localhost:3000/api/health >/dev/null 2>&1; then
-              echo "healthy after ${i}s"; curl -s http://localhost:3000/api/health; exit 0
-            fi
-            sleep 1
-          done
-          echo "::error::container never became healthy"; docker logs dash; exit 1
-      - if: always()
-        run: docker rm -f dash 2>/dev/null || true
+          ! git grep -nE "gwprint|BasketPosition|MaterialStock|WarehouseInventory" -- ':!CLAUDE.md' ':!README.md' ':!package-lock.json' ':!docs/**' ':!.github/workflows/ci.yml'

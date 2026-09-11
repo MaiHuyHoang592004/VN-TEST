@@ -1,0 +1,17 @@
+model InventoryItem {
+  id     String            @id @default(uuid(7))
+  code   String            @unique
+  name   String
+  kind   InventoryItemKind
+  uom    String            @default("pcs")
+  active Boolean           @default(true)
+
+  sku           Sku?
+  bomComponents BomComponent[]
+  balances      InventoryBalance[]
+  reservations  InventoryReservation[]
+  movements     InventoryMovement[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}

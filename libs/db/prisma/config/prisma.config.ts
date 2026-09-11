@@ -35,5 +35,8 @@ export default defineConfig({
     url:
       process.env.DATABASE_URL ??
       "postgresql://placeholder@localhost:5432/placeholder",
+    // Only used by `prisma migrate dev`/`migrate diff` to replay migrations
+    // in isolation; unset in CI/prod, where those commands aren't run.
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
 });

@@ -1,0 +1,23 @@
+model StoreSkuMapping {
+  id      String @id @default(uuid(7))
+  storeId String
+  skuId   String
+
+  externalProductId String?
+  externalVariantId String
+  externalSku       String?
+
+  // POD reality: artwork usually belongs to the seller's product, not the order line.
+  defaultArtworkUrl    String?
+  defaultCustomization Json?
+
+  store Store @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  sku   Sku   @relation(fields: [skuId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([storeId, externalVariantId])
+  @@index([storeId, externalSku])
+  @@index([skuId])
+}

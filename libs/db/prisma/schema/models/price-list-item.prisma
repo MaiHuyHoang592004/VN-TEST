@@ -1,0 +1,16 @@
+model PriceListItem {
+  id          String  @id @default(uuid(7))
+  priceListId String
+  skuId       String
+  minQuantity Int     @default(1)
+  unitPrice   Decimal @db.Decimal(14, 4)
+
+  priceList PriceList @relation(fields: [priceListId], references: [id], onDelete: Cascade)
+  sku       Sku       @relation(fields: [skuId], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([priceListId, skuId, minQuantity])
+  @@index([skuId])
+}

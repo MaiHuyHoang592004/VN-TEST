@@ -1,0 +1,15 @@
+model InventoryBalance {
+  id              String  @id @default(uuid(7))
+  facilityId      String
+  inventoryItemId String
+  onHand          Decimal @default(0) @db.Decimal(18, 6)
+  reserved        Decimal @default(0) @db.Decimal(18, 6)
+
+  facility      Facility      @relation(fields: [facilityId], references: [id])
+  inventoryItem InventoryItem @relation(fields: [inventoryItemId], references: [id])
+
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([facilityId, inventoryItemId])
+  @@index([inventoryItemId])
+}

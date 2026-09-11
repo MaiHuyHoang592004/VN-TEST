@@ -1,0 +1,11 @@
+model ShipmentItem {
+  shipmentId        String
+  fulfillmentId     String // denormalized, pinned by both composite FKs
+  fulfillmentItemId String
+  quantity          Int
+
+  shipment        Shipment        @relation(fields: [shipmentId, fulfillmentId], references: [id, fulfillmentId], onDelete: Cascade)
+  fulfillmentItem FulfillmentItem @relation(fields: [fulfillmentItemId, fulfillmentId], references: [id, fulfillmentId])
+
+  @@id([shipmentId, fulfillmentItemId])
+}

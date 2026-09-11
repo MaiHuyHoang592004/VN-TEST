@@ -1,0 +1,12 @@
+model ShopifyFulfillmentOrderLine {
+  id                         String   @id @default(uuid(7))
+  orderItemId                String
+  fulfillmentOrderId         String
+  fulfillmentOrderLineItemId String   @unique
+  remainingQuantity          Int
+  resolvedAt                 DateTime @db.Timestamptz(3)
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@index([orderItemId])
+}

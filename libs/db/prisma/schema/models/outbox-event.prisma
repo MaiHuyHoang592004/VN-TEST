@@ -1,0 +1,30 @@
+model OutboxEvent {
+  id             String  @id @default(uuid(7))
+  organizationId String?
+
+  // One row = one side effect. e.g. "shipment.synced:{shipmentId}:shopify"
+  eventKey String @unique
+
+  aggregateType String
+  aggregateId   String
+  // "shopify.fulfillment.create" | "merchant.webhook" | "shopify.token.refresh"
+  handler       String
+  payload       Json
+
+  status   OutboxStatus @default(PENDING)
+  attempts Int          @default(0)
+  // Lease: claimed rows get availableAt pushed into the future; crash → row returns automatically.
+  availableAt DateTime  @default(now()) @db.Timestamptz(3)
+  processedAt DateTime? @db.Timestamptz(3)
+  lastError   String?
+
+  correlationId String?
+
+  organization Organization?     @relation(fields: [organizationId], references: [id])
+  deliveries   DeliveryAttempt[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([availableAt], where: { status: "PENDING" }, map: "outbox_pending_queue")
+  @@index([aggregateType, aggregateId])
+}

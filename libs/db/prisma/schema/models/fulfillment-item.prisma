@@ -1,0 +1,18 @@
+model FulfillmentItem {
+  id               String @id @default(uuid(7))
+  fulfillmentId    String
+  orderId          String // denormalized, pinned by the two composite FKs below
+  orderItemId      String
+  quantity         Int
+  producedQuantity Int    @default(0)
+
+  fulfillment Fulfillment @relation(fields: [fulfillmentId, orderId], references: [id, orderId], onDelete: Cascade)
+  orderItem   OrderItem   @relation(fields: [orderItemId, orderId], references: [id, orderId])
+
+  reservations  InventoryReservation[]
+  shipmentItems ShipmentItem[]
+
+  @@unique([fulfillmentId, orderItemId])
+  @@unique([id, fulfillmentId])
+  @@index([orderItemId])
+}

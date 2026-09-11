@@ -1,0 +1,14 @@
+model FacilityLocation {
+  id         String               @id @default(uuid(7))
+  facilityId String
+  code       String
+  type       FacilityLocationType
+  active     Boolean              @default(true)
+
+  facility     Facility      @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  fulfillments Fulfillment[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([facilityId, code])
+}

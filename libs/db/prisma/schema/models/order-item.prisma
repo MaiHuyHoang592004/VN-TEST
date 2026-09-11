@@ -1,0 +1,27 @@
+model OrderItem {
+  id      String @id @default(uuid(7))
+  orderId String
+  skuId   String
+
+  externalLineId String?
+  externalSku    String?
+  title          String
+  quantity       Int
+
+  fulfillmentUnitPrice Decimal? @db.Decimal(14, 4)
+
+  artworkUrl    String?
+  customization Json?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sku   Sku   @relation(fields: [skuId], references: [id])
+
+  fulfillmentItems         FulfillmentItem[]
+  shopifyFulfillmentOrders ShopifyFulfillmentOrderLine[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([id, orderId])
+  @@unique([orderId, externalLineId])
+  @@index([skuId])
+}

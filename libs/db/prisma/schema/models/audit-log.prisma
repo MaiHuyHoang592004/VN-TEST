@@ -1,34 +1,20 @@
-/// Append-only record of sensitive actions. Never updated, never deleted.
-///
-/// Money and permission changes without a trail of who-did-what is the gap
-/// that fails a real review — the legacy system had none. Writes go in the
-/// same $transaction as the change itself, so a mutation can never exist
-/// without its log entry.
 model AuditLog {
-  id     BigInt      @id @default(autoincrement())
-  action AuditAction
+  id             String  @id @default(uuid(7))
+  organizationId String?
+  actorId        String?
+  // String on purpose: new audit actions must not require an enum migration.
+  action         String
+  entityType     String
+  entityId       String
+  before         Json?
+  after          Json?
+  correlationId  String?
 
-  /// Who did it. Null only for system/cron actions.
-  actorId String? @map("actor_id")
-  actor   User?   @relation("AuditActor", fields: [actorId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  actor        User?         @relation("AuditActor", fields: [actorId], references: [id])
 
-  /// What it was done to: "user" | "warehouse" | "order" | "transaction" | …
-  targetType String @map("target_type")
-  targetId   String @map("target_id")
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
 
-  /// Changed fields only — never whole rows, and never secrets (no password
-  /// hashes, no API keys, no tokens).
-  before Json?
-  after  Json?
-  /// Human-entered justification, captured wherever the UI asks for one
-  /// (every money action does).
-  reason String?
-
-  ip        String?
-  userAgent String?  @map("user_agent")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@index([targetType, targetId, createdAt])
+  @@index([entityType, entityId, createdAt])
   @@index([actorId, createdAt])
-  @@map("audit_logs")
 }

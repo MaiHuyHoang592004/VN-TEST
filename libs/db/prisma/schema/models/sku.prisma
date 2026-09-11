@@ -1,0 +1,25 @@
+model Sku {
+  // Shared primary key with InventoryItem: skuId == inventoryItemId, code lives on InventoryItem.
+  id            String        @id
+  inventoryItem InventoryItem @relation(fields: [id], references: [id])
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  attributes Json?
+  status     CatalogStatus @default(ACTIVE)
+  supplyMode SupplyMode    @default(MADE_TO_ORDER)
+
+  unitWeightGrams Decimal? @db.Decimal(12, 3)
+
+  priceRules           PriceListItem[]
+  storeMappings        StoreSkuMapping[]
+  bomRevisions         BomRevision[]
+  facilityCapabilities FacilitySkuCapability[]
+  orderItems           OrderItem[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@index([productId])
+}

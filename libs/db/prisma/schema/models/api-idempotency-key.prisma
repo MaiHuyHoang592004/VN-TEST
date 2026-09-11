@@ -1,0 +1,15 @@
+model ApiIdempotencyKey {
+  organizationId String
+  key            String
+  requestHash    String
+  responseStatus Int
+  responseBody   Json
+  expiresAt      DateTime @db.Timestamptz(3)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@id([organizationId, key])
+  @@index([expiresAt])
+}

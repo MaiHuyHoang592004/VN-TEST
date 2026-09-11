@@ -8,4 +8,4 @@
  */
 export { prisma } from "./client.ts";
 export * from "./generated/prisma/client.ts";
-// export * from "./queue.ts"; // added in Task 6
+export * from "./queue.ts";

@@ -9,9 +9,10 @@
  * belong in this package.
  *
  * The V1 role/permission model (USER_ROLES/SELLER/...) was removed in the
- * FulfillFlow M1 restructure — it modeled the old gwprint seller/warehouse
- * roles, which don't exist in the V2.1 schema (OrganizationRole, FacilityRole,
- * PlatformRole instead). The V2 access module (org/facility-role based,
+ * FulfillFlow M1 restructure — it modeled the previous platform's
+ * seller/warehouse roles, which don't exist in the V2.1 schema
+ * (OrganizationRole, FacilityRole, PlatformRole instead). The V2 access
+ * module (org/facility-role based,
  * exception-visibility whitelist per spec §2.2) is M2 work: this package
  * currently has no exports until that lands.
  */

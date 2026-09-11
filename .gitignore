@@ -44,6 +44,12 @@ Thumbs.db
 # archived legacy projects — kept locally as reference, each its own git repo; not part of the workspace
 .archive/
 
+# planning artifacts handed off between sessions (plan docs, git bundles) —
+# local reference only, never part of the tracked tree (binary bundles don't
+# belong in git history; plan docs that should persist get copied into
+# docs/superpowers/plans/ deliberately, not swept in here)
+/Claude outputs/
+
 # env files (DB credentials etc.) — never commit
 .env
 .env.*

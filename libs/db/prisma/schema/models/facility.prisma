@@ -1,0 +1,20 @@
+model Facility {
+  id          String         @id @default(uuid(7))
+  code        String         @unique
+  name        String
+  status      FacilityStatus @default(ACTIVE)
+  countryCode String         @db.VarChar(2)
+  timezone    String         @default("UTC")
+
+  capabilities      FacilitySkuCapability[]
+  memberships       FacilityMembership[]
+  locations         FacilityLocation[]
+  balances          InventoryBalance[]
+  fulfillments      Fulfillment[]
+  reservations      InventoryReservation[]
+  movements         InventoryMovement[]
+  routingSelections RoutingDecision[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}

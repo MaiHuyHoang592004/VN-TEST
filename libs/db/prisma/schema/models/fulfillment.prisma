@@ -1,0 +1,40 @@
+model Fulfillment {
+  id                String            @id @default(uuid(7))
+  orderId           String
+  facilityId        String
+  routingDecisionId String?
+  kind              FulfillmentKind   @default(ORIGINAL)
+  status            FulfillmentStatus @default(QUEUED)
+
+  replacesFulfillmentId String?
+  replaces              Fulfillment?  @relation("Replacement", fields: [replacesFulfillmentId], references: [id])
+  replacements          Fulfillment[] @relation("Replacement")
+
+  assignedToId      String?
+  stagingLocationId String?
+
+  dueAt                 DateTime? @db.Timestamptz(3)
+  productionStartedAt   DateTime? @db.Timestamptz(3)
+  productionCompletedAt DateTime? @db.Timestamptz(3)
+  shippedAt             DateTime? @db.Timestamptz(3)
+
+  correlationId String?
+
+  order           Order             @relation(fields: [orderId], references: [id])
+  facility        Facility          @relation(fields: [facilityId], references: [id])
+  routingDecision RoutingDecision?  @relation(fields: [routingDecisionId], references: [id])
+  assignedTo      User?             @relation("FulfillmentAssignee", fields: [assignedToId], references: [id])
+  stagingLocation FacilityLocation? @relation(fields: [stagingLocationId], references: [id])
+
+  items      FulfillmentItem[]
+  shipments  Shipment[]
+  exceptions ExceptionCase[]
+  movements  InventoryMovement[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([id, orderId])
+  @@index([facilityId, status])
+  @@index([status, dueAt], where: raw("status IN ('QUEUED','IN_PRODUCTION','READY_TO_SHIP','BLOCKED')"), map: "fulfillment_active_queue")
+}

@@ -1,0 +1,33 @@
+model Store {
+  id             String        @id @default(uuid(7))
+  organizationId String
+  provider       StoreProvider
+  name           String
+  // Shopify shop domain (x.myshopify.com) or "manual:<orgSlug>".
+  externalStoreId String
+  status          StoreStatus @default(ACTIVE)
+
+  // Expiring offline token (public apps created after 2026-04-01). AES-256-GCM, IV prefixed.
+  accessTokenEnc       Bytes?
+  refreshTokenEnc      Bytes?
+  accessTokenExpiresAt DateTime? @db.Timestamptz(3)
+  tokenVersion         Int       @default(0)
+  grantedScopes        String?
+  installedAt          DateTime? @db.Timestamptz(3)
+  uninstalledAt        DateTime? @db.Timestamptz(3)
+
+  settings Json?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  skuMappings      StoreSkuMapping[]
+  orders           Order[]
+  ingestionBatches IngestionBatch[]
+  ingestionRecords IngestionRecord[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([provider, externalStoreId])
+  @@index([organizationId])
+}

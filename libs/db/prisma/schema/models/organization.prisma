@@ -1,0 +1,24 @@
+model Organization {
+  id     String             @id @default(uuid(7))
+  name   String
+  slug   String             @unique
+  status OrganizationStatus @default(ACTIVE)
+
+  priceListId String?
+  priceList   PriceList? @relation(fields: [priceListId], references: [id])
+
+  settings Json?
+
+  memberships      OrganizationMembership[]
+  stores           Store[]
+  orders           Order[]
+  ingestionBatches IngestionBatch[]
+  ingestionRecords IngestionRecord[]
+  exceptions       ExceptionCase[]
+  outboxEvents     OutboxEvent[]
+  auditLogs        AuditLog[]
+  apiIdempotency   ApiIdempotencyKey[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}

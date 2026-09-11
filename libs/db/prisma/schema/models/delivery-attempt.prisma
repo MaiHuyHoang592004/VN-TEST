@@ -1,0 +1,15 @@
+model DeliveryAttempt {
+  id              String         @id @default(uuid(7))
+  outboxEventId   String
+  attempt         Int
+  status          DeliveryStatus
+  httpStatus      Int?
+  responseExcerpt String?
+  error           String?
+
+  outboxEvent OutboxEvent @relation(fields: [outboxEventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([outboxEventId, attempt])
+}

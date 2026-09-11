@@ -1,0 +1,13 @@
+model FacilitySkuCapability {
+  facilityId    String
+  skuId         String
+  enabled       Boolean @default(true)
+  dailyCapacity Int?
+  leadTimeHours Int?
+  priority      Int     @default(0)
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  sku      Sku      @relation(fields: [skuId], references: [id], onDelete: Cascade)
+
+  @@id([facilityId, skuId])
+}

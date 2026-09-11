@@ -1,0 +1,10 @@
+model FacilityMembership {
+  facilityId String
+  userId     String
+  role       FacilityRole
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([facilityId, userId])
+}

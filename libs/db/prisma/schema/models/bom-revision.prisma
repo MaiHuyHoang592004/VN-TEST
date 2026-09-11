@@ -1,0 +1,19 @@
+model BomRevision {
+  id      String    @id @default(uuid(7))
+  skuId   String
+  version Int
+  status  BomStatus @default(DRAFT)
+  note    String?
+
+  activatedAt DateTime? @db.Timestamptz(3)
+  retiredAt   DateTime? @db.Timestamptz(3)
+
+  sku        Sku            @relation(fields: [skuId], references: [id])
+  components BomComponent[]
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([skuId, version])
+  @@unique([skuId], where: { status: "ACTIVE" }, map: "one_active_bom_per_sku")
+  @@index([skuId, status])
+}

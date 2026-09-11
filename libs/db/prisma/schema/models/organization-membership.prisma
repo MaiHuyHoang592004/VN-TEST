@@ -1,0 +1,13 @@
+model OrganizationMembership {
+  organizationId String
+  userId         String
+  role           OrganizationRole
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@id([organizationId, userId])
+  @@index([userId])
+}

@@ -1,0 +1,40 @@
+model ExceptionCase {
+  id             String              @id @default(uuid(7))
+  organizationId String
+  code           ExceptionCode
+  visibility     ExceptionVisibility @default(INTERNAL)
+  status         ExceptionStatus     @default(OPEN)
+
+  // "ingestion:<id>" | "order:<id>" | "fulfillment:<id>" | "shipment:<id>" | "store:<id>"
+  subjectKey String
+
+  ingestionRecordId String?
+  orderId           String?
+  fulfillmentId     String?
+  shipmentId        String?
+
+  message String
+  details Json?
+
+  assignedToId     String?
+  resolvedById     String?
+  resolutionAction ResolutionAction?
+  resolvedAt       DateTime?         @db.Timestamptz(3)
+
+  correlationId String?
+
+  organization    Organization     @relation(fields: [organizationId], references: [id])
+  ingestionRecord IngestionRecord? @relation(fields: [ingestionRecordId], references: [id])
+  order           Order?           @relation(fields: [orderId], references: [id])
+  fulfillment     Fulfillment?     @relation(fields: [fulfillmentId], references: [id])
+  shipment        Shipment?        @relation(fields: [shipmentId], references: [id])
+  assignedTo      User?            @relation("ExceptionAssignee", fields: [assignedToId], references: [id])
+  resolvedBy      User?            @relation("ExceptionResolver", fields: [resolvedById], references: [id])
+
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@unique([subjectKey, code], where: { status: "OPEN" }, map: "one_open_exception_per_subject_code")
+  @@index([organizationId, visibility, status, createdAt])
+  @@index([assignedToId, status])
+}

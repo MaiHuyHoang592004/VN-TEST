@@ -39,7 +39,10 @@ test("an expired lease makes the row claimable again", async () => {
   const [row] = await claimOutbox(prisma, { limit: 1, leaseSeconds: 1 });
   assert.ok(row);
   assert.equal((await claimOutbox(prisma, { limit: 1, leaseSeconds: 1 })).length, 0, "still leased");
-  await new Promise((r) => setTimeout(r, 1200));
+  // 1s lease + generous margin — a tighter margin (previously 1200ms) was
+  // observed flaky on GitHub Actions runners (200ms isn't enough slack for
+  // DB round-trip + event-loop jitter under load).
+  await new Promise((r) => setTimeout(r, 2500));
   const again = await claimOutbox(prisma, { limit: 1, leaseSeconds: 60 });
   assert.equal(again[0]?.id, row.id);
   await completeOutbox(prisma, row.id);

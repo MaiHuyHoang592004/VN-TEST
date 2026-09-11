@@ -17,7 +17,7 @@
     "db:diff": "prisma migrate diff --config prisma/config/prisma.config.ts --from-migrations prisma/migrations --to-schema prisma/schema --exit-code",
     "db:seed": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types prisma/scripts/seed-v2.ts",
     "build": "tsc -p tsconfig.build.json",
-    "test": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types --test src/**/*.test.ts"
+    "test": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types --test --test-concurrency=1 src/**/*.test.ts"
   },
   "dependencies": {
     "@fulfillflow/shared": "*",

@@ -82,3 +82,30 @@ test("cancellation without fulfillments cancels the order", async () => {
   assert.equal(order.status, "CANCELLED");
   assert.equal(order.cancelledAt?.toISOString(), "2026-09-14T08:05:00.000Z");
 });
+test("mixed fulfillments release queued work but keep the order OPEN for production conflict", async () => {
+  const { order, fulfillment } = await orderWithFulfillment("QUEUED");
+  const production = await prisma.fulfillment.create({ data: { orderId: order.id, facilityId, status: "IN_PRODUCTION" } });
+  await cancel();
+  assert.equal((await prisma.fulfillment.findUniqueOrThrow({ where: { id: fulfillment.id } })).status, "CANCELLED");
+  assert.equal((await prisma.fulfillment.findUniqueOrThrow({ where: { id: production.id } })).status, "IN_PRODUCTION");
+  assert.equal((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status, "OPEN");
+});
+test("failed reservation release rolls back cancellation and earlier releases atomically", async () => {
+  const { order, fulfillment, reservation } = await orderWithFulfillment("QUEUED");
+  await prisma.inventoryBalance.updateMany({ where: { facilityId }, data: { reserved: 0 } });
+  await assert.rejects(cancel(), /cannot be released/);
+  assert.equal((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status, "OPEN");
+  assert.equal((await prisma.fulfillment.findUniqueOrThrow({ where: { id: fulfillment.id } })).status, "QUEUED");
+  assert.equal((await prisma.inventoryReservation.findUniqueOrThrow({ where: { id: reservation.id } })).status, "ACTIVE");
+  assert.equal(await prisma.inventoryMovement.count({ where: { facilityId } }), 0);
+});
+test("only the unconsumed reservation quantity is released", async () => {
+  const { reservation } = await orderWithFulfillment("BLOCKED");
+  await prisma.inventoryReservation.update({ where: { id: reservation.id }, data: { consumedQuantity: 1 } });
+  await prisma.inventoryBalance.updateMany({ where: { facilityId }, data: { reserved: 1, onHand: 9 } });
+  await cancel();
+  const balance = await prisma.inventoryBalance.findFirstOrThrow({ where: { facilityId } });
+  assert.equal(balance.reserved.toString(), "0");
+  assert.equal(balance.onHand.toString(), "9");
+  assert.equal((await prisma.inventoryMovement.findFirstOrThrow({ where: { reservationId: reservation.id } })).reservedDelta.toString(), "-1");
+});

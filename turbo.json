@@ -17,7 +17,8 @@
         "SHOPIFY_API_SECRET",
         "SHOPIFY_SCOPES",
         "SHOPIFY_APP_URL",
-        "SHOPIFY_TOKEN_ENC_KEY"
+        "SHOPIFY_TOKEN_ENC_KEY",
+        "OPERATOR_API_KEY"
       ]
     },
     "dev": { "cache": false, "persistent": true },

@@ -9,7 +9,7 @@
   "files": ["dist"],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "test": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types --test --test-concurrency=1 src/**/*.test.ts"
+    "test": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types --test --test-concurrency=1 \"src/**/*.test.ts\""
   },
   "dependencies": {
     "@fulfillflow/db": "*"

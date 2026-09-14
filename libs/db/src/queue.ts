@@ -68,3 +68,11 @@ export async function claimIngestion(prisma: PrismaClient, { limit, leaseSeconds
 }
 
 export { Prisma };
+
+/** A business handler may already have settled HELD/DUPLICATE/EXCEPTION atomically. */
+export async function completeIngestion(prisma: PrismaClient, id: string): Promise<void> {
+  await prisma.ingestionRecord.updateMany({
+    where: { id, status: "PENDING" },
+    data: { status: "ACCEPTED", processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null },
+  });
+}

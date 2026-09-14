@@ -10,7 +10,9 @@ export async function processOrdersCancelled(recordId: string): Promise<void> {
       } });
       return;
     }
-    if (order.channelUpdatedAt && new Date(normalized.channelUpdatedAt) <= order.channelUpdatedAt) {
+    // Equal timestamps across distinct topics are not duplicates: an update may
+    // arrive before the cancellation for the same channel revision.
+    if (order.status === "CANCELLED" || (order.channelUpdatedAt && new Date(normalized.channelUpdatedAt) < order.channelUpdatedAt)) {
       await settleOrderRecord(tx, record.id, normalized, order.id, "DUPLICATE");
       return;
     }

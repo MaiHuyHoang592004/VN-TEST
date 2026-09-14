@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { prisma, type FulfillmentStatus } from "@fulfillflow/db";
 import { processOrdersCreate } from "./orders-create.handler.js";
 import { processOrdersCancelled } from "./orders-cancelled.handler.js";
+import { processOrdersUpdated } from "./orders-updated.handler.js";
 import { setupOrders, cleanupOrders, delivery, type OrderTestContext } from "./order-test-support.js";
 
 let ctx: OrderTestContext;
@@ -108,4 +109,12 @@ test("only the unconsumed reservation quantity is released", async () => {
   assert.equal(balance.reserved.toString(), "0");
   assert.equal(balance.onHand.toString(), "9");
   assert.equal((await prisma.inventoryMovement.findFirstOrThrow({ where: { reservationId: reservation.id } })).reservedDelta.toString(), "-1");
+});
+test("orders/updated at the cancellation timestamp cannot suppress orders/cancelled", async () => {
+  const initial = await delivery(ctx);
+  await processOrdersCreate(initial.id);
+  const update = await delivery(ctx, "order-paid-mapped", "orders/updated", { updated_at: "2026-09-14T08:05:00Z" });
+  await processOrdersUpdated(update.id);
+  await cancel();
+  assert.equal((await prisma.order.findFirstOrThrow({ where: { storeId: ctx.storeId } })).status, "CANCELLED");
 });

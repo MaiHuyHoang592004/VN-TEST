@@ -8,6 +8,7 @@ import { noopEchoHandler } from "./handlers/noop-echo.handler.js";
 import { processOrdersCreate } from "./channels/shopify/orders/orders-create.handler.js";
 import { processOrdersUpdated } from "./channels/shopify/orders/orders-updated.handler.js";
 import { processOrdersCancelled } from "./channels/shopify/orders/orders-cancelled.handler.js";
+import { processFulfillmentOrderRoutingComplete } from "./channels/shopify/fulfillment/fulfillment-order-routing-complete.handler.js";
 
 export const OUTBOX_LOOP = Symbol("OUTBOX_LOOP");
 export const INGESTION_LOOP = Symbol("INGESTION_LOOP");
@@ -17,7 +18,8 @@ export const INGESTION_LOOP = Symbol("INGESTION_LOOP");
     { provide: IngestionHandlerRegistry, useFactory: () => new IngestionHandlerRegistry()
       .register("orders/create", (record) => processOrdersCreate(record.id))
       .register("orders/updated", (record) => processOrdersUpdated(record.id))
-      .register("orders/cancelled", (record) => processOrdersCancelled(record.id)),
+      .register("orders/cancelled", (record) => processOrdersCancelled(record.id))
+      .register("fulfillment_orders/order_routing_complete", (record) => processFulfillmentOrderRoutingComplete(record.id)),
     },
     { provide: HandlerRegistry, useFactory: () => new HandlerRegistry().register("noop.echo", noopEchoHandler) },
     {

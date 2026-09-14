@@ -25,4 +25,19 @@ export class IngestionLoop {
     }
     return batch.length;
   }
+
+  /** Drain the claimed batch on shutdown; interrupt only idle polling. */
+  async run(signal: AbortSignal): Promise<void> {
+    while (!signal.aborted) {
+      let n = 0;
+      try { n = await this.tick(); }
+      catch (error) { console.error(JSON.stringify({ msg: "ingestion tick failed", err: String(error) })); }
+      if (n === 0 && !signal.aborted) await new Promise<void>((resolve) => {
+        const done = () => { clearTimeout(timer); signal.removeEventListener("abort", done); resolve(); };
+        const timer = setTimeout(done, this.opts.pollMs);
+        signal.addEventListener("abort", done, { once: true });
+        if (signal.aborted) done();
+      });
+    }
+  }
 }

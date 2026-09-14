@@ -53,6 +53,19 @@ after(async () => {
   } finally { await prisma.$disconnect(); }
 });
 const opts = { batchSize: 20, leaseSeconds: 60, maxAttempts: 3, pollMs: 10 };
+
+test("run aborts promptly during idle polling and drains an in-flight handler", async () => {
+  const ac = new AbortController();
+  const record = await insert();
+  const registry = new IngestionHandlerRegistry().register("orders/create", async () => { ac.abort(); });
+  const loop = new IngestionLoop(prisma, registry, { ...opts, pollMs: 60_000 });
+  await loop.run(ac.signal);
+  assert.equal((await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } })).status, "ACCEPTED");
+  const idle = new AbortController();
+  const run = loop.run(idle.signal);
+  setTimeout(() => idle.abort(), 30);
+  await run;
+});
 async function insert(topic = "orders/create") {
   return prisma.ingestionRecord.create({ data: {
     organizationId, storeId, source: "SHOPIFY_WEBHOOK", topic, dedupeKey: crypto.randomUUID(),

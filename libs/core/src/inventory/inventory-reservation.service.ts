@@ -142,28 +142,34 @@ export async function consumeForProduction(fulfillmentId: string): Promise<void>
  * shipped quantity so far (summed across every Shipment/ShipmentItem for
  * each FulfillmentItem). Safe to call once per shipment, including partial
  * shipments: only the newly-shipped delta since the last call is consumed.
+ * Exposed as a tx-scoped core (`consumeForShipmentTx`) so shipFulfillment
+ * (Task 16) can run it inside the same transaction as the Shipment/
+ * ShipmentItem writes it depends on — Prisma has no nested-transaction
+ * support, so composing across two `$transaction` calls isn't possible.
  */
-export async function consumeForShipment(fulfillmentId: string): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    const reservations = await tx.inventoryReservation.findMany({
-      where: { fulfillmentItem: { fulfillmentId }, bomComponentId: null, status: "ACTIVE" },
-      orderBy: [{ facilityId: "asc" }, { inventoryItemId: "asc" }],
-    });
-    for (const reservation of reservations) {
-      const shippedAgg = await tx.shipmentItem.aggregate({ where: { fulfillmentItemId: reservation.fulfillmentItemId }, _sum: { quantity: true } });
-      const shippedTotal = new Prisma.Decimal(shippedAgg._sum.quantity ?? 0);
-      const delta = shippedTotal.minus(reservation.consumedQuantity);
-      if (delta.lte(0)) continue;
-      await decrementOnHandAndReserved(tx, reservation.facilityId, reservation.inventoryItemId, delta);
-      const consumedQuantity = reservation.consumedQuantity.plus(delta);
-      await tx.inventoryMovement.create({ data: {
-        facilityId: reservation.facilityId, inventoryItemId: reservation.inventoryItemId, reservationId: reservation.id,
-        fulfillmentId, reason: "CONSUME", onHandDelta: delta.negated(), reservedDelta: delta.negated(),
-        idempotencyKey: `consume:${reservation.id}:${consumedQuantity.toString()}`,
-      } });
-      await tx.inventoryReservation.update({ where: { id: reservation.id }, data: {
-        consumedQuantity, status: consumedQuantity.gte(reservation.quantity) ? "CONSUMED" : "ACTIVE",
-      } });
-    }
+export async function consumeForShipmentTx(tx: Prisma.TransactionClient, fulfillmentId: string): Promise<void> {
+  const reservations = await tx.inventoryReservation.findMany({
+    where: { fulfillmentItem: { fulfillmentId }, bomComponentId: null, status: "ACTIVE" },
+    orderBy: [{ facilityId: "asc" }, { inventoryItemId: "asc" }],
   });
+  for (const reservation of reservations) {
+    const shippedAgg = await tx.shipmentItem.aggregate({ where: { fulfillmentItemId: reservation.fulfillmentItemId }, _sum: { quantity: true } });
+    const shippedTotal = new Prisma.Decimal(shippedAgg._sum.quantity ?? 0);
+    const delta = shippedTotal.minus(reservation.consumedQuantity);
+    if (delta.lte(0)) continue;
+    await decrementOnHandAndReserved(tx, reservation.facilityId, reservation.inventoryItemId, delta);
+    const consumedQuantity = reservation.consumedQuantity.plus(delta);
+    await tx.inventoryMovement.create({ data: {
+      facilityId: reservation.facilityId, inventoryItemId: reservation.inventoryItemId, reservationId: reservation.id,
+      fulfillmentId, reason: "CONSUME", onHandDelta: delta.negated(), reservedDelta: delta.negated(),
+      idempotencyKey: `consume:${reservation.id}:${consumedQuantity.toString()}`,
+    } });
+    await tx.inventoryReservation.update({ where: { id: reservation.id }, data: {
+      consumedQuantity, status: consumedQuantity.gte(reservation.quantity) ? "CONSUMED" : "ACTIVE",
+    } });
+  }
+}
+
+export async function consumeForShipment(fulfillmentId: string): Promise<void> {
+  await prisma.$transaction((tx) => consumeForShipmentTx(tx, fulfillmentId));
 }

@@ -11,6 +11,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@fulfillflow/core": "*",
     "@fulfillflow/db": "*",
     "@nestjs/common": "^11.1.0",
     "@nestjs/core": "^11.1.0",

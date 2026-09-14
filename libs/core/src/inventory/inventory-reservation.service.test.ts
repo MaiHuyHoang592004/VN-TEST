@@ -1,10 +1,10 @@
 import { test, afterEach, after } from "node:test";
 import assert from "node:assert/strict";
 import { prisma } from "@fulfillflow/db";
-import { reserveFulfillment, releaseFulfillment, consumeForProduction, consumeForShipment } from "./inventory-reservation.service.js";
+import { reserveFulfillment, releaseFulfillment, consumeForProduction, consumeForShipment } from "./inventory-reservation.service.ts";
 import {
   setupInventory, createFromStockSku, createMtoSku, createFulfillment, cleanupInventory, type InventoryTestContext,
-} from "./inventory-test-support.js";
+} from "./inventory-test-support.ts";
 
 let ctx: InventoryTestContext;
 let skuIds: string[];

@@ -1,0 +1,17 @@
+{
+  "name": "@fulfillflow/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "node --env-file-if-exists=${ENV_FILE:-.env.local} --experimental-strip-types --test --test-concurrency=1 src/**/*.test.ts"
+  },
+  "dependencies": {
+    "@fulfillflow/db": "*"
+  }
+}

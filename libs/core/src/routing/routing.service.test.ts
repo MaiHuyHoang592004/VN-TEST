@@ -1,8 +1,8 @@
 import { test, afterEach, after } from "node:test";
 import assert from "node:assert/strict";
 import { prisma } from "@fulfillflow/db";
-import { routeOrder } from "./routing.service.js";
-import { setupRouting, createOrder, createFacility, cleanupRouting, type RoutingTestContext } from "./routing-test-support.js";
+import { routeOrder } from "./routing.service.ts";
+import { setupRouting, createOrder, createFacility, cleanupRouting, type RoutingTestContext } from "./routing-test-support.ts";
 
 let ctx: RoutingTestContext;
 let facilityIds: string[];

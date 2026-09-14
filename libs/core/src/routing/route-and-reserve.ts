@@ -1,5 +1,5 @@
-import { routeOrder } from "./routing.service.js";
-import { reserveFulfillment } from "../inventory/inventory-reservation.service.js";
+import { routeOrder } from "./routing.service.ts";
+import { reserveFulfillment } from "../inventory/inventory-reservation.service.ts";
 
 /**
  * Called once, right after an ingestion handler commits a newly-accepted

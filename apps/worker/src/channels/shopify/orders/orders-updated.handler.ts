@@ -2,7 +2,7 @@ import { createNormalizedOrder, type OrderAccepted } from "./orders-create.handl
 import { settleOrderRecord, withOrderRecord } from "./order-record-transaction.js";
 import { validateAddressCompleteness } from "./address-completeness.validator.js";
 import { openOrderException } from "./order-exception.js";
-import { routeAndReserve } from "../../../core/routing/route-and-reserve.js";
+import { routeAndReserve } from "@fulfillflow/core";
 
 export async function processOrdersUpdated(recordId: string): Promise<void> {
   const accepted = await withOrderRecord(recordId, async (tx, record, normalized): Promise<OrderAccepted | undefined> => {

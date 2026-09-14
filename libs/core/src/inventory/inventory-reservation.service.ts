@@ -1,9 +1,13 @@
 import { prisma, Prisma } from "@fulfillflow/db";
-import { openException } from "../exceptions/open-exception.js";
-import { incrementReserved, decrementReserved, decrementOnHandAndReserved, InsufficientStockError } from "./inventory-ledger.service.js";
+import { openException } from "../exceptions/open-exception.ts";
+import { incrementReserved, decrementReserved, decrementOnHandAndReserved, InsufficientStockError } from "./inventory-ledger.service.ts";
 
 class MissingBomError extends Error {
-  constructor(public readonly skuId: string) { super(`no ACTIVE BomRevision for sku ${skuId}`); }
+  readonly skuId: string;
+  constructor(skuId: string) {
+    super(`no ACTIVE BomRevision for sku ${skuId}`);
+    this.skuId = skuId;
+  }
 }
 
 type ComponentDemand = { inventoryItemId: string; bomComponentId: string | null; quantity: Prisma.Decimal };

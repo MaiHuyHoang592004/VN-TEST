@@ -1,5 +1,5 @@
 import { prisma, type Prisma } from "@fulfillflow/db";
-import { openException } from "../exceptions/open-exception.js";
+import { openException } from "../exceptions/open-exception.ts";
 
 export type RouteOrderResult = { routingDecisionId: string; fulfillmentId?: string };
 

@@ -1,8 +1,12 @@
 import { Prisma, type PrismaClient } from "@fulfillflow/db";
 
 export class InsufficientStockError extends Error {
-  constructor(public readonly inventoryItemId: string, public readonly facilityId: string) {
+  readonly inventoryItemId: string;
+  readonly facilityId: string;
+  constructor(inventoryItemId: string, facilityId: string) {
     super(`insufficient stock for inventoryItem ${inventoryItemId} at facility ${facilityId}`);
+    this.inventoryItemId = inventoryItemId;
+    this.facilityId = facilityId;
   }
 }
 

@@ -1,17 +1,13 @@
-import { prisma, Prisma } from "@fulfillflow/db";
-import { normalizeShopifyOrder } from "./shopify-order-normalizer.js";
+import { Prisma, type IngestionRecord } from "@fulfillflow/db";
+import type { NormalizedShopifyOrder } from "./shopify-order-normalizer.js";
 import { validateAddressCompleteness } from "./address-completeness.validator.js";
+import { withOrderRecord } from "./order-record-transaction.js";
 
 export async function processOrdersCreate(recordId: string): Promise<void> {
-  await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM "IngestionRecord" WHERE id = ${recordId} FOR UPDATE`;
-    const record = await tx.ingestionRecord.findUniqueOrThrow({ where: { id: recordId } });
-    if (record.status !== "PENDING") return;
-    await tx.store.findFirstOrThrow({ where: { id: record.storeId, organizationId: record.organizationId } });
-    const normalized = normalizeShopifyOrder(record.rawPayload);
-    // Serialize deliveries of one channel entity, including before its Order exists.
-    const sourceKey = `shopify:${record.storeId}:${normalized.externalId}`;
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${sourceKey}, 0))::text`;
+  await withOrderRecord(recordId, createNormalizedOrder);
+}
+
+export async function createNormalizedOrder(tx: Prisma.TransactionClient, record: IngestionRecord, normalized: NormalizedShopifyOrder): Promise<void> {
     const existing = await tx.order.findUnique({ where: { storeId_externalId: { storeId: record.storeId, externalId: normalized.externalId } } });
     if (existing) {
       await tx.ingestionRecord.update({ where: { id: record.id }, data: {
@@ -71,9 +67,8 @@ export async function processOrdersCreate(recordId: string): Promise<void> {
         message: "Shipping address is incomplete or invalid", details: validation.validationErrors,
       } });
     }
-    await tx.ingestionRecord.update({ where: { id: recordId }, data: {
+    await tx.ingestionRecord.update({ where: { id: record.id }, data: {
       status: "ACCEPTED", normalizedPayload: normalized, resultOrderId: order.id,
       processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null,
     } });
-  });
 }

@@ -52,6 +52,10 @@ test("a RetryableOutboxError with retryAfterSeconds overrides the default backof
   assert.equal(row.status, "PENDING");
   const waitMs = row.availableAt.getTime() - Date.now();
   assert.ok(waitMs > 1000 && waitMs <= 6000, `expected ~5s wait, got ${waitMs}ms`);
+  // Left PENDING with a short delay by design (that's what's under test) —
+  // delete it now rather than leaving it claimable by an unrelated
+  // OutboxLoop reading the same shared dev database later in the suite.
+  await prisma.outboxEvent.delete({ where: { id } });
 });
 
 test("run() stops on abort", async () => {

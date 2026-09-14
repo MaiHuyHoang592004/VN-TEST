@@ -71,4 +71,8 @@ test("failOutbox honors a caller-supplied retryAfterSeconds instead of the defau
   const after1 = await prisma.outboxEvent.findUniqueOrThrow({ where: { id: row.id } });
   const waitMs = after1.availableAt.getTime() - Date.now();
   assert.ok(waitMs > 1000 && waitMs <= 4000, `expected ~3s wait, got ${waitMs}ms`);
+  // Left PENDING with a short delay by design (that's what's under test) —
+  // delete it now rather than leaving it claimable by an unrelated
+  // OutboxLoop reading the same shared dev database later in the run.
+  await prisma.outboxEvent.delete({ where: { id: row.id } });
 });

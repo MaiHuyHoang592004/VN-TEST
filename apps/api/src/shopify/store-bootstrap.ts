@@ -17,7 +17,9 @@ export async function bootstrapShopifyStore(prisma: PrismaClient, input: Bootstr
     create: { name: input.shop, slug: input.shop },
   });
 
-  const accessTokenEnc = encryptToken(input.accessToken, input.tokenEncKey);
+  // Prisma's Bytes type wants a plain Uint8Array<ArrayBuffer>; Buffer's type
+  // is technically Uint8Array<ArrayBufferLike> (could be a SharedArrayBuffer).
+  const accessTokenEnc = new Uint8Array(encryptToken(input.accessToken, input.tokenEncKey));
   const store = await prisma.store.upsert({
     where: { provider_externalStoreId: { provider: "SHOPIFY", externalStoreId: input.shop } },
     create: {

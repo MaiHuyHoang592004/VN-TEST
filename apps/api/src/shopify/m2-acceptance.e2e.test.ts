@@ -66,7 +66,7 @@ test("M2 acceptance gate: install → session → webhook → worker claim", asy
     ok: true, status: 200,
     json: async () => ({ access_token: "shpat_m2-acceptance", scope: "read_orders" }),
     text: async () => "",
-  })) as typeof fetch;
+  })) as unknown as typeof fetch;
   const callbackQuery: Record<string, string> = { shop, code: "the-code", state: createState(shop, apiSecret) };
   callbackQuery.hmac = signQuery(callbackQuery);
   const callbackRes = await request(app.getHttpServer()).get("/shopify/callback").query(callbackQuery);

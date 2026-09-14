@@ -75,7 +75,7 @@ test("GET /shopify/callback with a valid hmac+state+code bootstraps the Store an
     status: 200,
     json: async () => ({ access_token: "shpat_e2e-token", scope: "read_orders" }),
     text: async () => "",
-  })) as typeof fetch;
+  })) as unknown as typeof fetch;
 
   const query: Record<string, string> = { shop, code: "the-code", state: createState(shop, apiSecret) };
   query.hmac = signQuery(query, apiSecret);

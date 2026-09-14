@@ -36,7 +36,7 @@ function fakeFetch(status: number, body: unknown) {
 test("exchangeCodeForToken posts to the shop's token endpoint and returns the access token", async () => {
   let capturedUrl = "";
   let capturedBody: unknown;
-  const fetchImpl = async (url: string | URL, init?: RequestInit) => {
+  const fetchImpl: typeof fetch = async (url, init) => {
     capturedUrl = String(url);
     capturedBody = JSON.parse(String(init?.body));
     return fakeFetch(200, { access_token: "shpat_abc", scope: "read_orders" })();

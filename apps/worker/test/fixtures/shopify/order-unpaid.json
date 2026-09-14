@@ -1,0 +1,36 @@
+{
+  "id": 1001,
+  "admin_graphql_api_id": "gid://shopify/Order/1001",
+  "name": "#1001",
+  "created_at": "2026-09-14T08:00:00Z",
+  "updated_at": "2026-09-14T08:01:00Z",
+  "financial_status": "pending",
+  "currency": "USD",
+  "email": "buyer@example.test",
+  "shipping_address": {
+    "name": "Ada Buyer",
+    "address1": "12 Test Street",
+    "address2": null,
+    "city": "Austin",
+    "province": "Texas",
+    "zip": "78701",
+    "country_code": "US",
+    "phone": "+15555550100"
+  },
+  "line_items": [
+    {
+      "id": 2001,
+      "admin_graphql_api_id": "gid://shopify/LineItem/2001",
+      "variant_id": 3001,
+      "sku": "TEE-RED",
+      "title": "Red tee",
+      "quantity": 2,
+      "properties": [
+        {
+          "name": "text",
+          "value": "Hello"
+        }
+      ]
+    }
+  ]
+}

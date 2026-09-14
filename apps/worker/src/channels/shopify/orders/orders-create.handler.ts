@@ -11,7 +11,7 @@ export async function processOrdersCreate(recordId: string): Promise<void> {
     const normalized = normalizeShopifyOrder(record.rawPayload);
     // Serialize deliveries of one channel entity, including before its Order exists.
     const sourceKey = `shopify:${record.storeId}:${normalized.externalId}`;
-    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${sourceKey}, 0))`;
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${sourceKey}, 0))::text`;
     const existing = await tx.order.findUnique({ where: { storeId_externalId: { storeId: record.storeId, externalId: normalized.externalId } } });
     if (existing) {
       await tx.ingestionRecord.update({ where: { id: record.id }, data: {

@@ -1,8 +1,39 @@
 # M3 handover — Shopify order ingestion (Tasks 7–9)
 
-**Status: Tasks 8–9 and the defined Task 7 success/failure/shutdown behavior are
-implemented and verified. M3 is NOT signed off: unknown-topic policy requires
-the user's decision.** No M4 work, PR, push, or deployment was performed.
+**Status: Tasks 7–9 complete and verified. M3 acceptance gate passes.** No M4
+work, PR, push, or deployment was performed.
+
+## Addendum — unknown-topic policy resolved (this session)
+
+The prior checkpoint below left one decision open: what happens when
+`IngestionLoop` claims a row whose `topic` has no registered handler. Decided
+and implemented:
+
+**An unregistered topic settles `EXCEPTION` immediately with
+`errorCode: UNKNOWN_TOPIC`, never retried.** Rationale: a missing handler is
+a permanent condition — waiting and retrying cannot make one appear, only a
+code deploy can. This mirrors the outbox loop's existing precedent for the
+exact same situation (`OutboxLoop.tick()`'s "no handler registered" branch
+calls `failOutbox` with `maxAttempts: 0`, i.e. immediately terminal).
+
+Implementation (`apps/worker/src/ingestion/ingestion-loop.ts`): the
+missing-handler check moved inside the per-record `try`/`catch` and throws a
+`BusinessIngestionError("UNKNOWN_TOPIC", ...)`, reusing the same settlement
+path `SKU_NOT_MAPPED` and friends already use. Previously the check threw out
+of the batch `for` loop entirely, so one unknown-topic row anywhere in a
+claimed batch left every row after it unprocessed for that tick (not
+permanently stuck — the lease still expires and a later tick reclaims
+them — but wasteful and inconsistent with how every other per-row failure is
+handled). New test:
+`"an unregistered topic settles EXCEPTION immediately with UNKNOWN_TOPIC,
+without retrying, and does not block the rest of the batch"` in
+`ingestion-loop.test.ts`, asserting both the settlement and that a sibling
+row in the same batch is unaffected.
+
+Full verification after the fix: `npm run build` clean (4 workspaces, 0 type
+errors), `npm test` **88/88** (API 46, worker 37, DB 5), legacy-name guard
+clean. Task 7 is now fully complete per the plan's defined behaviors
+(success, retryable, business, shutdown, and this unknown-topic case).
 
 Work is on `ff/m3-order-ingestion` in `C:/VN-TEST`, based on corrected M2 commit
 `af7c7c3`. `ff/m1-foundation` remains at `3c1747c`; `ff/m2-shopify-review` remains
@@ -18,24 +49,14 @@ The schema, existing queue classes, and webhook controller were read before
 implementation. The user's narrower scope overrides the plan's broader M3:
 Tasks 10–12, including mapping API/UI and merchant Orders UI/API, are excluded.
 
-## Outstanding decision — do not call Task 7 complete
+## Resolved decision — unknown-topic policy (see addendum above)
 
-The user's request says the plan defines unregistered-topic handling. The
-provided Task 7 actually specifies only successful dispatch, retryable failure,
-business failure, and AbortSignal shutdown. It has no unknown-topic step.
-An asynchronous question was asked; no answer was received during this run.
-
-Proposed policy: immediately settle EXCEPTION with `errorCode: UNKNOWN_TOPIC`.
-Alternative: back off as PENDING and eventually settle EXCEPTION. The ingestion
-enum has **no DEAD_LETTER status**; the earlier question's dead-letter wording
-was corrected in commentary. Do not add an enum value for this.
-
-**Current limitation:** an unregistered topic throws out of `tick()` before
-settlement. Its lease expires, but subsequent rows in that claimed batch are
-not processed on that tick. This is unfinished Task 7 behavior, not an approved
-production policy. Once the user chooses, write the failing unknown-topic test,
-implement per-row handling that lets the rest of the batch proceed, rerun full
-verification, and update this handover. Do not deploy this checkpoint.
+The plan's Task 7 defines only successful dispatch, retryable failure,
+business failure, and AbortSignal shutdown — no unknown-topic step. This was
+left open at the end of the original session. **Resolved above**: immediate
+`EXCEPTION` / `UNKNOWN_TOPIC`, no retry, settled per-row so it can't stall the
+rest of a batch. The ingestion enum has **no DEAD_LETTER status** — this
+policy uses `EXCEPTION`, not a new enum value.
 
 ## What was built
 
@@ -135,12 +156,12 @@ retained unchanged. No fulfillment schema or index semantics were changed.
 | Address migration applied to existing local Postgres | PASS |
 | Targeted normalizer/validator/order/loop tests | PASS |
 | `npm run build` at repo root | PASS; 4 workspaces in scope, 3 build scripts, zero type errors |
-| `npm test` at repo root, real Postgres | PASS: 87/87 (API 46, worker 36, DB 5), zero skipped/failing tests |
+| `npm test` at repo root, real Postgres | PASS: 88/88 (API 46, worker 37, DB 5), zero skipped/failing tests |
 | Scoped Gate M3 worker flow | PASS: paid/mapped, unmapped exception, HELD-to-paid, stale update, cancellation |
 | Fulfillment cancellation fixtures | PASS: eligible, conflict, mixed, partial consumption, rollback, duplicate delivery, equal-topic timestamps |
 | Legacy-name guard outside CLAUDE.md/README.md/docs/.github | PASS, no matches |
 | `git diff --check` | PASS |
-| Unknown-topic behavior | NOT VERIFIED; awaiting decision |
+| Unknown-topic behavior | PASS — resolved and verified this session, see addendum above |
 
 The worker test glob is now quoted so Node discovers nested order tests.
 Previously Git Bash expanded it one directory deep and silently omitted them.
@@ -161,8 +182,7 @@ contained a Prisma void-result deserialization failure; the immediate follow-up
 
 ## What M4 needs next (not started)
 
-First finish the outstanding Task 7 policy/test and refresh this checkpoint.
-M4 can then consume canonical Orders/OrderItems and existing mapped skuIds.
+M4 can consume canonical Orders/OrderItems and existing mapped skuIds.
 Shipping must require the appropriate verified address state; INVALID and
 UNVERIFIED are not shipping approval. Coordinate fulfillment/stock mutations
 with the order/fulfillment locking and cancellation transaction introduced here.

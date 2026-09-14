@@ -12,6 +12,7 @@ export function normalizeShopifyOrder(raw: unknown) {
     displayNumber: clean(order.name),
     placedAt: new Date(order.created_at).toISOString(),
     channelUpdatedAt: new Date(order.updated_at).toISOString(),
+    cancelledAt: order.cancelled_at ? new Date(order.cancelled_at).toISOString() : null,
     channelFinancialStatus: order.financial_status, currency: order.currency,
     customerEmail: clean(order.email),
     address: {

@@ -7,6 +7,7 @@ export const shopifyOrderSchema = z.object({
   id,
   admin_graphql_api_id: z.string().regex(/^gid:\/\/shopify\/Order\/\d+$/).optional(),
   name: text, created_at: timestamp, updated_at: timestamp,
+  cancelled_at: timestamp.nullish(),
   financial_status: z.string(), currency: z.string().regex(/^[A-Z]{3}$/),
   email: text,
   shipping_address: z.object({

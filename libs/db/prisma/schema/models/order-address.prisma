@@ -2,18 +2,19 @@ model OrderAddress {
   id      String @id @default(uuid(7))
   orderId String @unique
 
-  name        String
+  name        String?
   company     String?
   email       String?
   phone       String?
-  line1       String
+  line1       String?
   line2       String?
-  city        String
+  city        String?
   province    String?
-  postalCode  String
-  countryCode String @db.VarChar(2)
+  postalCode  String?
+  countryCode String? @db.VarChar(2)
 
   validationStatus AddressValidationStatus @default(UNVERIFIED)
+  validationErrors Json?
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 

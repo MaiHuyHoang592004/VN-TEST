@@ -9,6 +9,17 @@ export async function processOrdersCreate(recordId: string): Promise<void> {
     if (record.status !== "PENDING") return;
     await tx.store.findFirstOrThrow({ where: { id: record.storeId, organizationId: record.organizationId } });
     const normalized = normalizeShopifyOrder(record.rawPayload);
+    // Serialize deliveries of one channel entity, including before its Order exists.
+    const sourceKey = `shopify:${record.storeId}:${normalized.externalId}`;
+    await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${sourceKey}, 0))`;
+    const existing = await tx.order.findUnique({ where: { storeId_externalId: { storeId: record.storeId, externalId: normalized.externalId } } });
+    if (existing) {
+      await tx.ingestionRecord.update({ where: { id: record.id }, data: {
+        status: "DUPLICATE", normalizedPayload: normalized, resultOrderId: existing.id,
+        processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null,
+      } });
+      return;
+    }
     if (normalized.channelFinancialStatus !== "paid") {
       await tx.ingestionRecord.update({ where: { id: record.id }, data: {
         status: "HELD", normalizedPayload: normalized, processedAt: new Date(), lockedUntil: null,

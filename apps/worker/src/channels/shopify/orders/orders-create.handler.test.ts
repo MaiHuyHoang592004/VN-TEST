@@ -8,6 +8,25 @@ let ctx: OrderTestContext;
 beforeEach(async () => { ctx = await setupOrders(); });
 afterEach(async () => { if (ctx) await cleanupOrders(ctx); });
 after(async () => { await prisma.$disconnect(); });
+test("concurrent duplicate deliveries create one order and settle the other DUPLICATE", async () => {
+  const a = await delivery(ctx);
+  const b = await delivery(ctx);
+  await Promise.all([processOrdersCreate(a.id), processOrdersCreate(b.id)]);
+  const rows = await prisma.ingestionRecord.findMany({ where: { storeId: ctx.storeId } });
+  assert.deepEqual(rows.map((r) => r.status).sort(), ["ACCEPTED", "DUPLICATE"]);
+  assert.equal(new Set(rows.map((r) => r.resultOrderId)).size, 1);
+  assert.equal(await prisma.order.count({ where: { storeId: ctx.storeId } }), 1);
+});
+test("another store's mapping cannot fulfill an unmapped variant", async () => {
+  const other = await setupOrders();
+  try {
+    await prisma.storeSkuMapping.deleteMany({ where: { storeId: ctx.storeId } });
+    const record = await delivery(ctx);
+    await processOrdersCreate(record.id);
+    assert.equal((await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } })).status, "EXCEPTION");
+    assert.equal(await prisma.order.count({ where: { storeId: ctx.storeId } }), 0);
+  } finally { await cleanupOrders(other); }
+});
 test("one unmapped line creates no order and exactly one merchant SKU_NOT_MAPPED", async () => {
   const record = await delivery(ctx, "order-paid-unmapped");
   await processOrdersCreate(record.id);

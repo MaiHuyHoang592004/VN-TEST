@@ -1,8 +1,8 @@
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { prisma } from "@fulfillflow/db";
-import { ShopifyTokenManager, ShopifyUnauthorizedError } from "./token-manager.js";
-import { encryptToken, decryptToken } from "./token-crypto.js";
+import { ShopifyTokenManager, ShopifyUnauthorizedError } from "./token-manager.ts";
+import { encryptToken, decryptToken } from "./token-crypto.ts";
 
 const key = Buffer.alloc(32, 5).toString("base64");
 const config = { apiKey: "key", apiSecret: "secret", tokenEncKey: key };

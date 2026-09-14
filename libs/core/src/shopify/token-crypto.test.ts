@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { encryptToken, decryptToken } from "./token-crypto.js";
+import { encryptToken, decryptToken } from "./token-crypto.ts";
 
 const key = Buffer.alloc(32, 9).toString("base64");
 

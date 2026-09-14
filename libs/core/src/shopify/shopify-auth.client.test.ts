@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { exchangeIdToken, refreshAccessToken } from "./shopify-auth.client.js";
+import { exchangeIdToken, refreshAccessToken } from "./shopify-auth.client.ts";
 
 const config = { apiKey: "key123", apiSecret: "secret456" };
 

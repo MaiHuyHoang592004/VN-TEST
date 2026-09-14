@@ -11,3 +11,7 @@ export * from "./routing/routing.service.ts";
 export * from "./routing/route-and-reserve.ts";
 export * from "./inventory/inventory-ledger.service.ts";
 export * from "./inventory/inventory-reservation.service.ts";
+export * from "./shopify/token-crypto.ts";
+export * from "./shopify/shopify-auth.client.ts";
+export * from "./shopify/token-manager.ts";
+export * from "./shopify/shopify-graphql.client.ts";

@@ -5,7 +5,7 @@ import { CurrentTenant } from "./current-tenant.decorator.js";
 import type { TenantContext } from "./tenant-context.js";
 import { ShopifyConfig } from "./shopify-config.provider.js";
 import { PrismaService } from "../prisma/prisma.service.js";
-import { exchangeIdToken } from "./shopify-auth.client.js";
+import { exchangeIdToken } from "@fulfillflow/core";
 import { bootstrapShopifyStore } from "./store-bootstrap.js";
 
 @Controller("app/session")

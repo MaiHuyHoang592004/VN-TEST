@@ -9,8 +9,7 @@
  * a Store exists.
  */
 import type { PrismaClient } from "@fulfillflow/db";
-import { encryptToken } from "./token-crypto.js";
-import type { TokenResponse } from "./shopify-auth.client.js";
+import { encryptToken, type TokenResponse } from "@fulfillflow/core";
 
 export type BootstrapInput = {
   shop: string;

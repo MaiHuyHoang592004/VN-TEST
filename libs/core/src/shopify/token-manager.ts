@@ -6,8 +6,8 @@
  * re-reads and uses the winner's token instead of erroring or double-writing.
  */
 import type { PrismaClient } from "@fulfillflow/db";
-import { encryptToken, decryptToken } from "./token-crypto.js";
-import { refreshAccessToken, type ShopifyAuthConfig } from "./shopify-auth.client.js";
+import { encryptToken, decryptToken } from "./token-crypto.ts";
+import { refreshAccessToken, type ShopifyAuthConfig } from "./shopify-auth.client.ts";
 
 /** Callers throw this from their `fn` when Shopify's Admin API responds 401, to trigger exactly one refresh-and-retry. */
 export class ShopifyUnauthorizedError extends Error {}
@@ -25,11 +25,19 @@ function expiryDate(seconds: number | undefined): Date | null {
 }
 
 export class ShopifyTokenManager {
+  private readonly prisma: PrismaClient;
+  private readonly config: ShopifyAuthConfig & { tokenEncKey: string };
+  private readonly fetchImpl: typeof fetch;
+
   constructor(
-    private readonly prisma: PrismaClient,
-    private readonly config: ShopifyAuthConfig & { tokenEncKey: string },
-    private readonly fetchImpl: typeof fetch = fetch,
-  ) {}
+    prisma: PrismaClient,
+    config: ShopifyAuthConfig & { tokenEncKey: string },
+    fetchImpl: typeof fetch = fetch,
+  ) {
+    this.prisma = prisma;
+    this.config = config;
+    this.fetchImpl = fetchImpl;
+  }
 
   async withAccessToken<T>(storeId: string, fn: (accessToken: string) => Promise<T>): Promise<T> {
     let store = await this.loadActiveStore(storeId);

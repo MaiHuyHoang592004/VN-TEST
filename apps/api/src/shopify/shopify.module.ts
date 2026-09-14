@@ -4,7 +4,7 @@ import { ShopifyConfig } from "./shopify-config.provider.js";
 import { SessionController } from "./session.controller.js";
 import { WebhooksController } from "./webhooks.controller.js";
 import { ShopifyTenantGuard } from "./tenant.guard.js";
-import { ShopifyTokenManager } from "./token-manager.js";
+import { ShopifyTokenManager } from "@fulfillflow/core";
 
 export const SHOPIFY_TOKEN_MANAGER = Symbol("SHOPIFY_TOKEN_MANAGER");
 

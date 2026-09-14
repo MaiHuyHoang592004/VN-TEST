@@ -13,5 +13,8 @@
   },
   "dependencies": {
     "@fulfillflow/db": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
   }
 }

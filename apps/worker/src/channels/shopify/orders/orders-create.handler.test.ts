@@ -8,6 +8,23 @@ let ctx: OrderTestContext;
 beforeEach(async () => { ctx = await setupOrders(); });
 afterEach(async () => { if (ctx) await cleanupOrders(ctx); });
 after(async () => { await prisma.$disconnect(); });
+test("invalid address still creates an order and opens one merchant INVALID_ADDRESS", async () => {
+  const record = await delivery(ctx, "order-invalid-address");
+  await processOrdersCreate(record.id);
+  const order = await prisma.order.findFirstOrThrow({ where: { storeId: ctx.storeId }, include: { items: true, shippingAddress: true } });
+  assert.equal(order.items.length, 1);
+  assert.equal(order.shippingAddress?.validationStatus, "INVALID");
+  assert.equal(order.shippingAddress?.line1, null);
+  assert.equal(order.shippingAddress?.countryCode, null);
+  assert.equal((order.shippingAddress?.validationErrors as Record<string, string>).countryCode, "INVALID_COUNTRY_CODE");
+  const exceptions = await prisma.exceptionCase.findMany({ where: { orderId: order.id } });
+  assert.equal(exceptions.length, 1);
+  assert.equal(exceptions[0].code, "INVALID_ADDRESS");
+  assert.equal(exceptions[0].visibility, "MERCHANT");
+  assert.equal(exceptions[0].organizationId, ctx.organizationId);
+  await processOrdersCreate(record.id);
+  assert.equal(await prisma.exceptionCase.count({ where: { orderId: order.id } }), 1);
+});
 test("paid mapped order creates canonical order, address and N items and accepts atomically", async () => {
   const record = await delivery(ctx, "order-two-lines");
   await processOrdersCreate(record.id);

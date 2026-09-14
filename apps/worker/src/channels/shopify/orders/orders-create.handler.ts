@@ -26,9 +26,19 @@ export async function processOrdersCreate(recordId: string): Promise<void> {
       displayNumber: normalized.displayNumber, currency: normalized.currency,
       channelFinancialStatus: normalized.channelFinancialStatus, channelUpdatedAt: normalized.channelUpdatedAt,
       placedAt: normalized.placedAt, customerName: normalized.address.name, customerEmail: normalized.customerEmail,
-      shippingAddress: { create: { ...normalized.address, ...validation } },
+      shippingAddress: { create: {
+        ...normalized.address, ...validation,
+        countryCode: validation.validationErrors.countryCode ? null : normalized.address.countryCode,
+      } },
       items: { create: items },
     } });
+    if (validation.validationStatus === "INVALID") {
+      await tx.exceptionCase.create({ data: {
+        organizationId: record.organizationId, orderId: order.id, ingestionRecordId: record.id,
+        subjectKey: `order:${order.id}`, code: "INVALID_ADDRESS", visibility: "MERCHANT",
+        message: "Shipping address is incomplete or invalid", details: validation.validationErrors,
+      } });
+    }
     await tx.ingestionRecord.update({ where: { id: recordId }, data: {
       status: "ACCEPTED", normalizedPayload: normalized, resultOrderId: order.id,
       processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null,

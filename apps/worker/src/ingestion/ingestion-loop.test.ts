@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { prisma } from "@fulfillflow/db";
 import { IngestionHandlerRegistry } from "./ingestion-handler-registry.js";
 import { IngestionLoop } from "./ingestion-loop.js";
+import { RetryableIngestionError, BusinessIngestionError } from "./ingestion-errors.js";
 
 let organizationId: string;
 let storeId: string;
@@ -11,6 +12,36 @@ before(async () => {
   const org = await prisma.organization.create({ data: { name: slug, slug } });
   organizationId = org.id;
   storeId = (await prisma.store.create({ data: { organizationId, provider: "MANUAL", name: slug, externalStoreId: slug } })).id;
+});
+
+test("retryable errors clear the lease and back off, then terminate at the attempt limit", async () => {
+  const record = await insert();
+  const registry = new IngestionHandlerRegistry().register("orders/create", async () => { throw new RetryableIngestionError("temporary"); });
+  const loop = new IngestionLoop(prisma, registry, { ...opts, maxAttempts: 2 });
+  await loop.tick();
+  const row = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } });
+  assert.equal(row.status, "PENDING");
+  assert.equal(row.lockedUntil, null);
+  assert.ok(row.nextAttemptAt.getTime() > Date.now() + 30_000);
+  await prisma.ingestionRecord.update({ where: { id: record.id }, data: { nextAttemptAt: new Date(0) } });
+  await loop.tick();
+  const failed = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } });
+  assert.equal(failed.status, "EXCEPTION");
+  assert.equal(failed.errorCode, "RETRY_EXHAUSTED");
+  assert.equal(failed.errorMessage, "temporary");
+  assert.equal(failed.attempts, 2);
+});
+
+test("business errors settle EXCEPTION with their code and message, without retrying", async () => {
+  const record = await insert();
+  const registry = new IngestionHandlerRegistry().register("orders/create", async () => { throw new BusinessIngestionError("SKU_NOT_MAPPED", "unknown variant"); });
+  await new IngestionLoop(prisma, registry, opts).tick();
+  const row = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } });
+  assert.equal(row.status, "EXCEPTION");
+  assert.equal(row.errorCode, "SKU_NOT_MAPPED");
+  assert.equal(row.errorMessage, "unknown variant");
+  assert.equal(row.lockedUntil, null);
+  assert.ok(row.processedAt);
 });
 after(async () => {
   try {

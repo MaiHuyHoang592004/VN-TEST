@@ -76,3 +76,21 @@ export async function completeIngestion(prisma: PrismaClient, id: string): Promi
     data: { status: "ACCEPTED", processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null },
   });
 }
+
+export async function failIngestion(
+  prisma: PrismaClient, id: string,
+  { error, code, maxAttempts, business = false }: { error: string; code?: string; maxAttempts: number; business?: boolean },
+): Promise<"retry" | "exception"> {
+  const row = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id }, select: { attempts: true } });
+  const terminal = business || row.attempts >= maxAttempts;
+  await prisma.ingestionRecord.updateMany({
+    where: { id, status: "PENDING" },
+    data: {
+      status: terminal ? "EXCEPTION" : "PENDING", lockedUntil: null,
+      errorCode: business ? code : terminal ? "RETRY_EXHAUSTED" : "RETRYABLE_ERROR",
+      errorMessage: error.slice(0, 2000), processedAt: terminal ? new Date() : null,
+      ...(!terminal ? { nextAttemptAt: new Date(Date.now() + backoffSeconds(row.attempts) * 1000) } : {}),
+    },
+  });
+  return terminal ? "exception" : "retry";
+}

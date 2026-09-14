@@ -16,6 +16,13 @@ jobs:
       DATABASE_URL: postgresql://ff:ff@localhost:5432/ff
       SHADOW_DATABASE_URL: postgresql://ff:ff@localhost:5432/ff_shadow
       NODE_ENV: test
+      # Dummy values — CI never talks to real Shopify. Real secrets live in
+      # Railway env vars for deployed environments.
+      SHOPIFY_API_KEY: ci-test-api-key
+      SHOPIFY_API_SECRET: ci-test-api-secret
+      SHOPIFY_SCOPES: read_orders
+      SHOPIFY_APP_URL: https://ci.fulfillflow.test
+      SHOPIFY_TOKEN_ENC_KEY: MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

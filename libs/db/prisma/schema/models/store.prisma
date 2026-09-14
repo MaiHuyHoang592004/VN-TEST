@@ -8,10 +8,11 @@ model Store {
   status          StoreStatus @default(ACTIVE)
 
   // Expiring offline token (public apps created after 2026-04-01). AES-256-GCM, IV prefixed.
-  accessTokenEnc       Bytes?
-  refreshTokenEnc      Bytes?
-  accessTokenExpiresAt DateTime? @db.Timestamptz(3)
-  tokenVersion         Int       @default(0)
+  accessTokenEnc        Bytes?
+  refreshTokenEnc       Bytes?
+  accessTokenExpiresAt  DateTime? @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+  tokenVersion          Int       @default(0)
   grantedScopes        String?
   installedAt          DateTime? @db.Timestamptz(3)
   uninstalledAt        DateTime? @db.Timestamptz(3)

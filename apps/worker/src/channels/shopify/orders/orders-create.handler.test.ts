@@ -8,6 +8,28 @@ let ctx: OrderTestContext;
 beforeEach(async () => { ctx = await setupOrders(); });
 afterEach(async () => { if (ctx) await cleanupOrders(ctx); });
 after(async () => { await prisma.$disconnect(); });
+test("one unmapped line creates no order and exactly one merchant SKU_NOT_MAPPED", async () => {
+  const record = await delivery(ctx, "order-paid-unmapped");
+  await processOrdersCreate(record.id);
+  const row = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } });
+  assert.equal(row.status, "EXCEPTION");
+  assert.equal(row.errorCode, "SKU_NOT_MAPPED");
+  assert.equal(await prisma.order.count({ where: { storeId: ctx.storeId } }), 0);
+  const exceptions = await prisma.exceptionCase.findMany({ where: { ingestionRecordId: record.id } });
+  assert.equal(exceptions.length, 1);
+  assert.equal(exceptions[0].subjectKey, `ingestion:${record.id}`);
+  assert.equal(exceptions[0].code, "SKU_NOT_MAPPED");
+  assert.equal(exceptions[0].visibility, "MERCHANT");
+  await processOrdersCreate(record.id);
+  assert.equal(await prisma.exceptionCase.count({ where: { ingestionRecordId: record.id } }), 1);
+});
+test("unpaid order is HELD with no order or SKU exception", async () => {
+  const record = await delivery(ctx, "order-unpaid");
+  await processOrdersCreate(record.id);
+  assert.equal((await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } })).status, "HELD");
+  assert.equal(await prisma.order.count({ where: { storeId: ctx.storeId } }), 0);
+  assert.equal(await prisma.exceptionCase.count({ where: { ingestionRecordId: record.id } }), 0);
+});
 test("invalid address still creates an order and opens one merchant INVALID_ADDRESS", async () => {
   const record = await delivery(ctx, "order-invalid-address");
   await processOrdersCreate(record.id);

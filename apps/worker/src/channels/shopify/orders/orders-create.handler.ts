@@ -9,7 +9,28 @@ export async function processOrdersCreate(recordId: string): Promise<void> {
     if (record.status !== "PENDING") return;
     await tx.store.findFirstOrThrow({ where: { id: record.storeId, organizationId: record.organizationId } });
     const normalized = normalizeShopifyOrder(record.rawPayload);
+    if (normalized.channelFinancialStatus !== "paid") {
+      await tx.ingestionRecord.update({ where: { id: record.id }, data: {
+        status: "HELD", normalizedPayload: normalized, processedAt: new Date(), lockedUntil: null,
+        errorCode: null, errorMessage: null,
+      } });
+      return;
+    }
     const mappings = await tx.storeSkuMapping.findMany({ where: { storeId: record.storeId } });
+    const unmapped = normalized.items.filter((line) => !mappings.some((m) => m.externalVariantId === line.externalVariantId));
+    if (unmapped.length) {
+      const message = "One or more Shopify variants have no SKU mapping";
+      await tx.exceptionCase.create({ data: {
+        organizationId: record.organizationId, ingestionRecordId: record.id,
+        subjectKey: `ingestion:${record.id}`, code: "SKU_NOT_MAPPED", visibility: "MERCHANT",
+        message, details: { lines: unmapped },
+      } });
+      await tx.ingestionRecord.update({ where: { id: record.id }, data: {
+        status: "EXCEPTION", normalizedPayload: normalized, processedAt: new Date(), lockedUntil: null,
+        errorCode: "SKU_NOT_MAPPED", errorMessage: message,
+      } });
+      return;
+    }
     const items = normalized.items.map((line) => {
       const mapping = mappings.find((m) => m.externalVariantId === line.externalVariantId);
       if (!mapping) throw new Error("unmapped variant");

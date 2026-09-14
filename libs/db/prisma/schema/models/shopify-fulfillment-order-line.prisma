@@ -4,6 +4,9 @@ model ShopifyFulfillmentOrderLine {
   fulfillmentOrderId         String
   fulfillmentOrderLineItemId String   @unique
   remainingQuantity          Int
+  // Shopify Location gid the FulfillmentOrder is currently assigned to. Null
+  // until resolved. Drives M5's per-location outbox fan-out (Task 18).
+  assignedLocationId         String?
   resolvedAt                 DateTime @db.Timestamptz(3)
 
   orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)

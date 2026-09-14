@@ -27,7 +27,13 @@ export async function delivery(ctx: OrderTestContext, name = "order-paid-mapped"
   } });
 }
 export async function cleanupOrders(ctx: OrderTestContext) {
+  const orders = await prisma.order.findMany({ where: { organizationId: ctx.organizationId }, select: { id: true } });
+  const orderIds = orders.map((o) => o.id);
   await prisma.exceptionCase.deleteMany({ where: { organizationId: ctx.organizationId } });
+  await prisma.inventoryReservation.deleteMany({ where: { fulfillmentItem: { fulfillmentId: { in: (await prisma.fulfillment.findMany({ where: { orderId: { in: orderIds } }, select: { id: true } })).map((f) => f.id) } } } });
+  await prisma.fulfillmentItem.deleteMany({ where: { orderId: { in: orderIds } } });
+  await prisma.fulfillment.deleteMany({ where: { orderId: { in: orderIds } } });
+  await prisma.routingDecision.deleteMany({ where: { orderId: { in: orderIds } } });
   await prisma.order.deleteMany({ where: { organizationId: ctx.organizationId } });
   await prisma.ingestionRecord.deleteMany({ where: { organizationId: ctx.organizationId } });
   await prisma.store.delete({ where: { id: ctx.storeId } });

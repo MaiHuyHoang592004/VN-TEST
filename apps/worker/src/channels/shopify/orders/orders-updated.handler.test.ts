@@ -21,7 +21,7 @@ test("address change before any shipment replaces the address and sets UNVERIFIE
   assert.equal(address.line1, "34 New Street");
   assert.equal(address.validationStatus, "UNVERIFIED");
   assert.equal(await prisma.orderAddress.count({ where: { orderId: order.id } }), 1);
-  assert.equal(await prisma.exceptionCase.count({ where: { orderId: order.id } }), 0);
+  assert.equal(await prisma.exceptionCase.count({ where: { orderId: order.id, visibility: "MERCHANT" } }), 0);
 });
 test("any existing shipment preserves the old address and opens one ADDRESS_CHANGED_AFTER_SHIP", async () => {
   const initial = await delivery(ctx);
@@ -39,7 +39,7 @@ test("any existing shipment preserves the old address and opens one ADDRESS_CHAN
     }
     assert.deepEqual(await prisma.orderAddress.findUniqueOrThrow({ where: { orderId: order.id } }), order.shippingAddress);
     assert.deepEqual((await prisma.shipment.findUniqueOrThrow({ where: { id: shipment.id } })).addressSnapshot, { line1: "12 Test Street" });
-    const exceptions = await prisma.exceptionCase.findMany({ where: { orderId: order.id } });
+    const exceptions = await prisma.exceptionCase.findMany({ where: { orderId: order.id, visibility: "MERCHANT" } });
     assert.equal(exceptions.length, 1);
     assert.equal(exceptions[0].code, "ADDRESS_CHANGED_AFTER_SHIP");
     assert.equal(exceptions[0].visibility, "MERCHANT");

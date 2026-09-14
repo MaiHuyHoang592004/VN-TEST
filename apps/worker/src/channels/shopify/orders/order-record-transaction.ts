@@ -1,13 +1,13 @@
 import { prisma, type Prisma, type IngestionRecord } from "@fulfillflow/db";
 import { normalizeShopifyOrder, type NormalizedShopifyOrder } from "./shopify-order-normalizer.js";
 
-export async function withOrderRecord(
+export async function withOrderRecord<T>(
   recordId: string,
-  handle: (tx: Prisma.TransactionClient, record: IngestionRecord, normalized: NormalizedShopifyOrder) => Promise<void>,
-): Promise<void> {
-  await prisma.$transaction(async (tx) => {
+  handle: (tx: Prisma.TransactionClient, record: IngestionRecord, normalized: NormalizedShopifyOrder) => Promise<T>,
+): Promise<T | undefined> {
+  return prisma.$transaction(async (tx) => {
     const initial = await tx.ingestionRecord.findUniqueOrThrow({ where: { id: recordId } });
-    if (initial.status !== "PENDING") return;
+    if (initial.status !== "PENDING") return undefined;
     await tx.store.findFirstOrThrow({ where: { id: initial.storeId, organizationId: initial.organizationId } });
     const normalized = normalizeShopifyOrder(initial.rawPayload);
     // Entity lock comes before row locks, including HELD rows recovered by updates.
@@ -16,9 +16,9 @@ export async function withOrderRecord(
     await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))::text`;
     await tx.$queryRaw`SELECT id FROM "IngestionRecord" WHERE id = ${recordId} FOR UPDATE`;
     const record = await tx.ingestionRecord.findUniqueOrThrow({ where: { id: recordId } });
-    if (record.status !== "PENDING") return;
+    if (record.status !== "PENDING") return undefined;
     await tx.$queryRaw`SELECT id FROM "Order" WHERE "storeId" = ${record.storeId} AND "externalId" = ${normalized.externalId} FOR UPDATE`;
-    await handle(tx, record, normalized);
+    return handle(tx, record, normalized);
   });
 }
 

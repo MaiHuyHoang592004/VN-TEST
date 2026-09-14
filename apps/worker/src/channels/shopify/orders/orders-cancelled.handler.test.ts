@@ -58,7 +58,7 @@ for (const status of ["QUEUED", "BLOCKED"] as const) {
     assert.equal(movements.length, 1);
     assert.equal(movements[0].reason, "RELEASE");
     assert.equal(movements[0].reservedDelta.toString(), "-2");
-    assert.equal(await prisma.exceptionCase.count({ where: { orderId: order.id } }), 0);
+    assert.equal(await prisma.exceptionCase.count({ where: { orderId: order.id, visibility: "MERCHANT" } }), 0);
   });
 }
 for (const status of ["IN_PRODUCTION", "READY_TO_SHIP", "PARTIALLY_SHIPPED", "SHIPPED"] as const) {
@@ -69,7 +69,7 @@ for (const status of ["IN_PRODUCTION", "READY_TO_SHIP", "PARTIALLY_SHIPPED", "SH
     assert.equal((await prisma.order.findUniqueOrThrow({ where: { id: order.id } })).status, "OPEN");
     assert.equal((await prisma.fulfillment.findUniqueOrThrow({ where: { id: fulfillment.id } })).status, status);
     assert.equal((await prisma.inventoryReservation.findUniqueOrThrow({ where: { id: reservation.id } })).status, "ACTIVE");
-    const exceptions = await prisma.exceptionCase.findMany({ where: { orderId: order.id } });
+    const exceptions = await prisma.exceptionCase.findMany({ where: { orderId: order.id, visibility: "MERCHANT" } });
     assert.equal(exceptions.length, 1);
     assert.equal(exceptions[0].code, "CANCELLATION_CONFLICT");
     assert.equal(exceptions[0].visibility, "MERCHANT");

@@ -2,26 +2,31 @@ import { Prisma, type IngestionRecord } from "@fulfillflow/db";
 import type { NormalizedShopifyOrder } from "./shopify-order-normalizer.js";
 import { validateAddressCompleteness } from "./address-completeness.validator.js";
 import { withOrderRecord } from "./order-record-transaction.js";
+import { routeAndReserve } from "../../../core/routing/route-and-reserve.js";
+
+/** Returned by createNormalizedOrder only when a new canonical Order was just created, so the caller can route it. */
+export type OrderAccepted = { orderId: string };
 
 export async function processOrdersCreate(recordId: string): Promise<void> {
-  await withOrderRecord(recordId, createNormalizedOrder);
+  const accepted = await withOrderRecord(recordId, createNormalizedOrder);
+  if (accepted) await routeAndReserve(accepted.orderId);
 }
 
-export async function createNormalizedOrder(tx: Prisma.TransactionClient, record: IngestionRecord, normalized: NormalizedShopifyOrder): Promise<void> {
+export async function createNormalizedOrder(tx: Prisma.TransactionClient, record: IngestionRecord, normalized: NormalizedShopifyOrder): Promise<OrderAccepted | undefined> {
     const existing = await tx.order.findUnique({ where: { storeId_externalId: { storeId: record.storeId, externalId: normalized.externalId } } });
     if (existing) {
       await tx.ingestionRecord.update({ where: { id: record.id }, data: {
         status: "DUPLICATE", normalizedPayload: normalized, resultOrderId: existing.id,
         processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null,
       } });
-      return;
+      return undefined;
     }
     if (normalized.channelFinancialStatus !== "paid") {
       await tx.ingestionRecord.update({ where: { id: record.id }, data: {
         status: "HELD", normalizedPayload: normalized, processedAt: new Date(), lockedUntil: null,
         errorCode: null, errorMessage: null,
       } });
-      return;
+      return undefined;
     }
     const mappings = await tx.storeSkuMapping.findMany({ where: { storeId: record.storeId } });
     const unmapped = normalized.items.filter((line) => !mappings.some((m) => m.externalVariantId === line.externalVariantId));
@@ -36,7 +41,7 @@ export async function createNormalizedOrder(tx: Prisma.TransactionClient, record
         status: "EXCEPTION", normalizedPayload: normalized, processedAt: new Date(), lockedUntil: null,
         errorCode: "SKU_NOT_MAPPED", errorMessage: message,
       } });
-      return;
+      return undefined;
     }
     const items = normalized.items.map((line) => {
       const mapping = mappings.find((m) => m.externalVariantId === line.externalVariantId);
@@ -71,4 +76,5 @@ export async function createNormalizedOrder(tx: Prisma.TransactionClient, record
       status: "ACCEPTED", normalizedPayload: normalized, resultOrderId: order.id,
       processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null,
     } });
+    return { orderId: order.id };
 }

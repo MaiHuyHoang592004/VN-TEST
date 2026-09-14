@@ -1,5 +1,7 @@
 import { createNormalizedOrder } from "./orders-create.handler.js";
 import { settleOrderRecord, withOrderRecord } from "./order-record-transaction.js";
+import { validateAddressCompleteness } from "./address-completeness.validator.js";
+import { openOrderException } from "./order-exception.js";
 
 export async function processOrdersUpdated(recordId: string): Promise<void> {
   await withOrderRecord(recordId, async (tx, record, normalized) => {
@@ -18,6 +20,25 @@ export async function processOrdersUpdated(recordId: string): Promise<void> {
     if (order.channelUpdatedAt && new Date(normalized.channelUpdatedAt) <= order.channelUpdatedAt) {
       await settleOrderRecord(tx, record.id, normalized, order.id, "DUPLICATE");
       return;
+    }
+    const address = await tx.orderAddress.findUnique({ where: { orderId: order.id } });
+    const changed = !address || Object.entries(normalized.address).some(([field, value]) => address[field as keyof typeof normalized.address] !== value);
+    if (changed) {
+      const shipment = await tx.shipment.findFirst({ where: { fulfillment: { orderId: order.id } }, select: { id: true } });
+      if (shipment) {
+        await openOrderException(tx, {
+          organizationId: record.organizationId, orderId: order.id, ingestionRecordId: record.id,
+          code: "ADDRESS_CHANGED_AFTER_SHIP", message: "Channel shipping address changed after a shipment was created",
+          details: { proposedAddress: normalized.address, shipmentId: shipment.id },
+        });
+      } else {
+        const validation = validateAddressCompleteness(normalized.address);
+        const data = {
+          ...normalized.address, countryCode: validation.validationErrors.countryCode ? null : normalized.address.countryCode,
+          validationStatus: "UNVERIFIED" as const, validationErrors: validation.validationErrors,
+        };
+        await tx.orderAddress.upsert({ where: { orderId: order.id }, create: { orderId: order.id, ...data }, update: data });
+      }
     }
     await tx.order.update({ where: { id: order.id }, data: {
       channelUpdatedAt: normalized.channelUpdatedAt, channelFinancialStatus: normalized.channelFinancialStatus,

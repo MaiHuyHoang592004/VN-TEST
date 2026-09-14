@@ -9,9 +9,14 @@ export class IngestionLoop {
   async tick(): Promise<number> {
     const batch = await claimIngestion(this.prisma, { limit: this.opts.batchSize, leaseSeconds: this.opts.leaseSeconds });
     for (const record of batch) {
-      const handler = this.registry.get(record.topic);
-      if (!handler) throw new Error(`no handler registered: ${record.topic}`);
       try {
+        const handler = this.registry.get(record.topic);
+        // An unregistered topic is a permanent condition — waiting and
+        // retrying never makes a handler appear — so it settles EXCEPTION
+        // immediately via the same BusinessIngestionError path below, one
+        // row at a time, instead of throwing out of the batch loop and
+        // stranding the rest of this tick's rows until their lease expires.
+        if (!handler) throw new BusinessIngestionError("UNKNOWN_TOPIC", `no handler registered for topic: ${record.topic}`);
         await handler(record);
         await completeIngestion(this.prisma, record.id);
       } catch (error) {

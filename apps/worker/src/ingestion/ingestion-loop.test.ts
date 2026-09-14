@@ -71,6 +71,24 @@ async function insert(topic = "orders/create") {
     organizationId, storeId, source: "SHOPIFY_WEBHOOK", topic, dedupeKey: crypto.randomUUID(),
   } });
 }
+test("an unregistered topic settles EXCEPTION immediately with UNKNOWN_TOPIC, without retrying, and does not block the rest of the batch", async () => {
+  const unknown = await insert("orders/unknown-topic");
+  const known = await insert();
+  const registry = new IngestionHandlerRegistry().register("orders/create", async () => {});
+
+  const processed = await new IngestionLoop(prisma, registry, opts).tick();
+  assert.equal(processed, 2, "both claimed rows are counted, even though one had no handler");
+
+  const unknownRow = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: unknown.id } });
+  assert.equal(unknownRow.status, "EXCEPTION");
+  assert.equal(unknownRow.errorCode, "UNKNOWN_TOPIC");
+  assert.equal(unknownRow.attempts, 1, "no retry — an unregistered topic never becomes registered by waiting");
+  assert.equal(unknownRow.lockedUntil, null);
+
+  const knownRow = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: known.id } });
+  assert.equal(knownRow.status, "ACCEPTED", "a sibling row in the same batch is unaffected by the unknown-topic row");
+});
+
 test("dispatches by persisted topic and accepts only after the handler succeeds", async () => {
   const record = await insert();
   const seen: string[] = [];

@@ -31,3 +31,9 @@ test("decrypting with the wrong key fails", () => {
   const otherKey = Buffer.alloc(32, 1).toString("base64");
   assert.throws(() => decryptToken(enc, otherKey));
 });
+
+test("rejects an unrecognized format version instead of misreading the bytes", () => {
+  const enc = encryptToken("secret", key);
+  enc[0] = 99;
+  assert.throws(() => decryptToken(enc, key), /format version/);
+});

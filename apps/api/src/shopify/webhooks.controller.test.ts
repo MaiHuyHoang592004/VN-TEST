@@ -34,35 +34,44 @@ after(async () => {
 
 function post(body: string, headers: Record<string, string>) {
   return request(app.getHttpServer())
-    .post("/webhooks/shopify/orders-create")
+    .post("/webhooks/shopify")
     .set("Content-Type", "application/json")
     .set(headers)
     .send(body);
 }
-
 function sign(body: string) {
   return createHmac("sha256", apiSecret).update(Buffer.from(body)).digest("base64");
 }
 
 test("rejects a request with an invalid hmac and creates no record", async () => {
   const body = JSON.stringify({ id: 1, name: "#1001" });
-  const res = await post(body, { "X-Shopify-Hmac-Sha256": "invalid==", "X-Shopify-Shop-Domain": shop, "X-Shopify-Webhook-Id": "wh-bad-hmac" });
+  const res = await post(body, {
+    "X-Shopify-Hmac-Sha256": "invalid==", "X-Shopify-Shop-Domain": shop,
+    "X-Shopify-Webhook-Id": "wh-bad-hmac", "X-Shopify-Topic": "orders/create",
+  });
   assert.equal(res.status, 401);
   assert.equal(await prisma.ingestionRecord.count({ where: { dedupeKey: "wh-bad-hmac" } }), 0);
 });
 
-test("rejects a webhook for a shop with no installed Store", async () => {
+test("a webhook for a shop with no installed Store is ignored with 200, not an error", async () => {
   const body = JSON.stringify({ id: 2 });
-  const res = await post(body, { "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": "uninstalled-shop.myshopify.com", "X-Shopify-Webhook-Id": "wh-no-store" });
-  assert.equal(res.status, 404);
+  const res = await post(body, {
+    "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": "uninstalled-shop.myshopify.com",
+    "X-Shopify-Webhook-Id": "wh-no-store", "X-Shopify-Topic": "orders/create",
+  });
+  assert.equal(res.status, 200);
+  assert.equal(res.body.ignored, true);
 });
 
-test("a valid webhook creates exactly one durable IngestionRecord", async () => {
+test("a valid orders/create webhook creates exactly one durable IngestionRecord with its topic recorded", async () => {
   const body = JSON.stringify({ id: 1001, name: "#1001", line_items: [{ sku: "MUG-11-WHT", quantity: 2 }] });
   const webhookId = "wh-order-1001";
-  const res = await post(body, { "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": shop, "X-Shopify-Webhook-Id": webhookId });
+  const res = await post(body, {
+    "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": shop,
+    "X-Shopify-Webhook-Id": webhookId, "X-Shopify-Topic": "orders/create",
+  });
 
-  assert.equal(res.status, 201);
+  assert.equal(res.status, 200);
   const record = await prisma.ingestionRecord.findUniqueOrThrow({ where: { dedupeKey: webhookId } });
   assert.equal(record.organizationId, organizationId);
   assert.equal(record.source, "SHOPIFY_WEBHOOK");
@@ -71,16 +80,31 @@ test("a valid webhook creates exactly one durable IngestionRecord", async () => 
   assert.deepEqual(record.rawPayload, JSON.parse(body));
 });
 
+test("the same canonical endpoint accepts a different topic and records it verbatim", async () => {
+  const body = JSON.stringify({ id: "gid://shopify/Shop/1" });
+  const webhookId = "wh-uninstall-1";
+  const res = await post(body, {
+    "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": shop,
+    "X-Shopify-Webhook-Id": webhookId, "X-Shopify-Topic": "app/uninstalled",
+  });
+  assert.equal(res.status, 200);
+  const record = await prisma.ingestionRecord.findUniqueOrThrow({ where: { dedupeKey: webhookId } });
+  assert.equal(record.topic, "app/uninstalled");
+});
+
 test("a duplicate delivery (same X-Shopify-Webhook-Id) does not create a second record", async () => {
   const body = JSON.stringify({ id: 2002, name: "#2002" });
   const webhookId = "wh-order-2002";
-  const headers = { "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": shop, "X-Shopify-Webhook-Id": webhookId };
+  const headers = {
+    "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": shop,
+    "X-Shopify-Webhook-Id": webhookId, "X-Shopify-Topic": "orders/create",
+  };
 
   const first = await post(body, headers);
   const second = await post(body, headers);
 
-  assert.equal(first.status, 201);
-  assert.equal(second.status, 201);
+  assert.equal(first.status, 200);
+  assert.equal(second.status, 200);
   assert.equal(first.body.ingestionRecordId, second.body.ingestionRecordId);
   assert.equal(await prisma.ingestionRecord.count({ where: { dedupeKey: webhookId } }), 1);
 });

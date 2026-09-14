@@ -5,8 +5,8 @@ const EnvSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
   DATABASE_URL: z.string().url(),
 
-  // Shopify Connect (M2). SHOPIFY_APP_URL is this API's own public origin,
-  // used to build the OAuth redirect_uri — not the shop's URL.
+  // Shopify Connect (M2, managed installation — no OAuth redirect).
+  // SHOPIFY_APP_URL is this API's own public origin, not the shop's.
   SHOPIFY_API_KEY: z.string().min(1),
   SHOPIFY_API_SECRET: z.string().min(1),
   SHOPIFY_SCOPES: z.string().min(1).default("read_orders"),

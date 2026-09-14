@@ -4,6 +4,18 @@ const EnvSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
   DATABASE_URL: z.string().url(),
+
+  // Shopify Connect (M2). SHOPIFY_APP_URL is this API's own public origin,
+  // used to build the OAuth redirect_uri — not the shop's URL.
+  SHOPIFY_API_KEY: z.string().min(1),
+  SHOPIFY_API_SECRET: z.string().min(1),
+  SHOPIFY_SCOPES: z.string().min(1).default("read_orders"),
+  SHOPIFY_APP_URL: z.string().url(),
+  // Base64 AES-256-GCM key (32 raw bytes) for encrypting offline access tokens at rest.
+  SHOPIFY_TOKEN_ENC_KEY: z.string().refine(
+    (v) => { try { return Buffer.from(v, "base64").length === 32; } catch { return false; } },
+    { message: "must be a base64 string decoding to exactly 32 bytes" },
+  ),
 });
 export type Env = z.infer<typeof EnvSchema>;
 

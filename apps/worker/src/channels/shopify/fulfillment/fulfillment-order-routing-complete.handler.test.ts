@@ -10,6 +10,8 @@ import { BusinessIngestionError } from "../../../ingestion/ingestion-errors.js";
 const TOKEN_ENC_KEY = "MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=";
 
 const orgIds: string[] = [];
+const skuIds: string[] = [];
+const productIds: string[] = [];
 after(async () => {
   await prisma.exceptionCase.deleteMany({ where: { organizationId: { in: orgIds } } });
   await prisma.shopifyFulfillmentOrderLine.deleteMany({ where: { orderItem: { order: { organizationId: { in: orgIds } } } } });
@@ -18,6 +20,9 @@ after(async () => {
   await prisma.ingestionRecord.deleteMany({ where: { organizationId: { in: orgIds } } });
   await prisma.store.deleteMany({ where: { organizationId: { in: orgIds } } });
   await prisma.organization.deleteMany({ where: { id: { in: orgIds } } });
+  await prisma.sku.deleteMany({ where: { id: { in: skuIds } } });
+  await prisma.inventoryItem.deleteMany({ where: { id: { in: skuIds } } });
+  await prisma.product.deleteMany({ where: { id: { in: productIds } } });
   await prisma.$disconnect();
 });
 
@@ -35,7 +40,9 @@ async function setupStoreAndOrder(label: string, opts: { withOrder?: boolean } =
   let orderId: string | undefined;
   if (opts.withOrder !== false) {
     const product = await prisma.product.create({ data: { name: slug, handle: slug } });
+    productIds.push(product.id);
     const item = await prisma.inventoryItem.create({ data: { code: slug, name: slug, kind: "FINISHED_GOOD" } });
+    skuIds.push(item.id);
     await prisma.sku.create({ data: { id: item.id, productId: product.id } });
     const order = await prisma.order.create({ data: {
       organizationId: org.id, storeId: store.id, externalId: `gid://shopify/Order/${numericOrderId}`,

@@ -63,3 +63,12 @@ test("failOutbox backs off then dead-letters", async () => {
   assert.equal(after2.status, "DEAD_LETTER");
   assert.equal(after2.lastError, "boom");
 });
+
+test("failOutbox honors a caller-supplied retryAfterSeconds instead of the default backoff", async () => {
+  await insert(1);
+  const [row] = await claimOutbox(prisma, { limit: 1, leaseSeconds: 60 });
+  await failOutbox(prisma, row.id, { error: "throttled", maxAttempts: 8, retryAfterSeconds: 3 });
+  const after1 = await prisma.outboxEvent.findUniqueOrThrow({ where: { id: row.id } });
+  const waitMs = after1.availableAt.getTime() - Date.now();
+  assert.ok(waitMs > 1000 && waitMs <= 4000, `expected ~3s wait, got ${waitMs}ms`);
+});

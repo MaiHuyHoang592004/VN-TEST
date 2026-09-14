@@ -36,7 +36,8 @@ export function backoffSeconds(attempts: number): number {
 }
 
 export async function failOutbox(
-  prisma: PrismaClient, id: string, { error, maxAttempts }: { error: string; maxAttempts: number },
+  prisma: PrismaClient, id: string,
+  { error, maxAttempts, retryAfterSeconds }: { error: string; maxAttempts: number; retryAfterSeconds?: number },
 ): Promise<"retry" | "dead"> {
   const row = await prisma.outboxEvent.findUniqueOrThrow({ where: { id }, select: { attempts: true } });
   const message = error.slice(0, 2000);
@@ -44,9 +45,12 @@ export async function failOutbox(
     await prisma.outboxEvent.update({ where: { id }, data: { status: "DEAD_LETTER", lastError: message } });
     return "dead";
   }
+  // A caller-supplied delay (e.g. Shopify's Retry-After or a throttle-cost
+  // estimate) overrides the default exponential backoff for this one retry.
+  const delaySeconds = retryAfterSeconds ?? backoffSeconds(row.attempts);
   await prisma.outboxEvent.update({
     where: { id },
-    data: { lastError: message, availableAt: new Date(Date.now() + backoffSeconds(row.attempts) * 1000) },
+    data: { lastError: message, availableAt: new Date(Date.now() + delaySeconds * 1000) },
   });
   return "retry";
 }

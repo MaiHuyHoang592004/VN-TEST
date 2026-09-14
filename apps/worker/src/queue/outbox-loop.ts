@@ -1,5 +1,6 @@
 import { claimOutbox, completeOutbox, failOutbox, type PrismaClient } from "@fulfillflow/db";
 import type { HandlerRegistry } from "./handler-registry.js";
+import { BusinessOutboxError, RetryableOutboxError } from "./outbox-errors.js";
 
 export type LoopOptions = { batchSize: number; leaseSeconds: number; maxAttempts: number; pollMs: number };
 
@@ -20,7 +21,13 @@ export class OutboxLoop {
         await completeOutbox(this.prisma, event.id);
       } catch (err) {
         const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
-        await failOutbox(this.prisma, event.id, { error: message, maxAttempts: this.opts.maxAttempts });
+        if (err instanceof BusinessOutboxError) {
+          await failOutbox(this.prisma, event.id, { error: message, maxAttempts: 0 });
+        } else if (err instanceof RetryableOutboxError && err.retryAfterSeconds !== undefined) {
+          await failOutbox(this.prisma, event.id, { error: message, maxAttempts: this.opts.maxAttempts, retryAfterSeconds: err.retryAfterSeconds });
+        } else {
+          await failOutbox(this.prisma, event.id, { error: message, maxAttempts: this.opts.maxAttempts });
+        }
       }
     }
     return batch.length;

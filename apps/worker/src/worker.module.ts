@@ -9,6 +9,8 @@ import { processOrdersCreate } from "./channels/shopify/orders/orders-create.han
 import { processOrdersUpdated } from "./channels/shopify/orders/orders-updated.handler.js";
 import { processOrdersCancelled } from "./channels/shopify/orders/orders-cancelled.handler.js";
 import { processFulfillmentOrderRoutingComplete } from "./channels/shopify/fulfillment/fulfillment-order-routing-complete.handler.js";
+import { planShopifyFulfillment } from "./channels/shopify/fulfillment/shopify-fulfillment-plan.handler.js";
+import { createShopifyFulfillment } from "./channels/shopify/fulfillment/shopify-fulfillment-create.handler.js";
 
 export const OUTBOX_LOOP = Symbol("OUTBOX_LOOP");
 export const INGESTION_LOOP = Symbol("INGESTION_LOOP");
@@ -21,7 +23,11 @@ export const INGESTION_LOOP = Symbol("INGESTION_LOOP");
       .register("orders/cancelled", (record) => processOrdersCancelled(record.id))
       .register("fulfillment_orders/order_routing_complete", (record) => processFulfillmentOrderRoutingComplete(record.id)),
     },
-    { provide: HandlerRegistry, useFactory: () => new HandlerRegistry().register("noop.echo", noopEchoHandler) },
+    { provide: HandlerRegistry, useFactory: () => new HandlerRegistry()
+      .register("noop.echo", noopEchoHandler)
+      .register("shopify.fulfillment.plan", planShopifyFulfillment)
+      .register("shopify.fulfillment.create", createShopifyFulfillment),
+    },
     {
       provide: OUTBOX_LOOP,
       inject: [HandlerRegistry],

@@ -108,3 +108,36 @@ test("a duplicate delivery (same X-Shopify-Webhook-Id) does not create a second 
   assert.equal(first.body.ingestionRecordId, second.body.ingestionRecordId);
   assert.equal(await prisma.ingestionRecord.count({ where: { dedupeKey: webhookId } }), 1);
 });
+
+test("truly concurrent duplicate deliveries (same webhook id, sent simultaneously) still settle to exactly one record", async () => {
+  // supertest's implicit per-request ephemeral listen/close on a
+  // never-.listen()'d app churns under real request concurrency and throws
+  // spurious ECONNRESETs unrelated to the server's own behavior — this test
+  // needs its own real, explicitly-closed listener rather than the shared
+  // `app` every other test in this file uses via `post()`.
+  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const concurrentApp = moduleRef.createNestApplication({ rawBody: true });
+  await concurrentApp.init();
+  await concurrentApp.listen(0);
+  const address = concurrentApp.getHttpServer().address();
+  const baseUrl = `http://127.0.0.1:${typeof address === "object" && address ? address.port : 0}`;
+
+  const body = JSON.stringify({ id: 2003, name: "#2003" });
+  const webhookId = `wh-order-2003-concurrent-${crypto.randomUUID()}`;
+  const headers = {
+    "Content-Type": "application/json",
+    "X-Shopify-Hmac-Sha256": sign(body), "X-Shopify-Shop-Domain": shop,
+    "X-Shopify-Webhook-Id": webhookId, "X-Shopify-Topic": "orders/create",
+  };
+
+  try {
+    const results = await Promise.all(Array.from({ length: 10 }, () => fetch(`${baseUrl}/webhooks/shopify`, { method: "POST", headers, body })));
+    for (const res of results) assert.equal(res.status, 200);
+    const ids = new Set(await Promise.all(results.map(async (r) => (await r.json() as { ingestionRecordId: string }).ingestionRecordId)));
+    assert.equal(ids.size, 1, "every concurrent delivery must resolve to the same ingestionRecordId");
+    assert.equal(await prisma.ingestionRecord.count({ where: { dedupeKey: webhookId } }), 1);
+  } finally {
+    concurrentApp.getHttpServer().closeAllConnections?.();
+    await concurrentApp.close();
+  }
+});

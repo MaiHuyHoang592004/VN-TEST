@@ -8,6 +8,7 @@
     "dev": "nest start --watch",
     "start": "node dist/src/main.js",
     "test": "node --env-file-if-exists=${ENV_FILE:-.env.local} --import @swc-node/register/esm-register --test --test-concurrency=1 \"src/**/*.test.ts\"",
+    "benchmark:orders": "node --env-file-if-exists=${ENV_FILE:-.env.local} --import @swc-node/register/esm-register scripts/benchmark-order-processing.ts",
     "lint": "eslint src"
   },
   "dependencies": {

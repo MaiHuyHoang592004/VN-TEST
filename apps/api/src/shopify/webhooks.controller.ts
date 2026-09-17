@@ -56,18 +56,37 @@ export class WebhooksController {
       throw new BadRequestException("body is not valid JSON");
     }
 
-    const record = await this.prisma.client.ingestionRecord.upsert({
-      where: { dedupeKey: webhookId },
-      update: {},
-      create: {
-        organizationId: store.organizationId,
-        storeId: store.id,
-        source: "SHOPIFY_WEBHOOK",
-        topic,
-        dedupeKey: webhookId,
-        rawPayload: payload,
-      },
-    });
+    // upsert() alone isn't atomic against a genuinely concurrent duplicate
+    // delivery of the same webhook id (Shopify's own retry can race the
+    // original): two simultaneous upserts can both observe "no existing
+    // row" and both attempt to create one. Depending on timing, Prisma 7's
+    // upsert surfaces that race as either a unique-constraint violation
+    // (P2002, the loser's INSERT) or "no record found for an upsert"
+    // (P2025, the loser's own internal existence check losing a footrace to
+    // the winner's commit) — this repo hit both under load-test concurrency.
+    // Either way the recovery is identical: the row now exists (the winner
+    // created it), so re-read it by dedupeKey. Only if that re-read ALSO
+    // comes up empty is this a genuinely different failure, not a race.
+    let record;
+    try {
+      record = await this.prisma.client.ingestionRecord.upsert({
+        where: { dedupeKey: webhookId },
+        update: {},
+        create: {
+          organizationId: store.organizationId,
+          storeId: store.id,
+          source: "SHOPIFY_WEBHOOK",
+          topic,
+          dedupeKey: webhookId,
+          rawPayload: payload,
+        },
+      });
+    } catch (err) {
+      if (!(err instanceof Prisma.PrismaClientKnownRequestError)) throw err;
+      const existing = await this.prisma.client.ingestionRecord.findUnique({ where: { dedupeKey: webhookId } });
+      if (!existing) throw err;
+      record = existing;
+    }
 
     return { ok: true, ingestionRecordId: record.id };
   }

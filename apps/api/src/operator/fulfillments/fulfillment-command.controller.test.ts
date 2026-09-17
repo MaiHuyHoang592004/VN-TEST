@@ -102,14 +102,17 @@ test("start moves a QUEUED fulfillment with an active reservation to IN_PRODUCTI
   await reserve(fulfillmentItemId, 2);
 
   const res = await request(app.getHttpServer())
-    .post(`/operator/fulfillments/${fulfillment.id}/start`).set("X-Operator-Api-Key", apiKey).expect(200);
+    .post(`/operator/fulfillments/${fulfillment.id}/start`)
+    .set("X-Operator-Api-Key", apiKey).set("X-Correlation-Id", "test-correlation-start").expect(200);
 
   assert.equal(res.body.status, "IN_PRODUCTION");
   assert.ok(res.body.productionStartedAt);
+  assert.equal(res.headers["x-correlation-id"], "test-correlation-start");
   const audit = await prisma.auditLog.findFirstOrThrow({ where: { entityId: fulfillment.id, action: "fulfillment.start" } });
   assert.equal(audit.entityType, "Fulfillment");
   assert.deepEqual(audit.before, { status: "QUEUED" });
   assert.deepEqual(audit.after, { status: "IN_PRODUCTION" });
+  assert.equal(audit.correlationId, "test-correlation-start");
 });
 
 test("start rejects a fulfillment with no active reservation and mutates nothing", async () => {

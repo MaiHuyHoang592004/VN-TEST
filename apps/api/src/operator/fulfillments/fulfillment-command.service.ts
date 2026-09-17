@@ -12,7 +12,7 @@ async function loadWithOrg(prisma: Prisma.TransactionClient, fulfillmentId: stri
 }
 
 /** QUEUED + at least one ACTIVE reservation -> IN_PRODUCTION. Invalid transitions 409 without mutating anything. */
-export async function startFulfillment(prisma: PrismaClient, fulfillmentId: string, actorId?: string): Promise<Fulfillment> {
+export async function startFulfillment(prisma: PrismaClient, fulfillmentId: string, actorId?: string, correlationId?: string): Promise<Fulfillment> {
   return prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Fulfillment" WHERE id = ${fulfillmentId} FOR UPDATE`;
     const fulfillment = await loadWithOrg(tx, fulfillmentId);
@@ -21,7 +21,7 @@ export async function startFulfillment(prisma: PrismaClient, fulfillmentId: stri
     if (activeReservations === 0) throw new ConflictException("fulfillment has no active inventory reservations");
     const updated = await tx.fulfillment.update({ where: { id: fulfillmentId }, data: { status: "IN_PRODUCTION", productionStartedAt: new Date() } });
     await tx.auditLog.create({ data: {
-      organizationId: fulfillment.order.organizationId, actorId, action: "fulfillment.start",
+      organizationId: fulfillment.order.organizationId, actorId, correlationId, action: "fulfillment.start",
       entityType: "Fulfillment", entityId: fulfillmentId, before: { status: fulfillment.status }, after: { status: updated.status },
     } });
     return updated;
@@ -36,7 +36,7 @@ export async function startFulfillment(prisma: PrismaClient, fulfillmentId: stri
  * no partial-production concept), and only then flips the status — guarded
  * by a conditional update so two concurrent calls can't both "win".
  */
-export async function completeProduction(prisma: PrismaClient, fulfillmentId: string, actorId?: string): Promise<Fulfillment> {
+export async function completeProduction(prisma: PrismaClient, fulfillmentId: string, actorId?: string, correlationId?: string): Promise<Fulfillment> {
   const fulfillment = await loadWithOrg(prisma, fulfillmentId);
   if (fulfillment.status !== "IN_PRODUCTION") throw new ConflictException(`cannot complete production for a fulfillment in status ${fulfillment.status}`);
   await consumeForProduction(fulfillmentId);
@@ -49,7 +49,7 @@ export async function completeProduction(prisma: PrismaClient, fulfillmentId: st
     await tx.$executeRaw`UPDATE "FulfillmentItem" SET "producedQuantity" = quantity WHERE "fulfillmentId" = ${fulfillmentId}`;
     const updated = await tx.fulfillment.findUniqueOrThrow({ where: { id: fulfillmentId } });
     await tx.auditLog.create({ data: {
-      organizationId: fulfillment.order.organizationId, actorId, action: "fulfillment.complete-production",
+      organizationId: fulfillment.order.organizationId, actorId, correlationId, action: "fulfillment.complete-production",
       entityType: "Fulfillment", entityId: fulfillmentId, before: { status: "IN_PRODUCTION" }, after: { status: updated.status },
     } });
     return updated;

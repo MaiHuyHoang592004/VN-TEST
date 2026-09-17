@@ -25,7 +25,7 @@ const SHIPPABLE_STATUSES = new Set(["READY_TO_SHIP", "PARTIALLY_SHIPPED"]);
  * failure — including the DB's own duplicate (provider, trackingNumber)
  * guard — rolls back everything in this list; nothing partial is ever left.
  */
-export async function shipFulfillment(prisma: PrismaClient, input: ShipFulfillmentInput, actorId?: string): Promise<Shipment> {
+export async function shipFulfillment(prisma: PrismaClient, input: ShipFulfillmentInput, actorId?: string, correlationId?: string): Promise<Shipment> {
   try {
     return await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "Fulfillment" WHERE id = ${input.fulfillmentId} FOR UPDATE`;
@@ -77,10 +77,10 @@ export async function shipFulfillment(prisma: PrismaClient, input: ShipFulfillme
       await tx.outboxEvent.create({ data: {
         organizationId: fulfillment.order.organizationId, eventKey: `shipment.sync-plan:${shipment.id}`,
         aggregateType: "Shipment", aggregateId: shipment.id, handler: "shopify.fulfillment.plan",
-        payload: { shipmentId: shipment.id },
+        payload: { shipmentId: shipment.id }, correlationId,
       } });
       await tx.auditLog.create({ data: {
-        organizationId: fulfillment.order.organizationId, actorId, action: "fulfillment.ship",
+        organizationId: fulfillment.order.organizationId, actorId, correlationId, action: "fulfillment.ship",
         entityType: "Shipment", entityId: shipment.id,
         after: { fulfillmentId: input.fulfillmentId, provider: shipment.provider, trackingNumber: shipment.trackingNumber },
       } });

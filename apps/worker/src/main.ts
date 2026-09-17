@@ -9,6 +9,7 @@ import type { IngestionLoop } from "./ingestion/ingestion-loop.js";
 import type { PiiRetentionScheduler } from "./schedulers/pii-retention.scheduler.js";
 import type { ShopifyTokenRefreshScheduler } from "./schedulers/shopify-token-refresh.scheduler.js";
 import type { InventoryReconcileScheduler } from "./core/inventory/inventory-reconcile.service.js";
+import { logger } from "./observability/logger.js";
 
 const ctx = await NestFactory.createApplicationContext(WorkerModule, { logger: ["error", "warn", "log"] });
 const outboxLoop = ctx.get<OutboxLoop>(OUTBOX_LOOP);
@@ -17,8 +18,8 @@ const piiRetentionScheduler = ctx.get<PiiRetentionScheduler>(PII_RETENTION_SCHED
 const tokenRefreshScheduler = ctx.get<ShopifyTokenRefreshScheduler>(TOKEN_REFRESH_SCHEDULER);
 const inventoryReconcileScheduler = ctx.get<InventoryReconcileScheduler>(INVENTORY_RECONCILE_SCHEDULER);
 const ac = new AbortController();
-for (const sig of ["SIGTERM", "SIGINT"] as const) process.on(sig, () => { console.log(JSON.stringify({ msg: "worker stopping", sig })); ac.abort(); });
-console.log(JSON.stringify({ msg: "worker started" }));
+for (const sig of ["SIGTERM", "SIGINT"] as const) process.on(sig, () => { logger.info("worker stopping", { sig }); ac.abort(); });
+logger.info("worker started");
 await Promise.all([
   outboxLoop.run(ac.signal),
   ingestionLoop.run(ac.signal),
@@ -28,4 +29,4 @@ await Promise.all([
 ]);
 await ctx.close();
 await prisma.$disconnect();
-console.log(JSON.stringify({ msg: "worker stopped" }));
+logger.info("worker stopped");

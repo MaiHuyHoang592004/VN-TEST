@@ -1,14 +1,14 @@
-import { Controller, Get, ServiceUnavailableException } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service.js";
+import { Controller, Get } from "@nestjs/common";
 
+/**
+ * Pure liveness: the process is up and responding. No dependency checks —
+ * a database hiccup should not make an orchestrator restart a perfectly
+ * healthy process. See ReadinessController for the DB-dependent check.
+ */
 @Controller("health")
 export class HealthController {
-  constructor(private readonly prisma: PrismaService) {}
-
   @Get()
-  async get() {
-    const up = await this.prisma.ping().catch(() => false);
-    if (!up) throw new ServiceUnavailableException({ ok: false, db: "down" });
-    return { ok: true, db: "up" };
+  get() {
+    return { ok: true };
   }
 }

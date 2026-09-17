@@ -3,6 +3,7 @@ import { ShopifyTenantGuard } from "../../shopify/tenant.guard.js";
 import { CurrentTenant } from "../../shopify/current-tenant.decorator.js";
 import type { TenantContext } from "../../shopify/tenant-context.js";
 import { PrismaService } from "../../prisma/prisma.service.js";
+import { MerchantWriteRateLimitGuard } from "../merchant-write-rate-limit.guard.js";
 import {
   listAutomationRules, createAutomationRule, updateAutomationRule, deleteAutomationRule,
   CreateAutomationRuleSchema, UpdateAutomationRuleSchema,
@@ -20,6 +21,7 @@ export class AutomationRuleController {
   }
 
   @Post()
+  @UseGuards(MerchantWriteRateLimitGuard)
   @HttpCode(201)
   create(@Body() body: unknown, @CurrentTenant() tenant: TenantContext) {
     const parsed = CreateAutomationRuleSchema.safeParse(body);
@@ -28,6 +30,7 @@ export class AutomationRuleController {
   }
 
   @Patch(":id")
+  @UseGuards(MerchantWriteRateLimitGuard)
   update(@Param("id") id: string, @Body() body: unknown, @CurrentTenant() tenant: TenantContext) {
     const parsed = UpdateAutomationRuleSchema.safeParse(body);
     if (!parsed.success) throw new BadRequestException(parsed.error.issues);
@@ -35,6 +38,7 @@ export class AutomationRuleController {
   }
 
   @Delete(":id")
+  @UseGuards(MerchantWriteRateLimitGuard)
   @HttpCode(204)
   async remove(@Param("id") id: string, @CurrentTenant() tenant: TenantContext) {
     await deleteAutomationRule(this.prisma.client, tenant.organizationId, id, tenant.userId || undefined);

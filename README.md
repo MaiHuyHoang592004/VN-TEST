@@ -175,9 +175,11 @@ claim of production scale:
 
 ```bash
 npm ci
-# per workspace (libs/db, libs/core, apps/api, apps/worker): .env.local
-# from that workspace's .env.example — DATABASE_URL, SHOPIFY_API_KEY/SECRET,
-# SHOPIFY_TOKEN_ENC_KEY (32 bytes, base64), OPERATOR_API_KEY (apps/api only)
+# per workspace (libs/db, libs/core, apps/api, apps/worker): create .env.local
+# with DATABASE_URL, SHOPIFY_API_KEY/SECRET, SHOPIFY_TOKEN_ENC_KEY (32 bytes,
+# base64), OPERATOR_API_KEY (apps/api only) — apps/api/.env.example is the
+# only tracked .env.example; the same vars apply in the other three
+# workspaces, minus OPERATOR_API_KEY
 npm run db:migrate:deploy -w @fulfillflow/db
 npm run build
 npm test

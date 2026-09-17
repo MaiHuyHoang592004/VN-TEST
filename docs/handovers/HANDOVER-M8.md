@@ -112,6 +112,61 @@ subsequent session — nothing else in the codebase is missing for them.
 | Legacy-name guard (manual grep for gwprint/gwp-ds across every file changed this session, including the README rewrite that specifically removes the last "gwprint" references) | PASS, no matches outside the historical mention in this handover and HANDOVER-M7/CLAUDE.md's own `legacy/gwprint-v1` branch reference, both intentional |
 | `git diff --check` | PASS |
 
+## Follow-up: detailed audit pass over Tasks 29–31 — 2026-09-17
+
+A second, more rigorous pass re-checked every factual claim in the Task
+29–31 docs (`data-handling.md`, `threat-model.md`, all six ADRs,
+`README.md`, `demo-script.md`, `cv-bullets.md`, `interview-stories.md`)
+against the actual code, using a parallel multi-agent audit with
+adversarial verification (each flagged discrepancy independently
+re-derived from source before being counted, not taken on the first
+agent's word). Result: 95 claims confirmed accurate, 12 confirmed real
+discrepancies (0 false alarms), plus 4 minor improvement notes.
+
+**Code fixes** (3, addressing the discrepancies that were code bugs, not
+just doc drift):
+- `apps/api/src/operator/operator-api-key.guard.ts` — the operator API key
+  comparison was a plain `!==`, inconsistent with the timing-safe pattern
+  already used in `hmac.ts`/`session-token.ts`; switched to
+  `node:crypto.timingSafeEqual`.
+- `apps/worker/src/handlers/noop-echo.handler.ts` — was `console.log`-ing
+  `event.payload` unredacted; routed through the redacting `logger`
+  (matches `data-handling.md`'s stated defense-in-depth backstop, which the
+  audit found this handler bypassed entirely).
+- `apps/worker/src/queue/ingestion-claim-loop.test.ts` — added the
+  expiry-then-reclaim test the threat model's T6 had been citing this file
+  for without the file actually containing it (`"an expired lease makes
+  the record claimable again (crash recovery)"`).
+
+**Doc fixes** (12, one per confirmed discrepancy): narrowed the
+`.env.example` claim in `data-handling.md` to the one workspace that
+actually has one; reworded the "defense-in-depth backstop" paragraph to
+describe `logger.ts`'s real (still narrow, even after the noop-echo fix)
+footprint; rewrote the "Dependency audit" section with correct root-cause
+attribution (`@nestjs/core`/`@nestjs/platform-express`/`multer` are
+`apps/api`'s own direct deps, not pulled in by `@prisma/adapter-pg`); fixed
+`threat-model.md`'s T6 citation and added a T9 entry for operator-key
+compromise; removed the false "only" from ADR-01's scope claim and noted
+the code-default/CI scope divergence; fixed ADR-02's `expiring=1` claim and
+its nonexistent `TokenCryptoService` reference; fixed ADR-03's "Playwright
+is installed" wording; fixed `README.md`'s per-workspace `.env.example`
+claim; fixed ADR-04's "reaffirmed three times... M7 ×2" to the correct
+"reaffirmed twice... (M5, M7)"; hedged `demo-script.md`'s SKU-mapping step
+to match `closed-loop-checklist.md`'s own honesty about that API not
+existing yet; fixed a `demo-script.md` line conflating M8's 203/203 single
+run with M7's 201/201 three-consecutive-run gate.
+
+Verification: `npm test` at repo root, real Postgres, three consecutive
+clean runs — 204/204 each time (db 6, core 52, api 63, worker 83; the
+extra test vs. the 203 baseline is the new lease-expiry-reclaim test
+above). `git diff --check` clean.
+
+Not addressed (optional, low-value): two "improvement" notes about ADR-01/
+ADR-03 not disclosing they were recorded retroactively at M8 for decisions
+made at M2/M3 (git-blame-only concern, not a factual error), and a note
+that `MetricsController` shares `OperatorApiKeyGuard` with `/operator/**`
+without being under that path literally (not a doc contradiction).
+
 ## What's left for a future session
 
 In order of what unblocks the most: (1) a human completes Gate H0

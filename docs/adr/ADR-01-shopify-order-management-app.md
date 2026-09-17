@@ -15,8 +15,13 @@ type merchants pick in their shipping settings. An **order-management app**
 instead reads the merchant's own merchant-managed `FulfillmentOrder`s and
 calls `fulfillmentCreate` against them — the merchant keeps their existing
 locations and workflow; FulfillFlow observes and acts on orders assigned to
-locations it already knows about, via `read_merchant_managed_fulfillment_orders`/
-`write_merchant_managed_fulfillment_orders` scopes only.
+locations it already knows about. Ingesting order/product data requires
+`read_orders`/`read_products`; acting on merchant-managed fulfillment
+requires `read_merchant_managed_fulfillment_orders`/
+`write_merchant_managed_fulfillment_orders` — see `apps/api/.env.local`
+for the full configured scope string. (The `SHOPIFY_SCOPES` code default
+and CI intentionally fall back to a minimal `read_orders` alone, since
+neither talks to real Shopify.)
 
 The two shapes are not incremental — choosing fulfillment-service commits
 the whole M2-onward data model (Store, FulfillmentOrder resolution, sync-back)

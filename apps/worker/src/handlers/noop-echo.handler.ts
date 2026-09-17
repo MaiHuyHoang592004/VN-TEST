@@ -1,5 +1,6 @@
 import type { OutboxHandler } from "../queue/handler-registry.js";
-/** Dev/demo handler: logs the payload. Proves the loop end-to-end before real integrations exist. */
+import { logger } from "../observability/logger.js";
+/** Dev/demo handler: logs the payload. Proves the loop end-to-end before real integrations exist. Routed through the redacting logger (not a bare console.log) since nothing prevents a future caller from enqueuing this with a sensitive payload. */
 export const noopEchoHandler: OutboxHandler = async (event) => {
-  console.log(JSON.stringify({ msg: "noop.echo", id: event.id, aggregate: `${event.aggregateType}:${event.aggregateId}`, payload: event.payload }));
+  logger.info("noop.echo", { id: event.id, aggregate: `${event.aggregateType}:${event.aggregateId}`, payload: event.payload });
 };

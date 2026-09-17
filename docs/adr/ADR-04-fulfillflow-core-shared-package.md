@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted (M4), reaffirmed three times since (M5, M7 ×2).
+Accepted (M4), reaffirmed twice since (M5, M7).
 
 ## Context
 

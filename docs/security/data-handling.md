@@ -7,10 +7,12 @@ flagged as an open gap.
 ## Secrets
 
 - [x] Secrets only in env; no `.env*` file is committed
-  (`.gitignore`: `.env` / `.env.*`, `!.env.example`). Every workspace ships
-  a `.env.example` documenting what it needs (`SHOPIFY_API_KEY/SECRET`,
+  (`.gitignore`: `.env` / `.env.*`, `!.env.example`). `apps/api` ships a
+  `.env.example` documenting what it needs (`SHOPIFY_API_KEY/SECRET`,
   `SHOPIFY_TOKEN_ENC_KEY`, `OPERATOR_API_KEY`, `DATABASE_URL`) without real
-  values.
+  values. `apps/worker`, `libs/core`, and `libs/db` currently rely on an
+  untracked `.env.local` with no committed `.env.example` of their own —
+  open gap.
 - [x] Shopify access/refresh tokens are encrypted at rest — AES-256-GCM,
   one random 12-byte IV per encryption (so identical plaintext never
   produces identical ciphertext), a one-byte format-version prefix, and a
@@ -19,10 +21,19 @@ flagged as an open gap.
   decrypting garbage (`libs/core/src/shopify/token-crypto.ts`).
   `SHOPIFY_TOKEN_ENC_KEY` must decode to exactly 32 bytes, validated at
   process startup (`loadEnv`), not on first use.
-- [x] No token, ever, appears in a log line, `OutboxEvent` payload, or
-  `AuditLog` detail by design (ADR-02); `apps/worker/src/observability/logger.ts`
-  additionally redacts token/secret/password/authorization-shaped keys
-  recursively as a defense-in-depth backstop, not the primary guarantee.
+- [x] No token, ever, appears in an `OutboxEvent` payload or `AuditLog`
+  detail by design (ADR-02), verified by inspection of every
+  `outboxEvent.create`/`auditLog.create` call site in both apps.
+  `apps/worker/src/observability/logger.ts` redacts token/secret/password/
+  authorization-shaped keys recursively, but it is not yet a backstop for
+  the worker's whole logging surface: it covers `main.ts`'s lifecycle lines
+  and `handlers/noop-echo.handler.ts`'s payload echo, but the ingestion/
+  outbox loops and the schedulers (`outbox-loop.ts`, `ingestion-claim-loop.ts`,
+  `ingestion-loop.ts`, `pii-retention.scheduler.ts`,
+  `shopify-token-refresh.scheduler.ts`, `inventory-reconcile.service.ts`)
+  still log via bare `console.error`/`console.log`, unredacted. Open gap:
+  wire the rest of the worker's log sites through `logger.ts` before relying
+  on it as a stated backstop.
 
 ## Merchant API tenant isolation
 
@@ -110,18 +121,47 @@ uses and why. What this app actually persists:
 ## Dependency audit
 
 `npm audit --omit=dev` (2026-09-17): 12 vulnerabilities (4 moderate, 8
-high), all transitive, all inside `@prisma/adapter-pg`'s own dependency
-tree (`@nestjs/platform-express`/`@nestjs/core` version ranges Prisma's
-tooling pulls in, `mysql2`, `valibot` — none of which this app uses
-directly; `mysql2` in particular is dead weight pulled in by a Prisma
-driver-adapter package this project doesn't use for MySQL). All fixes
-Prisma's own tooling offers require a breaking Prisma downgrade
-(`prisma@6.19.3`, undoing the Prisma 7 upgrade this whole codebase is
-built on) — accepted as a known, tracked gap rather than taken, since none
-of the flagged packages are reachable from this app's own runtime code
-path. Re-run `npm audit` whenever `@prisma/adapter-pg` itself updates, since
-that's the actual fix (a version that stops depending on the vulnerable
-ranges), not a version pin this repo controls directly.
+high), transitive, across three unrelated dependency chains — none of
+them rooted in `@prisma/adapter-pg`. `npm ls @prisma/adapter-pg` shows
+it as a dependency leaf (its own deps are just `pg`, `postgres-array`,
+`@types/pg`, `@prisma/driver-adapter-utils`); it is not the parent of
+any of the 12 findings.
+
+- **`@nestjs/core` (high) / `@nestjs/platform-express` (high) / `multer`
+  (high ×3, low ×1)** — `apps/api`'s own direct production dependencies
+  (`apps/api/package.json`), not something Prisma's tooling pulls in.
+  `NestFactory` from `@nestjs/core` bootstraps both `apps/api/src/main.ts`
+  and `apps/worker/src/main.ts`, so these packages run in every process
+  this app ships — they are reachable, not "not used directly." The
+  actual advisories are on the bundled `multer@2.2.0` (crafted-field-name/
+  array-index DoS, a file-descriptor leak, a fileFilter race); `npm audit`
+  marks `@nestjs/core` and `@nestjs/platform-express` vulnerable only
+  through their mutual peer-link to that multer version. Real-world
+  exposure is low: neither `apps/api/src` nor `apps/worker/src` defines a
+  `FileInterceptor` or any other multipart-upload route, so multer's
+  vulnerable multipart-parsing code path is never invoked by this app's
+  own routes.
+- **`mysql2`, `valibot`, `@hono/node-server`, `hono`, `deepmerge-ts`,
+  `@prisma/config`, `@prisma/dev`** — pulled in by `prisma` (the CLI,
+  `libs/db`'s own `devDependency`), via `@prisma/config`/`@prisma/dev`,
+  not by `@prisma/adapter-pg`. `mysql2` and `valibot` are confirmed unused
+  directly anywhere in `apps/api/src`, `apps/worker/src`, or
+  `libs/core/src`; as a devDependency this chain is excluded from the
+  production install this app ships.
+- **`fast-uri`** — via `ajv`, reachable through both `@nestjs/cli`
+  (`apps/api` devDependency) and `prisma`'s `@prisma/streams-local`;
+  unrelated to `@prisma/adapter-pg` either way.
+
+All fixes `npm audit` offers require breaking upgrades (`prisma@6.19.3`,
+undoing the Prisma 7 upgrade this codebase is built on; a `@nestjs/core`/
+`@nestjs/platform-express` v12 major bump) — accepted as a known, tracked
+gap. The `prisma`-chain findings are devDependency-only. The
+`@nestjs/core`/`@nestjs/platform-express`/`multer` findings are on
+production code that does run in every process, but the specific
+vulnerable functionality (multer's multipart parsing) is not exercised by
+any route this app defines. Re-run `npm audit` whenever `prisma` or
+`@nestjs/platform-express` (not `@prisma/adapter-pg`) update to a version
+that drops the vulnerable ranges.
 
 ## What this review does not cover
 

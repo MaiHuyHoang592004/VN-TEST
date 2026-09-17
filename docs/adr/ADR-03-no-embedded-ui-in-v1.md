@@ -40,8 +40,9 @@ browser test) rather than skipping the requirement's *intent* entirely.
 ## Consequences
 
 - Task 27's literal "Playwright smoke test: embedded app route renders" is
-  not achievable — there is no route to render. Playwright itself is
-  installed and usable the moment a UI exists.
+  not achievable — there is no route to render. Playwright is not currently
+  a dependency of this repo; it can be installed and used as soon as a UI
+  exists to test.
 - M8's Gate M8 checklist item "90-second demo is reproducible" and the demo
   script (Task 31) describe the golden path through the operator API and
   Shopify's own admin UI, not a FulfillFlow-hosted screen — accurate to

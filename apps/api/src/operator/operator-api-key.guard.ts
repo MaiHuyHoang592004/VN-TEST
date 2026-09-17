@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from "@nestjs/common";
+import { timingSafeEqual } from "node:crypto";
 import type { Request } from "express";
 
 /**
@@ -14,7 +15,18 @@ export class OperatorApiKeyGuard implements CanActivate {
     if (!required) throw new UnauthorizedException("operator API is disabled — set OPERATOR_API_KEY to enable it");
     const req = context.switchToHttp().getRequest<Request>();
     const provided = req.headers["x-operator-api-key"];
-    if (provided !== required) throw new UnauthorizedException("invalid or missing X-Operator-Api-Key");
+    // Timing-safe compare, matching hmac.ts/session-token.ts's own precedent
+    // — a plain !== leaks how many leading characters matched via response
+    // timing, since string comparison short-circuits at the first difference.
+    if (typeof provided !== "string" || !safeEqual(provided, required)) {
+      throw new UnauthorizedException("invalid or missing X-Operator-Api-Key");
+    }
     return true;
   }
+}
+
+function safeEqual(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  return aBuf.length === bBuf.length && timingSafeEqual(aBuf, bBuf);
 }

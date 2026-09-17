@@ -15,11 +15,14 @@ backend exchanges that token for an **offline access token** via
 `code`/`state` query-string dance, no redirect URI to register or defend
 against open-redirect issues.
 
-Offline tokens created this way are **expiring**: unlike the legacy
-non-expiring offline token, they carry an `expires_in` and (when
-`expiring=1` was requested) a `refresh_token` with its own, longer expiry.
-The token itself must be rotated before it lapses, not just requested once
-at install time.
+Offline tokens created this way are **expiring** by default for apps using
+managed installation: unlike the legacy non-expiring offline token, they
+carry an `expires_in` and a `refresh_token` with its own, longer expiry.
+This is Shopify's default behavior for the app's installation mode, not
+something requested via a parameter — `exchangeIdToken` sends the standard
+token-exchange grant fields and simply persists whatever token shape
+Shopify returns (see Decision). The token itself must be rotated before it
+lapses, not just requested once at install time.
 
 ## Decision
 
@@ -27,10 +30,17 @@ at install time.
   no `state` CSRF token to manage — session identity comes entirely from
   verifying the App Bridge ID token's signature, `aud`, `iss`/`dest` host,
   and `exp`/`nbf` window (`ShopifySessionGuard`).
-- Request `expiring=1` on token exchange and persist both the access token
-  and its refresh token, encrypted at rest (AES-256-GCM, `TokenCryptoService`
-  — ADR is silent on algorithm choice beyond "encrypted"; see
-  `docs/security/data-handling.md` for the concrete cipher).
+- Token exchange (`exchangeIdToken` in `shopify-auth.client.ts`) posts only
+  the standard token-exchange grant fields — `client_id`, `client_secret`,
+  `grant_type`, `subject_token`, `subject_token_type`,
+  `requested_token_type` — there is no `expiring` parameter to request.
+  Shopify decides expiring vs. non-expiring based on the app's own
+  managed-installation status, and the client tolerates either response
+  shape (`refreshToken`/`accessTokenExpiresInSeconds` are optional on
+  `TokenResponse`). Persist the access token and, when present, its refresh
+  token, encrypted at rest via `encryptToken`/`decryptToken` in
+  `libs/core/src/shopify/token-crypto.ts` (AES-256-GCM; see
+  `docs/security/data-handling.md` for the concrete cipher format).
 - Rotate proactively: `ShopifyTokenManager.withAccessToken` refreshes any
   token within 5 minutes of expiry before use, and (M6) a scheduler
   independently sweeps for stores expiring within 15 minutes and enqueues a

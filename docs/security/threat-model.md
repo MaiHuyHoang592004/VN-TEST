@@ -105,7 +105,13 @@ The worker process dies mid-batch.
 worker's claimed-but-unfinished rows simply become claimable again once
 the lease lapses — no row is permanently stuck, and no row is double-
 processed while a lease is still held (a different worker can't claim a
-locked row). Covered by `ingestion-claim-loop.test.ts`'s lease-expiry test.
+locked row). The no-double-claim-while-leased half is covered by
+`ingestion-claim-loop.test.ts`; the expiry-then-reclaim half is covered
+both there (`"an expired lease makes the record claimable again (crash
+recovery)"`, added this pass) and, for the shared `claimOutbox`/
+`claimIngestion` lease primitive in general, by
+`libs/db/src/queue.test.ts`'s `"an expired lease makes the row claimable
+again"`.
 
 ### T7 — Resource exhaustion via merchant write endpoints (denial of service)
 
@@ -132,6 +138,21 @@ discriminated union) validate on write, in `apps/api`, *before* persistence
 `AutomationRule` table, so the worker's evaluator (M7 Task 25) can never
 encounter a shape it wasn't built for. Same schema on both sides (ADR-04)
 means "validates" and "evaluates correctly" can't drift apart.
+
+### T9 — Operator API key compromise/brute-force (spoofing / elevation of privilege)
+
+An attacker who obtains or brute-forces `OPERATOR_API_KEY` can call
+`/operator/**` (start/complete-production/ship a fulfillment) and
+`/metrics` as an operator.
+
+**Mitigation:** the key is compared with `node:crypto.timingSafeEqual`
+(length-checked first), matching the timing-safe pattern already used for
+HMAC and session-token verification (`operator-api-key.guard.ts`, fixed
+this pass — previously a plain `!==`). The guard is unconditionally 401
+unless `OPERATOR_API_KEY` is explicitly configured, in every environment.
+**Not yet mitigated:** no rate limiting on failed attempts, and no
+minimum-entropy requirement enforced on the configured key value — both
+out of scope for V1's single-operator, internal-only deployment target.
 
 ## Out of scope for this review
 

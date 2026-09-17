@@ -64,6 +64,22 @@ test("a claimed record is not re-claimed until its lease expires", async () => {
   assert.ok(!second.some((r) => r.id === record.id), "still leased, not claimable again");
 });
 
+test("an expired lease makes the record claimable again (crash recovery)", async () => {
+  const record = await insertRecord("f");
+  const loop = new IngestionClaimLoop(prisma, { batchSize: 10, leaseSeconds: 1 });
+
+  const first = await loop.tick();
+  assert.ok(first.some((r) => r.id === record.id));
+  const second = await loop.tick();
+  assert.ok(!second.some((r) => r.id === record.id), "still leased");
+
+  // 1s lease + generous margin — matches libs/db/src/queue.test.ts's own
+  // margin, chosen there after observing a tighter one flake on CI runners.
+  await new Promise((r) => setTimeout(r, 2500));
+  const third = await loop.tick();
+  assert.ok(third.some((r) => r.id === record.id), "expired lease reclaimed by a fresh tick — a crashed worker's claim is never permanently stuck");
+});
+
 test("run() stops on abort", async () => {
   const loop = new IngestionClaimLoop(prisma, { batchSize: 1, leaseSeconds: 30, pollMs: 10 });
   const ac = new AbortController();

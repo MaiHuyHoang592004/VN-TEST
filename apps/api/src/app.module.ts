@@ -6,9 +6,10 @@ import { MetricsController } from "./metrics/metrics.controller.js";
 import { correlationMiddleware } from "./observability/correlation.middleware.js";
 import { ShopifyModule } from "./shopify/shopify.module.js";
 import { OperatorModule } from "./operator/operator.module.js";
+import { MerchantModule } from "./merchant/merchant.module.js";
 
 @Module({
-  imports: [PrismaModule, ShopifyModule, OperatorModule],
+  imports: [PrismaModule, ShopifyModule, OperatorModule, MerchantModule],
   controllers: [HealthController, ReadinessController, MetricsController],
 })
 export class AppModule implements NestModule {

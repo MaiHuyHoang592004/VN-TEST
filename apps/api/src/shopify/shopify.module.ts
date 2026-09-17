@@ -23,6 +23,6 @@ export const SHOPIFY_TOKEN_MANAGER = Symbol("SHOPIFY_TOKEN_MANAGER");
         new ShopifyTokenManager(prisma, { apiKey: config.apiKey, apiSecret: config.apiSecret, tokenEncKey: config.tokenEncKey }),
     },
   ],
-  exports: [SHOPIFY_TOKEN_MANAGER],
+  exports: [SHOPIFY_TOKEN_MANAGER, ShopifyConfig, ShopifyTenantGuard],
 })
 export class ShopifyModule {}

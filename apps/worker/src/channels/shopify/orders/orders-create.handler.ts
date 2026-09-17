@@ -3,6 +3,7 @@ import type { NormalizedShopifyOrder } from "./shopify-order-normalizer.js";
 import { validateAddressCompleteness } from "./address-completeness.validator.js";
 import { withOrderRecord } from "./order-record-transaction.js";
 import { routeAndReserve } from "@fulfillflow/core";
+import { evaluateOrderPolicy } from "../../../core/policy/policy-engine.js";
 
 /** Returned by createNormalizedOrder only when a new canonical Order was just created, so the caller can route it. */
 export type OrderAccepted = { orderId: string };
@@ -72,9 +73,26 @@ export async function createNormalizedOrder(tx: Prisma.TransactionClient, record
         message: "Shipping address is incomplete or invalid", details: validation.validationErrors,
       } });
     }
+    const policyDecision = await evaluateOrderPolicy(tx, record.organizationId, {
+      countryCode: validation.validationErrors.countryCode ? null : normalized.address.countryCode,
+      channelFinancialStatus: normalized.channelFinancialStatus,
+      skuCodes: normalized.items.map((line) => line.externalSku).filter((sku): sku is string => Boolean(sku)),
+      totalItemQuantity: normalized.items.reduce((sum, line) => sum + line.quantity, 0),
+    });
+    if (policyDecision === "HOLD") {
+      await tx.exceptionCase.create({ data: {
+        organizationId: record.organizationId, orderId: order.id, ingestionRecordId: record.id,
+        subjectKey: `order:${order.id}`, code: "POLICY_HOLD", visibility: "MERCHANT",
+        message: "Held by an automation rule — order created but not yet routed",
+      } });
+    }
     await tx.ingestionRecord.update({ where: { id: record.id }, data: {
       status: "ACCEPTED", normalizedPayload: normalized, resultOrderId: order.id,
       processedAt: new Date(), lockedUntil: null, errorCode: null, errorMessage: null,
     } });
-    return { orderId: order.id };
+    // A policy HOLD leaves the order created (per the plan) but returns
+    // undefined so the caller's `if (accepted) await routeAndReserve(...)`
+    // skips routing — the same "no orderId means don't route" signal
+    // withOrderRecord already uses for duplicate/held ingestion records.
+    return policyDecision === "HOLD" ? undefined : { orderId: order.id };
 }

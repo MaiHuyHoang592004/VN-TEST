@@ -18,6 +18,7 @@ model Organization {
   outboxEvents     OutboxEvent[]
   auditLogs        AuditLog[]
   apiIdempotency   ApiIdempotencyKey[]
+  automationRules  AutomationRule[]
 
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)

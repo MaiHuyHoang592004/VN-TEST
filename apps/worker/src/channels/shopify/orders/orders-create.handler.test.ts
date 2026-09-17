@@ -83,3 +83,43 @@ test("paid mapped order creates canonical order, address and N items and accepts
   assert.ok(row.normalizedPayload);
   assert.ok(row.processedAt);
 });
+test("a matching enabled HOLD automation rule creates the order but opens POLICY_HOLD and skips routing", async () => {
+  const rule = await prisma.automationRule.create({ data: {
+    organizationId: ctx.organizationId, name: "Hold US orders", trigger: "ORDER_RECEIVED", action: "HOLD",
+    conditions: [{ field: "countryCode", op: "in", values: ["US"] }],
+  } });
+  const record = await delivery(ctx, "order-paid-mapped");
+  await processOrdersCreate(record.id);
+
+  const row = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } });
+  assert.equal(row.status, "ACCEPTED");
+  assert.ok(row.resultOrderId);
+  // A held order skips routeAndReserve entirely — no RoutingDecision at all,
+  // not even a NO_ROUTE one (setupOrders() has no Facility fixture, so an
+  // *unheld* order here would still show zero Fulfillments but WOULD have a
+  // NO_ROUTE RoutingDecision; that row's absence is what actually proves
+  // routing was never attempted).
+  assert.equal(await prisma.routingDecision.count({ where: { orderId: row.resultOrderId! } }), 0, "a held order must not be routed");
+  const exception = await prisma.exceptionCase.findFirstOrThrow({ where: { orderId: row.resultOrderId!, code: "POLICY_HOLD" } });
+  assert.equal(exception.visibility, "MERCHANT");
+  assert.equal(exception.status, "OPEN");
+
+  await prisma.automationRule.delete({ where: { id: rule.id } });
+});
+test("a disabled HOLD rule is ignored, and the order routes normally", async () => {
+  const rule = await prisma.automationRule.create({ data: {
+    organizationId: ctx.organizationId, name: "Disabled hold", trigger: "ORDER_RECEIVED", action: "HOLD", enabled: false,
+    conditions: [{ field: "countryCode", op: "in", values: ["US"] }],
+  } });
+  const record = await delivery(ctx, "order-paid-mapped");
+  await processOrdersCreate(record.id);
+
+  const row = await prisma.ingestionRecord.findUniqueOrThrow({ where: { id: record.id } });
+  assert.equal(row.status, "ACCEPTED");
+  assert.equal(await prisma.exceptionCase.count({ where: { orderId: row.resultOrderId!, code: "POLICY_HOLD" } }), 0);
+  // Routing was actually attempted (unlike the held case above) — proven by
+  // a RoutingDecision existing at all (NO_ROUTE, since there's no Facility fixture).
+  assert.equal(await prisma.routingDecision.count({ where: { orderId: row.resultOrderId! } }), 1);
+
+  await prisma.automationRule.delete({ where: { id: rule.id } });
+});

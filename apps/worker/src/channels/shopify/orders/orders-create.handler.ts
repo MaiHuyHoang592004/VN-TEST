@@ -2,8 +2,7 @@ import { Prisma, type IngestionRecord } from "@fulfillflow/db";
 import type { NormalizedShopifyOrder } from "./shopify-order-normalizer.js";
 import { validateAddressCompleteness } from "./address-completeness.validator.js";
 import { withOrderRecord } from "./order-record-transaction.js";
-import { routeAndReserve } from "@fulfillflow/core";
-import { evaluateOrderPolicy } from "../../../core/policy/policy-engine.js";
+import { routeAndReserve, evaluateOrderPolicy } from "@fulfillflow/core";
 
 /** Returned by createNormalizedOrder only when a new canonical Order was just created, so the caller can route it. */
 export type OrderAccepted = { orderId: string };

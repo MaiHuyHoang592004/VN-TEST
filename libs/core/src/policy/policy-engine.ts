@@ -5,7 +5,13 @@
  * fixed channel-validation rule rather than becoming configurable.
  *
  * `AutomationRule.conditions` is JSONB, validated here rather than at the
- * schema level so a new condition shape never needs a migration.
+ * schema level so a new condition shape never needs a migration. Lives in
+ * @fulfillflow/core (not apps/worker, where evaluateOrderPolicy is actually
+ * called from) because apps/api's merchant automation-rule CRUD (Task 26)
+ * needs the exact same RuleConditionsSchema/RuleActionSchema to validate a
+ * rule before persisting it, and apps/api cannot import from apps/worker —
+ * the same cross-app sharing problem M4 already solved this way for
+ * routing/inventory (see HANDOVER-M4).
  */
 import { z } from "zod";
 import type { Prisma } from "@fulfillflow/db";

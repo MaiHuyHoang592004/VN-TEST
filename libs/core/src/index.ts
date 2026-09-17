@@ -15,3 +15,4 @@ export * from "./shopify/token-crypto.ts";
 export * from "./shopify/shopify-auth.client.ts";
 export * from "./shopify/token-manager.ts";
 export * from "./shopify/shopify-graphql.client.ts";
+export * from "./policy/policy-engine.ts";

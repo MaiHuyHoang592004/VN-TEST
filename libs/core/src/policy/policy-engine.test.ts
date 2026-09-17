@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { evaluateRules, type OrderPolicyContext } from "./policy-engine.js";
+import { evaluateRules, type OrderPolicyContext } from "./policy-engine.ts";
 
 const baseCtx: OrderPolicyContext = { countryCode: "US", channelFinancialStatus: "paid", skuCodes: ["TEE-RED"], totalItemQuantity: 3 };
 

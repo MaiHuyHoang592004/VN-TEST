@@ -27,7 +27,7 @@ The staging repository stays private. It is a reference, not an upstream.
 cd ~/orderlane
 npm ci
 npm run generate -w @orderlane/db
-npm test                      # 171 tests; needs DATABASE_URL for 96 of them
+npm test                      # 198 tests; needs DATABASE_URL for 104 of them
 bash scripts/check-clean-room.sh
 ```
 
@@ -46,10 +46,13 @@ The extraction was run and the result checked, rather than assumed:
 | `npm ci` from the lockfile | 191 packages, no drift |
 | `prisma validate` · `generate` · `migrate deploy` | pass, against an empty database |
 | `npm run typecheck` | 4/4 packages |
-| `npm test` | 171 tests, 0 failures |
+| `npm test` | 198 tests, 0 failures |
 | `npm run build` | pass |
 | `npm run db:seed` | 2 tenants, 52 orders, 44 fulfillments |
 | Seed determinism | two fresh databases, identical generated content (same checksum) |
+
+Re-run after the security review, with its four fixes in: 129 files, one
+commit, no remote, and every step above still green.
 
 Two false positives in the gate were found by running it on the extracted
 repository, and fixed there rather than waived:

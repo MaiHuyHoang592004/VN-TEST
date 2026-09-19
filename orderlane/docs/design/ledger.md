@@ -78,8 +78,15 @@ somebody asking about it a year later.
 ### Reading a balance
 
 ```
-balance = snapshot.amount + sum(entries after snapshot.throughEntryId)
+balance = snapshot.amount + sum(entries after snapshot.throughSeq)
 ```
+
+`throughSeq`, not an id. `LedgerEntry.seq` is a `bigserial`, because the ids
+here are cuids: a cuid carries a timestamp prefix and is *roughly* ordered,
+which is not the same as ordered. Two processes inserting in the same
+millisecond can produce ids whose sort order disagrees with the order they were
+written, and "every entry after this one" has to be exact or the balance is
+silently wrong.
 
 `BalanceSnapshot` is a cache. With no snapshot the balance is the sum of every
 entry, which is also the definition — the snapshot changes how long the answer
@@ -113,11 +120,13 @@ reach into the books.
 - **Reporting needs care.** "Revenue this month" is a query over entries with a
   date range and an account filter, not a `SUM(orders.revenue)`.
 - **Snapshots need maintenance.** Nothing breaks if they go stale, but reads
-  get slower, so something has to advance them. That job is not yet written.
+  get slower, so something has to advance them. `refreshSnapshot()` does it and
+  is safe to run twice; what is not yet written is the schedule that calls it.
 
 ## How it is tested
 
-`packages/core/src/ledger/balance.test.ts`, 12 tests:
+`packages/core/src/ledger/balance.test.ts`, 12 pure tests, plus 11 integration
+tests in `packages/services/src/ledger/ledger.test.ts` against a real database:
 
 - balanced postings pass; unbalanced ones are rejected and report the delta
 - negative and zero amounts are rejected; a one-sided posting is rejected even
@@ -127,8 +136,14 @@ reach into the books.
 - a reversal nets the account back to exactly zero
 - normal sides are exercised in both directions: funding a wallet increases it,
   spending decreases it, a receivable behaves oppositely
-- a snapshot and a from-scratch projection agree, over 50 entries
+- a snapshot and a from-scratch projection agree, over 50 entries, and
+  refreshing twice does not double-count
 - an entry from the wrong account raises rather than silently contributing zero
 - **property test**: 500 randomly generated balanced transactions, from a fixed
   seed, all validate clean and sum to zero in aggregate — per transaction *and*
   across the whole set
+
+The integration half covers what purity cannot: that two simultaneous charges
+for the same order post once, that a rejected posting leaves no rows at all,
+that deleting every snapshot changes no balance, and that an idempotency key
+belonging to another tenant is a conflict rather than a silent no-op.

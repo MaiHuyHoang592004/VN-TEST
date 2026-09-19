@@ -73,10 +73,36 @@ model ImportRow {
   /// Filled at commit time.
   targetId String? @map("target_id")
 
-  /// The constraint that actually enforces "importing the same row twice
-  /// creates one record". An application-level check races with its own retry;
-  /// this does not.
-  @@unique([tenantId, kind, rowHash])
+  /// NOT unique. Re-uploading a corrected spreadsheet stages the unchanged
+  /// rows again, legitimately — they are a record of what that file contained.
+  /// What must happen at most once is APPLYING a row, and that is a different
+  /// claim, held by ImportApplication below.
+  @@index([tenantId, kind, rowHash])
   @@index([jobId, lineNumber])
   @@map("import_rows")
+}
+
+/// The record that one row's content has been applied to the domain.
+///
+/// This is the constraint that actually enforces "importing the same row twice
+/// creates one record". It is written inside the same transaction as the write
+/// it describes, so a retry, a concurrent commit of an overlapping file, or a
+/// re-run after a crash all collide here rather than duplicating work. An
+/// application-level "has this been applied?" check races with its own retry;
+/// a unique index does not.
+model ImportApplication {
+  id       String     @id @default(cuid())
+  tenantId String     @map("tenant_id")
+  tenant   Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind     ImportKind
+  rowHash  String     @map("row_hash")
+
+  /// The staged row that applied it, and what it produced.
+  importRowId String @map("import_row_id")
+  targetId    String @map("target_id")
+
+  appliedAt DateTime @default(now()) @map("applied_at")
+
+  @@unique([tenantId, kind, rowHash])
+  @@map("import_applications")
 }

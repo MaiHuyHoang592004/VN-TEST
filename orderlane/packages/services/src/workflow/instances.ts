@@ -81,7 +81,7 @@ export async function startFulfillment(ctx: Ctx, input: StartFulfillmentInput): 
         orderId: input.orderId,
         workflowInstanceId: instance.id,
         ...(input.locationId ? { locationId: input.locationId } : {}),
-        lines: { create: input.lines.map((l) => ({ orderLineId: l.orderLineId, quantity: l.quantity })) },
+        lines: { create: input.lines.map((l) => ({ tenantId: ctx.tenantId, orderLineId: l.orderLineId, quantity: l.quantity })) },
       },
     });
 
@@ -90,6 +90,7 @@ export async function startFulfillment(ctx: Ctx, input: StartFulfillmentInput): 
     // without it the log's first entry would have no "from" to be honest about.
     await tx.transitionLog.create({
       data: {
+        tenantId: ctx.tenantId,
         instanceId: instance.id,
         fromStateId: initialStateId,
         toStateId: initialStateId,
@@ -266,6 +267,7 @@ export async function applyTransition(
 
     await tx.transitionLog.create({
       data: {
+        tenantId: ctx.tenantId,
         instanceId: instance.id,
         transitionId,
         fromStateId: instance.currentStateId,

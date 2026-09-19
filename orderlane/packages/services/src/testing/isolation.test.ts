@@ -108,3 +108,27 @@ test("a failed transaction leaves nothing behind", skipWithoutDb, async () => {
 
   assert.equal(await a.ctx.db.product.count(), 0);
 });
+
+test("a child table cannot be read across tenants either", skipWithoutDb, async () => {
+  // Found by a failing ledger test, not by review: LedgerEntry originally had
+  // no tenantId and inherited its tenant through LedgerTransaction. That left
+  // `db.ledgerEntry.findMany()` returning every tenant's postings — a leak
+  // that looks like ordinary code. Six child tables carry the column now, and
+  // this is the regression test.
+  const a = await seedTenant();
+  const b = await seedTenant();
+
+  const account = await systemPrisma.ledgerAccount.create({
+    data: { tenantId: b.tenantId, kind: "TENANT_WALLET", currency: "USD" },
+  });
+  const transaction = await systemPrisma.ledgerTransaction.create({
+    data: { tenantId: b.tenantId, kind: "ADJUSTMENT", idempotencyKey: `child-${Date.now()}-${Math.random()}` },
+  });
+  await systemPrisma.ledgerEntry.create({
+    data: { tenantId: b.tenantId, transactionId: transaction.id, accountId: account.id, direction: "CREDIT", amountMinor: 500n },
+  });
+
+  assert.equal(await a.ctx.db.ledgerEntry.count(), 0, "another tenant's postings are invisible");
+  assert.equal(await b.ctx.db.ledgerEntry.count(), 1);
+  assert.deepEqual(await a.ctx.db.ledgerEntry.findMany(), []);
+});

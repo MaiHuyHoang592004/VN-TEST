@@ -41,6 +41,8 @@ model WorkflowDefinition {
 /// key is a new definition version.
 model WorkflowState {
   id           String             @id @default(cuid())
+  tenantId     String             @map("tenant_id")
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   definitionId String             @map("definition_id")
   definition   WorkflowDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
 
@@ -65,6 +67,8 @@ model WorkflowState {
 /// A legal move, plus the conditions for taking it.
 model WorkflowTransition {
   id           String             @id @default(cuid())
+  tenantId     String             @map("tenant_id")
+  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   definitionId String             @map("definition_id")
   definition   WorkflowDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
 
@@ -129,6 +133,8 @@ model WorkflowInstance {
 /// derived so the log reads correctly even after its definition is superseded.
 model TransitionLog {
   id         String           @id @default(cuid())
+  tenantId   String           @map("tenant_id")
+  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   instanceId String           @map("instance_id")
   instance   WorkflowInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
 

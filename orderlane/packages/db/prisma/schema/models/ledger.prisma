@@ -51,7 +51,19 @@ model LedgerTransaction {
 /// One side of one posting. Immutable: a mistake is corrected by posting a
 /// reversing transaction, never by editing or deleting this row.
 model LedgerEntry {
-  id            String            @id @default(cuid())
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  /// Monotonic insertion order.
+  ///
+  /// A cuid carries a timestamp prefix and is *roughly* ordered, which is not
+  /// the same as ordered — two processes inserting in the same millisecond can
+  /// produce ids whose sort order disagrees with the order they were written.
+  /// "Every entry after this one" has to be exact or a balance is wrong, so
+  /// the projection reads this column and never the id.
+  seq BigInt @default(autoincrement())
+
   transactionId String            @map("transaction_id")
   transaction   LedgerTransaction @relation(fields: [transactionId], references: [id])
   accountId     String            @map("account_id")
@@ -67,21 +79,24 @@ model LedgerEntry {
   createdAt DateTime @default(now()) @map("created_at")
 
   /// Balance projection reads an account's entries in insertion order.
-  @@index([accountId, id])
+  @@index([accountId, seq])
   @@index([transactionId])
   @@map("ledger_entries")
 }
 
 /// A cached sum, so reading a balance does not mean summing every entry ever
 /// written. Derived state, and safe to be stale or absent: the balance is
-/// always `snapshot.amount + sum(entries after snapshot.throughEntryId)`, and
+/// always `snapshot.amount + sum(entries after snapshot.throughSeq)`, and
 /// deleting every row in this table changes no answer, only the work to get it.
 model BalanceSnapshot {
-  accountId      String        @id @map("account_id")
-  account        LedgerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  throughEntryId String        @map("through_entry_id")
-  amountMinor    BigInt        @map("amount_minor")
-  updatedAt      DateTime      @updatedAt @map("updated_at")
+  accountId   String        @id @map("account_id")
+  tenantId    String        @map("tenant_id")
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  account     LedgerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// Entries up to and including this seq are already counted in amountMinor.
+  throughSeq  BigInt        @map("through_seq")
+  amountMinor BigInt        @map("amount_minor")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
 
   @@map("balance_snapshots")
 }

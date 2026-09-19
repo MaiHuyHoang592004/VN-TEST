@@ -10,7 +10,8 @@
   },
   "scripts": {
     "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "node --experimental-strip-types src/seed.ts"
   },
   "dependencies": {
     "@orderlane/core": "*",

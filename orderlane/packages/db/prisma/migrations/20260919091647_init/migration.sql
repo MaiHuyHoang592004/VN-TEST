@@ -89,6 +89,7 @@ CREATE TABLE "fulfillments" (
 -- CreateTable
 CREATE TABLE "fulfillment_lines" (
     "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
     "fulfillment_id" TEXT NOT NULL,
     "order_line_id" TEXT NOT NULL,
     "quantity" INTEGER NOT NULL,
@@ -131,6 +132,19 @@ CREATE TABLE "import_rows" (
     "target_id" TEXT,
 
     CONSTRAINT "import_rows_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "import_applications" (
+    "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "kind" "ImportKind" NOT NULL,
+    "row_hash" TEXT NOT NULL,
+    "import_row_id" TEXT NOT NULL,
+    "target_id" TEXT NOT NULL,
+    "applied_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "import_applications_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -198,6 +212,8 @@ CREATE TABLE "ledger_transactions" (
 -- CreateTable
 CREATE TABLE "ledger_entries" (
     "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "seq" BIGSERIAL NOT NULL,
     "transaction_id" TEXT NOT NULL,
     "account_id" TEXT NOT NULL,
     "direction" "LedgerDirection" NOT NULL,
@@ -210,7 +226,8 @@ CREATE TABLE "ledger_entries" (
 -- CreateTable
 CREATE TABLE "balance_snapshots" (
     "account_id" TEXT NOT NULL,
-    "through_entry_id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
+    "through_seq" BIGINT NOT NULL,
     "amount_minor" BIGINT NOT NULL,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
@@ -404,6 +421,7 @@ CREATE TABLE "workflow_definitions" (
 -- CreateTable
 CREATE TABLE "workflow_states" (
     "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
     "definition_id" TEXT NOT NULL,
     "key" TEXT NOT NULL,
     "label" TEXT NOT NULL,
@@ -416,6 +434,7 @@ CREATE TABLE "workflow_states" (
 -- CreateTable
 CREATE TABLE "workflow_transitions" (
     "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
     "definition_id" TEXT NOT NULL,
     "key" TEXT NOT NULL,
     "label" TEXT NOT NULL,
@@ -443,6 +462,7 @@ CREATE TABLE "workflow_instances" (
 -- CreateTable
 CREATE TABLE "transition_logs" (
     "id" TEXT NOT NULL,
+    "tenant_id" TEXT NOT NULL,
     "instance_id" TEXT NOT NULL,
     "transition_id" TEXT,
     "from_state_id" TEXT NOT NULL,
@@ -486,10 +506,13 @@ CREATE UNIQUE INDEX "fulfillment_lines_fulfillment_id_order_line_id_key" ON "ful
 CREATE INDEX "import_jobs_tenant_id_created_at_idx" ON "import_jobs"("tenant_id", "created_at");
 
 -- CreateIndex
+CREATE INDEX "import_rows_tenant_id_kind_row_hash_idx" ON "import_rows"("tenant_id", "kind", "row_hash");
+
+-- CreateIndex
 CREATE INDEX "import_rows_job_id_line_number_idx" ON "import_rows"("job_id", "line_number");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "import_rows_tenant_id_kind_row_hash_key" ON "import_rows"("tenant_id", "kind", "row_hash");
+CREATE UNIQUE INDEX "import_applications_tenant_id_kind_row_hash_key" ON "import_applications"("tenant_id", "kind", "row_hash");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "locations_tenant_id_code_key" ON "locations"("tenant_id", "code");
@@ -513,7 +536,7 @@ CREATE UNIQUE INDEX "ledger_transactions_idempotency_key_key" ON "ledger_transac
 CREATE INDEX "ledger_transactions_tenant_id_created_at_idx" ON "ledger_transactions"("tenant_id", "created_at");
 
 -- CreateIndex
-CREATE INDEX "ledger_entries_account_id_id_idx" ON "ledger_entries"("account_id", "id");
+CREATE INDEX "ledger_entries_account_id_seq_idx" ON "ledger_entries"("account_id", "seq");
 
 -- CreateIndex
 CREATE INDEX "ledger_entries_transaction_id_idx" ON "ledger_entries"("transaction_id");
@@ -624,6 +647,9 @@ ALTER TABLE "fulfillments" ADD CONSTRAINT "fulfillments_location_id_fkey" FOREIG
 ALTER TABLE "fulfillments" ADD CONSTRAINT "fulfillments_workflow_instance_id_fkey" FOREIGN KEY ("workflow_instance_id") REFERENCES "workflow_instances"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "fulfillment_lines" ADD CONSTRAINT "fulfillment_lines_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "fulfillment_lines" ADD CONSTRAINT "fulfillment_lines_fulfillment_id_fkey" FOREIGN KEY ("fulfillment_id") REFERENCES "fulfillments"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -640,6 +666,9 @@ ALTER TABLE "import_rows" ADD CONSTRAINT "import_rows_tenant_id_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "import_rows" ADD CONSTRAINT "import_rows_job_id_fkey" FOREIGN KEY ("job_id") REFERENCES "import_jobs"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "import_applications" ADD CONSTRAINT "import_applications_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "locations" ADD CONSTRAINT "locations_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -666,10 +695,16 @@ ALTER TABLE "ledger_accounts" ADD CONSTRAINT "ledger_accounts_tenant_id_fkey" FO
 ALTER TABLE "ledger_transactions" ADD CONSTRAINT "ledger_transactions_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_transaction_id_fkey" FOREIGN KEY ("transaction_id") REFERENCES "ledger_transactions"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ledger_entries" ADD CONSTRAINT "ledger_entries_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "ledger_accounts"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "balance_snapshots" ADD CONSTRAINT "balance_snapshots_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "balance_snapshots" ADD CONSTRAINT "balance_snapshots_account_id_fkey" FOREIGN KEY ("account_id") REFERENCES "ledger_accounts"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -729,7 +764,13 @@ ALTER TABLE "webhook_deliveries" ADD CONSTRAINT "webhook_deliveries_webhook_id_f
 ALTER TABLE "workflow_definitions" ADD CONSTRAINT "workflow_definitions_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "workflow_states" ADD CONSTRAINT "workflow_states_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "workflow_states" ADD CONSTRAINT "workflow_states_definition_id_fkey" FOREIGN KEY ("definition_id") REFERENCES "workflow_definitions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "workflow_transitions" ADD CONSTRAINT "workflow_transitions_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "workflow_transitions" ADD CONSTRAINT "workflow_transitions_definition_id_fkey" FOREIGN KEY ("definition_id") REFERENCES "workflow_definitions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -748,6 +789,9 @@ ALTER TABLE "workflow_instances" ADD CONSTRAINT "workflow_instances_definition_i
 
 -- AddForeignKey
 ALTER TABLE "workflow_instances" ADD CONSTRAINT "workflow_instances_current_state_id_fkey" FOREIGN KEY ("current_state_id") REFERENCES "workflow_states"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "transition_logs" ADD CONSTRAINT "transition_logs_tenant_id_fkey" FOREIGN KEY ("tenant_id") REFERENCES "tenants"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "transition_logs" ADD CONSTRAINT "transition_logs_instance_id_fkey" FOREIGN KEY ("instance_id") REFERENCES "workflow_instances"("id") ON DELETE CASCADE ON UPDATE CASCADE;

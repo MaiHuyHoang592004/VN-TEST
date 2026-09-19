@@ -15,7 +15,7 @@ Tenant ─┬─ Membership ── User
         └─ ImportJob ── ImportRow
 ```
 
-Thirty models. The count matters less than the shape: no entity exists to
+Thirty-one models. The count matters less than the shape: no entity exists to
 record a step in one company's process.
 
 ## Tenant isolation
@@ -40,6 +40,14 @@ filter into every operation on a scoped model. `tenantId` is merged *last*, so
 a caller passing their own is overwritten rather than trusted. An operation the
 extension does not recognise throws instead of passing through.
 
+**Child rows carry the column too.** `LedgerEntry`, `BalanceSnapshot`,
+`TransitionLog`, `FulfillmentLine`, `WorkflowState` and `WorkflowTransition`
+could each infer their tenant from a parent. They do not, because inheriting it
+through a relation leaves the child table directly queryable with no filter:
+`db.ledgerEntry.findMany()` returned every tenant's postings until a failing
+ledger test caught it. That is a leak which looks like ordinary code in review.
+Six columns of denormalisation is the price of the rule having no exceptions.
+
 **Costs, honestly.**
 
 - `systemPrisma` still exists, and must: sign-in has to find a user before any
@@ -51,7 +59,11 @@ extension does not recognise throws instead of passing through.
   mechanism.
 - The scoped-model list is a literal in code. `tenant-scope.test.ts` parses the
   schema files and fails if the list and the schema disagree, so adding a model
-  without deciding about isolation cannot pass CI.
+  without deciding about isolation cannot pass CI. Note what that test does
+  *not* catch: a model with no `tenantId` at all is consistent with the list
+  and still unfiltered. That gap is why the leak above survived until an
+  integration test found it, and why new child tables get the column by
+  default rather than by argument.
 
 **Three roles, not six.** `OWNER`, `OPERATOR`, `VIEWER` are capability tiers.
 Job titles — packer, designer, proofreader — differ per merchant and change
@@ -112,6 +124,7 @@ inventory exists; until then it is three joins for a display string.
 | Physical bin and slot assignment | Warehouse management. Meaningful only with a specific building's layout. |
 | Support ticketing | Every merchant already has one, and it integrates better than it rebuilds. |
 | A general `AuditLog` table | Lifecycle changes *are* `TransitionLog`; money changes *are* `LedgerEntry`. An audit row written beside a change can disagree with it; a change that is its own record cannot. |
+| A `status` column on `Order` | An order's state is a question about its fulfillments, and fulfillment state is per-tenant configuration. A column here would be a lie the first time two tenants ran different processes. |
 | A `Session` table | Sessions are JWTs, so no request needs a database round-trip to authenticate. |
 | A `RateLimit` table | Rate limiting belongs in middleware and a cache, not in the primary store. |
 

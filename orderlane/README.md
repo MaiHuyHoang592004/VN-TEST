@@ -48,10 +48,13 @@ Next.js · TypeScript · Prisma 7 · PostgreSQL · Turborepo · npm workspaces
 
 ```
 apps/web          the application
+packages/services use cases — composes core with db
 packages/core     domain logic — no dependencies, no database
 packages/db       Prisma schema, client, tenant scoping
 docs/design       why the above is shaped the way it is
 ```
+
+The dependency arrow only ever points one way: `core <- db <- services <- web`.
 
 `packages/core` having no dependencies is a design constraint, not a
 coincidence: the workflow engine, the ledger invariants and the import planner
@@ -62,11 +65,24 @@ nothing installed and no fixtures.
 
 ```bash
 npm install
-npm test                      # domain logic; needs no database
 cp .env.example .env.local    # only DATABASE_URL is required
-npm run db:migrate -w @orderlane/db
+npm run generate -w @orderlane/db
+npm run db:migrate
+npm run db:seed               # two demo merchants, synthetic orders
 npm run dev
 ```
+
+Tests:
+
+```bash
+npm test                      # 138 tests
+```
+
+The 66 pure tests in `@orderlane/core` and `@orderlane/db` need nothing beyond
+Node. The 72 in `@orderlane/services` run against a real PostgreSQL and skip
+themselves without `DATABASE_URL` — except in CI, where they throw instead,
+because a pipeline reporting 72 passing tests having run none of them is worse
+than a red one.
 
 A fresh clone runs with no third-party account. Storage defaults to local disk;
 the shipping carrier defaults to a deterministic fake that issues stable labels
@@ -77,16 +93,28 @@ interface.
 
 Built:
 
-- domain model — 30 models, schema validates, tenant scoping enforced and
-  tested against the schema itself
-- workflow engine — states, transitions, data guards, definition validation
-  including reachability and dead-end detection, two example processes
-- ledger — postings, the balance invariant, reversal, snapshot projection
-- import planner — canonical row hashing, two-phase planning, partial failure
+- **domain model** — 31 models, tenant scoping enforced by a client extension
+  and tested against the schema itself, child tables included
+- **workflow engine** — states, transitions and guards as data; definition
+  validation with reachability and dead-end detection; optimistic locking on
+  every move; an append-only transition log; two example processes, one with
+  two loops
+- **ledger** — double-entry postings, the balance invariant checked at write
+  time, reversal, snapshot projection over a monotonic sequence
+- **import pipeline** — canonical row hashing, stage then preview then commit,
+  one transaction per row, and an application record that makes "applied once"
+  a database guarantee under concurrency
+- **identity** — tenants, memberships, three-tier roles, hashed API keys
+- **catalogue and orders** — keyset pagination, batch SKU resolution,
+  idempotent order creation, split fulfillments
+- **screens** — merchant picker, order list, order detail with live workflow
+  actions driven by `available()`
+- **synthetic seed** — deterministic, invented, and written through the
+  services rather than into the tables
 
-Not built yet: the application's screens beyond a holding page, the seed
-generator, auth, the storage and carrier drivers. The order in which those
-land is in [`docs/design/README.md`](./docs/design/README.md).
+Not built yet: authentication (`apps/web/src/lib/session.ts` is the seam, and
+says so), the storage and carrier drivers behind their ports, stock movement
+wiring, and outbound webhook delivery.
 
 The data in this repository is synthetic. There are no customers, no real SKUs
 and no real prices in it, and `scripts/check-clean-room.sh` runs in CI to keep

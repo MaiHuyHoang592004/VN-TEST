@@ -1,52 +1,54 @@
-import { PRESETS, Workflow, validateDefinition } from "@orderlane/core/workflow";
+import Link from "next/link";
+
+import { Card, Muted } from "@/components/ui";
+import { listTenants } from "@/lib/session";
+
+export const dynamic = "force-dynamic";
 
 /**
- * A holding page that is also a smoke test: it renders the shipped workflow
- * presets straight out of @orderlane/core. If the domain package and the app
- * ever stop agreeing, this page stops building.
+ * A tenant picker stands in for sign-in until auth lands. It is also a fair
+ * summary of the product's shape: everything below this point is scoped to one
+ * merchant, and the URL says which.
  */
-export default function Home() {
+export default async function Home() {
+  const tenants = await listTenants();
+
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: "4rem 16px" }}>
-      <h1 style={{ letterSpacing: "-0.02em" }}>Orderlane</h1>
-      <p style={{ color: "var(--text-muted)", fontSize: "1.05rem" }}>
+    <main className="wrap">
+      <h1 style={{ letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>Orderlane</h1>
+      <p style={{ color: "var(--text-muted)", marginTop: 0 }}>
         A multi-tenant fulfillment workspace. Catalogue, orders, production and shipping, with a
         fulfillment process each merchant configures rather than inherits.
       </p>
 
-      <h2 style={{ marginTop: "3rem", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--text-muted)" }}>
-        Shipped workflow presets
-      </h2>
-
-      {PRESETS.map((preset) => {
-        const workflow = new Workflow(preset);
-        const issues = validateDefinition(preset);
-        const initial = preset.states.find((s) => s.kind === "INITIAL");
-        return (
-          <section
-            key={preset.key}
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              padding: "1.25rem 1.5rem",
-              marginBottom: "1rem",
-            }}
-          >
-            <h3 style={{ margin: "0 0 0.25rem" }}>{preset.name}</h3>
-            <p style={{ margin: 0, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontSize: "0.85rem" }}>
-              {preset.states.length} states · {preset.transitions.length} transitions ·{" "}
-              {issues.length === 0 ? "valid" : `${issues.length} issue(s)`}
-            </p>
-            {initial ? (
-              <p style={{ marginBottom: 0, fontSize: "0.9rem" }}>
-                From <strong>{initial.label}</strong>:{" "}
-                {workflow.outgoing(initial.key).map((t) => t.label).join(", ")}
-              </p>
-            ) : null}
-          </section>
-        );
-      })}
+      {tenants.length === 0 ? (
+        <Card style={{ marginTop: "2rem" }}>
+          <h2 style={{ marginTop: 0, fontSize: "1rem" }}>No data yet</h2>
+          <p style={{ marginBottom: 0 }}>
+            <Muted>
+              Run <code>npm run db:seed</code> to create two demo merchants with synthetic orders.
+            </Muted>
+          </p>
+        </Card>
+      ) : (
+        <div style={{ display: "grid", gap: "0.75rem", marginTop: "2rem" }}>
+          {tenants.map((tenant) => (
+            <Card key={tenant.slug}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: "1.05rem" }}>
+                    <Link href={`/t/${tenant.slug}/orders`}>{tenant.name}</Link>
+                  </h2>
+                  <Muted>{tenant.slug}</Muted>
+                </div>
+                <Muted>
+                  {tenant._count.orders} order{tenant._count.orders === 1 ? "" : "s"}
+                </Muted>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

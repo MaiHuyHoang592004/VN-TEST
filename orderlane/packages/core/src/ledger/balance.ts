@@ -89,8 +89,13 @@ export function signedAmount(entry: PostedEntry): bigint {
 
 export interface BalanceSnapshot {
   readonly amountMinor: bigint;
-  /** Entries at or before this id are already counted in amountMinor. */
-  readonly throughEntryId: string;
+  /**
+   * Entries at or before this sequence number are already counted.
+   *
+   * A sequence, not an id: ids here are cuids, which are roughly ordered and
+   * therefore not ordered. "Everything after this point" has to be exact.
+   */
+  readonly throughSeq: bigint;
 }
 
 /**

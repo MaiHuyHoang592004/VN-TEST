@@ -1,4 +1,4 @@
-export { systemPrisma, forTenant, type TenantClient } from "./client.ts";
+export { systemPrisma, forTenant, type TenantClient, type TenantTx } from "./client.ts";
 export { TENANT_SCOPED_MODELS, isTenantScoped, scopeArgs, type TenantScopedModel } from "./tenant-scope.ts";
 
 /**
@@ -17,6 +17,7 @@ export type {
   BalanceSnapshot,
   Fulfillment,
   FulfillmentLine,
+  ImportApplication,
   ImportJob,
   ImportRow,
   LedgerAccount,

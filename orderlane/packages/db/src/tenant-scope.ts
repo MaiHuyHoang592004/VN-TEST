@@ -21,6 +21,9 @@
  * The test in tenant-scope.test.ts fails if the two ever disagree.
  */
 export const TENANT_SCOPED_MODELS = [
+  "BalanceSnapshot",
+  "FulfillmentLine",
+  "LedgerEntry",
   "Membership",
   "ApiKey",
   "Product",
@@ -30,13 +33,17 @@ export const TENANT_SCOPED_MODELS = [
   "OrderLine",
   "Fulfillment",
   "Shipment",
+  "TransitionLog",
   "WorkflowDefinition",
   "WorkflowInstance",
+  "WorkflowState",
+  "WorkflowTransition",
   "LedgerAccount",
   "LedgerTransaction",
   "Location",
   "StockItem",
   "StockMovement",
+  "ImportApplication",
   "ImportJob",
   "ImportRow",
   "Webhook",

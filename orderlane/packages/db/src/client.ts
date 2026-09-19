@@ -40,3 +40,16 @@ export function forTenant(tenantId: string) {
 }
 
 export type TenantClient = ReturnType<typeof forTenant>;
+
+/**
+ * The client handed to a `$transaction` callback: everything a scoped client
+ * can do except start another transaction or manage the connection.
+ *
+ * Named so that a service which must run several writes atomically can accept
+ * one as a parameter — which is how the import pipeline applies a row and
+ * records that it applied it in the same unit.
+ */
+export type TenantTx = Omit<
+  TenantClient,
+  "$transaction" | "$connect" | "$disconnect" | "$on" | "$extends"
+>;

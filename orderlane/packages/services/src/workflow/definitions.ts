@@ -67,6 +67,7 @@ export async function installDefinition(
     for (const state of definition.states) {
       const created = await tx.workflowState.create({
         data: {
+          tenantId: ctx.tenantId,
           definitionId: row.id,
           key: state.key,
           label: state.label,
@@ -80,6 +81,7 @@ export async function installDefinition(
     for (const transition of definition.transitions) {
       await tx.workflowTransition.create({
         data: {
+          tenantId: ctx.tenantId,
           definitionId: row.id,
           key: transition.key,
           label: transition.label,

@@ -15,6 +15,13 @@
   --accent: oklch(56% 0.16 250);
   --accent-contrast: oklch(99% 0.004 250);
 
+  /* Status tones. Three hues, far enough apart to survive both themes and the
+     most common colour-vision deficiencies, and never used for decoration —
+     a tone on this page means a state. */
+  --positive: oklch(55% 0.13 155);
+  --warning: oklch(62% 0.13 75);
+  --danger: oklch(55% 0.17 22);
+
   --radius: 10px;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Code", monospace;
@@ -29,6 +36,9 @@
     --text-muted: oklch(70% 0.015 250);
     --accent: oklch(72% 0.14 250);
     --accent-contrast: oklch(17% 0.015 250);
+    --positive: oklch(72% 0.14 155);
+    --warning: oklch(78% 0.13 75);
+    --danger: oklch(70% 0.16 22);
   }
 }
 
@@ -40,4 +50,38 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   line-height: 1.55;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 0 0.75rem 0.5rem 0;
+}
+td { padding: 0.6rem 0.75rem 0.6rem 0; border-top: 1px solid var(--border); vertical-align: top; }
+
+button {
+  font: inherit;
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: calc(var(--radius) - 3px);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* A phone is the floor's device, so the layout has to work at 360px. */
+.wrap { max-width: 960px; margin: 0 auto; padding: 3rem 16px 5rem; }
+.scroll-x { overflow-x: auto; }
+@media (max-width: 640px) {
+  .wrap { padding-top: 2rem; }
 }

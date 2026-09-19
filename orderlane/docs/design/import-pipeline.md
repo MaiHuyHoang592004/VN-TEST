@@ -36,6 +36,7 @@ without the file.
 ### One adapter per entity kind
 
 ```ts
+// The pure half, in @orderlane/core — no database, no I/O.
 interface ImportAdapter<T> {
   kind: string;
   columns: readonly string[];
@@ -43,7 +44,15 @@ interface ImportAdapter<T> {
   identityOf(values: T): string | null;   // decides CREATE vs UPDATE
   hashFields: readonly string[];          // which fields are the row's meaning
 }
+
+// The persistence half, in @orderlane/services.
+interface PersistedImportAdapter<T> extends ImportAdapter<T> {
+  apply(tx: TenantTx, ctx: Ctx, values: T): Promise<string>;
+}
 ```
+
+`apply` receives a transaction rather than opening one, so the commit step can
+make the write and the record of it a single unit.
 
 Orders, catalogue and stock differ only in this object. Staging, hashing,
 planning, previewing and committing are shared.
@@ -90,19 +99,40 @@ screen renders its output; the commit step consumes it. The number an operator
 is shown and the work actually performed cannot disagree, because they are the
 same function run twice.
 
-### Idempotency lives in the database
+### Staging a row and applying it are different claims
 
-`@@unique([tenantId, kind, rowHash])` is what actually enforces "importing the
-same row twice creates one record". The planner's check is a courtesy that
-produces a good error message; the constraint is the guarantee. An
-application-level check races with its own retry.
+The first version of this design put `@@unique([tenantId, kind, rowHash])` on
+`ImportRow`, and it was wrong in a way only a test showed: re-uploading a
+corrected spreadsheet stages the *unchanged* rows again, legitimately — they
+are a record of what that file contained — and the constraint rejected the
+whole staging write.
 
-`ImportJob.fileChecksum` answers a different question — "this is byte-for-byte
-the file you uploaded an hour ago" — and is reported rather than blocked.
+So the two claims are separated:
+
+- **`ImportRow`** is what a file said. Not unique; a row may be staged by any
+  number of jobs.
+- **`ImportApplication`** is the record that one row's content has reached the
+  domain, with `@@unique([tenantId, kind, rowHash])`. It is written *inside the
+  same transaction as the write it describes*.
+
+That last detail is the whole guarantee. If the record were written in a
+separate transaction, a crash between the two would let a re-run apply the same
+row again — the one thing this pipeline promises never to do. It is also what
+makes two concurrent commits of overlapping files safe: neither can see the
+other's rows as applied at staging time, so the collision has to be caught at
+write time, and it is.
+
+An application-level "has this been applied?" check races with its own retry. A
+unique index does not.
+
+`ImportJob.fileChecksum` answers a different question again — "this is
+byte-for-byte the file you uploaded an hour ago" — and is reported rather than
+blocked, because sending the same file twice is usually a person being careful.
 
 ## Commit semantics
 
-One transaction per row, not one per batch.
+One transaction per row, not one per batch — and each covers the domain write
+*and* its `ImportApplication` record.
 
 A batch-wide transaction means row 500 failing rolls back 499 successes, which
 is precisely the behaviour the staging phase exists to avoid. Per-row means a
@@ -142,3 +172,17 @@ the framework is what is under test, not any one entity kind:
 - **the round trip**: import three rows, change one value, re-upload the whole
   file — two SKIPPED, one UPDATE, nothing created
 - planning the same input twice gives the same plan
+
+And 13 integration tests in `packages/services/src/import/import.test.ts`,
+against a real database:
+
+- staging writes nothing outside the two staging tables
+- the preview's numbers are exactly what the commit does
+- prices parse from `"12.50"`, `"$12.50"`, `"12,50"`, `"1.234,50"` and `12.5`,
+  and `"twelve fifty"` is reported rather than coerced to `NaN`
+- rows sharing an order reference become **one order with several lines**, and
+  correcting one line's quantity updates that line rather than adding a third
+- a row whose SKU vanished between preview and commit fails alone, and the
+  failure is recorded on that row
+- **two overlapping files committed concurrently** apply each distinct row
+  exactly once, with the duplicate reported as skipped rather than failed

@@ -139,7 +139,7 @@ test("a snapshot changes how long the answer takes, never the answer", () => {
   const cut = 30;
   const snapshot = {
     amountMinor: projectBalance("TENANT_WALLET", entries.slice(0, cut)),
-    throughEntryId: `entry_${cut}`,
+    throughSeq: BigInt(cut),
   };
   const fromSnapshot = projectBalance("TENANT_WALLET", entries.slice(cut), snapshot);
 

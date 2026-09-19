@@ -3,8 +3,11 @@
 // Multi-file schema. Enums live in enums.prisma, one file per model under
 // models/. Two rules hold everywhere:
 //
-//   1. Every tenant-owned row carries `tenantId`. Isolation is enforced once,
-//      in the Prisma client extension (packages/db/src/client.ts), never by
+//   1. Every tenant-owned row carries `tenantId` — INCLUDING child rows that
+//      could infer it from a parent. Inheriting it through a relation leaves
+//      the child table directly queryable without a filter, which is a leak
+//      that looks like correct code. Isolation is then enforced once, in the
+//      Prisma client extension (packages/db/src/client.ts), never by
 //      remembering to add a `where` clause.
 //   2. Money is an integer count of minor units plus an explicit currency.
 //      Never a float, never a bare number without its currency next to it.

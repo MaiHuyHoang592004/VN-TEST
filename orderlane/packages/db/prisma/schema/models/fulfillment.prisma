@@ -40,6 +40,8 @@ model Fulfillment {
 /// service layer inside the same transaction that writes the row.
 model FulfillmentLine {
   id            String      @id @default(cuid())
+  tenantId      String      @map("tenant_id")
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   fulfillmentId String      @map("fulfillment_id")
   fulfillment   Fulfillment @relation(fields: [fulfillmentId], references: [id], onDelete: Cascade)
   orderLineId   String      @map("order_line_id")

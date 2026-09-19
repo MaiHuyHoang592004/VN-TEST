@@ -1,6 +1,6 @@
 # Design
 
-Four decisions carry this project. They are written down first because the
+Five decisions carry this project. They are written down first because the
 reasoning is the part worth reviewing — the CRUD around them is not.
 
 | Document | The decision |
@@ -9,10 +9,15 @@ reasoning is the part worth reviewing — the CRUD around them is not.
 | [workflow-engine.md](./workflow-engine.md) | The fulfillment lifecycle is configuration, not an enum |
 | [ledger.md](./ledger.md) | Money is a double-entry ledger of immutable postings, not a balance column |
 | [import-pipeline.md](./import-pipeline.md) | Bulk import stages, previews, then commits — and is idempotent by content |
+| [auth.md](./auth.md) | Sessions are rows, not tokens, because membership can be revoked |
 
 Each follows the same shape: the problem, the decision, what was rejected and
 why, the costs the decision brings, and how it is tested. The costs sections
 are not modesty — a design note without them is a sales pitch.
+
+One of these documents reverses a decision another one made. That is on
+purpose: a design record containing only the choices that worked out is not a
+record of anything.
 
 ## Conventions these share
 

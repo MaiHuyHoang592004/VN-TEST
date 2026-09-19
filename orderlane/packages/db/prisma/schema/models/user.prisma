@@ -10,16 +10,23 @@ model User {
   passwordHash String?  @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
 
+  /// Set only for the password sign-in method. Null is normal: a person who
+  /// only ever uses email codes has no password to leak.
+  emailVerifiedAt DateTime? @map("email_verified_at")
+
   memberships   Membership[]
   authAccounts  AuthAccount[]
+  sessions      Session[]
   importJobs    ImportJob[]
   transitionLog TransitionLog[]
 
   @@map("users")
 }
 
-/// OAuth account link (Auth.js). Sessions are JWTs, so there is no session
-/// table: nothing here needs a database round-trip on every request.
+/// A federated identity linked to this user. No provider is implemented yet —
+/// the table exists because linking one must not require a schema change, and
+/// because "sign in with X" has to attach to an existing user rather than
+/// silently creating a second one for the same person.
 model AuthAccount {
   id                String  @id @default(cuid())
   userId            String  @map("user_id")
@@ -33,13 +40,4 @@ model AuthAccount {
   @@unique([provider, providerAccountId])
   @@index([userId])
   @@map("auth_accounts")
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expiresAt  DateTime @map("expires_at")
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
 }

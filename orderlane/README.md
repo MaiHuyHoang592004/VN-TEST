@@ -42,6 +42,11 @@ its filter from a Prisma client extension. A caller cannot widen it, and a
 model added without deciding about isolation fails CI.
 → [domain-model.md](./docs/design/domain-model.md)
 
+**Sessions are rows, not tokens.** Because the claim being carried is not "this
+is Ada" but "Ada is an OWNER of Northwind", and that can be revoked — which
+should take effect on the next click, not when a token happens to expire. One
+indexed lookup per request is the price. → [auth.md](./docs/design/auth.md)
+
 ## Stack
 
 Next.js · TypeScript · Prisma 7 · PostgreSQL · Turborepo · npm workspaces
@@ -75,13 +80,13 @@ npm run dev
 Tests:
 
 ```bash
-npm test                      # 138 tests
+npm test                      # 171 tests
 ```
 
-The 66 pure tests in `@orderlane/core` and `@orderlane/db` need nothing beyond
-Node. The 72 in `@orderlane/services` run against a real PostgreSQL and skip
+The 75 pure tests in `@orderlane/core` and `@orderlane/db` need nothing beyond
+Node. The 96 in `@orderlane/services` run against a real PostgreSQL and skip
 themselves without `DATABASE_URL` — except in CI, where they throw instead,
-because a pipeline reporting 72 passing tests having run none of them is worse
+because a pipeline reporting 96 passing tests having run none of them is worse
 than a red one.
 
 A fresh clone runs with no third-party account. Storage defaults to local disk;
@@ -107,14 +112,17 @@ Built:
 - **identity** — tenants, memberships, three-tier roles, hashed API keys
 - **catalogue and orders** — keyset pagination, batch SKU resolution,
   idempotent order creation, split fulfillments
-- **screens** — merchant picker, order list, order detail with live workflow
-  actions driven by `available()`
+- **authentication** — session rows with opaque tokens, scrypt passwords,
+  one-time email codes, sign-in throttling, and errors that do not reveal
+  which accounts exist
+- **screens** — sign-in, workspace list, order list, order detail with live
+  workflow actions driven by `available()`
 - **synthetic seed** — deterministic, invented, and written through the
   services rather than into the tables
 
-Not built yet: authentication (`apps/web/src/lib/session.ts` is the seam, and
-says so), the storage and carrier drivers behind their ports, stock movement
-wiring, and outbound webhook delivery.
+Not built yet: federated sign-in (`AuthAccount` exists so adding it is not a
+schema change), password reset, the storage and carrier drivers behind their
+ports, stock movement wiring, and outbound webhook delivery.
 
 The data in this repository is synthetic. There are no customers, no real SKUs
 and no real prices in it, and `scripts/check-clean-room.sh` runs in CI to keep

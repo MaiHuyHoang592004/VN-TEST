@@ -3,6 +3,7 @@ import Link from "next/link";
 import { listOrders } from "@orderlane/services";
 
 import { Badge, Card, Muted, money, stateTone } from "@/components/ui";
+import { SignOutButton } from "@/components/sign-out";
 import { currentContext } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,7 @@ export default async function OrdersPage({
 }) {
   const { slug } = await params;
   const { cursor } = await searchParams;
-  const { tenant, ctx } = await currentContext(slug);
+  const { tenant, ctx, viewer } = await currentContext(slug);
 
   const page = await listOrders(ctx, { limit: 25, cursor: cursor ?? null });
 
@@ -34,9 +35,14 @@ export default async function OrdersPage({
         <Link href="/">← All merchants</Link>
       </p>
       <h1 style={{ letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>{tenant.name}</h1>
-      <p style={{ marginTop: 0 }}>
-        <Muted>Orders · signed in as {ctx.actor.role.toLowerCase()}</Muted>
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
+        <p style={{ marginTop: 0 }}>
+          <Muted>
+            Orders · {viewer.email} · {ctx.actor.role.toLowerCase()}
+          </Muted>
+        </p>
+        <SignOutButton />
+      </div>
 
       <Card style={{ marginTop: "1.5rem", padding: "1rem 1.25rem" }}>
         {page.items.length === 0 ? (

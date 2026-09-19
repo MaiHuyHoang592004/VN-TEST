@@ -6,6 +6,7 @@
   "description": "Domain logic with no dependencies and no database. Everything here is a pure function over plain data, which is why it can be tested with node --test and nothing else installed.",
   "exports": {
     "./access": "./src/access.ts",
+    "./auth": "./src/auth.ts",
     "./pagination": "./src/pagination.ts",
     "./orders": "./src/orders/totals.ts",
     "./workflow": "./src/workflow/index.ts",

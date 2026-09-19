@@ -120,3 +120,8 @@ enum WebhookDeliveryStatus {
   DELIVERED
   FAILED
 }
+
+enum EmailCodePurpose {
+  SIGN_IN
+  VERIFY_EMAIL
+}

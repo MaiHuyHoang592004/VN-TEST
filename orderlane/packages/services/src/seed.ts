@@ -1,5 +1,7 @@
 import { systemPrisma } from "@orderlane/db";
 
+import { hashPassword } from "./auth/passwords.ts";
+
 import { createProduct, createVariant } from "./catalog/products.ts";
 import type { Ctx } from "./context.ts";
 import { createTenant } from "./identity/tenants.ts";
@@ -33,6 +35,8 @@ function makeRandom(seed: number): () => number {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
+
+export const DEMO_PASSWORD = "demo passphrase 2026";
 
 const random = makeRandom(20260919);
 const pick = <T>(items: readonly T[]): T => items[Math.floor(random() * items.length)]!;
@@ -150,11 +154,16 @@ export async function seed(): Promise<void> {
     return;
   }
 
+  // A shared, obvious demo password. Real enough to exercise the real sign-in
+  // path, and obviously not a secret — which is the point: nobody should be
+  // able to mistake seeded data for production data.
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
+
   const ownerA = await systemPrisma.user.create({
-    data: { email: "owner@example.com", name: "Demo Owner" },
+    data: { email: "owner@example.com", name: "Demo Owner", passwordHash, emailVerifiedAt: new Date() },
   });
   const ownerB = await systemPrisma.user.create({
-    data: { email: "second-owner@example.com", name: "Second Owner" },
+    data: { email: "second-owner@example.com", name: "Second Owner", passwordHash, emailVerifiedAt: new Date() },
   });
 
   const a = await createTenant({ slug: "northwind-goods", name: "Northwind Goods", ownerUserId: ownerA.id });
@@ -172,7 +181,8 @@ export async function seed(): Promise<void> {
   const orders = await systemPrisma.order.count();
   const fulfillments = await systemPrisma.fulfillment.count();
   console.log(`Seeded 2 tenants, ${orders} orders, ${fulfillments} fulfillments.`);
-  console.log("Sign in as owner@example.com (Northwind Goods) or second-owner@example.com (Harbour Press).");
+  console.log(`Sign in as owner@example.com (Northwind Goods) or second-owner@example.com (Harbour Press).`);
+  console.log(`Password for both: ${DEMO_PASSWORD}`);
 }
 
 // Run directly: node --experimental-strip-types src/seed.ts

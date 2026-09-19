@@ -125,7 +125,7 @@ inventory exists; until then it is three joins for a display string.
 | Support ticketing | Every merchant already has one, and it integrates better than it rebuilds. |
 | A general `AuditLog` table | Lifecycle changes *are* `TransitionLog`; money changes *are* `LedgerEntry`. An audit row written beside a change can disagree with it; a change that is its own record cannot. |
 | A `status` column on `Order` | An order's state is a question about its fulfillments, and fulfillment state is per-tenant configuration. A column here would be a lie the first time two tenants ran different processes. |
-| A `Session` table | Sessions are JWTs, so no request needs a database round-trip to authenticate. |
+| ~~A `Session` table~~ | **Reversed.** The original reasoning — JWTs mean no database round trip — is sound for a single-tenant system and wrong here: the claim a token carries is "Ada is an OWNER of Northwind", and that can be revoked. See [auth.md](./auth.md). |
 | A `RateLimit` table | Rate limiting belongs in middleware and a cache, not in the primary store. |
 
 Each line is a scope judgement, and each is reversible. None of them is missing

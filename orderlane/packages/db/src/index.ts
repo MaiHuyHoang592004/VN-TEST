@@ -14,6 +14,8 @@ export { Prisma } from "./generated/client.ts";
 export type {
   ApiKey,
   Asset,
+  AuthAccount,
+  EmailCode,
   BalanceSnapshot,
   Fulfillment,
   FulfillmentLine,
@@ -28,6 +30,7 @@ export type {
   Order,
   OrderLine,
   Product,
+  Session,
   Shipment,
   StockItem,
   StockMovement,
@@ -44,6 +47,7 @@ export type {
 } from "./generated/client.ts";
 export type {
   AssetKind,
+  EmailCodePurpose,
   ImportJobStatus,
   ImportKind,
   ImportRowAction,

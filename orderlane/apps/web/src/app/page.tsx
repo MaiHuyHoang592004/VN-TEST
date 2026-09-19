@@ -1,32 +1,45 @@
 import Link from "next/link";
 
-import { Card, Muted } from "@/components/ui";
-import { listTenants } from "@/lib/session";
+import { Badge, Card, Muted } from "@/components/ui";
+import { currentViewer, myTenants } from "@/lib/session";
+import { SignOutButton } from "@/components/sign-out";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 /**
- * A tenant picker stands in for sign-in until auth lands. It is also a fair
- * summary of the product's shape: everything below this point is scoped to one
- * merchant, and the URL says which.
+ * The workspaces this person belongs to.
+ *
+ * Before authentication this page listed every tenant in the database, which
+ * was fine for a demo and wrong as a product. A person sees the merchants they
+ * are a member of, and no others — the same membership query that scopes every
+ * page below it.
  */
 export default async function Home() {
-  const tenants = await listTenants();
+  const viewer = await currentViewer();
+  if (!viewer) redirect("/signin");
+
+  const tenants = await myTenants(viewer.userId);
 
   return (
     <main className="wrap">
-      <h1 style={{ letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>Orderlane</h1>
-      <p style={{ color: "var(--text-muted)", marginTop: 0 }}>
-        A multi-tenant fulfillment workspace. Catalogue, orders, production and shipping, with a
-        fulfillment process each merchant configures rather than inherits.
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "1rem", flexWrap: "wrap" }}>
+        <div>
+          <h1 style={{ letterSpacing: "-0.02em", marginBottom: "0.25rem" }}>Orderlane</h1>
+          <p style={{ marginTop: 0 }}>
+            <Muted>{viewer.name ? `${viewer.name} · ` : ""}{viewer.email}</Muted>
+          </p>
+        </div>
+        <SignOutButton />
+      </div>
 
       {tenants.length === 0 ? (
         <Card style={{ marginTop: "2rem" }}>
-          <h2 style={{ marginTop: 0, fontSize: "1rem" }}>No data yet</h2>
+          <h2 style={{ marginTop: 0, fontSize: "1rem" }}>No workspaces yet</h2>
           <p style={{ marginBottom: 0 }}>
             <Muted>
-              Run <code>npm run db:seed</code> to create two demo merchants with synthetic orders.
+              This account is not a member of any merchant. Run <code>npm run db:seed</code> for demo
+              data, or ask an owner to invite you.
             </Muted>
           </p>
         </Card>
@@ -41,9 +54,12 @@ export default async function Home() {
                   </h2>
                   <Muted>{tenant.slug}</Muted>
                 </div>
-                <Muted>
-                  {tenant._count.orders} order{tenant._count.orders === 1 ? "" : "s"}
-                </Muted>
+                <span style={{ display: "inline-flex", gap: "0.5rem", alignItems: "center" }}>
+                  <Badge tone="neutral">{tenant.role.toLowerCase()}</Badge>
+                  <Muted>
+                    {tenant._count.orders} order{tenant._count.orders === 1 ? "" : "s"}
+                  </Muted>
+                </span>
               </div>
             </Card>
           ))}

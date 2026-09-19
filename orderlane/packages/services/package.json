@@ -1,0 +1,20 @@
+{
+  "name": "@orderlane/services",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Use cases: the layer that composes pure domain logic from @orderlane/core with persistence from @orderlane/db. The dependency arrow only ever points core <- db <- services <- web.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/harness.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orderlane/core": "*",
+    "@orderlane/db": "*",
+    "zod": "^3.24.1"
+  }
+}

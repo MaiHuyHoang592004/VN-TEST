@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "node --experimental-strip-types prisma/seed.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --test 'src/tenant-scope.test.ts'"
+    "test": "node --experimental-strip-types --test 'src/tenant-scope.test.ts'",
+    "db:deploy": "prisma migrate deploy"
   },
   "dependencies": {
     "@prisma/client": "^7.0.0",

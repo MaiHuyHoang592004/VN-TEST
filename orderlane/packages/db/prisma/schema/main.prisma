@@ -13,6 +13,13 @@
 generator client {
   provider = "prisma-client"
   output   = "../../src/generated"
+
+  // The generated client ships TypeScript. `importFileExtension = "ts"` makes
+  // its internal imports resolve under `node --experimental-strip-types`,
+  // which is what lets the integration tests run against a real database with
+  // no build step and no test-runner dependency.
+  moduleFormat        = "esm"
+  importFileExtension = "ts"
 }
 
 // Prisma 7: the connection URL lives in prisma.config.ts, and the runtime

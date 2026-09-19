@@ -9,14 +9,11 @@
 
 export type StateKind = "INITIAL" | "ACTIVE" | "TERMINAL";
 
-export type Role = "OWNER" | "OPERATOR" | "VIEWER";
-
-/** Ascending capability. A transition's requiredRole is a minimum. */
-export const ROLE_RANK: Readonly<Record<Role, number>> = Object.freeze({
-  VIEWER: 0,
-  OPERATOR: 1,
-  OWNER: 2,
-});
+// Roles belong to the access model, not to the workflow engine — the engine
+// only ever asks "is this actor at least X?". Re-exported so a caller working
+// with transitions does not have to import from two places.
+export { ROLE_RANK, atLeast, type Actor, type Role } from "../access.ts";
+import { ROLE_RANK, type Role } from "../access.ts";
 
 export interface WorkflowState {
   readonly key: string;
@@ -53,11 +50,6 @@ export interface WorkflowDefinition {
   readonly transitions: readonly WorkflowTransition[];
 }
 
-export interface Actor {
-  readonly kind: "USER" | "API_KEY" | "SYSTEM";
-  readonly id?: string;
-  readonly role: Role;
-}
 
 /**
  * What the host application knows about the thing being moved, reduced to

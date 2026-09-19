@@ -8,6 +8,26 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+
+    services:
+      # The service layer is tested against a real PostgreSQL. A mocked Prisma
+      # client would test the mock: unique constraints, optimistic locks and
+      # transaction rollback are all behaviours of the database.
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: orderlane_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/orderlane_test?schema=public
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,13 +42,18 @@ jobs:
 
       - run: npm ci
 
-      # Runs first: it is the cheapest check and the one whose failure means
-      # "do not merge this" rather than "fix this".
+      # First: the cheapest check, and the one whose failure means "do not
+      # merge this" rather than "fix this".
       - name: Clean-room gate
         run: bash scripts/check-clean-room.sh
 
       - name: Validate database schema
         run: npm run validate -w @orderlane/db
+
+      - name: Generate client and apply migrations
+        run: |
+          npm run generate -w @orderlane/db
+          npm run db:deploy -w @orderlane/db
 
       - name: Typecheck
         run: npm run typecheck

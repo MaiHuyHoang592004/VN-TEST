@@ -76,20 +76,42 @@ BANNED_PROVENANCE=(
 # Real addresses. Domains reserved for documentation are allowed.
 EMAIL_ALLOW='(example\.(com|org|net)|test\.local|localhost|noreply@|users\.noreply\.github\.com)'
 
-# ─── Scanners ────────────────────────────────────────────────────────────────
-GREP_EXCLUDES=(
-  --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.next
-  --exclude-dir=dist --exclude-dir=coverage --exclude-dir=.turbo
-  --exclude=package-lock.json --exclude=pnpm-lock.yaml --exclude=yarn.lock
-  --exclude="$(basename "${BASH_SOURCE[0]}")"
-)
+# ─── What gets scanned ───────────────────────────────────────────────────────
+#
+# The files that would be published, not every byte on disk. Inside a git
+# repository that is exactly `git ls-files --cached --others --exclude-standard`
+# — tracked files plus new ones that are not ignored. Scanning the working tree
+# instead means a generated Prisma client or a node_modules fixture can fail
+# the gate over a string that will never leave the machine, and a gate that
+# cries wolf is a gate somebody switches off.
+SELF="$(basename "${BASH_SOURCE[0]}")"
+
+scanned_files() {
+  if [[ -d .git ]] || git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git ls-files --cached --others --exclude-standard
+  else
+    find . -type f \
+      -not -path './.git/*' -not -path '*/node_modules/*' -not -path '*/.next/*' \
+      -not -path '*/dist/*' -not -path '*/.turbo/*' -not -path '*/coverage/*' \
+      -printf '%P\n'
+  fi | grep -vE "(^|/)(package-lock\.json|pnpm-lock\.yaml|yarn\.lock|${SELF})$"
+}
+
+# Materialised once: every scanner reads the same list, and a repository with
+# thousands of files is walked once rather than once per pattern.
+FILE_LIST="$(scanned_files)"
+[[ -n "$FILE_LIST" ]] || { echo "nothing to scan"; exit 0; }
+
+grep_files() {
+  printf '%s\n' "$FILE_LIST" | tr '\n' '\0' | xargs -0 -r grep "$@" 2>/dev/null
+}
 
 scan_tree() {
   local label="$1"; shift
   local hits=0
   for pattern in "$@"; do
     local out
-    out="$(grep -rniE "${GREP_EXCLUDES[@]}" -- "$pattern" . 2>/dev/null | head -20)"
+    out="$(grep_files -niE -- "$pattern" | head -20)"
     if [[ -n "$out" ]]; then
       (( hits == 0 )) && printf '%s✗ %s%s\n' "$RED" "$label" "$OFF"
       hits=1; FAIL=1
@@ -125,8 +147,7 @@ scan_tree "Prior system's schema"             "${BANNED_PRIOR_SCHEMA[@]}"
 scan_tree "Third-party vendors"               "${BANNED_VENDORS[@]}"
 scan_tree "Provenance phrasing"               "${BANNED_PROVENANCE[@]}"
 
-real_emails="$(grep -rhoE "${GREP_EXCLUDES[@]}" \
-    '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' . 2>/dev/null \
+real_emails="$(grep_files -hoE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' \
   | grep -viE "$EMAIL_ALLOW" | sort -u)"
 if [[ -n "$real_emails" ]]; then
   printf '%s✗ Email addresses outside the allowlist%s\n' "$RED" "$OFF"
@@ -136,15 +157,11 @@ else
   printf '%s✓ Email addresses%s\n' "$GREEN" "$OFF"
 fi
 
-# Spreadsheets, dumps and env files are never source. A .sql file is legitimate
-# only where Prisma generates one.
-bad_files="$(find . \
-    -path ./.git -prune -o -path ./node_modules -prune -o -path ./.next -prune -o \
-    \( -name '*.xlsx' -o -name '*.xls' -o -name '*.csv' -o -name '*.tsv' \
-       -o -name '*.dump' -o -name '*.bak' -o -name '.env' -o -name '.env.local' \
-       -o -name '.env.production' \) -print 2>/dev/null)"
-bad_sql="$(find . -name '*.sql' -not -path './.git/*' -not -path './node_modules/*' \
-    -not -path '*/prisma/migrations/*' -print 2>/dev/null)"
+# Spreadsheets, dumps and env files are never source.
+bad_files="$(printf '%s\n' "$FILE_LIST" \
+  | grep -iE '(\.(xlsx|xls|csv|tsv|dump|bak)$|(^|/)\.env(\.(local|production))?$)' || true)"
+# A .sql file is legitimate only where Prisma generates one.
+bad_sql="$(printf '%s\n' "$FILE_LIST" | grep -E '\.sql$' | grep -v '/prisma/migrations/' || true)"
 if [[ -n "$bad_files$bad_sql" ]]; then
   printf '%s✗ Data or secret files that must not be committed%s\n' "$RED" "$OFF"
   printf '%s\n' "$bad_files$bad_sql" | grep -v '^$' | sed 's/^/    /'

@@ -329,8 +329,8 @@ Chạy trong CI của repo mới, ngay từ commit đầu tiên.
 | B2 — design doc trước code | ✅ `orderlane/docs/design/` — bốn tài liệu |
 | B3 — port bằng cách viết lại | ✅ identity → catalog → orders → workflow → ledger → import → screens. 138 test xanh, app chạy thật trên Postgres |
 | B4 — seed tổng hợp + test | ✅ seed tất định, bịa hoàn toàn, ghi qua service. Còn thiếu: auth, storage/carrier driver, webhook |
-| B5 — gate trong CI | ✅ `orderlane/scripts/check-clean-room.sh` + `.github/workflows/ci.yml`, chạy sạch |
-| B6 — repo mới, 1 commit | ⏳ xem `orderlane/EXTRACT.md` |
+| B5 — gate trong CI | ✅ gate + CI (postgres service, migrate deploy). Thêm LICENSE, `.env.example` viết lại cho đúng sự thật |
+| B6 — repo mới, 1 commit | ✅ `scripts/extract.sh` — đã chạy và verify: gate sạch cả tree lẫn history, `npm ci` → 171 test → build đều xanh trên repo tách rời. Việc còn lại là **m** tạo repo GitHub và push |
 
 `orderlane/` đang được **dàn** trong repo private này cho tới B6. Lịch sử của
 repo công khai vẫn sạch: B6 là `cp -r` sang thư mục mới rồi `git init`, không
@@ -352,3 +352,27 @@ tích hợp trên Postgres thật phát hiện — mock Prisma sẽ không thấ
 
 Bài học chung: quét lược đồ tìm bảng thiếu `tenantId` nên là một check tự động,
 không phải một thói quen.
+
+### B6 — kết quả trích xuất
+
+Chạy thật, không phải giả định. Repo tách ra: **126 file, 1 MB, một commit,
+không remote**. Toàn bộ chuỗi CI chạy lại từ đầu trên đó đều xanh.
+
+Gate phát hiện hai false positive ngay lúc chạy trên repo mới, đã sửa:
+
+1. `git log -S` khớp danh sách từ cấm nằm trong **chính file gate**, nên commit
+   *thêm* gate lại bị gate báo đủ mọi từ cấm. Phần quét diff giờ loại trừ đúng
+   đường dẫn đó.
+2. `git@github.com` trong một dòng hướng dẫn bị đọc thành email. Đó là SSH
+   user@host, đã cho vào allowlist.
+
+Cái thứ nhất đáng kể hơn vẻ ngoài: nó nổ trên một repo hoàn toàn sạch, đúng
+khoảnh khắc người ta sẽ kết luận "check này chỉ gây nhiễu" rồi tắt nó đi.
+
+### Hai chỗ tôi từng nói quá, đã sửa
+
+- Seed doc viết dữ liệu sinh ra là "byte-identical". Không đúng: id là cuid,
+  timestamp là `now()`. Đúng phải là **nội dung sinh ra** giống hệt — đã kiểm
+  bằng cách seed hai DB trắng rồi so checksum, khớp.
+- Seed in ra số đơn đếm **toàn cục**, nên chạy sau test suite nó báo 102 thay
+  vì 52. Giờ chỉ đếm trong hai tenant nó vừa tạo.

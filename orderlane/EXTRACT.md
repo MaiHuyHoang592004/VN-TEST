@@ -34,3 +34,31 @@ bash scripts/check-clean-room.sh
 Then set the copyright holder in `LICENSE` to your own name, create the empty
 repository on GitHub, and push. Nothing in this tree names a remote, so there
 is no leftover origin to remove.
+
+## What "clean" has been verified to mean
+
+The extraction was run and the result checked, rather than assumed:
+
+| Check | Result |
+|---|---|
+| `check-clean-room.sh`, working tree | clean, 6 categories |
+| `check-clean-room.sh`, commit history | clean, 3 categories over the single commit |
+| `npm ci` from the lockfile | 191 packages, no drift |
+| `prisma validate` · `generate` · `migrate deploy` | pass, against an empty database |
+| `npm run typecheck` | 4/4 packages |
+| `npm test` | 171 tests, 0 failures |
+| `npm run build` | pass |
+| `npm run db:seed` | 2 tenants, 52 orders, 44 fulfillments |
+| Seed determinism | two fresh databases, identical generated content (same checksum) |
+
+Two false positives in the gate were found by running it on the extracted
+repository, and fixed there rather than waived:
+
+- `git log -S` matched the denylist inside the gate script itself, so the
+  commit that *adds* the check reported every banned term. The diff scan now
+  excludes that one path.
+- `git@github.com` in a printed instruction was read as an email address. It is
+  an SSH user and host; it is allowlisted.
+
+Both mattered more than they look. The first fires on a spotless repository at
+exactly the moment somebody would decide the check is noise.

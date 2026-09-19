@@ -17,9 +17,12 @@ import { applyTransition, startFulfillment } from "./workflow/instances.ts";
  *
  *   1. It is invented. No real customer, SKU, price or address appears here,
  *      and `scripts/check-clean-room.sh` runs in CI to keep it that way.
- *   2. It is deterministic. The generator below is seeded, so every clone
- *      produces byte-identical data — which makes screenshots stable and lets
- *      a test assert on a specific order.
+ *   2. It is deterministic. The generator below is seeded, so the same names,
+ *      addresses, quantities, prices and workflow paths come out of every run
+ *      — which makes screenshots stable and lets a test assert on a specific
+ *      order. NOT byte-identical: ids are cuids and timestamps are `now()`, so
+ *      those differ. Verified by seeding two empty databases and comparing the
+ *      generated content, which matches exactly.
  *   3. It goes through the services, not straight into the tables. A seed that
  *      writes rows directly can produce states the application cannot, and
  *      then the demo shows something that could never happen.
@@ -178,8 +181,12 @@ export async function seed(): Promise<void> {
   await seedTenantData(a.ctx, skusA, 40);
   await seedTenantData(b.ctx, skusB, 12);
 
-  const orders = await systemPrisma.order.count();
-  const fulfillments = await systemPrisma.fulfillment.count();
+  // Counted within the two tenants this run created, not globally: a database
+  // that already held test data would otherwise make this line report somebody
+  // else's rows as though they had just been seeded.
+  const tenantIds = [a.tenantId, b.tenantId];
+  const orders = await systemPrisma.order.count({ where: { tenantId: { in: tenantIds } } });
+  const fulfillments = await systemPrisma.fulfillment.count({ where: { tenantId: { in: tenantIds } } });
   console.log(`Seeded 2 tenants, ${orders} orders, ${fulfillments} fulfillments.`);
   console.log(`Sign in as owner@example.com (Northwind Goods) or second-owner@example.com (Harbour Press).`);
   console.log(`Password for both: ${DEMO_PASSWORD}`);

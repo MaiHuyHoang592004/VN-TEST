@@ -73,8 +73,11 @@ BANNED_PROVENANCE=(
   'oldproject'
 )
 
-# Real addresses. Domains reserved for documentation are allowed.
-EMAIL_ALLOW='(example\.(com|org|net)|test\.local|localhost|noreply@|users\.noreply\.github\.com)'
+# Real addresses. Allowed: the domains RFC 2606 reserves for documentation
+# (example.com/.net/.org — note that example.co.uk is a real registrable domain
+# and is NOT reserved), GitHub's no-reply form, and `git@host`, which is an SSH
+# user and host rather than an address.
+EMAIL_ALLOW='(example\.(com|org|net)|test\.local|localhost|noreply@|users\.noreply\.github\.com|^git@)'
 
 # ─── What gets scanned ───────────────────────────────────────────────────────
 #
@@ -128,8 +131,16 @@ scan_history() {
   for pattern in "$@"; do
     local out
     # --grep searches commit messages; -S --pickaxe-regex searches the diffs.
+    #
+    # The diff search excludes this file. It contains the denylist, so the
+    # commit that adds it necessarily introduces every banned term — the gate
+    # reports itself, on a repository that is otherwise spotless. Found the
+    # first time it ran over a freshly extracted history, which is exactly when
+    # a false positive is most expensive: it is the moment somebody decides the
+    # check is noise and stops reading it.
     out="$( { git log --all --oneline -i --grep="$pattern" 2>/dev/null
-              git log --all --oneline -i -S"$pattern" --pickaxe-regex 2>/dev/null
+              git log --all --oneline -i -S"$pattern" --pickaxe-regex \
+                -- . ":(exclude)scripts/$SELF" 2>/dev/null
             } | sort -u | head -10 )"
     if [[ -n "$out" ]]; then
       (( hits == 0 )) && printf '%s✗ %s%s\n' "$RED" "$label" "$OFF"

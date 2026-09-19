@@ -1,0 +1,155 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// The workflow engine's storage. The engine itself is in @orderlane/core and
+// touches none of this: it takes a plain definition object and returns a
+// decision. See docs/design/workflow-engine.md.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// One merchant's fulfillment process, at one version.
+///
+/// Versioned and immutable once instances exist. Editing a live process in
+/// place would rewrite the meaning of history — a transition log entry saying
+/// "moved to Packed" has to keep meaning what it meant when it was written.
+/// Editing publishes version n+1; running instances finish on the version they
+/// started on.
+model WorkflowDefinition {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  /// Stable across versions, e.g. "standard-retail".
+  key     String
+  version Int    @default(1)
+  name    String
+  /// Exactly one version of a given key is active at a time; new instances get
+  /// that one. Enforced in the service layer, which deactivates the previous
+  /// version in the same transaction that activates the new one.
+  isActive Boolean @default(false) @map("is_active")
+
+  states      WorkflowState[]
+  transitions WorkflowTransition[]
+  instances   WorkflowInstance[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, key, version])
+  @@index([tenantId, isActive])
+  @@map("workflow_definitions")
+}
+
+/// A place work can be. `key` is what code and logs refer to; `label` is what
+/// people read and is translated. Changing a label is a copy edit; changing a
+/// key is a new definition version.
+model WorkflowState {
+  id           String             @id @default(cuid())
+  definitionId String             @map("definition_id")
+  definition   WorkflowDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  key      String
+  label    String
+  kind     WorkflowStateKind @default(ACTIVE)
+  /// Display order only. It carries no meaning for the engine — a process is a
+  /// graph, and assuming it is a line is exactly the mistake a fixed status
+  /// enum makes.
+  position Int               @default(0)
+
+  transitionsFrom WorkflowTransition[] @relation("TransitionFrom")
+  transitionsTo   WorkflowTransition[] @relation("TransitionTo")
+  instances       WorkflowInstance[]
+  logFrom         TransitionLog[]      @relation("LogFrom")
+  logTo           TransitionLog[]      @relation("LogTo")
+
+  @@unique([definitionId, key])
+  @@map("workflow_states")
+}
+
+/// A legal move, plus the conditions for taking it.
+model WorkflowTransition {
+  id           String             @id @default(cuid())
+  definitionId String             @map("definition_id")
+  definition   WorkflowDefinition @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+
+  key   String
+  label String
+
+  fromStateId String        @map("from_state_id")
+  fromState   WorkflowState @relation("TransitionFrom", fields: [fromStateId], references: [id], onDelete: Cascade)
+  toStateId   String        @map("to_state_id")
+  toState     WorkflowState @relation("TransitionTo", fields: [toStateId], references: [id], onDelete: Cascade)
+
+  /// Minimum membership role. Null means any member of the tenant.
+  requiredRole MembershipRole? @map("required_role")
+
+  /// Guards as data, e.g. [{"kind":"all_lines_have_artwork"}]. Each entry is
+  /// resolved through a registry in @orderlane/core. Storing them as data is
+  /// what keeps one merchant's rules out of this schema — and what lets a
+  /// definition be exported, diffed and seeded as JSON.
+  guards Json @default("[]")
+
+  logs TransitionLog[]
+
+  @@unique([definitionId, key])
+  @@index([fromStateId])
+  @@map("workflow_transitions")
+}
+
+/// One running process.
+model WorkflowInstance {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  definitionId String             @map("definition_id")
+  definition   WorkflowDefinition @relation(fields: [definitionId], references: [id])
+
+  currentStateId String        @map("current_state_id")
+  currentState   WorkflowState @relation(fields: [currentStateId], references: [id])
+
+  /// Optimistic lock. Two operators hitting "Mark packed" at once must not
+  /// both succeed: the update matches on this value and increments it, so the
+  /// loser gets zero rows updated and is told to reload rather than writing a
+  /// second transition log entry for a move that happened once.
+  version Int @default(0)
+
+  fulfillment Fulfillment?
+  logs        TransitionLog[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  /// The floor's queue: everything in one state, for one tenant.
+  @@index([tenantId, currentStateId])
+  @@map("workflow_instances")
+}
+
+/// Append-only. Never updated, never deleted.
+///
+/// This replaces a general-purpose audit table for everything lifecycle-shaped.
+/// An audit row written beside a state change can disagree with it; a state
+/// change that IS a log entry cannot. `fromStateId` is stored rather than
+/// derived so the log reads correctly even after its definition is superseded.
+model TransitionLog {
+  id         String           @id @default(cuid())
+  instanceId String           @map("instance_id")
+  instance   WorkflowInstance @relation(fields: [instanceId], references: [id], onDelete: Cascade)
+
+  transitionId String?             @map("transition_id")
+  transition   WorkflowTransition? @relation(fields: [transitionId], references: [id])
+
+  fromStateId String        @map("from_state_id")
+  fromState   WorkflowState @relation("LogFrom", fields: [fromStateId], references: [id])
+  toStateId   String        @map("to_state_id")
+  toState     WorkflowState @relation("LogTo", fields: [toStateId], references: [id])
+
+  actorKind ActorKind @default(USER) @map("actor_kind")
+  actorId   String?   @map("actor_id")
+  actor     User?     @relation(fields: [actorId], references: [id])
+
+  /// Whatever the caller attached: a note, a scan, the carrier event that
+  /// triggered a SYSTEM transition.
+  payload Json?
+
+  at DateTime @default(now())
+
+  @@index([instanceId, at])
+  @@map("transition_logs")
+}

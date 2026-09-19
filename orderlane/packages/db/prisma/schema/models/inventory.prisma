@@ -1,0 +1,69 @@
+/// A place stock sits. Kept minimal on purpose: bins, zones and pick paths are
+/// a warehouse-management product, not this one.
+model Location {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  code     String
+  name     String
+
+  stockItems   StockItem[]
+  fulfillments Fulfillment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, code])
+  @@map("locations")
+}
+
+/// On-hand and reserved counts for one variant at one location.
+///
+/// Both columns are projections of StockMovement, cached here for the same
+/// reason BalanceSnapshot exists: correctness lives in the append-only log,
+/// speed lives in the cache, and the cache can be rebuilt from the log.
+model StockItem {
+  id         String   @id @default(cuid())
+  tenantId   String   @map("tenant_id")
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  locationId String   @map("location_id")
+  location   Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  variantId  String   @map("variant_id")
+  variant    Variant  @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  onHand   Int @default(0) @map("on_hand")
+  reserved Int @default(0)
+
+  movements StockMovement[]
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([locationId, variantId])
+  @@index([tenantId, variantId])
+  @@map("stock_items")
+}
+
+/// Append-only. A reservation is a movement, not a table: reserving,
+/// releasing and consuming are three entries in one log, which is why the
+/// question "why is available stock 4?" has one place to look.
+model StockMovement {
+  id          String            @id @default(cuid())
+  tenantId    String            @map("tenant_id")
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  stockItemId String            @map("stock_item_id")
+  stockItem   StockItem         @relation(fields: [stockItemId], references: [id], onDelete: Cascade)
+  kind        StockMovementKind
+
+  /// Signed. Movements that take stock away are negative; the sign is the
+  /// truth and `kind` is the explanation.
+  quantity Int
+
+  /// What caused it, e.g. "fulfillment:clx123". Not a foreign key, for the
+  /// same reason as LedgerTransaction.reference.
+  reference String?
+  actorId   String? @map("actor_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([stockItemId, createdAt])
+  @@map("stock_movements")
+}

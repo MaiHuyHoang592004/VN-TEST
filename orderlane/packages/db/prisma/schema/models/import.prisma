@@ -1,0 +1,82 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Two-phase ingestion: stage and validate, show the operator exactly what will
+// happen, then commit. Nothing reaches the domain tables before the commit
+// step. See docs/design/import-pipeline.md.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ImportJob {
+  id       String          @id @default(cuid())
+  tenantId String          @map("tenant_id")
+  tenant   Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind     ImportKind
+  status   ImportJobStatus @default(PARSING)
+
+  filename String
+  /// SHA-256 of the uploaded bytes. Re-uploading a byte-identical file is
+  /// recognised and reported, rather than silently re-staged — a different
+  /// question from row-level deduplication, which rowHash answers.
+  fileChecksum String @map("file_checksum")
+
+  totalRows   Int @default(0) @map("total_rows")
+  validRows   Int @default(0) @map("valid_rows")
+  invalidRows Int @default(0) @map("invalid_rows")
+  appliedRows Int @default(0) @map("applied_rows")
+
+  /// Set when parsing itself failed (unreadable file, no recognisable header).
+  /// Row-level problems are never job-level failures — that is the whole point
+  /// of the staging table.
+  error String?
+
+  createdById String    @map("created_by_id")
+  createdBy   User      @relation(fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  committedAt DateTime? @map("committed_at")
+
+  rows ImportRow[]
+
+  @@index([tenantId, createdAt])
+  @@map("import_jobs")
+}
+
+/// One staged row. Holds the raw input verbatim, the verdict on it, and — once
+/// committed — what it turned into.
+model ImportRow {
+  id       String    @id @default(cuid())
+  tenantId String    @map("tenant_id")
+  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  jobId    String    @map("job_id")
+  job      ImportJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  /// Denormalised from the job so the uniqueness constraint below can exist.
+  kind ImportKind
+
+  /// 1-based position in the source file, for error messages a human can act
+  /// on ("row 47"). Explicitly NOT part of rowHash.
+  lineNumber Int @map("line_number")
+
+  /// Exactly what was read, before coercion. Kept so a disagreement about what
+  /// the file said can be settled without the file.
+  raw Json
+
+  /// SHA-256 over the row's canonicalised business content — see
+  /// packages/core/src/import/row-hash.ts. Derived from what the row MEANS,
+  /// not from where it sat, so re-uploading a corrected file updates the one
+  /// row that changed instead of duplicating everything below an inserted line.
+  rowHash String @map("row_hash")
+
+  status ImportRowStatus  @default(VALID)
+  action ImportRowAction  @default(NONE)
+  /// Validation problems, as structured data: [{"field":"sku","code":"unknown_sku"}].
+  /// Structured rather than prose so the preview can group and translate them.
+  issues Json @default("[]")
+
+  /// Filled at commit time.
+  targetId String? @map("target_id")
+
+  /// The constraint that actually enforces "importing the same row twice
+  /// creates one record". An application-level check races with its own retry;
+  /// this does not.
+  @@unique([tenantId, kind, rowHash])
+  @@index([jobId, lineNumber])
+  @@map("import_rows")
+}

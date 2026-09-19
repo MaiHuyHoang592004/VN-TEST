@@ -1,0 +1,87 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Double-entry ledger. One invariant, enforced at write time: every
+// LedgerTransaction's debits equal its credits. See docs/design/ledger.md.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/// A bucket money can be in. There is no `balance` column here — that is the
+/// point. A stored balance and a set of entries are two sources of truth, and
+/// they drift the first time a write half-fails.
+model LedgerAccount {
+  id       String            @id @default(cuid())
+  tenantId String            @map("tenant_id")
+  tenant   Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind     LedgerAccountKind
+  currency String            @db.Char(3)
+
+  entries  LedgerEntry[]
+  snapshot BalanceSnapshot?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, kind, currency])
+  @@map("ledger_accounts")
+}
+
+/// One economic event, e.g. "charge this order to the tenant's wallet". Its
+/// entries are written with it, in one database transaction, or not at all.
+model LedgerTransaction {
+  id       String                @id @default(cuid())
+  tenantId String                @map("tenant_id")
+  tenant   Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind     LedgerTransactionKind
+
+  /// What caused it, e.g. "order:clx123". Not a foreign key: the ledger must
+  /// outlive anything it refers to, and a cascade delete must never be able to
+  /// reach money.
+  reference String?
+  memo      String?
+
+  /// Required, not optional. Every caller names the event it is recording, so
+  /// a retried charge is rejected by the database rather than posted twice.
+  idempotencyKey String @unique @map("idempotency_key")
+
+  entries LedgerEntry[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId, createdAt])
+  @@map("ledger_transactions")
+}
+
+/// One side of one posting. Immutable: a mistake is corrected by posting a
+/// reversing transaction, never by editing or deleting this row.
+model LedgerEntry {
+  id            String            @id @default(cuid())
+  transactionId String            @map("transaction_id")
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id])
+  accountId     String            @map("account_id")
+  account       LedgerAccount     @relation(fields: [accountId], references: [id])
+
+  direction LedgerDirection
+  /// Always positive; `direction` carries the sign. BigInt rather than Int
+  /// because this is an account total's building block: 2^31 minor units is
+  /// about 21 million dollars, which is a plausible lifetime turnover and
+  /// therefore not a safe ceiling.
+  amountMinor BigInt @map("amount_minor")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  /// Balance projection reads an account's entries in insertion order.
+  @@index([accountId, id])
+  @@index([transactionId])
+  @@map("ledger_entries")
+}
+
+/// A cached sum, so reading a balance does not mean summing every entry ever
+/// written. Derived state, and safe to be stale or absent: the balance is
+/// always `snapshot.amount + sum(entries after snapshot.throughEntryId)`, and
+/// deleting every row in this table changes no answer, only the work to get it.
+model BalanceSnapshot {
+  accountId      String        @id @map("account_id")
+  account        LedgerAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  throughEntryId String        @map("through_entry_id")
+  amountMinor    BigInt        @map("amount_minor")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  @@map("balance_snapshots")
+}

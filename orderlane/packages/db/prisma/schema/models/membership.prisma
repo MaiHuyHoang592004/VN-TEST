@@ -1,0 +1,22 @@
+/// Who may do what, in which tenant. This table IS the authorisation model:
+/// every permission check resolves to "does this user hold a membership in
+/// this tenant, and does its role allow the action".
+///
+/// Three roles, not six. Roles here are capability tiers, not job titles — a
+/// job title ("designer", "packer") is an organisational fact that changes
+/// per merchant and belongs in a workflow transition's requiredRole, where it
+/// is configurable, rather than baked into a database enum.
+model Membership {
+  id       String         @id @default(cuid())
+  userId   String         @map("user_id")
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId String         @map("tenant_id")
+  tenant   Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role     MembershipRole @default(OPERATOR)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@map("memberships")
+}

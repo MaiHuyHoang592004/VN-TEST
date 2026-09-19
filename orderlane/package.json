@@ -1,0 +1,28 @@
+{
+  "name": "orderlane",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.6"
+  },
+  "packageManager": "npm@10.9.7",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "check:clean-room": "bash scripts/check-clean-room.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.9.3"
+  }
+}

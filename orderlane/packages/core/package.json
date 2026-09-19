@@ -1,0 +1,17 @@
+{
+  "name": "@orderlane/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Domain logic with no dependencies and no database. Everything here is a pure function over plain data, which is why it can be tested with node --test and nothing else installed.",
+  "exports": {
+    "./workflow": "./src/workflow/index.ts",
+    "./ledger": "./src/ledger/index.ts",
+    "./import": "./src/import/index.ts",
+    "./money": "./src/money.ts"
+  },
+  "scripts": {
+    "test": "node --experimental-strip-types --test 'src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit"
+  }
+}

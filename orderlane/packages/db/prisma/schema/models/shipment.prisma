@@ -1,0 +1,38 @@
+/// A parcel handed to a carrier. Separate from Fulfillment because a carrier
+/// can lose a parcel and a second one gets sent for the same work.
+///
+/// Two status columns, deliberately. `carrierStatus` is whatever string the
+/// carrier sent, stored verbatim so an unexpected value is never discarded.
+/// `status` is our own coarse normalisation of it — the only one the UI and
+/// the workflow guards read, so a carrier revising its vocabulary is a change
+/// in one mapping function rather than across the app.
+model Shipment {
+  id            String      @id @default(cuid())
+  tenantId      String      @map("tenant_id")
+  tenant        Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  fulfillmentId String      @map("fulfillment_id")
+  fulfillment   Fulfillment @relation(fields: [fulfillmentId], references: [id], onDelete: Cascade)
+
+  /// Which carrier driver produced this. "fake" is a first-class value: it is
+  /// what a fresh clone and the test suite use.
+  carrierKey     String  @map("carrier_key")
+  service        String?
+  trackingNumber String? @map("tracking_number")
+  carrierStatus  String? @map("carrier_status")
+  status         ShipmentStatus @default(DRAFT)
+
+  costMinor Int?    @map("cost_minor")
+  currency  String? @db.Char(3)
+
+  labelAssetId String? @map("label_asset_id")
+  labelAsset   Asset?  @relation("ShipmentLabel", fields: [labelAssetId], references: [id])
+
+  shippedAt   DateTime? @map("shipped_at")
+  deliveredAt DateTime? @map("delivered_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([fulfillmentId])
+  /// Inbound carrier webhooks arrive with a tracking number and nothing else.
+  @@index([tenantId, trackingNumber])
+  @@map("shipments")
+}

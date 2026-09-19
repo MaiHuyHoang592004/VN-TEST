@@ -1,0 +1,52 @@
+/// A parcel's worth of work: some of an order's lines, at one location,
+/// advancing through one workflow.
+///
+/// This is the table the old one-row-per-product model could not express. An
+/// order for three mugs and a print, where the print ships from a different
+/// site a week later, is two fulfillments — not a status that has to be wrong
+/// about one of them.
+model Fulfillment {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderId  String @map("order_id")
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  locationId String?   @map("location_id")
+  location   Location? @relation(fields: [locationId], references: [id])
+
+  /// Where this work has got to. One-to-one, and the FK lives here rather than
+  /// the instance carrying a polymorphic (subjectType, subjectId) pair: a
+  /// polymorphic key gives up referential integrity, and the engine's
+  /// genericity is a property of the code in @orderlane/core, which never
+  /// touches the database, not of this schema. A second kind of subject gets
+  /// its own column here.
+  workflowInstanceId String           @unique @map("workflow_instance_id")
+  workflowInstance   WorkflowInstance @relation(fields: [workflowInstanceId], references: [id])
+
+  lines     FulfillmentLine[]
+  shipments Shipment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([orderId])
+  @@index([tenantId, locationId])
+  @@map("fulfillments")
+}
+
+/// How much of an order line this fulfillment covers. The sum of a line's
+/// fulfillment quantities may not exceed its ordered quantity — checked in the
+/// service layer inside the same transaction that writes the row.
+model FulfillmentLine {
+  id            String      @id @default(cuid())
+  fulfillmentId String      @map("fulfillment_id")
+  fulfillment   Fulfillment @relation(fields: [fulfillmentId], references: [id], onDelete: Cascade)
+  orderLineId   String      @map("order_line_id")
+  orderLine     OrderLine   @relation(fields: [orderLineId], references: [id], onDelete: Cascade)
+  quantity      Int
+
+  @@unique([fulfillmentId, orderLineId])
+  @@index([orderLineId])
+  @@map("fulfillment_lines")
+}

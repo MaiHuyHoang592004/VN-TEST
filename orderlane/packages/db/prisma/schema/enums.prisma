@@ -1,0 +1,122 @@
+// Enums are for closed sets this system defines. Two deliberate non-enums:
+//
+//   * The order lifecycle. It is data (WorkflowDefinition), not a type — that
+//     is the central design decision of this project. See
+//     docs/design/workflow-engine.md.
+//   * Carrier tracking strings. External data we do not control stays String;
+//     ShipmentStatus below is our own coarse normalisation of it, not theirs.
+
+enum MembershipRole {
+  OWNER
+  OPERATOR
+  VIEWER
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum AssetKind {
+  PRODUCT_IMAGE
+  ARTWORK
+  SHIPPING_LABEL
+  DOCUMENT
+}
+
+enum WorkflowStateKind {
+  /// Exactly one per definition. Where a new instance starts.
+  INITIAL
+  ACTIVE
+  /// No outgoing transitions. At least one per definition.
+  TERMINAL
+}
+
+enum ActorKind {
+  USER
+  API_KEY
+  /// A transition applied by a scheduled job or an inbound carrier webhook.
+  SYSTEM
+}
+
+enum LedgerAccountKind {
+  /// Funds a tenant has placed with the platform.
+  TENANT_WALLET
+  /// What a tenant owes the platform for work already done.
+  TENANT_RECEIVABLE
+  PLATFORM_REVENUE
+  /// Money in flight: charged to a tenant, not yet recognised as revenue.
+  PLATFORM_CLEARING
+}
+
+enum LedgerDirection {
+  DEBIT
+  CREDIT
+}
+
+enum LedgerTransactionKind {
+  WALLET_FUNDING
+  ORDER_CHARGE
+  ORDER_REFUND
+  SHIPPING_CHARGE
+  ADJUSTMENT
+}
+
+/// Why stock moved. The ledger is append-only, so this is also the vocabulary
+/// of the movements view. Movements that take stock away carry a negative
+/// quantity — the sign is the single source of truth, not the kind.
+enum StockMovementKind {
+  RECEIPT
+  ADJUSTMENT
+  RESERVE
+  RELEASE
+  CONSUME
+  RETURN
+}
+
+enum ImportKind {
+  ORDERS
+  CATALOG
+  STOCK
+}
+
+enum ImportJobStatus {
+  PARSING
+  /// Rows are staged and validated. Nothing has been written to the domain yet.
+  PREVIEW
+  COMMITTING
+  COMPLETED
+  FAILED
+}
+
+enum ImportRowStatus {
+  VALID
+  INVALID
+  APPLIED
+  /// Valid, but its rowHash was already applied by an earlier job.
+  SKIPPED
+}
+
+enum ImportRowAction {
+  CREATE
+  UPDATE
+  NONE
+}
+
+/// Our own coarse view of where a parcel is. The carrier's raw string is kept
+/// verbatim in Shipment.carrierStatus; this is what the UI and the workflow
+/// guards read, so a carrier changing its vocabulary cannot break them.
+enum ShipmentStatus {
+  DRAFT
+  LABEL_PURCHASED
+  IN_TRANSIT
+  DELIVERED
+  EXCEPTION
+  CANCELLED
+}
+
+enum WebhookDeliveryStatus {
+  DELIVERED
+  FAILED
+}

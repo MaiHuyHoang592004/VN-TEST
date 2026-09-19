@@ -1,0 +1,45 @@
+/// A person. Deliberately NOT tenant-scoped: one person can work for several
+/// merchants, which is why authorisation lives on Membership rather than on a
+/// role column here. A role column would have made "which tenant?" ambiguous
+/// the first time somebody joined a second one.
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  imageUrl     String?  @map("image_url")
+  passwordHash String?  @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  memberships   Membership[]
+  authAccounts  AuthAccount[]
+  importJobs    ImportJob[]
+  transitionLog TransitionLog[]
+
+  @@map("users")
+}
+
+/// OAuth account link (Auth.js). Sessions are JWTs, so there is no session
+/// table: nothing here needs a database round-trip on every request.
+model AuthAccount {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refreshToken      String? @map("refresh_token")
+  accessToken       String? @map("access_token")
+  expiresAt         Int?    @map("expires_at")
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expiresAt  DateTime @map("expires_at")
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}

@@ -1,0 +1,22 @@
+// Orderlane — schema root.
+//
+// Multi-file schema. Enums live in enums.prisma, one file per model under
+// models/. Two rules hold everywhere:
+//
+//   1. Every tenant-owned row carries `tenantId`. Isolation is enforced once,
+//      in the Prisma client extension (packages/db/src/client.ts), never by
+//      remembering to add a `where` clause.
+//   2. Money is an integer count of minor units plus an explicit currency.
+//      Never a float, never a bare number without its currency next to it.
+//      See docs/design/ledger.md.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated"
+}
+
+// Prisma 7: the connection URL lives in prisma.config.ts, and the runtime
+// client is constructed with a driver adapter. Nothing secret is in this file.
+datasource db {
+  provider = "postgresql"
+}

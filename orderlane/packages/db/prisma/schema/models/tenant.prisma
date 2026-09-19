@@ -1,0 +1,34 @@
+/// A merchant. The isolation boundary: every other tenant-owned row carries
+/// `tenantId`, and the client extension in packages/db/src/client.ts refuses to
+/// build a query without it.
+model Tenant {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  /// ISO 4217. Every money column in this tenant's rows is counted in the
+  /// minor units of this currency unless the row names another.
+  currency  String   @default("USD") @db.Char(3)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  memberships  Membership[]
+  products     Product[]
+  variants     Variant[]
+  assets       Asset[]
+  orders       Order[]
+  orderLines   OrderLine[]
+  fulfillments Fulfillment[]
+  shipments    Shipment[]
+  definitions  WorkflowDefinition[]
+  instances    WorkflowInstance[]
+  accounts     LedgerAccount[]
+  ledgerTxns   LedgerTransaction[]
+  locations    Location[]
+  stockItems   StockItem[]
+  movements    StockMovement[]
+  importJobs   ImportJob[]
+  importRows   ImportRow[]
+  apiKeys      ApiKey[]
+  webhooks     Webhook[]
+
+  @@map("tenants")
+}

@@ -1,0 +1,94 @@
+/// What a buyer bought. An order is a commercial document: it records what was
+/// agreed and does not move. How the work gets done is Fulfillment's problem,
+/// and where that work has got to is the workflow engine's.
+///
+/// There is no status column here on purpose. An order's "state" is a question
+/// about its fulfillments, and fulfillment state is configurable per tenant —
+/// so a status enum on this table would be a lie the moment two tenants ran
+/// different processes.
+model Order {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  /// Human-facing, per tenant, assigned by the app (not the database) so it
+  /// can carry a prefix the merchant chooses.
+  number String
+
+  /// Where it came from: a sales channel key the tenant defines ("web",
+  /// "wholesale", the name of a marketplace). A free string, because the set
+  /// belongs to the merchant and a closed enum would need a deploy to extend.
+  channel     String
+  /// The channel's own identifier, kept so a second import of the same feed
+  /// can recognise it. Not unique: one channel order may arrive split.
+  externalRef String? @map("external_ref")
+
+  /// Snapshots, not foreign keys. A buyer's address at the time of the order
+  /// is evidence of what was agreed; if it were a row in an addresses table,
+  /// editing it later would silently rewrite history on a shipped order.
+  /// Shape is validated by a Zod schema in packages/core, not by Postgres.
+  buyer  Json
+  shipTo Json @map("ship_to")
+
+  currency      String @db.Char(3)
+  /// All minor units. subtotal + shipping = total is asserted at write time.
+  subtotalMinor Int    @map("subtotal_minor")
+  shippingMinor Int    @default(0) @map("shipping_minor")
+  totalMinor    Int    @map("total_minor")
+
+  placedAt DateTime @map("placed_at")
+
+  /// Dedupe key for API creates. A UNIQUE constraint is what actually makes a
+  /// retried POST create one order rather than two — an application-level
+  /// "does it exist yet?" check races with its own retry. Null for orders
+  /// created in the UI; Postgres permits many nulls under UNIQUE.
+  idempotencyKey String? @unique @map("idempotency_key")
+
+  lines        OrderLine[]
+  fulfillments Fulfillment[]
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@unique([tenantId, number])
+  /// The order list: one tenant, newest first. Covers the default view and
+  /// every date-range filter on it.
+  @@index([tenantId, placedAt])
+  /// Import reconciliation looks up by the channel's own id within a tenant.
+  @@index([tenantId, externalRef])
+  @@map("orders")
+}
+
+/// One line of an order. Carries snapshots of sku and title because a variant
+/// can be renamed or archived after the sale, and a two-year-old invoice must
+/// still say what was actually sold.
+model OrderLine {
+  id       String @id @default(cuid())
+  tenantId String @map("tenant_id")
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  orderId  String @map("order_id")
+  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  variantId String? @map("variant_id")
+  variant   Variant? @relation(fields: [variantId], references: [id])
+
+  sku            String
+  title          String
+  quantity       Int
+  unitPriceMinor Int @map("unit_price_minor")
+
+  /// Buyer-supplied customisation (a name to engrave, a date, a message).
+  /// Free-form by nature: its shape is the product's business, not the
+  /// platform's.
+  personalization Json?
+
+  artworkAssetId String? @map("artwork_asset_id")
+  artworkAsset   Asset?  @relation("LineArtwork", fields: [artworkAssetId], references: [id])
+
+  fulfillmentLines FulfillmentLine[]
+
+  @@index([orderId])
+  @@index([tenantId, sku])
+  @@map("order_lines")
+}

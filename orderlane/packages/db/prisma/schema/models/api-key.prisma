@@ -1,0 +1,17 @@
+/// Only the hash is stored. The plaintext key is shown once, at creation, and
+/// is not recoverable — `prefix` exists so a human can tell two keys apart in
+/// the UI without the system ever holding the secret.
+model ApiKey {
+  id        String    @id @default(cuid())
+  tenantId  String    @map("tenant_id")
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  keyHash   String    @unique @map("key_hash")
+  prefix    String
+  lastUsedAt DateTime? @map("last_used_at")
+  revokedAt DateTime?  @map("revoked_at")
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("api_keys")
+}

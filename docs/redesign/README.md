@@ -143,7 +143,7 @@ Pha PREVIEW là khác biệt đáng kể: người dùng quyết định **trư�
 
 ---
 
-## 6. Cắt quy mô: 37 model → ~18, 37 route → ~14
+## 6. Cắt quy mô: 37 model → 30, nhưng đổi hẳn hình dạng
 
 **Giữ:** `Tenant`, `Membership`, `User`, `Account`, `Session`, `Product`,
 `Variant`, `Asset`, `Order`, `OrderLine`, `Fulfillment`, `Shipment`,
@@ -161,9 +161,26 @@ Pha PREVIEW là khác biệt đáng kể: người dùng quyết định **trư�
 dưới dạng JSON có schema — địa chỉ là ảnh chụp tại thời điểm đặt, không phải
 thực thể chia sẻ), `Warehouse` → `Location` tối giản.
 
+**Đính chính con số.** Bản đầu của tài liệu này ghi "~18 model" trong khi danh
+sách "Giữ" ngay bên dưới đã có 28 tên — con số sai, danh sách đúng. Lược đồ
+thực tế đã dựng là **30 model**.
+
+Và 30 mới là con số trung thực, vì mức cắt không nằm ở số lượng:
+
+- **Bỏ hẳn một nhánh**: Material, MaterialStock, Bom, Vendor, Expense,
+  StockReceipt, BasketPosition, Ticket, TicketReply, WarehouseInventory,
+  ImportMovement, StockImport, UserAllowedProduct, UserInvite, AppConfig,
+  RateLimit, AuditLog, Address — 18 bảng biến mất.
+- **Catalog 4 tầng → 2** (Product → Variant), bỏ ProductVariant và Mockup.
+- **Thêm lại là hạ tầng engine**, không phải phình phạm vi: workflow ×5,
+  ledger ×4, import ×2, fulfillment ×2 (Fulfillment + FulfillmentLine, thứ mô
+  hình một-dòng-một-sản-phẩm không diễn đạt nổi).
+
 Đây không phải cắt cho nhẹ. Đây là câu trả lời phỏng vấn: *"tôi bỏ BOM và
 expense vì chúng thuộc ERP, không thuộc câu chuyện fulfillment mà sản phẩm này
-kể"* — một phán đoán về phạm vi, thứ reviewer đánh giá cao hơn 37 bảng.
+kể — và tôi thêm 11 bảng cho workflow engine, sổ cái và import pipeline vì đó
+mới là phần sản phẩm này làm khác"* — một phán đoán về phạm vi, thứ reviewer
+đánh giá cao hơn 37 bảng.
 
 ---
 
@@ -272,7 +289,7 @@ không đụng thương hiệu nào và đọc được ở mọi ngôn ngữ:
 
 | Tên | Ghi chú |
 |---|---|
-| **Orderlane** | Đề xuất — mô tả đúng việc (đường đi của một đơn hàng), dễ đọc, trung tính. |
+| **Orderlane** | **Đã chốt** — mô tả đúng việc (đường đi của một đơn hàng), dễ đọc, trung tính. |
 | Palletworks | Nghiêng về kho vận. |
 | Fulfil Studio | Rõ nghĩa nhưng hơi chung. |
 | Stitchline | Hợp nếu muốn ám chỉ sản xuất theo yêu cầu. |
@@ -300,3 +317,21 @@ Sanitize một lần rồi quên sẽ hỏng ở commit thứ mười. Vì vậy
 script: [`check-clean-room.sh`](./check-clean-room.sh) — chặn danh sách từ cấm,
 chặn loại file cấm (`.xlsx`, `.csv`, `.sql` dump), chặn email và domain thật.
 Chạy trong CI của repo mới, ngay từ commit đầu tiên.
+
+---
+
+## 15. Tiến độ
+
+| Bước | Trạng thái |
+|---|---|
+| B0 — chốt tên | ✅ Orderlane |
+| B1 — scaffold trắng | ✅ `orderlane/` — Turborepo, Next.js, Prisma 7, lược đồ 30 model đã `prisma validate` |
+| B2 — design doc trước code | ✅ `orderlane/docs/design/` — bốn tài liệu |
+| B3 — port bằng cách viết lại | ⏳ `@orderlane/core` đã có workflow engine, ledger, import planner (47 test xanh). Còn: identity, catalog, orders, screens |
+| B4 — seed tổng hợp + test | ⏳ |
+| B5 — gate trong CI | ✅ `orderlane/scripts/check-clean-room.sh` + `.github/workflows/ci.yml`, chạy sạch |
+| B6 — repo mới, 1 commit | ⏳ xem `orderlane/EXTRACT.md` |
+
+`orderlane/` đang được **dàn** trong repo private này cho tới B6. Lịch sử của
+repo công khai vẫn sạch: B6 là `cp -r` sang thư mục mới rồi `git init`, không
+phải `subtree` hay `filter-repo` — cả hai đều mang commit theo.

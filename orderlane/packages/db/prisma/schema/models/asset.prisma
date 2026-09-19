@@ -1,0 +1,31 @@
+/// A stored file: product photo, buyer artwork, a purchased shipping label.
+///
+/// Content-addressed. `checksum` is the SHA-256 of the bytes and the storage
+/// key is derived from it, so uploading the same artwork twice stores it once
+/// and a re-run of an import cannot fill the bucket with duplicates. The
+/// consequence to know about: deleting an asset row must not delete the object
+/// until no other row shares the checksum.
+model Asset {
+  id          String    @id @default(cuid())
+  tenantId    String    @map("tenant_id")
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  kind        AssetKind
+  checksum    String
+  contentType String    @map("content_type")
+  byteSize    Int       @map("byte_size")
+  width       Int?
+  height      Int?
+  /// Set by the storage driver; the app never parses it. Swapping local disk
+  /// for S3 changes this column's contents and nothing else.
+  storageKey  String    @map("storage_key")
+
+  productCovers Product[]     @relation("ProductCover")
+  orderLines    OrderLine[]   @relation("LineArtwork")
+  shipments     Shipment[]    @relation("ShipmentLabel")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([tenantId, checksum])
+  @@index([tenantId, kind])
+  @@map("assets")
+}

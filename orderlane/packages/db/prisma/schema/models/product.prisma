@@ -1,0 +1,54 @@
+/// A sellable thing. Two levels, not four: Product is what a buyer recognises,
+/// Variant is what a warehouse picks. Anything that needs a third level is a
+/// Variant option, not a new table.
+model Product {
+  id          String        @id @default(cuid())
+  tenantId    String        @map("tenant_id")
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  slug        String
+  title       String
+  description String?
+  status      ProductStatus @default(DRAFT)
+
+  coverAssetId String? @map("cover_asset_id")
+  coverAsset   Asset?  @relation("ProductCover", fields: [coverAssetId], references: [id])
+
+  variants Variant[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, status])
+  @@map("products")
+}
+
+/// The unit of stock, price and order line. `sku` is the merchant's own
+/// identifier and the join key every spreadsheet import resolves against, so
+/// it is unique per tenant and never generated for them.
+model Variant {
+  id        String        @id @default(cuid())
+  tenantId  String        @map("tenant_id")
+  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  productId String        @map("product_id")
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku       String
+  title     String
+  /// Option values as a flat object, e.g. {"size":"11oz","colour":"white"}.
+  /// A table of option/value rows buys nothing until faceted search exists.
+  options   Json          @default("{}")
+  status    ProductStatus @default(DRAFT)
+
+  /// Minor units of Tenant.currency. See docs/design/ledger.md.
+  priceMinor Int @map("price_minor")
+
+  orderLines OrderLine[]
+  stockItems StockItem[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([tenantId, sku])
+  @@index([productId])
+  @@map("variants")
+}

@@ -1,0 +1,43 @@
+/*
+ * Design tokens. Every colour in the application comes from this file; a
+ * literal colour anywhere else is a bug the design gate rejects.
+ *
+ * Built in OKLCH so that a hue can be changed without the lightness of the
+ * ramp moving underneath it — which is what makes contrast ratios hold when
+ * the palette is retuned.
+ */
+:root {
+  --bg: oklch(99% 0.004 250);
+  --surface: oklch(97.5% 0.006 250);
+  --border: oklch(90% 0.01 250);
+  --text: oklch(24% 0.02 250);
+  --text-muted: oklch(52% 0.015 250);
+  --accent: oklch(56% 0.16 250);
+  --accent-contrast: oklch(99% 0.004 250);
+
+  --radius: 10px;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: oklch(17% 0.015 250);
+    --surface: oklch(21% 0.018 250);
+    --border: oklch(30% 0.02 250);
+    --text: oklch(95% 0.008 250);
+    --text-muted: oklch(70% 0.015 250);
+    --accent: oklch(72% 0.14 250);
+    --accent-contrast: oklch(17% 0.015 250);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.55;
+}

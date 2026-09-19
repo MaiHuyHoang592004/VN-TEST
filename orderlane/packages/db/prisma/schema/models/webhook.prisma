@@ -1,0 +1,38 @@
+/// Outbound webhooks. Payloads are signed with an HMAC-SHA256 header; the
+/// secret is per endpoint so revoking one does not break the others.
+model Webhook {
+  id       String   @id @default(cuid())
+  tenantId String   @map("tenant_id")
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url      String
+  secret   String
+  /// Event keys this endpoint wants, e.g. ["fulfillment.transitioned"].
+  events   String[]
+  isActive Boolean  @default(true) @map("is_active")
+
+  deliveries WebhookDelivery[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([tenantId])
+  @@map("webhooks")
+}
+
+/// The outcome of ONE delivery attempt, logged so a subscriber's outage is
+/// visible after the fact rather than only in a log line nobody was watching.
+model WebhookDelivery {
+  id        String                @id @default(cuid())
+  webhookId String                @map("webhook_id")
+  webhook   Webhook               @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  event     String
+  payload   Json
+  status    WebhookDeliveryStatus
+  attempt   Int                   @default(1)
+  responseCode Int?               @map("response_code")
+  error     String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([webhookId, createdAt])
+  @@map("webhook_deliveries")
+}

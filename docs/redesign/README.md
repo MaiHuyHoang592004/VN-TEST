@@ -325,13 +325,30 @@ Chạy trong CI của repo mới, ngay từ commit đầu tiên.
 | Bước | Trạng thái |
 |---|---|
 | B0 — chốt tên | ✅ Orderlane |
-| B1 — scaffold trắng | ✅ `orderlane/` — Turborepo, Next.js, Prisma 7, lược đồ 30 model đã `prisma validate` |
+| B1 — scaffold trắng | ✅ `orderlane/` — Turborepo, Next.js, Prisma 7, lược đồ 31 model đã `prisma validate` |
 | B2 — design doc trước code | ✅ `orderlane/docs/design/` — bốn tài liệu |
-| B3 — port bằng cách viết lại | ⏳ `@orderlane/core` đã có workflow engine, ledger, import planner (47 test xanh). Còn: identity, catalog, orders, screens |
-| B4 — seed tổng hợp + test | ⏳ |
+| B3 — port bằng cách viết lại | ✅ identity → catalog → orders → workflow → ledger → import → screens. 138 test xanh, app chạy thật trên Postgres |
+| B4 — seed tổng hợp + test | ✅ seed tất định, bịa hoàn toàn, ghi qua service. Còn thiếu: auth, storage/carrier driver, webhook |
 | B5 — gate trong CI | ✅ `orderlane/scripts/check-clean-room.sh` + `.github/workflows/ci.yml`, chạy sạch |
 | B6 — repo mới, 1 commit | ⏳ xem `orderlane/EXTRACT.md` |
 
 `orderlane/` đang được **dàn** trong repo private này cho tới B6. Lịch sử của
 repo công khai vẫn sạch: B6 là `cp -r` sang thư mục mới rồi `git init`, không
 phải `subtree` hay `filter-repo` — cả hai đều mang commit theo.
+
+### Ba lỗi thiết kế test tìm ra trong B3
+
+Ghi lại vì đây là phần đáng kể nhất của việc "thiết kế lại chứ không đổi tên":
+cả ba đều là lỗi của bản thiết kế mới, không phải di sản, và cả ba đều do test
+tích hợp trên Postgres thật phát hiện — mock Prisma sẽ không thấy cái nào.
+
+1. **`LedgerEntry` không có `tenantId`**, thừa kế tenant qua quan hệ. Hệ quả:
+   `db.ledgerEntry.findMany()` đọc được entry của mọi tenant. Rò rỉ trông y hệt
+   code đúng khi review. Sáu bảng con giờ đều mang cột.
+2. **`BalanceSnapshot` trỏ tới entry bằng id.** Id là cuid — xấp xỉ có thứ tự,
+   không phải có thứ tự. Thêm `seq bigserial`.
+3. **`@@unique` trên `ImportRow` chặn cả việc dàn lại.** Tách thành hai mệnh đề:
+   `ImportRow` là "file nói gì", `ImportApplication` là "đã áp dụng".
+
+Bài học chung: quét lược đồ tìm bảng thiếu `tenantId` nên là một check tự động,
+không phải một thói quen.

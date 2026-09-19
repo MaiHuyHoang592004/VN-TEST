@@ -49,7 +49,18 @@ export async function signUpWithPassword(input: SignUpInput, meta: SessionMeta =
     // The address is not verified yet, and sign-in does not wait for it. A new
     // account has no data to protect, and blocking on a delayed email is a
     // reliable way to lose the person before they see the product.
-    await issueEmailCode(email, "VERIFY_EMAIL");
+    //
+    // A mailer that refuses or fails must not take the account with it: the
+    // person has a password and a session, and the address can be verified
+    // later. The warning names the failure without repeating the code.
+    try {
+      await issueEmailCode(email, "VERIFY_EMAIL");
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `could not send a verification code: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
     return createSession(user.id, meta);
   } catch (error) {
     if (typeof error === "object" && error !== null && (error as { code?: string }).code === "P2002") {

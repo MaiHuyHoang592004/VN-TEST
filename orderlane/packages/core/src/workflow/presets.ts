@@ -7,6 +7,15 @@ import type { WorkflowDefinition } from "./types.ts";
  * (a proof that goes back for changes, a quality check that sends work back to
  * production), which no ordered status enum can express without lying. A
  * merchant copies one and edits it; neither is privileged in the code.
+ *
+ * Every transition names a `requiredRole`, including the ones that represent
+ * something an outside party did — a carrier delivering, a buyer approving.
+ * The temptation is to leave those open, because they are not staff actions.
+ * But `requiredRole: null` means "any member of the tenant", and the lowest
+ * membership tier is read-only, so an open transition hands a VIEWER the
+ * ability to close a fulfillment for good. Until there is a webhook route with
+ * a SYSTEM actor behind it, a person records those events, and that person
+ * needs write access. `presets.test.ts` fails if a new transition omits it.
  */
 
 /** Stock on hand, nothing made to order: pick, pack, dispatch. */
@@ -42,9 +51,9 @@ export const STANDARD_RETAIL: WorkflowDefinition = {
       requiredRole: "OPERATOR",
       guards: [{ kind: "flag_is_true", flag: "has_shipping_label" }],
     },
-    { key: "confirm_delivery", label: "Confirm delivery", from: "dispatched", to: "delivered" },
-    { key: "raise_exception", label: "Raise delivery exception", from: "dispatched", to: "exception" },
-    { key: "resume_delivery", label: "Resume delivery", from: "exception", to: "dispatched" },
+    { key: "confirm_delivery", label: "Confirm delivery", from: "dispatched", to: "delivered", requiredRole: "OPERATOR" },
+    { key: "raise_exception", label: "Raise delivery exception", from: "dispatched", to: "exception", requiredRole: "OPERATOR" },
+    { key: "resume_delivery", label: "Resume delivery", from: "exception", to: "dispatched", requiredRole: "OPERATOR" },
     { key: "accept_return", label: "Accept return", from: "exception", to: "returned", requiredRole: "OPERATOR" },
     { key: "cancel_early", label: "Cancel", from: "received", to: "cancelled", requiredRole: "OWNER" },
     { key: "cancel_picking", label: "Cancel", from: "picking", to: "cancelled", requiredRole: "OWNER" },
@@ -81,8 +90,8 @@ export const MADE_TO_ORDER: WorkflowDefinition = {
       requiredRole: "OPERATOR",
       guards: [{ kind: "count_is_zero", count: "lines_missing_artwork" }],
     },
-    { key: "request_changes", label: "Buyer requested changes", from: "awaiting_approval", to: "proofing" },
-    { key: "approve_proof", label: "Buyer approved", from: "awaiting_approval", to: "in_production" },
+    { key: "request_changes", label: "Buyer requested changes", from: "awaiting_approval", to: "proofing", requiredRole: "OPERATOR" },
+    { key: "approve_proof", label: "Buyer approved", from: "awaiting_approval", to: "in_production", requiredRole: "OPERATOR" },
     { key: "send_to_qc", label: "Send to quality check", from: "in_production", to: "quality_check", requiredRole: "OPERATOR" },
     { key: "qc_rework", label: "Send back for rework", from: "quality_check", to: "in_production", requiredRole: "OPERATOR" },
     { key: "qc_pass", label: "Passed quality check", from: "quality_check", to: "packed", requiredRole: "OPERATOR" },
@@ -94,7 +103,7 @@ export const MADE_TO_ORDER: WorkflowDefinition = {
       requiredRole: "OPERATOR",
       guards: [{ kind: "flag_is_true", flag: "has_shipping_label" }],
     },
-    { key: "confirm_delivery", label: "Confirm delivery", from: "dispatched", to: "delivered" },
+    { key: "confirm_delivery", label: "Confirm delivery", from: "dispatched", to: "delivered", requiredRole: "OPERATOR" },
     { key: "cancel_early", label: "Cancel", from: "received", to: "cancelled", requiredRole: "OWNER" },
     { key: "cancel_proofing", label: "Cancel", from: "proofing", to: "cancelled", requiredRole: "OWNER" },
     { key: "cancel_awaiting", label: "Cancel", from: "awaiting_approval", to: "cancelled", requiredRole: "OWNER" },

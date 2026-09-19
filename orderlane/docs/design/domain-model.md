@@ -40,6 +40,19 @@ filter into every operation on a scoped model. `tenantId` is merged *last*, so
 a caller passing their own is overwritten rather than trusted. An operation the
 extension does not recognise throws instead of passing through.
 
+**Reads and writes need different treatment.** Filtering `where` stops a caller
+reading across the boundary; it does not stop them *moving a row* across it.
+`update({ where: { id }, data: { tenantId: someoneElse } })` satisfies the
+filter — the row really is theirs — and then hands it away. So `tenantId` is
+stripped from the payload of every `update`, `updateMany` and `upsert.update`.
+Creates are not stripped, because there it is merged and overwrites whatever
+was passed: the same guarantee reached from the other side.
+
+No call site forwards a user-supplied `data` object, so this was never a live
+hole. It is here because "a caller cannot widen its own scope" should be a
+property of the mechanism, not a property of the current callers — and these
+packages are meant to be built on.
+
 **Child rows carry the column too.** `LedgerEntry`, `BalanceSnapshot`,
 `TransitionLog`, `FulfillmentLine`, `WorkflowState` and `WorkflowTransition`
 could each infer their tenant from a parent. They do not, because inheriting it

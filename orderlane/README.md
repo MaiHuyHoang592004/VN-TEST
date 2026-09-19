@@ -80,7 +80,7 @@ npm run dev
 Tests:
 
 ```bash
-npm test                      # 171 tests
+npm test                      # 198 tests
 ```
 
 The 75 pure tests in `@orderlane/core` and `@orderlane/db` need nothing beyond

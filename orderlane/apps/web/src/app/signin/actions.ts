@@ -1,5 +1,6 @@
 "use server";
 
+import { safeRedirectPath } from "@orderlane/core/redirect";
 import {
   SESSION_COOKIE,
   ServiceError,
@@ -47,22 +48,10 @@ function messageFor(error: unknown): string {
   return "Something went wrong. Try again.";
 }
 
-/**
- * Where to go after signing in.
- *
- * Only a path on this site is accepted. An open redirect turns a sign-in page
- * into a credible way to send somebody somewhere else, and `//evil.example` is
- * a path-looking string that a browser reads as another origin.
- */
-function safeNext(raw: FormDataEntryValue | null): string {
-  const value = typeof raw === "string" ? raw : "";
-  return /^\/(?!\/)/.test(value) ? value : "/";
-}
-
 export async function signInAction(_previous: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
-  const next = safeNext(formData.get("next"));
+  const next = safeRedirectPath(formData.get("next"));
 
   try {
     await setSessionCookie(await signInWithPassword({ email, password }, await sessionMeta()));
@@ -76,7 +65,7 @@ export async function signUpAction(_previous: AuthFormState, formData: FormData)
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
   const name = String(formData.get("name") ?? "");
-  const next = safeNext(formData.get("next"));
+  const next = safeRedirectPath(formData.get("next"));
 
   try {
     await setSessionCookie(
@@ -107,7 +96,7 @@ export async function requestCodeAction(_previous: AuthFormState, formData: Form
 export async function signInWithCodeAction(_previous: AuthFormState, formData: FormData): Promise<AuthFormState> {
   const email = String(formData.get("email") ?? "");
   const code = String(formData.get("code") ?? "");
-  const next = safeNext(formData.get("next"));
+  const next = safeRedirectPath(formData.get("next"));
 
   try {
     await setSessionCookie(await signInWithEmailCode(email, code, await sessionMeta()));

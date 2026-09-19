@@ -283,3 +283,74 @@ test("changing a password ends every other session", skipWithoutDb, async () => 
   await assert.rejects(() => signInWithPassword({ email, password: PASSWORD }), ValidationError);
   await assert.doesNotReject(() => signInWithPassword({ email, password: "a whole new passphrase" }));
 });
+
+// ─── Regression: a one-time code must never reach a production log ───────────
+
+test("the console mailer refuses to print a code in production", async () => {
+  // Pure: no database needed, so it runs everywhere the suite does.
+  const { consoleMailer } = await import("./mailer.ts");
+  const previous = process.env["NODE_ENV"];
+  try {
+    process.env["NODE_ENV"] = "production";
+    await assert.rejects(
+      () => consoleMailer.send({ to: "someone@example.com", subject: "482913 is your code", text: "482913" }),
+      /No mailer is configured/,
+      "printing a live authentication factor into a log stream is not an acceptable default",
+    );
+  } finally {
+    if (previous === undefined) delete process.env["NODE_ENV"];
+    else process.env["NODE_ENV"] = previous;
+  }
+});
+
+test("outside production it still prints, because that is what it is for", async () => {
+  const { consoleMailer } = await import("./mailer.ts");
+  const previous = process.env["NODE_ENV"];
+  const logged: string[] = [];
+  const realLog = console.log;
+  try {
+    process.env["NODE_ENV"] = "development";
+    console.log = (...args: unknown[]) => void logged.push(args.join(" "));
+    await consoleMailer.send({ to: "someone@example.com", subject: "482913 is your code", text: "482913" });
+  } finally {
+    console.log = realLog;
+    if (previous === undefined) delete process.env["NODE_ENV"];
+    else process.env["NODE_ENV"] = previous;
+  }
+  assert.equal(logged.length, 1);
+  assert.match(logged[0]!, /482913/);
+});
+
+test("signing up survives a mailer that refuses", skipWithoutDb, async () => {
+  // The account and its session are the point; the verification code is not.
+  const { setMailer: swap } = await import("./mailer.ts");
+  const email = anEmail();
+  const realLog = console.warn;
+  const warnings: string[] = [];
+  try {
+    swap({ name: "broken", async send() { throw new Error("no transport"); } });
+    console.warn = (...args: unknown[]) => void warnings.push(args.join(" "));
+    const session = await signUpWithPassword({ email, password: PASSWORD });
+    assert.equal((await resolveSession(session.token))?.email, email);
+  } finally {
+    console.warn = realLog;
+    swap(mail);
+  }
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0]!, /could not send a verification code/);
+  assert.doesNotMatch(warnings[0]!, /\d{6}/, "and the warning does not repeat the code");
+});
+
+test("requesting a sign-in code does NOT survive a mailer that refuses", skipWithoutDb, async () => {
+  // The opposite call: here sending IS the operation, so a silent success
+  // would leave somebody waiting for an email that was never sent.
+  const { setMailer: swap } = await import("./mailer.ts");
+  const email = anEmail();
+  await signUpWithPassword({ email, password: PASSWORD });
+  try {
+    swap({ name: "broken", async send() { throw new Error("no transport"); } });
+    await assert.rejects(() => requestSignInCode(email), /no transport/);
+  } finally {
+    swap(mail);
+  }
+});

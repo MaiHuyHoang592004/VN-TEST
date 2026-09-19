@@ -1,3 +1,4 @@
+import { safeRedirectPath } from "@orderlane/core/redirect";
 import { redirect } from "next/navigation";
 
 import { Card, Muted } from "@/components/ui";
@@ -8,7 +9,10 @@ export const dynamic = "force-dynamic";
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const { next } = await searchParams;
-  const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  // The same guard the actions use. This site is the one that matters: it is a
+  // plain GET, so it redirects an already-signed-in visitor with no form and no
+  // JavaScript involved.
+  const target = safeRedirectPath(next);
 
   // Already signed in: a sign-in page is not a useful thing to show somebody
   // who is.

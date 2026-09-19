@@ -60,6 +60,30 @@ export function isTenantScoped(model: string | undefined): model is TenantScoped
 type Args = Record<string, unknown>;
 
 /**
+ * Strip `tenantId` from an update payload.
+ *
+ * The filter on `where` stops a caller READING across the boundary; this stops
+ * them MOVING a row across it. `update({ where: { id }, data: { tenantId } })`
+ * passes the where-clause check — the row really is theirs — and then hands it
+ * to somebody else.
+ *
+ * No call site forwards a user-supplied `data` object today, so this is not a
+ * live hole. It is here because these packages are meant to be built on, and
+ * "a caller cannot widen its own scope" should be true of the mechanism rather
+ * than true by inspection of the current callers.
+ *
+ * Creates are not stripped: there the tenant id is MERGED, overwriting whatever
+ * was passed, which is the same guarantee reached the other way round.
+ */
+function withoutTenantId(data: unknown): unknown {
+  if (typeof data !== "object" || data === null) return data;
+  if (Array.isArray(data)) return data.map(withoutTenantId);
+  if (!("tenantId" in data)) return data;
+  const { tenantId: _discarded, ...rest } = data as Args;
+  return rest;
+}
+
+/**
  * Rewrite one operation's arguments so it cannot escape its tenant.
  *
  * `tenantId` is merged LAST in every branch. A caller passing their own
@@ -83,11 +107,15 @@ export function scopeArgs(operation: string, args: Args, tenantId: string): Args
     case "count":
     case "aggregate":
     case "groupBy":
-    case "updateMany":
     case "deleteMany":
-    case "update":
     case "delete":
       return { ...args, where: withTenant(args["where"]) };
+
+    // Updates get the filter AND lose any tenantId in their payload: the
+    // filter proves the row is theirs, and stripping stops them giving it away.
+    case "update":
+    case "updateMany":
+      return { ...args, where: withTenant(args["where"]), data: withoutTenantId(args["data"]) };
 
     case "create":
       return { ...args, data: { ...(args["data"] as Args), tenantId } };
@@ -104,7 +132,7 @@ export function scopeArgs(operation: string, args: Args, tenantId: string): Args
         ...args,
         where: withTenant(args["where"]),
         create: { ...(args["create"] as Args), tenantId },
-        update: { ...(args["update"] as Args) },
+        update: withoutTenantId(args["update"]),
       };
 
     default:

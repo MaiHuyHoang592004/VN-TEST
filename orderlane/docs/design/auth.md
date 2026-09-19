@@ -79,6 +79,23 @@ choice as the fake shipping carrier, so somebody evaluating this project can
 complete a passwordless sign-in with no API key and exercise the real code path
 doing it.
 
+**And it refuses to do that in production.** A one-time code is a complete
+authentication factor: `signInWithEmailCode` issues a session on a valid code
+alone. Printing one puts a live credential into a log stream, which on every
+real platform has a broader and different access model than the database —
+somebody with a log-reader seat and no database access could request a code for
+any address and read it back. The console mailer therefore throws when
+`NODE_ENV` is `production`, naming the fix.
+
+Failing loudly rather than quietly is the point. An unconfigured mailer is
+otherwise invisible: `requestSignInCode` returns the same success-shaped result
+whether or not an address exists, deliberately, so an operator who never wired
+one up would see no error at all — just a sign-in page quietly logging
+everybody's codes. Sign-**up** is the one caller that tolerates the refusal: it
+warns without repeating the code and creates the account anyway, because the
+person already has a password and a session and the address can be verified
+later.
+
 ## Not telling strangers things
 
 Sign-in is the most-probed endpoint a product has, and the default behaviour of
@@ -142,8 +159,39 @@ Two smaller things the same layer handles: a service `NotFoundError` is
 translated into Next's `notFound()` (untranslated it surfaces as a 500, which
 tells a visitor that something exists and broke rather than that there is
 nothing here for them), and the post-sign-in redirect accepts only a path on
-this site — `//evil.example` is a path-looking string a browser reads as
-another origin.
+this site.
+
+That second one is worth its own paragraph, because the obvious version of it
+is wrong. The first implementation was `/^\/(?!\/)/` — starts with a slash,
+but not two — duplicated between the sign-in page and its server actions. It
+rejects `//evil.example` and accepts `/\evil.example/phish`, which every
+browser reads as an authority: under WHATWG URL parsing a backslash is
+equivalent to a slash in a special scheme. A security review caught it, and
+reproduced the whole chain against the installed Next build: the guard passed
+the payload, `redirect()` performed no validation of its own, and the response
+carried `location: /\evil.example/phish` unnormalised. An already-signed-in
+visitor following a link on the real domain, with the real certificate, would
+land on somebody else's sign-in page.
+
+The fix is not a better pattern. `safeRedirectPath` in `@orderlane/core` asks
+the URL parser the same question the browser will ask — resolve against an
+unreachable sentinel origin, and accept the answer only if nothing moved:
+
+```ts
+const resolved = new URL(raw, "https://redirect-guard.invalid");
+if (resolved.origin !== "https://redirect-guard.invalid") return "/";
+```
+
+That rejects `//evil`, `/\evil`, `https://evil` and `javascript:` by
+construction rather than by enumeration. It lives in the dependency-free
+package so it can be tested exhaustively, and both call sites share it — the
+duplication is how the page and the action drifted in the first place.
+
+One thing it deliberately does **not** reject: `/%5Cevil.example`. The URL
+parser does not decode `%5C` before deciding where an authority starts, so that
+stays a path on this origin. A test pins that down, because it is the obvious
+next guess and rejecting it would break legitimate paths for nothing — and a
+guard that refuses safe input teaches people to route around it.
 
 **A build-time lesson worth keeping:** the session cookie's *name* lives in
 `@orderlane/core`, which has no dependencies, because Edge middleware needs it.

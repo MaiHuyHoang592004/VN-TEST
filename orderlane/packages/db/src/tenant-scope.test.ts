@@ -84,3 +84,40 @@ test("an unrecognised operation is refused, not waved through", () => {
     /unhandled operation "someFutureOperation"/,
   );
 });
+
+test("an update cannot give a row away to another tenant", () => {
+  // The where-clause filter proves the row belongs to the caller. Without this,
+  // the payload could then hand it to somebody else — a boundary crossing that
+  // passes every check the filter performs.
+  assert.deepEqual(
+    scopeArgs("update", { where: { id: "x" }, data: { title: "ok", tenantId: "someone_else" } }, "mine"),
+    { where: { id: "x", tenantId: "mine" }, data: { title: "ok" } },
+  );
+
+  assert.deepEqual(
+    scopeArgs("updateMany", { where: { status: "ACTIVE" }, data: { tenantId: "someone_else" } }, "mine"),
+    { where: { status: "ACTIVE", tenantId: "mine" }, data: {} },
+  );
+});
+
+test("upsert strips the tenant from its update half and merges it into its create half", () => {
+  assert.deepEqual(
+    scopeArgs(
+      "upsert",
+      { where: { id: "x" }, create: { sku: "a", tenantId: "other" }, update: { sku: "b", tenantId: "other" } },
+      "mine",
+    ),
+    {
+      where: { id: "x", tenantId: "mine" },
+      create: { sku: "a", tenantId: "mine" },
+      update: { sku: "b" },
+    },
+  );
+});
+
+test("an update payload without a tenantId is passed through untouched", () => {
+  const args = { where: { id: "x" }, data: { title: "ok", priceMinor: 100 } };
+  const scoped = scopeArgs("update", args, "mine");
+  assert.deepEqual(scoped["data"], { title: "ok", priceMinor: 100 });
+  assert.equal(scoped["data"], args.data, "no needless copy when there is nothing to strip");
+});

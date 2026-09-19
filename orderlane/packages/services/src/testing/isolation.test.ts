@@ -132,3 +132,25 @@ test("a child table cannot be read across tenants either", skipWithoutDb, async 
   assert.equal(await b.ctx.db.ledgerEntry.count(), 1);
   assert.deepEqual(await a.ctx.db.ledgerEntry.findMany(), []);
 });
+
+test("a tenant cannot hand one of its own rows to another tenant", skipWithoutDb, async () => {
+  // The unit test covers the argument rewriting; this proves it against a real
+  // update. The row genuinely belongs to A, so the where-clause filter is
+  // satisfied — the only thing stopping the move is the payload being stripped.
+  const a = await seedTenant();
+  const b = await seedTenant();
+
+  const product = await a.ctx.db.product.create({
+    data: { tenantId: a.tenantId, slug: "mine", title: "Mine" },
+  });
+
+  await a.ctx.db.product.update({
+    where: { id: product.id },
+    data: { title: "Renamed", tenantId: b.tenantId } as never,
+  });
+
+  assert.equal(await b.ctx.db.product.count(), 0, "the row did not move");
+  const after = await a.ctx.db.product.findUniqueOrThrow({ where: { id: product.id } });
+  assert.equal(after.tenantId, a.tenantId);
+  assert.equal(after.title, "Renamed", "the rest of the update still applied");
+});

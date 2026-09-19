@@ -146,6 +146,86 @@ test("available() is what the UI renders, and it tracks facts and role", skipWit
   assert.deepEqual(await availableTransitions(viewer, started.instanceId), [], "a viewer sees no buttons");
 });
 
+test("a viewer sees no buttons in ANY state, not just the first one", skipWithoutDb, async () => {
+  // The assertion above used to be the only one, and it was made in `received`,
+  // where both outgoing edges happened to carry a requiredRole. Six other
+  // preset transitions did not, so a viewer on a dispatched order was shown a
+  // working "Confirm delivery" button. This walks the order forward and checks
+  // each state it passes through.
+  const { ctx } = await seedFullTenant();
+  await seedCatalog(ctx);
+  const order = await anOrder(ctx, [{ sku: "mug-11oz", quantity: 1 }]);
+  const started = await startFulfillment(ctx, {
+    orderId: order.id,
+    lines: [{ orderLineId: order.lines[0]!.id, quantity: 1 }],
+  });
+  await giveItALabel(ctx, started.fulfillmentId);
+
+  const viewer = { ...ctx, actor: { ...ctx.actor, role: "VIEWER" as const } };
+
+  for (const step of ["start_picking", "mark_packed", "dispatch", "raise_exception"]) {
+    assert.deepEqual(
+      await availableTransitions(viewer, started.instanceId),
+      [],
+      `a viewer should see nothing before ${step}`,
+    );
+    await applyTransition(ctx, started.instanceId, step);
+  }
+  assert.deepEqual(await availableTransitions(viewer, started.instanceId), [], "nor in the exception state");
+});
+
+test("a viewer cannot take a transition even by posting one directly", skipWithoutDb, async () => {
+  // Hiding the button is not the control. `takeTransition` reads its
+  // transitionKey from a form field, so the service has to refuse too.
+  const { ctx } = await seedFullTenant();
+  await seedCatalog(ctx);
+  const order = await anOrder(ctx, [{ sku: "mug-11oz", quantity: 1 }]);
+  const started = await startFulfillment(ctx, {
+    orderId: order.id,
+    lines: [{ orderLineId: order.lines[0]!.id, quantity: 1 }],
+  });
+  await giveItALabel(ctx, started.fulfillmentId);
+  for (const step of ["start_picking", "mark_packed", "dispatch"]) {
+    await applyTransition(ctx, started.instanceId, step);
+  }
+
+  const viewer = { ...ctx, actor: { ...ctx.actor, role: "VIEWER" as const } };
+  await assert.rejects(
+    () => applyTransition(viewer, started.instanceId, "confirm_delivery"),
+    ForbiddenError,
+    "delivered is terminal — a read-only member must not be able to close a fulfillment for good",
+  );
+
+  const instance = await ctx.db.workflowInstance.findUniqueOrThrow({
+    where: { id: started.instanceId },
+    include: { currentState: true },
+  });
+  assert.equal(instance.currentState.key, "dispatched", "and nothing moved");
+});
+
+test("publishing or activating a process is an owner's decision", skipWithoutDb, async () => {
+  const { ctx } = await seedFullTenant();
+  const operator = { ...ctx, actor: { ...ctx.actor, role: "OPERATOR" as const } };
+  const { installDefinition } = await import("./definitions.ts");
+
+  await assert.rejects(() => setActiveDefinition(operator, "made-to-order"), ForbiddenError);
+  await assert.rejects(
+    () =>
+      installDefinition(operator, {
+        key: "operator-made",
+        version: 1,
+        name: "Operator made",
+        states: [
+          { key: "a", label: "A", kind: "INITIAL" },
+          { key: "z", label: "Z", kind: "TERMINAL" },
+        ],
+        transitions: [{ key: "go", label: "Go", from: "a", to: "z" }],
+      }),
+    ForbiddenError,
+    "a process decides what everybody else in the tenant may do",
+  );
+});
+
 test("a role below the transition's minimum is forbidden, not merely invalid", skipWithoutDb, async () => {
   const { ctx } = await seedFullTenant();
   await seedCatalog(ctx);

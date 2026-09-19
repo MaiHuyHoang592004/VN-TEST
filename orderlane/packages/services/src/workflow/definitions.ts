@@ -2,6 +2,7 @@ import { validateDefinition, type WorkflowDefinition } from "@orderlane/core/wor
 
 import type { Ctx } from "../context.ts";
 import { NotFoundError, ValidationError } from "../errors.ts";
+import { requireRole } from "../identity/tenants.ts";
 
 /**
  * Persisting and loading workflow definitions.
@@ -34,6 +35,10 @@ export async function installDefinition(
   definition: WorkflowDefinition,
   options: { activate?: boolean } = {},
 ): Promise<string> {
+  // Publishing a process decides what everybody else in the tenant may do, so
+  // it is an owner's decision — not merely a member's.
+  requireRole(ctx, "OWNER");
+
   const issues = validateDefinition(definition);
   if (issues.length > 0) {
     throw new ValidationError(
@@ -152,6 +157,8 @@ export async function activeDefinition(ctx: Ctx, key: string): Promise<LoadedDef
  * which a tenant has two active versions of a key, or none at all.
  */
 export async function setActiveDefinition(ctx: Ctx, key: string, version?: number): Promise<string> {
+  requireRole(ctx, "OWNER");
+
   const target = await ctx.db.workflowDefinition.findFirst({
     where: { key, ...(version === undefined ? {} : { version }) },
     orderBy: { version: "desc" },

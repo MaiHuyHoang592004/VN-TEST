@@ -1,3 +1,4 @@
+import { atLeast, type Role } from "@orderlane/core/access";
 import { Workflow, type SubjectFacts, type WorkflowTransition } from "@orderlane/core/workflow";
 
 import { Prisma } from "@orderlane/db";
@@ -11,10 +12,30 @@ import { activeDefinition, loadDefinition, type LoadedDefinition } from "./defin
  * Running workflow instances.
  *
  * The decision of whether a move is legal belongs to @orderlane/core and is
- * pure. This module does the two things that decision cannot do for itself:
- * gather the facts the guards ask about, and write the outcome down without
- * losing a race.
+ * pure. This module does the three things that decision cannot do for itself:
+ * hold the floor below which no configuration may drop, gather the facts the
+ * guards ask about, and write the outcome down without losing a race.
  */
+
+/**
+ * The minimum role for moving work, whatever a definition says.
+ *
+ * A transition's `requiredRole` can raise this bar and never lower it. The
+ * engine's own rule is that `null` means "any member of the tenant", which is
+ * a reasonable primitive and a dangerous default: the lowest membership tier
+ * is read-only, so an open transition would let a VIEWER close a fulfillment
+ * for good. Every other mutating use case in this package opens with the same
+ * line, and this one was the exception.
+ *
+ * Applied in `availableTransitions` as well as `applyTransition`, so the two
+ * cannot disagree — a button the UI renders has to be one the service will
+ * accept.
+ */
+export const TRANSITION_FLOOR: Role = "OPERATOR";
+
+function mayMoveWork(ctx: Ctx): boolean {
+  return atLeast(ctx.actor.role, TRANSITION_FLOOR);
+}
 
 export interface StartFulfillmentInput {
   readonly orderId: string;
@@ -184,6 +205,7 @@ export async function factsForFulfillment(ctx: Ctx, fulfillmentId: string): Prom
 const NO_FACTS: SubjectFacts = { flags: {}, counts: {} };
 
 export async function availableTransitions(ctx: Ctx, instanceId: string): Promise<readonly WorkflowTransition[]> {
+  if (!mayMoveWork(ctx)) return [];
   const instance = await loadInstance(ctx, instanceId);
   const facts = instance.fulfillmentId ? await factsForFulfillment(ctx, instance.fulfillmentId) : NO_FACTS;
   return new Workflow(instance.loaded.definition).available(instance.currentStateKey, ctx.actor, { facts });
@@ -220,6 +242,8 @@ export async function applyTransition(
   transitionKey: string,
   options: ApplyTransitionOptions = {},
 ): Promise<TransitionOutcome> {
+  requireRole(ctx, TRANSITION_FLOOR);
+
   const instance = await loadInstance(ctx, instanceId);
 
   if (options.expectedVersion !== undefined && options.expectedVersion !== instance.version) {

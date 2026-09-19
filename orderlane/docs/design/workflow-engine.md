@@ -69,6 +69,35 @@ engine can be tested in microseconds with no fixtures.
 A guard `kind` with no registered function **denies** the transition. The
 opposite default would let a typo in configuration silently remove a check.
 
+### A floor no configuration can drop below
+
+A transition's `requiredRole` is a minimum, and `null` means "any member of the
+tenant". That is a reasonable primitive and it was a dangerous default: the
+lowest membership tier is read-only, so an open transition handed a `VIEWER`
+the ability to move work — including into a `TERMINAL` state, which nothing can
+move it out of.
+
+Six transitions in the shipped presets had exactly that shape, and for an
+understandable reason: they represent something an *outside party* did —
+a carrier delivering, a buyer approving a proof — so leaving them ungated read
+as "this is not a staff action". But there is no webhook route yet, so in
+practice a person records those events, and that person needs write access.
+
+Two changes, either of which would have been enough:
+
+- `applyTransition` now opens with `requireRole(ctx, TRANSITION_FLOOR)`, where
+  the floor is `OPERATOR`. It was the only mutating use case in the package
+  without such a line. `availableTransitions` applies the same floor, so a
+  rendered button is still a button that works.
+- Every preset transition now names a `requiredRole`, and a test fails if a new
+  one omits it.
+
+The test that was supposed to catch this already existed — `"a viewer sees no
+buttons"` — but it was asserted at one state, and that state happened to be the
+one where both outgoing edges carried a role. It now walks the order forward
+and checks every state it passes through. An invariant tested at one point is a
+claim about that point.
+
 Every guard runs, even after one fails. An operator two steps from being able
 to proceed is told both steps at once.
 
